@@ -1,0 +1,33 @@
+# Pre-commit hooks. Install with `pre-commit install`. See development-foundation.md.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files       # keep bulky data out of git (it's not source)
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-toml
+      - id: detect-private-key            # never commit keys (ADR 0009)
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.5
+    hooks:
+      - id: ruff                          # lint (incl. flake8-bandit security rules)
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets                # secret scanning (threat model)
+        args: [--baseline, .secrets.baseline]
+
+  - repo: local
+    hooks:
+      - id: no-dotenv
+        name: block committing .env
+        entry: bash -c 'git diff --cached --name-only | grep -E "(^|/)\.env$" && echo "Refusing to commit .env" && exit 1 || exit 0'
+        language: system
+        pass_filenames: false

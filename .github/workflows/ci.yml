@@ -1,0 +1,66 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Proves the domain core has ZERO third-party dependencies: it runs on a bare Python
+  # with nothing installed. If this ever needs a `pip install`, the core has been polluted.
+  core-no-deps:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9", "3.12"]   # core is deliberately portable across a wide range
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Run pure-stdlib domain tests
+        run: |
+          PYTHONPATH=src python -m unittest discover -s tests/unit -p 'test_*.py'
+          PYTHONPATH=src python -m unittest discover -s tests/reproducibility -p 'test_*.py'
+
+  full:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: atlas
+          POSTGRES_PASSWORD: atlas
+          POSTGRES_DB: atlas_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      ATLAS_TEST_DB: postgresql+psycopg://atlas:atlas@localhost:5432/atlas_test
+      ATLAS_DB_URL: postgresql+psycopg://atlas:atlas@localhost:5432/atlas_test
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      - name: Sync
+        # NOTE: switch to `--locked` once uv.lock is committed. A hash-locked lockfile is a
+        # Phase-7 entry gate (supply-chain, ADR 0009); until then deps resolve from ranges.
+        run: uv sync --all-extras --dev
+      - name: Lint & format
+        run: uv run ruff check . && uv run ruff format --check .
+      - name: Type check
+        run: uv run mypy src
+      - name: Migrate test DB
+        run: uv run alembic upgrade head
+      - name: Test with coverage
+        run: uv run pytest --cov=atlas --cov-report=term-missing
+      - name: Dependency vulnerability audit
+        run: uv run pip-audit
+      - name: Secret scan (must fail on a new secret — no `|| true`)
+        run: uv run detect-secrets-hook --baseline .secrets.baseline $(git ls-files)

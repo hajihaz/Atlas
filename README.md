@@ -10,12 +10,12 @@
 
 | | |
 |---|---|
-| **Current phase** | **Phase 1 — Foundation & Architecture** ✅ complete |
-| **Capital at risk** | **None.** Atlas holds no capital and executes no trades. This repository is *documentation only.* |
-| **What exists today** | Vision, mission, principles, governance, and the full system architecture. **No application code, APIs, databases, or trading logic yet — by design.** |
-| **Next phase** | [Phase 2 — The Trustworthy Data Foundation](docs/roadmap.md#phase-2--the-trustworthy-data-foundation) |
+| **Current phase** | **Phase 2 — Data Foundation** ✅ complete · Phase 1 ✅ complete |
+| **Capital at risk** | **None.** Atlas holds no capital, has no broker, and executes no trades. |
+| **What exists today** | The full Phase-1 architecture **plus** a working, tested **market-data foundation**: bitemporal point-in-time storage, survivorship-free universe, corporate-action adjustment, a fail-safe data-quality gate, content-addressed reproducibility snapshots, and a hash-chained trial ledger. **No strategies, signals, backtester, portfolio/risk engine, broker, or dashboards yet — by design.** |
+| **Next phase** | [Phase 3 — The Reproducible Backtesting Engine](docs/roadmap.md#phase-3--the-reproducible-backtesting-engine) |
 
-Atlas is built documentation-first and safety-first: the constraints are written *before* the code, so the code inherits them. See the [roadmap](docs/roadmap.md) for how Atlas grows from here to a production-ready quantitative division.
+Atlas is built documentation-first and safety-first: the constraints are written *before* the code, so the code inherits them. The Phase-2 **domain core is pure standard library** (zero third-party deps) and fully tested — run it with `make core-test`. See the [roadmap](docs/roadmap.md) and [data architecture](docs/data/data-architecture.md).
 
 ---
 
@@ -80,6 +80,22 @@ Atlas's design lives entirely in `docs/`. Start at the top and work down.
 | [ADR 0007](docs/adr/0007-jarvis-anti-corruption-layer.md) | Integrate with Jarvis via an anti-corruption layer |
 | [ADR 0008](docs/adr/0008-fail-safe-defaults-and-kill-switch.md) | Fail-safe defaults & a first-class kill switch |
 | [ADR 0009](docs/adr/0009-threat-model-and-security-baseline.md) | Threat model & security baseline as a Phase-1 artifact |
+| [ADR 0010](docs/adr/0010-phase-2-technology-stack.md) | Phase 2 technology stack (Python · Postgres · pure-core/adapter split) |
+| [ADR 0011](docs/adr/0011-bitemporal-point-in-time-model.md) | Bitemporal point-in-time data model |
+| [ADR 0012](docs/adr/0012-trial-ledger.md) | The trial ledger (multiplicity denominator) |
+| [ADR 0013](docs/adr/0013-data-quality-gating.md) | Data-quality gating (fail-safe) |
+| [ADR 0014](docs/adr/0014-reproducibility-and-snapshots.md) | Reproducibility & content-addressed snapshots |
+
+### Data foundation (Phase 2)
+| Document | What it covers |
+|---|---|
+| [docs/data/data-architecture.md](docs/data/data-architecture.md) | Master data architecture, storage, ER model, pipeline, code map |
+| [docs/data/point-in-time.md](docs/data/point-in-time.md) | Bitemporal design — no look-ahead, no survivorship, adjust-on-read |
+| [docs/data/market-data-model.md](docs/data/market-data-model.md) | Instruments, OHLCV, corporate actions, indices/VIX, calendar |
+| [docs/data/data-quality.md](docs/data/data-quality.md) | The validation framework, checks, and the fail-safe gate |
+| [docs/data/reproducibility.md](docs/data/reproducibility.md) | Snapshots, provenance, and the four reproducibility questions |
+| [docs/research/trial-ledger.md](docs/research/trial-ledger.md) | The append-only, hash-chained trial ledger |
+| [docs/development/development-foundation.md](docs/development/development-foundation.md) | Repo structure, tech decisions, testing, workflow, CI |
 
 ---
 
@@ -106,20 +122,26 @@ Value flows left-to-right; **Risk gates every capital action and can veto**; **o
 
 ```
 Atlas/
-├── README.md                     ← you are here
-├── CLAUDE.md                     ← guidance for AI/automation contributors
+├── README.md · CLAUDE.md          ← start here; contributor guide
+├── pyproject.toml · Makefile · .pre-commit-config.yaml · .github/workflows/ci.yml
+├── src/atlas/                     ← the package (Phase 2)
+│   ├── common/                    ← pure spine: time · hashing · ids · types · errors
+│   ├── data/                      ← bitemporal · market · calendars · adjustments ·
+│   │                                universe · quality · snapshots · lineage · ingestion · models
+│   ├── trials/  config/  cli/     ← trial ledger · settings · CLI
+├── database/migrations/           ← Alembic (initial schema)
+├── tests/{unit,integration,reproducibility}/
 ├── docs/
-│   ├── vision.md  mission.md  principles.md
-│   ├── success-criteria.md  failure-criteria.md  roadmap.md
-│   ├── automated-trading-charter.md
-│   ├── architecture/             ← overview, boundaries, domain model, components, Jarvis, NFRs
-│   ├── adr/                      ← architecture decision records (0001–0008)
-│   └── research/                 ← (reserved for later phases)
-├── backend/  frontend/  database/   ← reserved; empty until their roadmap phase
-├── strategies/  backtests/  reports/ ← reserved; empty until their roadmap phase
+│   ├── vision · mission · principles · success/failure-criteria · roadmap · charter
+│   ├── architecture/              ← overview · boundaries · domain-model · components · Jarvis · NFRs · threat-model
+│   ├── data/                      ← data-architecture · point-in-time · market-data-model · data-quality · reproducibility
+│   ├── research/                  ← trial-ledger
+│   ├── development/               ← development-foundation
+│   └── adr/                       ← decision records (0001–0014)
+└── strategies/  backtests/  reports/  frontend/  backend/   ← reserved; empty until their phase
 ```
 
-Directories for code (`backend/`, `frontend/`, `database/`, `strategies/`, `backtests/`, `reports/`) are intentionally **empty placeholders** in Phase 1. Nothing is built until its [roadmap](docs/roadmap.md) phase, and never before the safety machinery that must precede it.
+The **domain core** under `src/atlas/` is pure standard library and fully tested (`make core-test`). `strategies/`, `backtests/`, `reports/`, `frontend/`, `backend/` remain **empty placeholders** — nothing is built until its [roadmap](docs/roadmap.md) phase, and never before the safety machinery that must precede it.
 
 ---
 

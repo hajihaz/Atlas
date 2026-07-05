@@ -8,7 +8,7 @@ This file orients any AI assistant (and any human) working in this repository. *
 
 Atlas is the **Quantitative Trading & Investment Division inside Jarvis** (an AI operating system). It is a long-lived (10+ year) system whose job is to **continuously discover, validate, deploy, monitor, and retire trading strategies on evidence**, while **preserving capital and never risking survival.** Its edge is disciplined *process*, not *prediction*.
 
-**Right now, Atlas is documentation only** (Phase 1 complete). There is no application code, no API, no database, no trading logic — by design. See [README.md](README.md) for status and [docs/roadmap.md](docs/roadmap.md) for what comes next.
+**Phase 1 (architecture/governance) and Phase 2 (the data foundation) are complete.** Atlas now has real, tested code — but **only the market-data layer**: bitemporal point-in-time storage, survivorship-free universe, corporate-action adjustment, a fail-safe data-quality gate, reproducibility snapshots, and a hash-chained trial ledger. There are still **no strategies, signals, backtester, portfolio/risk engine, broker, or dashboards** — those are later phases. See [README.md](README.md), [docs/roadmap.md](docs/roadmap.md), and [docs/data/data-architecture.md](docs/data/data-architecture.md).
 
 ## 2. The golden rules (never violate without a ratified ADR)
 
@@ -27,9 +27,23 @@ These are the safety-critical constraints. They may be **strengthened freely**, 
 
 If a request would breach one of these, **do not silently comply.** Surface the conflict, explain it, and propose a safe alternative or a proper ADR.
 
+## 2a. Data-layer rules (Phase 2 — read before touching `src/atlas/`)
+
+The market-data foundation has its own load-bearing rules ([data-architecture.md](docs/data/data-architecture.md)):
+
+- **Keep the domain core pure.** `atlas.common`, `atlas.data.{bitemporal,market,calendars,adjustments,universe,quality,snapshots,lineage}`, and `atlas.trials` import **zero third-party packages**. Heavy deps (SQLAlchemy, Pydantic, pandas, Typer) live only in adapters (`data.models`, `ingestion.adapters`, `config`, `cli`). CI's `core-no-deps` job fails if this is violated. ([ADR 0010](docs/adr/0010-phase-2-technology-stack.md))
+- **All datetimes are timezone-aware.** Naive datetimes are rejected (`require_aware`). Knowledge time is UTC; sessions are IST. A wrong clock silently breaks point-in-time truth. ([ADR 0011](docs/adr/0011-bitemporal-point-in-time-model.md))
+- **Bitemporal facts are append-only.** Never UPDATE a price/membership/CA in place — a correction *appends* a new version and closes the old one. Never store adjusted prices; adjust **on read** from actions known as-of the query.
+- **Never delete an instrument.** Delisted names persist — that is what makes the universe survivorship-free.
+- **Bad data halts, it does not pass.** Route ingestion through the quality gate; a halting finding means the batch is quarantined (nothing loaded). Do not add a code path that loads unvalidated data. ([ADR 0013](docs/adr/0013-data-quality-gating.md))
+- **Prices are `Decimal`, never `float`.** Float breaks reproducibility.
+- **Reproducibility: pin snapshots, record provenance.** Research reads a `snapshot_id`, not "latest". Every experiment writes to the [trial ledger](docs/research/trial-ledger.md). ([ADR 0014](docs/adr/0014-reproducibility-and-snapshots.md))
+- **The pure reference semantics define correctness; the SQL layer must match them** (asserted by the integration test).
+- **Run `make core-test`** (no deps) or `make test` (full) before proposing changes; keep coverage ≥ 85%.
+
 ## 3. What NOT to do
 
-- **Do not add application code, APIs, database schemas/migrations, or trading logic during a documentation phase.** Phase 1 is architecture and governance only. Build things in their [roadmap](docs/roadmap.md) phase, not before.
+- **Do not build ahead of the roadmap phase.** Phase 2 is the **data layer only**. Do **not** add strategies, signals, a backtester, portfolio/risk engines, broker integrations, AI prediction, APIs, or dashboards — those belong to later phases and their safety machinery must precede them.
 - **Do not write anything that could place, size, or approve a real trade** outside the governed path (evidence gate → risk veto → human approval → execution with kill switch). Even in later phases.
 - **Do not weaken a safety constraint to make something easier.** Convenience never outranks survival.
 - **Do not introduce a strategy, metric, or ranking based on win rate alone** — expectancy and the full outcome distribution govern. ([principle 1.1](docs/principles.md#11-expectancy-over-win-rate))

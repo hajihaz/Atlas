@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Env & secrets — NEVER commit real credentials (threat model / ADR 0009)
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets/
+
+# Test / coverage / type caches
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+
+# Local data — the source of truth lives in Postgres + object storage, NOT git.
+# Raw vendor payloads, Parquet snapshots, and local DBs are reproducible artifacts,
+# not source. (See docs/data/reproducibility.md.)
+/data/local/
+/data/snapshots/
+*.parquet
+*.duckdb
+*.sqlite
+*.sqlite3
+!tests/**/fixtures/**
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
