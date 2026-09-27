@@ -121,3 +121,12 @@ class TransactionalJournalTests(unittest.TestCase):
                     valuation_prices={"A": Decimal("10")},
                     event_time=dt.datetime(2026, 9, 27, tzinfo=dt.UTC),
                 )
+
+    def test_unknown_schema_version_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "journal.db"
+            TransactionalExecutionJournal(path)
+            with sqlite3.connect(path) as db:
+                db.execute("UPDATE journal_meta SET value='999' WHERE key='schema_version'")
+            with self.assertRaises(RuntimeError):
+                TransactionalExecutionJournal(path)

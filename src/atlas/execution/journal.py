@@ -31,6 +31,8 @@ class JournalRecovery:
 class TransactionalExecutionJournal:
     """SQLite-backed exactly-once broker-observation journal for paper execution."""
 
+    SCHEMA_VERSION = 1
+
     def __init__(self, path: str | Path):
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -44,6 +46,20 @@ class TransactionalExecutionJournal:
 
     def _initialize(self) -> None:
         with self._connect() as db:
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS journal_meta "
+                "(key TEXT PRIMARY KEY, value TEXT NOT NULL)"
+            )
+            version = db.execute(
+                "SELECT value FROM journal_meta WHERE key='schema_version'"
+            ).fetchone()
+            if version is None:
+                db.execute(
+                    "INSERT INTO journal_meta(key,value) VALUES('schema_version',?)",
+                    (str(self.SCHEMA_VERSION),),
+                )
+            elif version[0] != str(self.SCHEMA_VERSION):
+                raise RuntimeError(f"unsupported execution journal schema version: {version[0]}")
             db.execute(
                 """CREATE TABLE IF NOT EXISTS execution_events (
                 seq INTEGER PRIMARY KEY,
