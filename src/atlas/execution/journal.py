@@ -15,6 +15,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from atlas.broker.adapter import BrokerFill
+from atlas.common.hashing import GENESIS_HASH, content_hash
 from atlas.execution.ledger import ExecutionEvent, ExecutionLedger
 from atlas.execution.simulator import Fill
 from atlas.portfolio.account import PortfolioAccount, PortfolioState
@@ -51,7 +52,9 @@ class TransactionalExecutionJournal:
                 cash_after TEXT NOT NULL,
                 holdings_json TEXT NOT NULL,
                 equity_after TEXT NOT NULL,
-                chain_hash TEXT NOT NULL UNIQUE
+                chain_hash TEXT NOT NULL UNIQUE,
+                prev_state_hash TEXT NOT NULL,
+                state_hash TEXT NOT NULL UNIQUE
                 )"""
             )
 
@@ -108,6 +111,12 @@ class TransactionalExecutionJournal:
         holdings = json.dumps(
             dict(sorted(staged_account.state.holdings.items())), separators=(",", ":")
         )
+        state_payload = {
+            "cash": str(transition.cash_after),
+            "holdings": dict(sorted(staged_account.state.holdings.items())),
+            "equity": str(transition.equity_after),
+            "event_id": event_id,
+        }
         with self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
             if db.execute(
@@ -119,8 +128,13 @@ class TransactionalExecutionJournal:
             if expected_seq != staged_entry.seq:
                 db.rollback()
                 raise RuntimeError("journal/ledger sequence divergence")
+            previous = db.execute(
+                "SELECT state_hash FROM execution_events ORDER BY seq DESC LIMIT 1"
+            ).fetchone()
+            prev_state_hash = previous[0] if previous else GENESIS_HASH
+            state_hash = content_hash({"prev": prev_state_hash, "state": state_payload})
             db.execute(
-                "INSERT INTO execution_events VALUES (?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO execution_events VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     staged_entry.seq,
                     event_id,
@@ -129,6 +143,8 @@ class TransactionalExecutionJournal:
                     holdings,
                     str(transition.equity_after),
                     staged_entry.chain_hash,
+                    prev_state_hash,
+                    state_hash,
                 ),
             )
             db.commit()
@@ -143,11 +159,22 @@ class TransactionalExecutionJournal:
         applied: set[str] = set()
         with self._connect() as db:
             rows = db.execute(
-                "SELECT seq,event_id,event_json,cash_after,holdings_json,equity_after,chain_hash "
-                "FROM execution_events ORDER BY seq"
+                "SELECT seq,event_id,event_json,cash_after,holdings_json,equity_after,chain_hash,"
+                "prev_state_hash,state_hash FROM execution_events ORDER BY seq"
             ).fetchall()
+        previous_state_hash = GENESIS_HASH
         for expected_seq, row in enumerate(rows):
-            seq, event_id, event_json, cash_after, holdings_json, equity_after, chain_hash = row
+            (
+                seq,
+                event_id,
+                event_json,
+                cash_after,
+                holdings_json,
+                equity_after,
+                chain_hash,
+                prev_state_hash,
+                state_hash,
+            ) = row
             if seq != expected_seq:
                 raise RuntimeError("journal sequence gap")
             raw = json.loads(event_json)
@@ -170,6 +197,20 @@ class TransactionalExecutionJournal:
             holdings = {k: int(v) for k, v in json.loads(holdings_json).items()}
             state = PortfolioState(Decimal(cash_after), holdings, Decimal(equity_after))
             state.validate()
+            if event.cash != state.cash or event.equity != state.equity:
+                raise RuntimeError("journal event/account state divergence")
+            state_payload = {
+                "cash": str(state.cash),
+                "holdings": dict(sorted(state.holdings.items())),
+                "equity": str(state.equity),
+                "event_id": event_id,
+            }
+            expected_state_hash = content_hash(
+                {"prev": previous_state_hash, "state": state_payload}
+            )
+            if prev_state_hash != previous_state_hash or state_hash != expected_state_hash:
+                raise RuntimeError("journal account-state chain integrity failure")
+            previous_state_hash = state_hash
             account = PortfolioAccount(
                 cash=state.cash, holdings=state.holdings, equity=state.equity
             )

@@ -25,7 +25,8 @@
 - [x] Document production deployment trust boundaries.
 - [x] Expand LEAN golden fixture matrix beyond current SPY fixture (multi-asset, rebalance, sell-to-zero).
 - [x] Transactionally couple broker observation + account + ledger + idempotency persistence with the SQLite execution journal.
-- [ ] Extended crash-window/chaos campaign across durable stores.
+- [x] Initial crash-window/chaos campaign across the transactional journal: duplicate replay, validation-before-commit, unjournaled-ledger divergence, ledger tamper, and account-state tamper all fail closed.
+- [ ] Extended fault-injection campaign for OS/process interruption during SQLite commit and recovery.
 - [ ] Sustained external sandbox/paper evidence (requires external broker credential/data).
 - [ ] Production broker/provider selection and credential isolation (owner/external gate).
 - [ ] Compliance review and authenticated live-capital authorization (owner/external gate).

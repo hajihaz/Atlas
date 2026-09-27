@@ -25,6 +25,6 @@ Verified in this work session:
 - Canonical ./scripts/certify.sh performs 11 offline engineering gates, including the real LEAN golden fixture.
 - Actual LEAN certification now covers two fixtures: the original SPY decision fixture and a multi-asset SPY/AAPL rebalance + sell-to-zero matrix fixture. Both pass with frozen outputs.
 
-TransactionalExecutionJournal now provides a single durable SQLite commit boundary for broker fill observation, account snapshot, ledger chain checkpoint, and exactly-once event ID; restart recovery verifies chain integrity.
+TransactionalExecutionJournal now provides a single durable SQLite commit boundary for broker fill observation, account snapshot, ledger chain checkpoint, and exactly-once event ID. Recovery verifies both the execution hash chain and a separate account-state hash chain; tamper/divergence tests fail closed.
 
 Live-capital status: BLOCKED by design. Offline engineering PASS does not authorize live trading.
