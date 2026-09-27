@@ -28,5 +28,6 @@
 - [x] Initial crash-window/chaos campaign across the transactional journal: duplicate replay, validation-before-commit, unjournaled-ledger divergence, ledger tamper, and account-state tamper all fail closed.
 - [ ] Extended fault-injection campaign for OS/process interruption during SQLite commit and recovery.
 - [ ] Sustained external sandbox/paper evidence (requires external broker credential/data).
+- [x] Define production deployment authority zones, durable-state invariants, secret isolation, network policy, and fail-safe release gates.
 - [ ] Production broker/provider selection and credential isolation (owner/external gate).
 - [ ] Compliance review and authenticated live-capital authorization (owner/external gate).
