@@ -69,6 +69,10 @@ def run() -> int:
         raise RuntimeError("Atlas local .NET SDK is missing")
     env = os.environ.copy()
     env["DOTNET_ROOT"] = str(DOTNET.parent)
+    fixture_dir = ROOT / "scripts/lean-fixtures"
+    algorithm_dir = LEAN / "Algorithm.CSharp"
+    for fixture in fixture_dir.glob("AtlasGolden*Algorithm.cs"):
+        shutil.copy2(fixture, algorithm_dir / fixture.name)
     subprocess.run(  # noqa: S603 - fixed local dotnet executable and arguments
         [
             str(DOTNET),

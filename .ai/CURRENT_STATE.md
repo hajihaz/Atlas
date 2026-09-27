@@ -23,6 +23,6 @@ Verified in this work session:
 - Reconciliation optionally covers equity and fees in addition to cash/positions.
 - Paper reporting includes turnover, fees, fills and rejected-order counts.
 - Canonical ./scripts/certify.sh performs 11 offline engineering gates, including the real LEAN golden fixture.
-- Actual LEAN Atlas golden fixture was rerun successfully on 2026-09-27: 1 order, end equity 101284.13, fees $2.18, turnover 20.81%.
+- Actual LEAN certification now covers two fixtures: the original SPY decision fixture and a multi-asset SPY/AAPL rebalance + sell-to-zero matrix fixture. Both pass with frozen outputs.
 
 Live-capital status: BLOCKED by design. Offline engineering PASS does not authorize live trading.

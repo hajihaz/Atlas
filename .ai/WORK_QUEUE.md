@@ -23,7 +23,7 @@
 - [x] Add live-gate and strategy-promotion adversarial tests.
 - [x] Add crash/corruption recovery tests for durable safety state.
 - [x] Document production deployment trust boundaries.
-- [ ] Expand LEAN golden fixture matrix beyond current SPY fixture.
+- [x] Expand LEAN golden fixture matrix beyond current SPY fixture (multi-asset, rebalance, sell-to-zero).
 - [ ] Transactionally couple broker observation + account + ledger + idempotency persistence.
 - [ ] Extended crash-window/chaos campaign across durable stores.
 - [ ] Sustained external sandbox/paper evidence (requires external broker credential/data).
