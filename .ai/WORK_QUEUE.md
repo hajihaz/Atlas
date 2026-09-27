@@ -19,6 +19,10 @@
 - [x] Expand paper reporting operational metrics.
 - [x] Create canonical 10-gate offline certification command.
 - [x] Re-run actual LEAN Atlas golden fixture successfully.
+- [x] Automate LEAN golden certification inside the canonical engineering certification.
+- [x] Add live-gate and strategy-promotion adversarial tests.
+- [x] Add crash/corruption recovery tests for durable safety state.
+- [x] Document production deployment trust boundaries.
 - [ ] Expand LEAN golden fixture matrix beyond current SPY fixture.
 - [ ] Transactionally couple broker observation + account + ledger + idempotency persistence.
 - [ ] Extended crash-window/chaos campaign across durable stores.

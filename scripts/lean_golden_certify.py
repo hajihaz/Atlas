@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build and run the real LEAN Atlas golden fixture, then verify known outputs."""
+"""Build and run real LEAN Atlas golden fixtures, then verify frozen outputs."""
 
 from __future__ import annotations
 
@@ -14,6 +14,54 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOTNET = ROOT / ".tooling/dotnet/dotnet"
 LEAN = ROOT / "Lean"
+
+FIXTURES = {
+    "AtlasGoldenFixtureAlgorithm": {
+        "Total Orders": "1",
+        "End Equity": "101284.13",
+        "Total Fees": "$2.18",
+        "Portfolio Turnover": "20.81%",
+    },
+    "AtlasGoldenMatrixAlgorithm": {
+        "Total Orders": "5",
+        "End Equity": "100865.94",
+        "Total Fees": "$35.16",
+        "Portfolio Turnover": "24.89%",
+    },
+}
+
+
+def _run_fixture(name: str, expected: dict[str, str], *, env: dict[str, str], dll: Path) -> None:
+    launcher = LEAN / "Launcher/bin/Release"
+    with tempfile.TemporaryDirectory(prefix=f"atlas-lean-{name}-") as tmp:
+        cmd = [
+            str(DOTNET),
+            "QuantConnect.Lean.Launcher.dll",
+            "--algorithm-type-name",
+            name,
+            "--algorithm-language",
+            "CSharp",
+            "--algorithm-location",
+            str(dll),
+            "--data-folder",
+            str(LEAN / "Data"),
+            "--results-destination-folder",
+            tmp,
+        ]
+        result = subprocess.run(  # noqa: S603 - fixed local LEAN launcher
+            cmd, cwd=launcher, env=env, text=True, capture_output=True, timeout=60, input="\n"
+        )
+        if result.returncode:
+            sys.stderr.write(result.stdout + result.stderr)
+            raise RuntimeError(f"LEAN fixture failed: {name}")
+        summary = json.loads((Path(tmp) / f"{name}-summary.json").read_text())
+        stats = summary["statistics"]
+        mismatches = {k: (stats.get(k), v) for k, v in expected.items() if stats.get(k) != v}
+        if summary["state"]["Status"] != "Completed":
+            mismatches["Status"] = (summary["state"]["Status"], "Completed")
+        if mismatches:
+            raise RuntimeError(f"LEAN golden fixture diverged ({name}): {mismatches}")
+        print(f"  PASS {name}: " + ", ".join(f"{k}={v}" for k, v in expected.items()))
 
 
 def run() -> int:
@@ -36,51 +84,10 @@ def run() -> int:
         stdout=subprocess.DEVNULL,
     )
     dll = LEAN / "Algorithm.CSharp/bin/Release/QuantConnect.Algorithm.CSharp.dll"
-    launcher = LEAN / "Launcher/bin/Release"
-    shutil.copy2(dll, launcher / dll.name)
-    with tempfile.TemporaryDirectory(prefix="atlas-lean-") as tmp:
-        cmd = [
-            str(DOTNET),
-            "QuantConnect.Lean.Launcher.dll",
-            "--algorithm-type-name",
-            "AtlasGoldenFixtureAlgorithm",
-            "--algorithm-language",
-            "CSharp",
-            "--algorithm-location",
-            str(dll),
-            "--data-folder",
-            str(LEAN / "Data"),
-            "--results-destination-folder",
-            tmp,
-        ]
-        result = subprocess.run(  # noqa: S603 - fixed local LEAN launcher
-            cmd,
-            cwd=launcher,
-            env=env,
-            text=True,
-            capture_output=True,
-            timeout=60,
-            input="\n",
-        )
-        if result.returncode:
-            sys.stderr.write(result.stdout + result.stderr)
-            return result.returncode
-        summary = json.loads((Path(tmp) / "AtlasGoldenFixtureAlgorithm-summary.json").read_text())
-        stats = summary["statistics"]
-        expected = {
-            "Total Orders": "1",
-            "End Equity": "101284.13",
-            "Total Fees": "$2.18",
-            "Portfolio Turnover": "20.81%",
-        }
-        mismatches = {k: (stats.get(k), v) for k, v in expected.items() if stats.get(k) != v}
-        if summary["state"]["Status"] != "Completed":
-            mismatches["Status"] = (summary["state"]["Status"], "Completed")
-        if mismatches:
-            raise RuntimeError(f"LEAN golden fixture diverged: {mismatches}")
-        print("LEAN GOLDEN CERTIFICATION: PASS")
-        for key, value in expected.items():
-            print(f"  {key}: {value}")
+    shutil.copy2(dll, LEAN / "Launcher/bin/Release" / dll.name)
+    for name, expected in FIXTURES.items():
+        _run_fixture(name, expected, env=env, dll=dll)
+    print(f"LEAN GOLDEN CERTIFICATION: PASS ({len(FIXTURES)} fixtures)")
     return 0
 
 

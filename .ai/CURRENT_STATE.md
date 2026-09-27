@@ -4,8 +4,8 @@ Status: autonomous hardening checkpoint completed — 2026-09-27
 
 Verified in this work session:
 - Python 3.11 is the canonical test path; pytest resolves src automatically.
-- 216 unit/reproducibility tests pass.
-- Full pytest: 216 passed, 1 PostgreSQL integration test skipped because ATLAS_TEST_DB is unset.
+- 222 unit/reproducibility tests pass.
+- Full pytest: 222 passed, 1 PostgreSQL integration test skipped because ATLAS_TEST_DB is unset.
 - Ruff passes across src/tests/scripts.
 - mypy strict passes across src/atlas.
 - compileall passes.
@@ -22,7 +22,7 @@ Verified in this work session:
 - Risk gate now covers concentration/gross exposure plus position-count, turnover and drawdown limits.
 - Reconciliation optionally covers equity and fees in addition to cash/positions.
 - Paper reporting includes turnover, fees, fills and rejected-order counts.
-- Canonical ./scripts/certify.sh performs 10 offline engineering gates.
+- Canonical ./scripts/certify.sh performs 11 offline engineering gates, including the real LEAN golden fixture.
 - Actual LEAN Atlas golden fixture was rerun successfully on 2026-09-27: 1 order, end equity 101284.13, fees $2.18, turnover 20.81%.
 
 Live-capital status: BLOCKED by design. Offline engineering PASS does not authorize live trading.
