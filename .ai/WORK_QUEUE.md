@@ -24,7 +24,7 @@
 - [x] Add crash/corruption recovery tests for durable safety state.
 - [x] Document production deployment trust boundaries.
 - [x] Expand LEAN golden fixture matrix beyond current SPY fixture (multi-asset, rebalance, sell-to-zero).
-- [ ] Transactionally couple broker observation + account + ledger + idempotency persistence.
+- [x] Transactionally couple broker observation + account + ledger + idempotency persistence with the SQLite execution journal.
 - [ ] Extended crash-window/chaos campaign across durable stores.
 - [ ] Sustained external sandbox/paper evidence (requires external broker credential/data).
 - [ ] Production broker/provider selection and credential isolation (owner/external gate).
