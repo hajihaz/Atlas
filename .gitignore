@@ -48,3 +48,7 @@ htmlcov/
 /FinRL-Trading/
 /Freqtrade/
 /.tooling/
+
+# Local .NET adapter build artifacts
+lean-adapter/bin/
+lean-adapter/obj/
