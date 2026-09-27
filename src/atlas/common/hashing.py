@@ -35,7 +35,7 @@ def _default(obj: Any) -> Any:
     if isinstance(obj, _dt.datetime):
         if obj.tzinfo is None:
             raise ValueError("refusing to hash a naive datetime (point-in-time hazard)")
-        return obj.astimezone(_dt.timezone.utc).isoformat()
+        return obj.astimezone(_dt.UTC).isoformat()
     if isinstance(obj, _dt.date):
         return obj.isoformat()
     if isinstance(obj, Enum):
@@ -69,7 +69,7 @@ def chain_hash(previous_hash: str, record_hash: str) -> str:
     Any later mutation of an earlier record breaks every subsequent link, so the whole
     chain is verifiable from its head hash alone.
     """
-    return hashlib.sha256(f"{previous_hash}:{record_hash}".encode("utf-8")).hexdigest()
+    return hashlib.sha256(f"{previous_hash}:{record_hash}".encode()).hexdigest()
 
 
 def hash_bytes(data: bytes) -> str:

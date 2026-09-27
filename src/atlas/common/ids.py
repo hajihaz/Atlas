@@ -52,5 +52,5 @@ def snapshot_id(
 
 
 def ingestion_run_id(source: str, as_of_iso: str, scope: Any) -> str:
-    """Deterministic id for one ingestion run (source × knowledge-time × scope)."""
+    """Deterministic id for one ingestion run (source x knowledge-time x scope)."""
     return deterministic_id("run", source, as_of_iso, scope)

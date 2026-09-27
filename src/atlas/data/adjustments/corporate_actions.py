@@ -15,9 +15,9 @@ price factors of all actions with ``ex_date > D`` (that were known as-of the que
 from __future__ import annotations
 
 import datetime as _dt
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Iterable, Mapping
 
 from atlas.common.types import CorporateActionType
 
@@ -45,8 +45,12 @@ class CorporateAction:
 
 #: Corporate actions that scale historical prices (and therefore must be handled here).
 _PRICE_AFFECTING = frozenset(
-    {CorporateActionType.SPLIT, CorporateActionType.BONUS,
-     CorporateActionType.DIVIDEND, CorporateActionType.RIGHTS}
+    {
+        CorporateActionType.SPLIT,
+        CorporateActionType.BONUS,
+        CorporateActionType.DIVIDEND,
+        CorporateActionType.RIGHTS,
+    }
 )
 
 

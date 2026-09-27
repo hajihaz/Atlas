@@ -9,8 +9,8 @@ so persistence can dedupe on ``(key, knowledge_from)``.
 from __future__ import annotations
 
 import datetime as _dt
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Mapping
 
 from atlas.common.errors import DataQualityHalt
 from atlas.common.ids import ingestion_run_id
@@ -34,7 +34,9 @@ class IngestionResult:
 
     def raise_if_halted(self) -> None:
         if self.halted:
-            raise DataQualityHalt(f"ingestion run {self.run_id} halted by quality gate", self.report)
+            raise DataQualityHalt(
+                f"ingestion run {self.run_id} halted by quality gate", self.report
+            )
 
 
 def ingest(
@@ -70,8 +72,11 @@ def ingest(
     run_id = ingestion_run_id(
         adapter.name,
         knowledge_time.isoformat(),
-        {"symbols": list(request.symbols), "start": request.start.isoformat(),
-         "end": request.end.isoformat()},
+        {
+            "symbols": list(request.symbols),
+            "start": request.start.isoformat(),
+            "end": request.end.isoformat(),
+        },
     )
     bars = adapter.fetch(request)
 

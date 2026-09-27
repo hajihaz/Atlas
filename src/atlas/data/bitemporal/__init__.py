@@ -23,10 +23,10 @@ from atlas.data.bitemporal.asof import (
 from atlas.data.bitemporal.records import BitemporalVersion
 
 __all__ = [
-    "BitemporalVersion",
     "BitemporalStore",
+    "BitemporalVersion",
+    "append_revision",
     "resolve_asof",
     "resolve_series",
-    "append_revision",
     "verify_contiguity",
 ]

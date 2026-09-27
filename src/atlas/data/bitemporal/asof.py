@@ -8,8 +8,10 @@ functions compute; the reproducibility tests assert that equivalence.
 from __future__ import annotations
 
 import datetime as _dt
+import itertools
 from collections import defaultdict
-from typing import Any, Iterable, Mapping
+from collections.abc import Iterable, Mapping
+from typing import Any
 
 from atlas.common.errors import PointInTimeViolation
 from atlas.common.time_utils import FAR_FUTURE, require_aware, to_utc
@@ -84,7 +86,7 @@ def verify_contiguity(versions: Iterable[BitemporalVersion]) -> None:
         by_key[v.key].append(v)
     for key, group in by_key.items():
         ordered = sorted(group, key=lambda v: v.knowledge_from)
-        for a, b in zip(ordered, ordered[1:]):
+        for a, b in itertools.pairwise(ordered):
             if a.knowledge_to != b.knowledge_from:
                 raise PointInTimeViolation(
                     f"non-contiguous knowledge intervals for {key!r}: "

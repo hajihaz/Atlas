@@ -1,0 +1,27 @@
+# Work Queue
+
+- [x] Reconcile stale Atlas project state and engineering baseline.
+- [x] Standardize Python 3.11 test execution.
+- [x] Fix full pytest discovery behavior; PostgreSQL integration skips cleanly without ATLAS_TEST_DB.
+- [x] Make Ruff clean across src/tests/scripts.
+- [x] Make strict mypy clean across src/atlas.
+- [x] Run dependency and secret audits.
+- [x] Add durable execution-ledger persistence and tamper detection.
+- [x] Add durable paper-account recovery with ledger checkpoint validation.
+- [x] Add durable external-event idempotency registry.
+- [x] Add persistent emergency halt state.
+- [x] Add operational health aggregation.
+- [x] Expand deterministic paper broker failure scenarios.
+- [x] Add broker order-state transition validation.
+- [x] Expand independent risk limits.
+- [x] Expand cash/position reconciliation to optional equity/fee reconciliation.
+- [x] Add market-data adversarial tests.
+- [x] Expand paper reporting operational metrics.
+- [x] Create canonical 10-gate offline certification command.
+- [x] Re-run actual LEAN Atlas golden fixture successfully.
+- [ ] Expand LEAN golden fixture matrix beyond current SPY fixture.
+- [ ] Transactionally couple broker observation + account + ledger + idempotency persistence.
+- [ ] Extended crash-window/chaos campaign across durable stores.
+- [ ] Sustained external sandbox/paper evidence (requires external broker credential/data).
+- [ ] Production broker/provider selection and credential isolation (owner/external gate).
+- [ ] Compliance review and authenticated live-capital authorization (owner/external gate).

@@ -10,8 +10,9 @@ same K must reproduce the same digest; :func:`verify_manifest` proves it.
 from __future__ import annotations
 
 import datetime as _dt
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from atlas.common.errors import ReproducibilityError
 from atlas.common.hashing import content_hash
@@ -30,7 +31,7 @@ class SnapshotManifest:
     """The reproducibility contract for one materialized dataset."""
 
     snapshot_id: str
-    as_of: _dt.datetime            # knowledge time the world was frozen at
+    as_of: _dt.datetime  # knowledge time the world was frozen at
     universe_spec: Mapping[str, Any]
     content_digest: str
     row_count: int
@@ -66,8 +67,9 @@ def build_manifest(
     """Materialize a manifest from an as-of dataset."""
     as_of = to_utc(require_aware(as_of, field="as_of"))
     digest = _dataset_digest(rows)
-    sid = _snapshot_id(as_of.isoformat(), dict(universe_spec), digest,
-                       code_version, dependency_lock_hash)
+    sid = _snapshot_id(
+        as_of.isoformat(), dict(universe_spec), digest, code_version, dependency_lock_hash
+    )
     return SnapshotManifest(
         snapshot_id=sid,
         as_of=as_of,

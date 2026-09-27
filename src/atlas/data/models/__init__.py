@@ -24,15 +24,15 @@ from atlas.data.models.tables import (
 
 __all__ = [
     "Base",
-    "metadata",
-    "SourceRow",
+    "CorporateActionRow",
+    "DataQualityFinding",
+    "IndexMembershipRow",
+    "IngestionRun",
     "InstrumentRow",
     "OHLCVObservation",
-    "CorporateActionRow",
-    "IndexMembershipRow",
-    "TradingHoliday",
-    "IngestionRun",
-    "DataQualityFinding",
     "SnapshotRow",
+    "SourceRow",
+    "TradingHoliday",
     "TrialLedgerRow",
+    "metadata",
 ]

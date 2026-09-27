@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import datetime as dt
 import unittest
-from decimal import Decimal
 
 from atlas.common.errors import (
     AtlasError,
@@ -59,8 +58,9 @@ class TestContiguity(unittest.TestCase):
 
 class TestRightsFailsClosed(unittest.TestCase):
     def test_rights_raises_not_silent(self) -> None:
-        ca = CorporateAction("i", CorporateActionType.RIGHTS, dt.date(2024, 3, 15),
-                             {"ratio": "1:5", "price": "50"})
+        ca = CorporateAction(
+            "i", CorporateActionType.RIGHTS, dt.date(2024, 3, 15), {"ratio": "1:5", "price": "50"}
+        )
         with self.assertRaises(NotImplementedError):
             price_factor(ca)
 
@@ -109,8 +109,9 @@ class TestNewGateChecks(unittest.TestCase):
 
     def test_calendar_coverage_halts_outside_range(self) -> None:
         # NSE seed covers 2024-2025; a 2026 range must HALT, not silently trust weekday.
-        batch = DataBatch(bars=[], calendar=NSE,
-                          date_range=(dt.date(2026, 1, 5), dt.date(2026, 1, 6)))
+        batch = DataBatch(
+            bars=[], calendar=NSE, date_range=(dt.date(2026, 1, 5), dt.date(2026, 1, 6))
+        )
         self.assertTrue(default_suite().validate(batch).halted)
 
     def test_freshness_halts_on_stale_feed(self) -> None:
@@ -127,18 +128,31 @@ class TestMembershipRejoin(unittest.TestCase):
     def test_leave_then_rejoin(self) -> None:
         log = UniverseLog()
         # In 2020-2021, out 2021-2023, back in from 2023 (each learned when it happened).
-        log.add_membership(index="NIFTY_50", instrument_id="A", valid_from=dt.date(2020, 1, 1),
-                           valid_to=dt.date(2021, 6, 1),
-                           knowledge_time=dt.datetime(2020, 1, 1, tzinfo=UTC), source="idx")
-        log.add_membership(index="NIFTY_50", instrument_id="A", valid_from=dt.date(2023, 1, 1),
-                           knowledge_time=dt.datetime(2023, 1, 1, tzinfo=UTC), source="idx")
+        log.add_membership(
+            index="NIFTY_50",
+            instrument_id="A",
+            valid_from=dt.date(2020, 1, 1),
+            valid_to=dt.date(2021, 6, 1),
+            knowledge_time=dt.datetime(2020, 1, 1, tzinfo=UTC),
+            source="idx",
+        )
+        log.add_membership(
+            index="NIFTY_50",
+            instrument_id="A",
+            valid_from=dt.date(2023, 1, 1),
+            knowledge_time=dt.datetime(2023, 1, 1, tzinfo=UTC),
+            source="idx",
+        )
         k = dt.datetime(2024, 1, 1, tzinfo=UTC)
-        self.assertIn("A", log.constituents(index="NIFTY_50", event_date=dt.date(2020, 6, 1),
-                                            known_as_of=k))
-        self.assertNotIn("A", log.constituents(index="NIFTY_50", event_date=dt.date(2022, 6, 1),
-                                               known_as_of=k))  # the gap
-        self.assertIn("A", log.constituents(index="NIFTY_50", event_date=dt.date(2023, 6, 1),
-                                            known_as_of=k))
+        self.assertIn(
+            "A", log.constituents(index="NIFTY_50", event_date=dt.date(2020, 6, 1), known_as_of=k)
+        )
+        self.assertNotIn(
+            "A", log.constituents(index="NIFTY_50", event_date=dt.date(2022, 6, 1), known_as_of=k)
+        )  # the gap
+        self.assertIn(
+            "A", log.constituents(index="NIFTY_50", event_date=dt.date(2023, 6, 1), known_as_of=k)
+        )
 
 
 class TestLedgerTruncationDetection(unittest.TestCase):

@@ -14,10 +14,10 @@ from atlas.trials.ledger import LedgerEntry, TrialLedger, TrialRecord
 from atlas.trials.store import InMemoryLedgerStore, JsonlLedgerStore, LedgerStore
 
 __all__ = [
-    "TrialRecord",
-    "TrialLedger",
-    "LedgerEntry",
-    "LedgerStore",
     "InMemoryLedgerStore",
     "JsonlLedgerStore",
+    "LedgerEntry",
+    "LedgerStore",
+    "TrialLedger",
+    "TrialRecord",
 ]

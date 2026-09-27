@@ -10,9 +10,10 @@ are enforced here. Prices are ``Decimal`` — never float — so reproducibility
 from __future__ import annotations
 
 import datetime as _dt
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation, localcontext
-from typing import Any, Mapping
+from typing import Any
 
 from atlas.common.errors import AtlasError
 from atlas.common.types import InstrumentType
@@ -20,8 +21,8 @@ from atlas.common.types import InstrumentType
 #: Sane bounds on a price's magnitude/precision. Untrusted vendor input is coerced inside a
 #: bounded decimal context so a hostile feed cannot DoS us with a degenerate value like
 #: "1E1000000000" (which would burn unbounded CPU/RAM when later serialized/hashed).
-_MAX_PRICE_EXPONENT = 12   # up to ~1e12; NSE prices are far below this
-_MAX_VOLUME_DIGITS = 18    # fits BigInteger; rejects absurd digit strings
+_MAX_PRICE_EXPONENT = 12  # up to ~1e12; NSE prices are far below this
+_MAX_VOLUME_DIGITS = 18  # fits BigInteger; rejects absurd digit strings
 
 
 def _to_decimal(value: Decimal | str | int) -> Decimal:

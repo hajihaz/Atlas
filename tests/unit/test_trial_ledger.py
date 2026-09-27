@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import unittest
 
-from atlas.common.errors import LedgerIntegrityError
+from atlas.common.errors import LedgerIntegrityError, PointInTimeViolation
 from atlas.common.time_utils import UTC
 from atlas.common.types import TrialStatus
 from atlas.trials import InMemoryLedgerStore, TrialLedger, TrialRecord
@@ -13,9 +13,12 @@ from atlas.trials import InMemoryLedgerStore, TrialLedger, TrialRecord
 
 def _rec(trial: str, family: str, status: TrialStatus, day: int = 1) -> TrialRecord:
     return TrialRecord(
-        trial_id=trial, family_id=family, status=status,
+        trial_id=trial,
+        family_id=family,
+        status=status,
         recorded_at=dt.datetime(2024, 3, day, 12, 0, tzinfo=UTC),
-        spec={"family": family, "params": {"n": 10}}, seed=42,
+        spec={"family": family, "params": {"n": 10}},
+        seed=42,
     )
 
 
@@ -65,7 +68,7 @@ class TestTrialLedger(unittest.TestCase):
     def test_naive_recorded_at_rejected(self) -> None:
         ledger = TrialLedger()
         bad = TrialRecord("t", "f", TrialStatus.PROPOSED, dt.datetime(2024, 3, 1, 12, 0))
-        with self.assertRaises(Exception):
+        with self.assertRaises(PointInTimeViolation):
             ledger.append(bad)
 
 

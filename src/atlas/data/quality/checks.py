@@ -11,8 +11,9 @@ universe drift, timestamp problems, and cross-source disagreement.
 from __future__ import annotations
 
 from collections import Counter, defaultdict
+from collections.abc import Iterable
+from datetime import date
 from decimal import Decimal
-from typing import Iterable
 
 from atlas.common.types import Severity
 from atlas.data.quality.framework import Check, DataBatch, Finding, ValidationSuite
@@ -113,7 +114,7 @@ class MissingSessionCheck(Check):
             return []
         start, end = batch.date_range
         expected = set(batch.calendar.sessions_in_range(start, end))
-        present: dict[str, set] = defaultdict(set)
+        present: dict[str, set[date]] = defaultdict(set)
         for bar in batch.bars:
             present[bar.instrument_id].add(bar.event_date)
         out: list[Finding] = []
@@ -316,8 +317,9 @@ class ExpectedInstrumentCheck(Check):
         present = {b.instrument_id for b in batch.bars}
         missing = sorted(batch.expected_instruments - present)
         return [
-            Finding(self.name, Severity.ERROR, "requested instrument returned no data",
-                    entity_key=iid)
+            Finding(
+                self.name, Severity.ERROR, "requested instrument returned no data", entity_key=iid
+            )
             for iid in missing
         ]
 

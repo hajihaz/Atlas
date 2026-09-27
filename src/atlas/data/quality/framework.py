@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import abc
 import datetime as _dt
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from atlas.common.errors import DataQualityHalt
 from atlas.common.hashing import content_hash
@@ -111,7 +112,7 @@ class ValidationSuite:
         for check in self._checks:
             try:
                 findings.extend(check.run(batch))
-            except Exception as exc:  # noqa: BLE001 — a check that ERRORS must HALT, never escape
+            except Exception as exc:
                 # Fail-safe: an errored check is treated as a failed check (data untrusted),
                 # not a passed one, and it does not prevent the remaining checks from running.
                 findings.append(

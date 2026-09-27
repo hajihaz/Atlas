@@ -14,7 +14,8 @@ restated effective date appends a new version rather than overwriting history.
 from __future__ import annotations
 
 import datetime as _dt
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 from atlas.common.time_utils import require_aware
 from atlas.data.bitemporal.asof import BitemporalStore, resolve_series
@@ -77,7 +78,7 @@ class UniverseLog:
         valid_to: _dt.date = FAR_FUTURE_DATE,
         meta: dict[str, Any] | None = None,
     ) -> BitemporalVersion:
-        """Record (or restate) that *instrument_id* is in *index* over ``[valid_from, valid_to)``."""
+        """Record index membership over ``[valid_from, valid_to)``."""
         payload = {
             "index": index,
             "instrument_id": instrument_id,

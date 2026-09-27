@@ -12,4 +12,4 @@ from __future__ import annotations
 from atlas.data.ingestion.adapter import FetchRequest, VendorAdapter
 from atlas.data.ingestion.pipeline import IngestionResult, ingest
 
-__all__ = ["VendorAdapter", "FetchRequest", "ingest", "IngestionResult"]
+__all__ = ["FetchRequest", "IngestionResult", "VendorAdapter", "ingest"]

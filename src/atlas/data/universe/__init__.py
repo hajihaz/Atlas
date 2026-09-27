@@ -8,4 +8,4 @@ from atlas.data.universe.membership import (
     constituents_from_versions,
 )
 
-__all__ = ["UniverseLog", "constituents_from_versions", "FAR_FUTURE_DATE"]
+__all__ = ["FAR_FUTURE_DATE", "UniverseLog", "constituents_from_versions"]

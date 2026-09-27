@@ -8,7 +8,9 @@ normalization — not the pipeline — absorbs vendor differences. Both adapters
 from __future__ import annotations
 
 import datetime as _dt
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from decimal import Decimal
+from typing import Any
 
 from atlas.data.ingestion.adapter import FetchRequest, VendorAdapter
 from atlas.data.market.records import OHLCVBar
@@ -39,10 +41,10 @@ class MockJsonAdapter(VendorAdapter):
                     OHLCVBar(
                         instrument_id=instrument_id,
                         event_date=event_date,
-                        open=str(rec["o"]),
-                        high=str(rec["h"]),
-                        low=str(rec["l"]),
-                        close=str(rec["c"]),
+                        open=Decimal(str(rec["o"])),
+                        high=Decimal(str(rec["h"])),
+                        low=Decimal(str(rec["l"])),
+                        close=Decimal(str(rec["c"])),
                         volume=int(rec["vol"]),
                         source=self.name,
                     )

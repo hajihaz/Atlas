@@ -40,3 +40,11 @@ htmlcov/
 .DS_Store
 .idea/
 .vscode/
+
+# Local source checkouts used for Atlas integration research.
+# Keep their independent Git histories/remotes; do not vendor their contents into Atlas.
+/Lean/
+/FinRL/
+/FinRL-Trading/
+/Freqtrade/
+/.tooling/

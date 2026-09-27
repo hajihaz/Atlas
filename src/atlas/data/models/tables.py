@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import datetime as _dt
 from decimal import Decimal
+from typing import Any
 
 from sqlalchemy import (
     JSON,
@@ -66,7 +67,7 @@ class InstrumentRow(Base):
     instrument_type: Mapped[str] = mapped_column(String(24))
     listing_date: Mapped[_dt.date | None] = mapped_column(Date, nullable=True)
     delisting_date: Mapped[_dt.date | None] = mapped_column(Date, nullable=True)  # never deleted
-    meta: Mapped[dict] = mapped_column(JSON, default=dict)
+    meta: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
 
 
 class OHLCVObservation(Base):
@@ -75,14 +76,14 @@ class OHLCVObservation(Base):
     __tablename__ = "ohlcv_observations"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     instrument_id: Mapped[str] = mapped_column(ForeignKey("instruments.instrument_id"), index=True)
-    event_date: Mapped[_dt.date] = mapped_column(Date, index=True)   # valid time (session)
+    event_date: Mapped[_dt.date] = mapped_column(Date, index=True)  # valid time (session)
     open: Mapped[Decimal] = mapped_column(_PRICE)
     high: Mapped[Decimal] = mapped_column(_PRICE)
     low: Mapped[Decimal] = mapped_column(_PRICE)
     close: Mapped[Decimal] = mapped_column(_PRICE)
     volume: Mapped[int] = mapped_column(BigInteger)
     source: Mapped[str] = mapped_column(String(64))
-    knowledge_from: Mapped[_dt.datetime] = mapped_column(_TS)          # transaction time
+    knowledge_from: Mapped[_dt.datetime] = mapped_column(_TS)  # transaction time
     knowledge_to: Mapped[_dt.datetime] = mapped_column(_TS, default=FAR_FUTURE)
     revision: Mapped[int] = mapped_column(Integer, default=0)
     run_id: Mapped[str | None] = mapped_column(String(32), index=True, nullable=True)
@@ -91,8 +92,14 @@ class OHLCVObservation(Base):
         # Version identity. ``revision`` is included so a correction stamped at the *same*
         # knowledge instant as the original (e.g. two payloads in one run) is a distinct
         # version, not a constraint collision (append_revision still requires monotonic time).
-        UniqueConstraint("instrument_id", "event_date", "source", "knowledge_from", "revision",
-                         name="ohlcv_version"),
+        UniqueConstraint(
+            "instrument_id",
+            "event_date",
+            "source",
+            "knowledge_from",
+            "revision",
+            name="ohlcv_version",
+        ),
         # Fast as-of lookups.
         Index("ix_ohlcv_asof", "instrument_id", "event_date", "knowledge_from", "knowledge_to"),
         # The "exactly one current version" partial-unique index and the non-overlap EXCLUDE
@@ -106,7 +113,7 @@ class CorporateActionRow(Base):
     instrument_id: Mapped[str] = mapped_column(ForeignKey("instruments.instrument_id"), index=True)
     ca_type: Mapped[str] = mapped_column(String(24))
     ex_date: Mapped[_dt.date] = mapped_column(Date, index=True)
-    terms: Mapped[dict] = mapped_column(JSON, default=dict)   # ratios/amounts as strings
+    terms: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)  # ratios/amounts as strings
     source: Mapped[str] = mapped_column(String(64))
     knowledge_from: Mapped[_dt.datetime] = mapped_column(_TS)
     knowledge_to: Mapped[_dt.datetime] = mapped_column(_TS, default=FAR_FUTURE)
@@ -120,15 +127,13 @@ class IndexMembershipRow(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     index_code: Mapped[str] = mapped_column(String(32), index=True)
     instrument_id: Mapped[str] = mapped_column(ForeignKey("instruments.instrument_id"), index=True)
-    valid_from: Mapped[_dt.date] = mapped_column(Date)          # in the index from
-    valid_to: Mapped[_dt.date] = mapped_column(Date)            # ... to (FAR_FUTURE date if current)
+    valid_from: Mapped[_dt.date] = mapped_column(Date)  # in the index from
+    valid_to: Mapped[_dt.date] = mapped_column(Date)  # ... to (FAR_FUTURE date if current)
     source: Mapped[str] = mapped_column(String(64))
     knowledge_from: Mapped[_dt.datetime] = mapped_column(_TS)
     knowledge_to: Mapped[_dt.datetime] = mapped_column(_TS, default=FAR_FUTURE)
     revision: Mapped[int] = mapped_column(Integer, default=0)
-    __table_args__ = (
-        Index("ix_member_asof", "index_code", "knowledge_from", "knowledge_to"),
-    )
+    __table_args__ = (Index("ix_member_asof", "index_code", "knowledge_from", "knowledge_to"),)
 
 
 class TradingHoliday(Base):
@@ -144,7 +149,7 @@ class IngestionRun(Base):
     __tablename__ = "ingestion_runs"
     run_id: Mapped[str] = mapped_column(String(32), primary_key=True)
     source: Mapped[str] = mapped_column(String(64), index=True)
-    requested_scope: Mapped[dict] = mapped_column(JSON, default=dict)
+    requested_scope: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     knowledge_time: Mapped[_dt.datetime] = mapped_column(_TS)
     code_version: Mapped[str | None] = mapped_column(String(64), nullable=True)
     dependency_lock_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
@@ -163,7 +168,7 @@ class DataQualityFinding(Base):
     severity: Mapped[int] = mapped_column(Integer)
     message: Mapped[str] = mapped_column(Text)
     entity_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    context: Mapped[dict] = mapped_column(JSON, default=dict)
+    context: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     created_at: Mapped[_dt.datetime] = mapped_column(_TS)
 
 
@@ -171,10 +176,10 @@ class SnapshotRow(Base):
     __tablename__ = "snapshots"
     snapshot_id: Mapped[str] = mapped_column(String(32), primary_key=True)
     as_of: Mapped[_dt.datetime] = mapped_column(_TS)
-    universe_spec: Mapped[dict] = mapped_column(JSON, default=dict)
+    universe_spec: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     content_digest: Mapped[str] = mapped_column(String(64), index=True)
     row_count: Mapped[int] = mapped_column(Integer)
-    sources: Mapped[list] = mapped_column(JSON, default=list)
+    sources: Mapped[list[str]] = mapped_column(JSON, default=list)
     code_version: Mapped[str | None] = mapped_column(String(64), nullable=True)
     dependency_lock_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     storage_uri: Mapped[str | None] = mapped_column(Text, nullable=True)  # Parquet location
@@ -190,11 +195,11 @@ class TrialLedgerRow(Base):
     family_id: Mapped[str] = mapped_column(String(48), index=True)
     status: Mapped[str] = mapped_column(String(16))
     recorded_at: Mapped[_dt.datetime] = mapped_column(_TS)
-    spec: Mapped[dict] = mapped_column(JSON, default=dict)
+    spec: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     data_snapshot_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
     seed: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     code_version: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    metrics: Mapped[dict] = mapped_column(JSON, default=dict)
+    metrics: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     verdict: Mapped[str | None] = mapped_column(Text, nullable=True)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
     record_hash: Mapped[str] = mapped_column(String(64))

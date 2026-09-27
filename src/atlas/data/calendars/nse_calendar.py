@@ -14,8 +14,8 @@ the calendar from it. Tests use explicit, controlled holiday sets, never the see
 from __future__ import annotations
 
 import datetime as _dt
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Iterable
 
 _SATURDAY, _SUNDAY = 5, 6
 
@@ -24,10 +24,10 @@ _SATURDAY, _SUNDAY = 5, 6
 _SEED_HOLIDAYS: frozenset[_dt.date] = frozenset(
     {
         # 2024 (subset; national holidays that are unambiguous)
-        _dt.date(2024, 1, 26),   # Republic Day
-        _dt.date(2024, 3, 29),   # Good Friday
-        _dt.date(2024, 8, 15),   # Independence Day
-        _dt.date(2024, 10, 2),   # Gandhi Jayanti
+        _dt.date(2024, 1, 26),  # Republic Day
+        _dt.date(2024, 3, 29),  # Good Friday
+        _dt.date(2024, 8, 15),  # Independence Day
+        _dt.date(2024, 10, 2),  # Gandhi Jayanti
         _dt.date(2024, 12, 25),  # Christmas
         # 2025 (subset)
         _dt.date(2025, 1, 26),

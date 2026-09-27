@@ -12,7 +12,7 @@ class AtlasError(Exception):
     """Base class for all Atlas errors."""
 
 
-class PointInTimeViolation(AtlasError):
+class PointInTimeViolation(AtlasError, ValueError):
     """A query or record would leak information not knowable at the stated time.
 
     Raised on look-ahead attempts, naive (tz-unaware) datetimes, or knowledge-time

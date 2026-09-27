@@ -19,7 +19,9 @@ from atlas.data.ingestion.adapters import MockCsvAdapter
 from atlas.data.quality import default_suite
 from atlas.trials import JsonlLedgerStore, TrialLedger
 
-app = typer.Typer(help="Atlas — trustworthy market-data foundation (Phase 2).", no_args_is_help=True)
+app = typer.Typer(
+    help="Atlas — trustworthy market-data foundation (Phase 2).", no_args_is_help=True
+)
 calendar_app = typer.Typer(help="Trading-calendar queries.")
 trial_app = typer.Typer(help="Trial-ledger queries.")
 app.add_typer(calendar_app, name="calendar")
@@ -52,6 +54,40 @@ def trial_summary(path: str) -> None:
         typer.echo(f"{k}: {v}")
 
 
+@app.command("backtest-demo")
+def backtest_demo(drift: float = 0.0) -> None:
+    """Run a demo research experiment on synthetic data and print the verdict.
+
+    ``--drift 0`` mines SMA configs on pure noise (rejected); ``--drift 0.001`` embeds a real
+    trend (survives). Demonstrates the full funnel: backtest → trial ledger → overfitting
+    defenses → evidence gates.
+    """
+    from atlas.research.dataview import InMemoryBarSource
+    from atlas.research.experiment import run_experiment
+    from atlas.research.synthetic import random_walk, sessions, unbounded_calendar
+    from atlas.strategy.library import SmaCrossover
+    from atlas.trials import TrialLedger
+
+    cal = unbounded_calendar()
+    dates = sessions(cal, _dt.date(2020, 1, 1), _dt.date(2023, 6, 30))
+    source = InMemoryBarSource({"X": random_walk("X", dates, seed=7, drift=drift, vol=0.012)})
+    grid = [{"fast": f, "slow": s} for f in (5, 10, 20) for s in (30, 50, 100) if f < s]
+    report = run_experiment(
+        strategy_factory=lambda p: SmaCrossover(p["fast"], p["slow"]),
+        param_grid=grid,
+        source=source,
+        start=dates[60],
+        end=dates[-1],
+        calendar=cal,
+        ledger=TrialLedger(),
+        as_of=_dt.datetime(2023, 7, 1, 12, 0, tzinfo=_dt.UTC),
+        seed=1,
+        pbo_splits=10,
+    )
+    for k, v in report.summary().items():
+        typer.echo(f"{k}: {v}")
+
+
 @app.command("ingest-demo")
 def ingest_demo() -> None:
     """Run a mock ingestion end-to-end and print the quality report (no DB writes)."""
@@ -60,7 +96,7 @@ def ingest_demo() -> None:
         {"INFY": "inst_infy"},
     )
     req = FetchRequest(("INFY",), _dt.date(2024, 3, 14), _dt.date(2024, 3, 15))
-    kt = _dt.datetime(2024, 3, 18, 10, 0, tzinfo=_dt.timezone.utc)
+    kt = _dt.datetime(2024, 3, 18, 10, 0, tzinfo=_dt.UTC)
     try:
         result = ingest(adapter, req, knowledge_time=kt, suite=default_suite())
     except DataQualityHalt as halt:

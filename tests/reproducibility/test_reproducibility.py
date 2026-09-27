@@ -33,7 +33,14 @@ class TestVendorSwapEquivalence(unittest.TestCase):
             {
                 "INFY": [
                     {"d": "2024-03-14", "o": "100", "h": "110", "l": "90", "c": "105", "vol": 1000},
-                    {"d": "2024-03-15", "o": "105", "h": "112", "l": "101", "c": "108", "vol": 1200},
+                    {
+                        "d": "2024-03-15",
+                        "o": "105",
+                        "h": "112",
+                        "l": "101",
+                        "c": "108",
+                        "vol": 1200,
+                    },
                 ]
             },
             _MAP,
@@ -48,8 +55,9 @@ class TestVendorSwapEquivalence(unittest.TestCase):
         a = ingest(self._csv(), _REQ, knowledge_time=_KT, suite=default_suite())
         b = ingest(self._json(), _REQ, knowledge_time=_KT, suite=default_suite())
         self.assertEqual([v.key for v in a.load_set], [v.key for v in b.load_set])
-        self.assertEqual([dict(v.payload) for v in a.load_set],
-                         [dict(v.payload) for v in b.load_set])
+        self.assertEqual(
+            [dict(v.payload) for v in a.load_set], [dict(v.payload) for v in b.load_set]
+        )
         # Only the recorded source differs — that is the *only* trace of which vendor.
         self.assertNotEqual(a.provenance.source, b.provenance.source)
 
@@ -57,7 +65,9 @@ class TestVendorSwapEquivalence(unittest.TestCase):
 class TestSnapshotReproducibility(unittest.TestCase):
     def test_rematerialization_reproduces_digest(self) -> None:
         rows = [{"instrument_id": "A", "event_date": "2024-03-15", "close": "100"}]
-        m = build_manifest(as_of=_KT, universe_spec={"index": "NIFTY_50"}, rows=rows, sources=["v1"])
+        m = build_manifest(
+            as_of=_KT, universe_spec={"index": "NIFTY_50"}, rows=rows, sources=["v1"]
+        )
         # Later, re-materialize the "same" data (possibly in a different row order).
         rematerialized = list(rows)
         verify_manifest(m, rematerialized)  # must not raise

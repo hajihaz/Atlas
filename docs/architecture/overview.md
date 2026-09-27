@@ -3,7 +3,7 @@
 > **Status:** Ratified · Phase 1 (Foundation & Architecture)
 > **Last updated:** 2026-07-05
 > **Owner:** Atlas Division (operating within Jarvis)
-> **Related:** [system-boundaries.md](system-boundaries.md) · [domain-model.md](domain-model.md) · [high-level-components.md](high-level-components.md) · [jarvis-integration.md](jarvis-integration.md) · [non-functional-requirements.md](non-functional-requirements.md) · [../principles.md](../principles.md)
+> **Related:** [system-boundaries.md](system-boundaries.md) · [domain-model.md](domain-model.md) · [high-level-components.md](high-level-components.md) · [jarvis-integration.md](jarvis-integration.md) · [non-functional-requirements.md](non-functional-requirements.md) · [../principles.md](../principles.md) · [ADR 0018 — Open-Source Integration Boundary](../adr/0018-open-source-integration-boundary.md)
 
 ---
 
@@ -195,7 +195,11 @@ These properties are not owned by one layer; they are woven through all of them 
 
 ---
 
-## 6. Deployment & operational posture (conceptual)
+## 6. Open-source engine posture
+
+Atlas may use proven open-source engines behind its own contracts. The current Phase-3 source audit identifies **LEAN as the preferred realistic simulation/execution infrastructure**, while Atlas remains authoritative for point-in-time data semantics, evidence, lifecycle governance, and — later — independent risk and capital authorization. RL/ML frameworks remain research-lab inputs, and crypto-specific execution remains isolated. The detailed boundary is recorded in [ADR 0018](../adr/0018-open-source-integration-boundary.md).
+
+## 7. Deployment & operational posture (conceptual)
 
 *Phase 1 records intent only; concrete technology choices are deferred to their ADRs in later phases.*
 
@@ -206,6 +210,6 @@ These properties are not owned by one layer; they are woven through all of them 
 
 ---
 
-## 7. Architecture review
+## 8. Architecture review
 
 This architecture was subjected to an **independent** adversarial Phase 1 review from four perspectives — **Hedge Fund CTO, Quant Research Director, Risk Manager, and Security Architect** — whose findings and the resulting revisions are recorded in the [Phase 1 review summary](../adr/0001-record-architecture-decisions.md#appendix-b--phase-1-architecture-review) and reflected throughout these documents. The review drove real change — a first-class [threat model](threat-model.md), the Halt/Flatten kill-switch split, two new risk domains (counterparty and operator-continuity), and reproducibility-by-class — and it distinguishes *constraints now required* from *mechanisms deferred and gated*. Its standing conclusion: *the architecture is sound in shape; its risks are concentrated in the disciplines it must never relax — point-in-time integrity, risk independence, security, and the human-governed path to money.*

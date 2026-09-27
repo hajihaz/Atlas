@@ -30,7 +30,9 @@ class TestTimeAuthority(unittest.TestCase):
 
     def test_ist_date_of_utc(self) -> None:
         # 20:00 UTC on Mar 15 is 01:30 IST on Mar 16.
-        self.assertEqual(ist_date(dt.datetime(2024, 3, 15, 20, 0, tzinfo=UTC)), dt.date(2024, 3, 16))
+        self.assertEqual(
+            ist_date(dt.datetime(2024, 3, 15, 20, 0, tzinfo=UTC)), dt.date(2024, 3, 16)
+        )
 
 
 class TestHashing(unittest.TestCase):

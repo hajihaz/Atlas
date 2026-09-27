@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from enum import Enum, IntEnum
+from enum import IntEnum, StrEnum
 
 
 class Severity(IntEnum):
@@ -23,13 +23,13 @@ class Severity(IntEnum):
         return self >= Severity.ERROR
 
 
-class InstrumentType(str, Enum):
+class InstrumentType(StrEnum):
     EQUITY = "equity"
     INDEX = "index"
     VOLATILITY_INDEX = "volatility_index"  # India VIX
 
 
-class IndexCode(str, Enum):
+class IndexCode(StrEnum):
     """Indices Atlas tracks in Phase 2 (NSE)."""
 
     NIFTY_50 = "NIFTY_50"
@@ -41,11 +41,11 @@ class IndexCode(str, Enum):
         return {"NIFTY_50": 50, "NIFTY_100": 100, "NIFTY_200": 200}[self.value]
 
 
-class CorporateActionType(str, Enum):
-    SPLIT = "split"                    # stock split (face-value division)
-    BONUS = "bonus"                    # bonus issue
-    DIVIDEND = "dividend"              # cash dividend
-    RIGHTS = "rights"                  # rights issue
+class CorporateActionType(StrEnum):
+    SPLIT = "split"  # stock split (face-value division)
+    BONUS = "bonus"  # bonus issue
+    DIVIDEND = "dividend"  # cash dividend
+    RIGHTS = "rights"  # rights issue
     MERGER = "merger"
     DEMERGER = "demerger"
     FACE_VALUE_CHANGE = "face_value_change"
@@ -54,18 +54,18 @@ class CorporateActionType(str, Enum):
     DELISTING = "delisting"
 
 
-class TrialStatus(str, Enum):
+class TrialStatus(StrEnum):
     """Lifecycle of a research trial (trial-ledger.md). Every experiment lands here."""
 
     PROPOSED = "proposed"
     RUNNING = "running"
-    FAILED = "failed"        # errored / did not complete
+    FAILED = "failed"  # errored / did not complete
     COMPLETED = "completed"  # ran, produced metrics
-    REJECTED = "rejected"    # failed an evidence gate
-    PROMOTED = "promoted"    # advanced toward production
+    REJECTED = "rejected"  # failed an evidence gate
+    PROMOTED = "promoted"  # advanced toward production
     ARCHIVED = "archived"
 
 
-class MembershipEvent(str, Enum):
+class MembershipEvent(StrEnum):
     ADDED = "added"
     REMOVED = "removed"

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "inherit_global": true,
+  "model_policy": "lowest_sufficient",
+  "preferred_executor": "HHC",
+  "fallback_executor": "RDC",
+  "max_parallel_tasks": 1,
+  "allow_auto_deploy": false,
+  "notify_on_major_completion": true
+}

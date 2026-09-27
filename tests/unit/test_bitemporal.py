@@ -21,8 +21,9 @@ class TestAsOf(unittest.TestCase):
     def test_no_lookahead(self) -> None:
         """A value learned at T is invisible to any query as-of before T."""
         store = BitemporalStore()
-        store.record(key="ohlcv:x:2024-03-15", knowledge_time=_t(16), payload={"close": "100"},
-                     source="v1")
+        store.record(
+            key="ohlcv:x:2024-03-15", knowledge_time=_t(16), payload={"close": "100"}, source="v1"
+        )
         # As-of the 15th (before we learned it on the 16th) -> nothing.
         self.assertIsNone(store.as_of("ohlcv:x:2024-03-15", _t(15)))
         # As-of the 16th -> the value.

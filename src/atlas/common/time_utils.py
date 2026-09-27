@@ -21,7 +21,7 @@ from zoneinfo import ZoneInfo
 
 from atlas.common.errors import PointInTimeViolation
 
-UTC = _dt.timezone.utc
+UTC = _dt.UTC
 IST = ZoneInfo("Asia/Kolkata")
 
 #: Bitemporal "open interval" upper bound — a record valid "until further notice".

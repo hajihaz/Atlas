@@ -49,8 +49,9 @@ class TestIngestion(unittest.TestCase):
         b = ingest(_csv(rows), _REQ, knowledge_time=_KT, suite=default_suite())
         self.assertEqual(a.run_id, b.run_id)
         self.assertEqual([v.key for v in a.load_set], [v.key for v in b.load_set])
-        self.assertEqual([dict(v.payload) for v in a.load_set],
-                         [dict(v.payload) for v in b.load_set])
+        self.assertEqual(
+            [dict(v.payload) for v in a.load_set], [dict(v.payload) for v in b.load_set]
+        )
 
 
 if __name__ == "__main__":

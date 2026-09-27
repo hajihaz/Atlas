@@ -78,6 +78,7 @@ disallow_any_generics = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
+pythonpath = ["src"]
 markers = [
   "unit: pure-stdlib domain logic; no external deps (runs anywhere, incl. python -m unittest)",
   "integration: requires a live PostgreSQL (skipped when ATLAS_TEST_DB is unset)",

@@ -9,4 +9,4 @@ from atlas.data.adjustments.corporate_actions import (
     price_factor,
 )
 
-__all__ = ["CorporateAction", "price_factor", "cumulative_price_factor", "is_price_affecting"]
+__all__ = ["CorporateAction", "cumulative_price_factor", "is_price_affecting", "price_factor"]

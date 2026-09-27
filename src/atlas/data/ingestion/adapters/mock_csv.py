@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import datetime as _dt
-from typing import Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from decimal import Decimal
 
 from atlas.data.ingestion.adapter import FetchRequest, VendorAdapter
 from atlas.data.market.records import OHLCVBar
@@ -36,10 +37,10 @@ class MockCsvAdapter(VendorAdapter):
                     OHLCVBar(
                         instrument_id=instrument_id,
                         event_date=event_date,
-                        open=o,
-                        high=h,
-                        low=low,
-                        close=c,
+                        open=Decimal(o),
+                        high=Decimal(h),
+                        low=Decimal(low),
+                        close=Decimal(c),
                         volume=int(v),
                         source=self.name,
                     )

@@ -31,15 +31,42 @@ def test_sql_asof_matches_reference() -> None:
     t16 = dt.datetime(2024, 3, 16, 10, 0, tzinfo=UTC)
     t18 = dt.datetime(2024, 3, 18, 10, 0, tzinfo=UTC)
     with Session(engine) as s:
-        s.add(InstrumentRow(instrument_id="inst_x", symbol="X", name="X Ltd",
-                            instrument_type="equity"))
+        s.add(
+            InstrumentRow(
+                instrument_id="inst_x", symbol="X", name="X Ltd", instrument_type="equity"
+            )
+        )
         # v0 (close 100) known [t16, t18); v1 correction (close 101) known [t18, FAR_FUTURE)
-        s.add(OHLCVObservation(instrument_id="inst_x", event_date=dt.date(2024, 3, 15),
-                               open=100, high=100, low=100, close=100, volume=1, source="v",
-                               knowledge_from=t16, knowledge_to=t18, revision=0))
-        s.add(OHLCVObservation(instrument_id="inst_x", event_date=dt.date(2024, 3, 15),
-                               open=101, high=101, low=101, close=101, volume=1, source="v",
-                               knowledge_from=t18, knowledge_to=FAR_FUTURE, revision=1))
+        s.add(
+            OHLCVObservation(
+                instrument_id="inst_x",
+                event_date=dt.date(2024, 3, 15),
+                open=100,
+                high=100,
+                low=100,
+                close=100,
+                volume=1,
+                source="v",
+                knowledge_from=t16,
+                knowledge_to=t18,
+                revision=0,
+            )
+        )
+        s.add(
+            OHLCVObservation(
+                instrument_id="inst_x",
+                event_date=dt.date(2024, 3, 15),
+                open=101,
+                high=101,
+                low=101,
+                close=101,
+                volume=1,
+                source="v",
+                knowledge_from=t18,
+                knowledge_to=FAR_FUTURE,
+                revision=1,
+            )
+        )
         s.commit()
 
     def asof_close(as_of: dt.datetime):

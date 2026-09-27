@@ -9,8 +9,9 @@ when it was collected, which source provided it, and whether the result can be r
 from __future__ import annotations
 
 import datetime as _dt
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from atlas.common.time_utils import require_aware, to_utc
 
@@ -20,11 +21,11 @@ class Provenance:
     """The origin record attached to a data artifact."""
 
     source: str
-    collected_at: _dt.datetime           # knowledge time
+    collected_at: _dt.datetime  # knowledge time
     ingestion_run_id: str
     code_version: str | None = None
     dependency_lock_hash: str | None = None
-    upstream: tuple[str, ...] = ()        # ids/hashes of parent artifacts
+    upstream: tuple[str, ...] = ()  # ids/hashes of parent artifacts
     meta: Mapping[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

@@ -55,8 +55,11 @@ class TestQualityChecks(unittest.TestCase):
     def test_missing_session_flagged(self) -> None:
         cal = TradingCalendar("T", frozenset())
         # Instrument has a bar on Fri 15 but not Thu 14; expect a gap for the 14th.
-        batch = DataBatch(bars=[_bar(day=15)], calendar=cal,
-                          date_range=(dt.date(2024, 3, 14), dt.date(2024, 3, 15)))
+        batch = DataBatch(
+            bars=[_bar(day=15)],
+            calendar=cal,
+            date_range=(dt.date(2024, 3, 14), dt.date(2024, 3, 15)),
+        )
         findings = MissingSessionCheck().run(batch)
         self.assertTrue(findings and findings[0].severity == Severity.ERROR)
 
@@ -66,20 +69,23 @@ class TestQualityChecks(unittest.TestCase):
         unexplained = PriceJumpCheck().run(DataBatch(bars=[jump_bar], prior_close=prior))
         self.assertEqual(unexplained[0].severity, Severity.ERROR)
         explained = PriceJumpCheck().run(
-            DataBatch(bars=[jump_bar], prior_close=prior,
-                      ex_dates={"i": {dt.date(2024, 3, 15)}})
+            DataBatch(bars=[jump_bar], prior_close=prior, ex_dates={"i": {dt.date(2024, 3, 15)}})
         )
         self.assertEqual(explained[0].severity, Severity.INFO)
 
     def test_cross_source_disagreement_halts(self) -> None:
         findings = CrossSourceDisagreementCheck().run(
-            DataBatch(bars=[_bar(c="105")],
-                      cross_source_close={("i", dt.date(2024, 3, 15)): Decimal("120")})
+            DataBatch(
+                bars=[_bar(c="105")],
+                cross_source_close={("i", dt.date(2024, 3, 15)): Decimal("120")},
+            )
         )
         self.assertEqual(findings[0].severity, Severity.ERROR)
 
     def test_universe_drift_flagged(self) -> None:
-        findings = UniverseSizeCheck().run(DataBatch(bars=[], index_observed={"NIFTY_50": (49, 50)}))
+        findings = UniverseSizeCheck().run(
+            DataBatch(bars=[], index_observed={"NIFTY_50": (49, 50)})
+        )
         self.assertEqual(findings[0].severity, Severity.ERROR)
 
 
@@ -95,8 +101,7 @@ class TestGate(unittest.TestCase):
 
     def test_report_digest_is_deterministic(self) -> None:
         b = DataBatch(bars=[_bar(h="80", low="90")])
-        self.assertEqual(default_suite().validate(b).digest(),
-                         default_suite().validate(b).digest())
+        self.assertEqual(default_suite().validate(b).digest(), default_suite().validate(b).digest())
 
     def test_empty_suite_is_ok(self) -> None:
         self.assertTrue(ValidationSuite([]).validate(DataBatch(bars=[_bar()])).ok)

@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import datetime as _dt
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, Mapping
+from typing import Any
 
 from atlas.common.errors import PointInTimeViolation
 from atlas.common.time_utils import FAR_FUTURE, require_aware, to_utc
