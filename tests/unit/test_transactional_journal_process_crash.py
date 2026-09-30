@@ -67,3 +67,21 @@ def test_wal_garbage_after_committed_state_does_not_change_recovery(tmp_path) ->
             handle.write(b"ATLAS-INTERRUPTED-WAL-TAIL")
     recovered = TransactionalExecutionJournal(path).recover(initial_cash=Decimal("100"))
     assert recovered.applied_event_ids == frozenset()
+
+
+def test_repeated_open_recovery_after_crash_is_stable(tmp_path) -> None:
+    path = tmp_path / "journal.db"
+    TransactionalExecutionJournal(path)
+    code = r'''import os, sqlite3, sys
+p=sys.argv[1]
+db=sqlite3.connect(p)
+db.execute("PRAGMA journal_mode=WAL")
+db.execute("BEGIN IMMEDIATE")
+db.execute("INSERT INTO execution_events VALUES (0,'crash','{}','100','{}','100','lh','ph','sh')")
+os._exit(93)
+'''
+    assert _child(code, str(path)).returncode == 93
+    for _ in range(10):
+        recovered = TransactionalExecutionJournal(path).recover(initial_cash=Decimal("100"))
+        assert recovered.applied_event_ids == frozenset()
+        assert recovered.account.state.cash == Decimal("100")

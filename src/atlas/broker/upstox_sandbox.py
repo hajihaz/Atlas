@@ -14,7 +14,7 @@ from typing import Any, Protocol
 from atlas.broker.adapter import ApprovedOrder, BrokerFill, BrokerOrderReceipt, BrokerOrderStatus
 
 SANDBOX_BASE_URL = "https://sandbox.upstox.com"
-PLACE_ORDER_PATH = "/v2/order/place"
+PLACE_ORDER_PATH = "/v3/order/place"
 
 
 @dataclass(frozen=True)

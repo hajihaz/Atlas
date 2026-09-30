@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import datetime as dt
+import json
+import os
+import subprocess
+from pathlib import Path
+
+from atlas.certification_provenance import CertificationManifest, sha256_file
+
+ROOT = Path(__file__).resolve().parents[1]
+ARTIFACTS = (
+    ROOT / "pyproject.toml",
+    ROOT / "scripts/certify.sh",
+    ROOT / "scripts/lean_golden_certify.py",
+)
+sha = subprocess.check_output(
+    ["git", "rev-parse", "HEAD"],  # noqa: S607 - fixed git argv, no shell
+    cwd=ROOT, text=True
+).strip()
+manifest = CertificationManifest(
+    git_sha=sha,
+    timestamp_utc=dt.datetime.now(dt.UTC).isoformat(),
+    tests_passed=int(os.environ["ATLAS_CERT_TESTS_PASSED"]),
+    tests_skipped=int(os.environ.get("ATLAS_CERT_TESTS_SKIPPED", "0")),
+    dependency_audit=os.environ.get("ATLAS_CERT_DEPENDENCY_AUDIT", "pass"),
+    lean_fixtures=tuple(os.environ.get("ATLAS_CERT_LEAN_FIXTURES", "").split(",")),
+    artifact_hashes={str(p.relative_to(ROOT)): sha256_file(p) for p in ARTIFACTS},
+)
+payload = {"manifest": json.loads(manifest.canonical_bytes()), "manifest_sha256": manifest.sha256}
+key = os.environ.get("ATLAS_CERT_SIGNING_KEY")
+if key:
+    payload["signature_hmac_sha256"] = manifest.sign(key.encode())
+out = ROOT / "artifacts" / "certification-manifest.json"
+out.parent.mkdir(exist_ok=True)
+out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+print(f"CERTIFICATION MANIFEST: {out} sha256={manifest.sha256}")

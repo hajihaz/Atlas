@@ -52,3 +52,6 @@ htmlcov/
 # Local .NET adapter build artifacts
 lean-adapter/bin/
 lean-adapter/obj/
+
+# Generated certification evidence
+/artifacts/
