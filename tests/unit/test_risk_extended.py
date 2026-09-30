@@ -26,3 +26,12 @@ class ExtendedRiskTests(unittest.TestCase):
         result = gate.evaluate({"A": Decimal("0.1"), "B": Decimal("0.1")}, equity=Decimal("100"))
         self.assertFalse(result.approved)
         self.assertIn("position_count_limit", result.reasons)
+
+
+def test_non_finite_account_inputs_fail_closed() -> None:
+    gate = RiskGate()
+    assert not gate.evaluate({}, equity=Decimal("NaN")).approved
+    assert not gate.evaluate({}, equity=Decimal("100"), peak_equity=Decimal("Infinity")).approved
+    assert not gate.evaluate(
+        {"A": Decimal("0.1")}, equity=Decimal("100"), current_weights={"A": Decimal("NaN")}
+    ).approved

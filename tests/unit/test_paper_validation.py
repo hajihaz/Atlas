@@ -56,3 +56,20 @@ class PaperValidationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_thirty_session_durability_campaign_is_deterministic(tmp_path) -> None:
+    def campaign(path):
+        runner = PaperSessionRunner(PaperRuntime(PaperConfig(enabled=True)), StateStore(path))
+        base = {
+            "cash": Decimal("100000"), "prices": {"X": Decimal("100")},
+            "targets": {"X": Decimal("0.1")}, "fill_prices": {"X": Decimal("100")},
+            "valuation_prices": {"X": Decimal("101")},
+        }
+        return run_sessions(runner, [dict(base, session_id=f"market-{i:02d}") for i in range(30)])
+    first = campaign(tmp_path / "a.json")
+    second = campaign(tmp_path / "b.json")
+    assert first.sessions_completed == second.sessions_completed == 30
+    assert first.runtime_errors == second.runtime_errors == 0
+    assert first.clean_reconciliations and second.clean_reconciliations
+    assert first.ledger_head == second.ledger_head

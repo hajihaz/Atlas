@@ -41,6 +41,7 @@ def evaluate_paper_promotion(
         "ledger_hash_present": bool(evidence.ledger_hash),
         "reconciled": evidence.reconciled,
         "no_runtime_errors": evidence.runtime_errors == 0,
+        "no_risk_rejections": evidence.risk_rejections == 0,
     }
     reasons: list[str] = []
     if not checks["research_validated"]:
@@ -55,4 +56,6 @@ def evaluate_paper_promotion(
         reasons.append("paper account is not reconciled")
     if not checks["no_runtime_errors"]:
         reasons.append("paper runtime reported errors")
+    if not checks["no_risk_rejections"]:
+        reasons.append("paper evidence contains risk rejections")
     return PromotionVerdict(all(checks.values()), checks, tuple(reasons))

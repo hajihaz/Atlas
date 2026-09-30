@@ -54,7 +54,9 @@ class RiskGate:
         weights = {k: Decimal(v) for k, v in target_weights.items()}
         if kill_switch:
             reasons.append("kill_switch_active")
-        if equity < self.limits.min_equity:
+        if equity.is_nan() or equity.is_infinite():
+            reasons.append("non_finite_equity")
+        elif equity < self.limits.min_equity:
             reasons.append("equity_below_floor")
         if self.limits.require_fresh_data and not data_fresh:
             reasons.append("stale_data")
@@ -65,6 +67,13 @@ class RiskGate:
         if sum(1 for w in weights.values() if w > 0) > self.limits.max_positions:
             reasons.append("position_count_limit")
         if current_weights is not None:
+            if any(
+                Decimal(w).is_nan() or Decimal(w).is_infinite()
+                for w in current_weights.values()
+            ):
+                reasons.append("non_finite_current_weight")
+                current_weights = None
+        if current_weights is not None:
             keys = set(weights) | set(current_weights)
             turnover = sum(
                 abs(weights.get(k, Decimal("0")) - Decimal(current_weights.get(k, Decimal("0"))))
@@ -73,7 +82,9 @@ class RiskGate:
             if turnover > self.limits.max_turnover:
                 reasons.append("turnover_limit")
         if peak_equity is not None:
-            if peak_equity <= 0:
+            if peak_equity.is_nan() or peak_equity.is_infinite():
+                reasons.append("invalid_peak_equity")
+            elif peak_equity <= 0:
                 reasons.append("invalid_peak_equity")
             elif equity < peak_equity:
                 drawdown = Decimal("1") - equity / peak_equity

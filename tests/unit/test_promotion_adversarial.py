@@ -17,3 +17,11 @@ class PromotionAdversarialTests(unittest.TestCase):
             PaperEvidence(100, "result", "ledger", True, runtime_errors=1),
         ):
             self.assertFalse(evaluate_paper_promotion(research, paper).passed)
+
+
+def test_risk_rejection_blocks_strategy_promotion() -> None:
+    research = GateVerdict(True, {}, ())
+    paper = PaperEvidence(30, "result", "ledger", True, risk_rejections=1)
+    verdict = evaluate_paper_promotion(research, paper)
+    assert not verdict.passed
+    assert "no_risk_rejections" in verdict.checks

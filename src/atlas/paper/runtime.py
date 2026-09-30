@@ -10,7 +10,9 @@ from decimal import Decimal
 from atlas.common.hashing import content_hash
 from atlas.execution.ledger import ExecutionEvent, ExecutionLedger
 from atlas.execution.simulator import DiscreteExecutionSimulator, ExecutionConfig, ExecutionResult
+from atlas.health import HealthReport
 from atlas.market.boundary import MarketDataBoundary, MarketDataStatus
+from atlas.operations_hardening import DurableEmergencyStore
 from atlas.portfolio.account import PortfolioAccount
 from atlas.risk.gate import RiskGate
 
@@ -35,8 +37,15 @@ class PaperSnapshot:
 class PaperRuntime:
     """Paper account with the same capital controls as discrete simulation."""
 
-    def __init__(self, config: PaperConfig | None = None, risk: RiskGate | None = None):
+    def __init__(
+        self,
+        config: PaperConfig | None = None,
+        risk: RiskGate | None = None,
+        *,
+        emergency_store: DurableEmergencyStore | None = None,
+    ):
         self.config = config or PaperConfig()
+        self.emergency_store = emergency_store
         self.risk = risk or RiskGate()
         self.ledger = ExecutionLedger()
         self.account: PortfolioAccount | None = None
@@ -55,7 +64,12 @@ class PaperRuntime:
         market_data_status: MarketDataStatus | None = None,
         session_id: str = "paper-session",
         event_time: dt.datetime | None = None,
+        health: HealthReport | None = None,
     ) -> ExecutionResult:
+        if self.emergency_store is not None:
+            self.emergency_store.assert_clear()
+        if health is not None:
+            health.assert_capital_safe()
         if not self.config.enabled:
             raise RuntimeError("paper runtime is disabled")
         if market_data_status is not None:

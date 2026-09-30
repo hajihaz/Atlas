@@ -28,6 +28,12 @@ FIXTURES = {
         "Total Fees": "$35.16",
         "Portfolio Turnover": "24.89%",
     },
+    "AtlasCashLimitFixtureAlgorithm": {
+        "Total Orders": "1",
+        "End Equity": "1000",
+        "Total Fees": "$0.00",
+        "Portfolio Turnover": "0%",
+    },
 }
 
 
@@ -59,6 +65,10 @@ def _run_fixture(name: str, expected: dict[str, str], *, env: dict[str, str], dl
         mismatches = {k: (stats.get(k), v) for k, v in expected.items() if stats.get(k) != v}
         if summary["state"]["Status"] != "Completed":
             mismatches["Status"] = (summary["state"]["Status"], "Completed")
+        if name == "AtlasCashLimitFixtureAlgorithm":
+            order_events = json.loads((Path(tmp) / f"{name}-order-events.json").read_text())
+            if len(order_events) != 1 or order_events[0].get("status") != "invalid":
+                mismatches["cash_limit_status"] = (order_events, "one invalid order")
         if mismatches:
             raise RuntimeError(f"LEAN golden fixture diverged ({name}): {mismatches}")
         print(f"  PASS {name}: " + ", ".join(f"{k}={v}" for k, v in expected.items()))

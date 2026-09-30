@@ -76,3 +76,19 @@ class PaperCycleReplayTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_partial_fill_reconciles_actual_fill_quantity() -> None:
+    from atlas.paper.broker_simulator import PaperBrokerConfig
+
+    account = PortfolioAccount(cash=Decimal("100000"))
+    broker = DeterministicPaperBroker(
+        {"AAA": Decimal("100")}, PaperBrokerConfig(fill_fraction=Decimal("0.5"))
+    )
+    cycle = PaperCycle(account, RiskGate(), broker, ExecutionLedger())
+    result = cycle.run(
+        {"AAA": Decimal("0.2")}, valuation_prices={"AAA": Decimal("100")}, approval_id="a"
+    )
+    self_qty = account.state.holdings["AAA"]
+    assert result.reconciliation_ok
+    assert self_qty == 100

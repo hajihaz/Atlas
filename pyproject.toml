@@ -26,6 +26,7 @@ dependencies = [
   "pydantic-settings>=2.3,<3.0",    # 12-factor config from env
   "typer>=0.12,<1.0",               # CLI
   "structlog>=24.1",                # structured, auditable logging
+  "urllib3>=2.8,<3.0",              # security floor: fixes 2026 advisories in 2.7
   "pyarrow>=16.0",                  # Parquet columnar snapshots / cold storage
 ]
 
