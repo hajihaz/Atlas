@@ -4,6 +4,7 @@ The contract preserves Atlas journal invariants without provisioning infrastruct
 introducing broker/network authority. A production PostgreSQL adapter must implement these
 semantics inside one SERIALIZABLE database transaction.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -47,12 +48,13 @@ class ExecutionPersistence(Protocol):
 
 POSTGRES_SCHEMA_VERSION = 1
 POSTGRES_MIGRATION_V1 = """
-CREATE TABLE atlas_execution_meta (
+CREATE TABLE IF NOT EXISTS atlas_execution_meta (
   key text PRIMARY KEY,
   value text NOT NULL
 );
-INSERT INTO atlas_execution_meta(key, value) VALUES ('schema_version', '1');
-CREATE TABLE atlas_execution_events (
+INSERT INTO atlas_execution_meta(key, value) VALUES ('schema_version', '1')
+ON CONFLICT (key) DO NOTHING;
+CREATE TABLE IF NOT EXISTS atlas_execution_events (
   sequence bigint PRIMARY KEY CHECK (sequence >= 0),
   event_id text NOT NULL UNIQUE,
   event_json jsonb NOT NULL,

@@ -49,3 +49,31 @@ def verify_manifest(payload: dict[str, Any], *, key: bytes | None = None) -> boo
     if key is None:
         return signature is None
     return isinstance(signature, str) and hmac.compare_digest(manifest.sign(key), signature)
+
+
+
+def verify_manifest_artifacts(
+    payload: dict[str, Any], root: Path, *, key: bytes | None = None
+) -> bool:
+    """Verify the manifest plus every referenced artifact against current disk bytes."""
+    try:
+        if not verify_manifest(payload, key=key):
+            return False
+        manifest = CertificationManifest(**payload["manifest"])
+        if not manifest.artifact_hashes:
+            return False
+        base = root.resolve(strict=True)
+        for relative, expected in manifest.artifact_hashes.items():
+            candidate = root / relative
+            if (
+                Path(relative).is_absolute()
+                or ".." in Path(relative).parts
+                or candidate.is_symlink()
+                or not candidate.is_file()
+                or not candidate.resolve(strict=True).is_relative_to(base)
+                or not hmac.compare_digest(sha256_file(candidate), expected)
+            ):
+                return False
+        return True
+    except (OSError, ValueError, KeyError, TypeError):
+        return False

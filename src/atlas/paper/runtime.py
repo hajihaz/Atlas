@@ -10,7 +10,7 @@ from decimal import Decimal
 from atlas.common.hashing import content_hash
 from atlas.execution.ledger import ExecutionEvent, ExecutionLedger
 from atlas.execution.simulator import DiscreteExecutionSimulator, ExecutionConfig, ExecutionResult
-from atlas.health import HealthReport
+from atlas.health import HealthReport, assert_operational_clear
 from atlas.market.boundary import MarketDataBoundary, MarketDataStatus
 from atlas.operations_hardening import DurableEmergencyStore
 from atlas.portfolio.account import PortfolioAccount
@@ -21,6 +21,7 @@ from atlas.risk.gate import RiskGate
 class PaperConfig:
     enabled: bool = False
     require_risk_approval: bool = True
+    require_operational_proofs: bool = False
     execution: ExecutionConfig = field(default_factory=ExecutionConfig)
 
 
@@ -66,10 +67,11 @@ class PaperRuntime:
         event_time: dt.datetime | None = None,
         health: HealthReport | None = None,
     ) -> ExecutionResult:
-        if self.emergency_store is not None:
-            self.emergency_store.assert_clear()
-        if health is not None:
-            health.assert_capital_safe()
+        assert_operational_clear(
+            self.emergency_store,
+            health,
+            require_proofs=self.config.require_operational_proofs,
+        )
         if not self.config.enabled:
             raise RuntimeError("paper runtime is disabled")
         if market_data_status is not None:

@@ -74,11 +74,18 @@ def _run_fixture(name: str, expected: dict[str, str], *, env: dict[str, str], dl
         print(f"  PASS {name}: " + ", ".join(f"{k}={v}" for k, v in expected.items()))
 
 
+def _lean_environment(source: dict[str, str]) -> dict[str, str]:
+    """Do not let the external LEAN process inherit broker, cloud or user secrets."""
+    allowed = ("PATH", "HOME", "TMPDIR", "LANG", "LC_ALL", "TZ")
+    clean = {name: source[name] for name in allowed if name in source}
+    clean["DOTNET_ROOT"] = str(DOTNET.parent)
+    return clean
+
+
 def run() -> int:
     if not DOTNET.is_file():
         raise RuntimeError("Atlas local .NET SDK is missing")
-    env = os.environ.copy()
-    env["DOTNET_ROOT"] = str(DOTNET.parent)
+    env = _lean_environment(dict(os.environ))
     fixture_dir = ROOT / "scripts/lean-fixtures"
     algorithm_dir = LEAN / "Algorithm.CSharp"
     for fixture in fixture_dir.glob("AtlasGolden*Algorithm.cs"):

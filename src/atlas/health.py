@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from atlas.operations_hardening import DurableEmergencyStore
 
 
 class HealthStatus(StrEnum):
@@ -30,8 +34,9 @@ class HealthReport:
         return tuple(s.name for s in self.signals if not s.healthy and s.capital_blocking)
 
     def assert_capital_safe(self) -> None:
-        if self.blockers:
-            raise RuntimeError("capital-increasing action blocked: " + ", ".join(self.blockers))
+        if self.status == HealthStatus.BLOCKED or self.blockers:
+            reasons = self.blockers or ("missing_or_blocked_health_evidence",)
+            raise RuntimeError("capital-increasing action blocked: " + ", ".join(reasons))
 
 
 def evaluate_health(signals: tuple[HealthSignal, ...]) -> HealthReport:
@@ -47,3 +52,18 @@ def evaluate_health(signals: tuple[HealthSignal, ...]) -> HealthReport:
         else HealthStatus.HEALTHY
     )
     return HealthReport(status, signals)
+
+
+def assert_operational_clear(
+    emergency_store: DurableEmergencyStore | None,
+    health: HealthReport | None,
+    *,
+    require_proofs: bool = False,
+) -> None:
+    """Check halt state and health immediately before creating/submitting an order."""
+    if require_proofs and (emergency_store is None or health is None):
+        raise RuntimeError("mandatory emergency and health proofs are unavailable")
+    if emergency_store is not None:
+        emergency_store.assert_clear()
+    if health is not None:
+        health.assert_capital_safe()

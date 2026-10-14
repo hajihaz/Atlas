@@ -105,9 +105,11 @@ class DurableEmergencyStore:
             raise RuntimeError("unsupported emergency-state version")
         try:
             generation = raw["generation"]
-            if not isinstance(generation, int):
-                raise TypeError("generation must be int")
-            state = EmergencyState(bool(raw["engaged"]), str(raw["reason"]), generation)
+            if type(generation) is not int or type(raw["engaged"]) is not bool:
+                raise TypeError("generation and engaged must be exact types")
+            if not isinstance(raw["reason"], str):
+                raise TypeError("reason must be a string")
+            state = EmergencyState(raw["engaged"], raw["reason"], generation)
         except (KeyError, TypeError, ValueError) as exc:
             raise RuntimeError("invalid emergency state") from exc
         if state.generation < 0 or (state.engaged and not state.reason):

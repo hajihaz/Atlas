@@ -27,3 +27,29 @@ def test_manifest_tamper_is_detected() -> None:
     }
     payload["manifest"]["tests_passed"] = 999
     assert not verify_manifest(payload)
+
+
+def test_manifest_rejects_mutated_and_escaped_artifact_paths(tmp_path) -> None:
+    import json
+
+    from atlas.certification_provenance import sha256_file, verify_manifest_artifacts
+
+    target = tmp_path / "gate.log"
+    target.write_text("PASS")
+    original = _manifest()
+    from dataclasses import replace
+
+    manifest = replace(original, artifact_hashes={"gate.log": sha256_file(target)})
+    payload = {
+        "manifest": json.loads(manifest.canonical_bytes()),
+        "manifest_sha256": manifest.sha256,
+    }
+    assert verify_manifest_artifacts(payload, tmp_path)
+    target.write_text("FAIL")
+    assert not verify_manifest_artifacts(payload, tmp_path)
+    escaped = replace(original, artifact_hashes={"../outside": "x"})
+    payload = {
+        "manifest": json.loads(escaped.canonical_bytes()),
+        "manifest_sha256": escaped.sha256,
+    }
+    assert not verify_manifest_artifacts(payload, tmp_path)

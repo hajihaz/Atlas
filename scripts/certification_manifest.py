@@ -14,11 +14,21 @@ ARTIFACTS = (
     ROOT / "pyproject.toml",
     ROOT / "scripts/certify.sh",
     ROOT / "scripts/lean_golden_certify.py",
+    ROOT / "scripts/verify_certification_manifest.py",
+    ROOT / "src/atlas/execution/postgres_persistence.py",
+    ROOT / "src/atlas/execution/record_validation.py",
+    ROOT / "src/atlas/paper/evidence.py",
+    *sorted((ROOT / "artifacts/certification").glob("*.log")),
 )
 sha = subprocess.check_output(
     ["git", "rev-parse", "HEAD"],  # noqa: S607 - fixed git argv, no shell
     cwd=ROOT, text=True
 ).strip()
+logs = ROOT / "artifacts/certification"
+if "No known vulnerabilities found" not in (logs / "dependency-audit.log").read_text():
+    raise RuntimeError("dependency audit evidence missing")
+if "ATLAS OFFLINE CERTIFICATION: PASS" not in (logs / "governance.log").read_text():
+    raise RuntimeError("governance evidence missing")
 manifest = CertificationManifest(
     git_sha=sha,
     timestamp_utc=dt.datetime.now(dt.UTC).isoformat(),

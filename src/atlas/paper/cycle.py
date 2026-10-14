@@ -11,7 +11,7 @@ from atlas.broker.adapter import ApprovedOrder, OrderSide
 from atlas.common.hashing import content_hash
 from atlas.execution.ledger import ExecutionEvent, ExecutionLedger
 from atlas.execution.simulator import Fill
-from atlas.health import HealthReport
+from atlas.health import HealthReport, assert_operational_clear
 from atlas.operations_hardening import DurableEmergencyStore
 from atlas.paper.broker_simulator import DeterministicPaperBroker
 from atlas.portfolio.account import PortfolioAccount
@@ -37,9 +37,11 @@ class PaperCycle:
         ledger: ExecutionLedger,
         *,
         emergency_store: DurableEmergencyStore | None = None,
+        require_operational_proofs: bool = False,
     ):
         self.account, self.risk, self.broker, self.ledger = account, risk, broker, ledger
         self.emergency_store = emergency_store
+        self.require_operational_proofs = require_operational_proofs
         self._initial_cash = account.state.cash
         self._accounted_fill_ids: set[str] = set()
 
@@ -52,10 +54,9 @@ class PaperCycle:
         session_id: str = "paper",
         health: HealthReport | None = None,
     ) -> PaperCycleResult:
-        if self.emergency_store is not None:
-            self.emergency_store.assert_clear()
-        if health is not None:
-            health.assert_capital_safe()
+        assert_operational_clear(
+            self.emergency_store, health, require_proofs=self.require_operational_proofs
+        )
         decision_id = content_hash(
             {"session": session_id, "targets": dict(sorted(targets.items()))}
         )
@@ -126,9 +127,16 @@ class PaperCycle:
             )
             self.ledger.append(
                 ExecutionEvent(
-                    fill.broker_order_id, "broker_fill", dt.datetime.now(dt.UTC),
-                    fill.instrument_id, signed, fill.fill_price, fill.fee,
-                    transition.cash_after, transition.equity_after, decision_id,
+                    fill.broker_order_id,
+                    "broker_fill",
+                    dt.datetime.now(dt.UTC),
+                    fill.instrument_id,
+                    signed,
+                    fill.fill_price,
+                    fill.fee,
+                    transition.cash_after,
+                    transition.equity_after,
+                    decision_id,
                     metadata={"side": matched_order.side.value},
                 )
             )
@@ -155,8 +163,11 @@ class PaperCycle:
             for instrument, quantity in broker_positions.items()
         )
         atlas_fees = sum(
-            (entry.event.fee for entry in self.ledger.entries()
-            if entry.event.event_type == "broker_fill"),
+            (
+                entry.event.fee
+                for entry in self.ledger.entries()
+                if entry.event.event_type == "broker_fill"
+            ),
             start=Decimal("0"),
         )
         result = reconcile(
