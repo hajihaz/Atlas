@@ -14,6 +14,7 @@ ARTIFACTS = (
     ROOT / "pyproject.toml",
     ROOT / "scripts/certify.sh",
     ROOT / "scripts/lean_golden_certify.py",
+    *sorted((ROOT / "scripts/lean-fixtures").glob("*.cs")),
     ROOT / "scripts/lean_dependency_audit.py",
     ROOT / "scripts/lean_test_isolation.py",
     ROOT / "scripts/historical_paper_replay.py",
@@ -52,9 +53,7 @@ if "ATLAS OFFLINE CERTIFICATION: PASS" not in (logs / "governance.log").read_tex
     raise RuntimeError("governance evidence missing")
 if "LEAN DEPENDENCY SECURITY: PASS" not in (logs / "lean-dependency-audit.log").read_text():
     raise RuntimeError("LEAN dependency security evidence missing")
-if "LEAN INDEPENDENT COMPRESSION: PASS" not in (
-    logs / "lean-independent-smoke.log"
-).read_text():
+if "LEAN INDEPENDENT COMPRESSION: PASS" not in (logs / "lean-independent-smoke.log").read_text():
     raise RuntimeError("independent LEAN compression evidence missing")
 if "HISTORICAL REPLAY PASS" not in (logs / "historical-replay.log").read_text():
     raise RuntimeError("historical replay evidence missing")

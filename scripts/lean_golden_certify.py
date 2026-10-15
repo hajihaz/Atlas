@@ -35,6 +35,12 @@ FIXTURES = {
         "Total Fees": "$0.00",
         "Portfolio Turnover": "0%",
     },
+    "AtlasLimitCancelFixtureAlgorithm": {
+        "Total Orders": "1",
+        "End Equity": "100000",
+        "Total Fees": "$0.00",
+        "Portfolio Turnover": "0%",
+    },
 }
 
 
@@ -70,6 +76,27 @@ def _run_fixture(name: str, expected: dict[str, str], *, env: dict[str, str], dl
             order_events = json.loads((Path(tmp) / f"{name}-order-events.json").read_text())
             if len(order_events) != 1 or order_events[0].get("status") != "invalid":
                 mismatches["cash_limit_status"] = (order_events, "one invalid order")
+        if name == "AtlasLimitCancelFixtureAlgorithm":
+            order_events = json.loads((Path(tmp) / f"{name}-order-events.json").read_text())
+            status_chain = tuple(event.get("status") for event in order_events)
+            order_ids = {event.get("orderId") for event in order_events}
+            quantities = tuple(event.get("fillQuantity") for event in order_events)
+            limit_prices = tuple(event.get("limitPrice") for event in order_events)
+            if (
+                status_chain != ("submitted", "cancelPending", "canceled")
+                or order_ids != {1}
+                or quantities != (0.0, 0.0, 0.0)
+                or limit_prices != (0.01, 0.01, 0.01)
+            ):
+                mismatches["cancelled_limit_order_lifecycle"] = (
+                    {
+                        "statuses": status_chain,
+                        "order_ids": order_ids,
+                        "filled_quantities": quantities,
+                        "limit_prices": limit_prices,
+                    },
+                    "submitted -> cancelPending -> canceled, zero fills",
+                )
         if mismatches:
             raise RuntimeError(f"LEAN golden fixture diverged ({name}): {mismatches}")
         print(f"  PASS {name}: " + ", ".join(f"{k}={v}" for k, v in expected.items()))

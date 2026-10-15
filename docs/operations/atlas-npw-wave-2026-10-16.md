@@ -27,3 +27,10 @@ Status: offline work only. Live capital remains BLOCKED. This tracked report pre
 ## Safety
 
 No real broker orders were placed; no production credentials, live-market data access, live-mode approval or compliance attestation were created. Explicit human authorization and all deployment, compliance, security, reconciliation and sustained paper-evidence gates remain mandatory before real capital.
+
+## Further certified progress (next iteration)
+
+- Added an actual .NET LEAN limit-order cancellation fixture, proving order events submitted -> cancelPending -> canceled, one original order, zero fills, no fees, no turnover and unchanged equity. Total LEAN golden fixtures: **4**.
+- All LEAN fixture C# source files are now bound to the certification manifest hash, in addition to the Python runner and gate outputs.
+- GitHub Actions run `38816622744` on `dc9ed8e` completed successfully: Python tests, real ephemeral PostgreSQL integrations, dependency audit and source secret scan passed. This independently resolves the previously unverified **hosted CI test execution** gate for that SHA. The local PostgreSQL provisioning policy remains respected.
+- Live-capital trading remains blocked. The full LEAN NUnit suite, sustained broker-connected paper, compliant production deployment, and explicit owner authorization remain pending.
