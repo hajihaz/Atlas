@@ -35,6 +35,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Upgrade audited packaging tooling
+        run: python -m pip install --upgrade 'setuptools>=83.0.0'
       - name: Install Atlas and development tooling
         run: python -m pip install -e '.[dev]'
       - name: Lint and strict type check
