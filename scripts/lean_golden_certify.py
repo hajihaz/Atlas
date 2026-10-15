@@ -13,7 +13,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DOTNET = ROOT / ".tooling/dotnet/dotnet"
-LEAN = ROOT / "Lean"
+LEAN = Path(os.environ.get("ATLAS_LEAN_CANDIDATE_PATH", str(ROOT / "Lean"))).resolve()
+DATA = Path(os.environ.get("ATLAS_LEAN_GOLDEN_DATA_PATH", str(LEAN / "Data"))).resolve()
 
 FIXTURES = {
     "AtlasGoldenFixtureAlgorithm": {
@@ -50,7 +51,7 @@ def _run_fixture(name: str, expected: dict[str, str], *, env: dict[str, str], dl
             "--algorithm-location",
             str(dll),
             "--data-folder",
-            str(LEAN / "Data"),
+            str(DATA),
             "--results-destination-folder",
             tmp,
         ]
@@ -88,7 +89,10 @@ def run() -> int:
     env = _lean_environment(dict(os.environ))
     fixture_dir = ROOT / "scripts/lean-fixtures"
     algorithm_dir = LEAN / "Algorithm.CSharp"
-    for fixture in fixture_dir.glob("AtlasGolden*Algorithm.cs"):
+    for name in FIXTURES:
+        fixture = fixture_dir / f"{name}.cs"
+        if not fixture.is_file():
+            raise RuntimeError(f"required LEAN golden fixture missing: {fixture.name}")
         shutil.copy2(fixture, algorithm_dir / fixture.name)
     subprocess.run(  # noqa: S603 - fixed local dotnet executable and arguments
         [

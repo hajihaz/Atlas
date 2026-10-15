@@ -6,19 +6,20 @@ cd "$ROOT"
 export PYTHONPATH="$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
 EVIDENCE="$ROOT/artifacts/certification"
 mkdir -p "$EVIDENCE"
-echo "[1/12] Python: $($PY --version)"
-echo "[2/12] Ruff"; $PY -m ruff check src tests scripts 2>&1 | tee "$EVIDENCE/ruff.log"
-echo "[3/12] Mypy strict"; $PY -m mypy src/atlas 2>&1 | tee "$EVIDENCE/mypy.log"
-echo "[4/12] Compile"; $PY -m compileall -q src tests scripts
-echo "[5/12] Unit + reproducibility"; $PY -m pytest tests/unit tests/reproducibility -q 2>&1 | tee "$EVIDENCE/unit.log"
-echo "[6/12] Full pytest"; $PY -m pytest -q 2>&1 | tee "$EVIDENCE/full-pytest.log"
-echo "[7/12] Dependency audit"; $PY -m pip_audit 2>&1 | tee "$EVIDENCE/dependency-audit.log"
-echo "[8/12] Secret scan"; $PY -m detect_secrets scan src scripts tests pyproject.toml --all-files > /tmp/atlas-secrets.json; $PY -c 'import json; d=json.load(open("/tmp/atlas-secrets.json")); assert not d.get("results"), d["results"]'
-echo "[9/12] Offline governance certification"; $PY scripts/atlas_certify.py 2>&1 | tee "$EVIDENCE/governance.log"
-echo "[10/12] LEAN golden fixture"; $PY scripts/lean_golden_certify.py 2>&1 | tee "$EVIDENCE/lean-golden.log"
-echo "[11/12] Git whitespace"; git diff --check
+echo "[1/13] Python: $($PY --version)"
+echo "[2/13] Ruff"; $PY -m ruff check src tests scripts 2>&1 | tee "$EVIDENCE/ruff.log"
+echo "[3/13] Mypy strict"; $PY -m mypy src/atlas 2>&1 | tee "$EVIDENCE/mypy.log"
+echo "[4/13] Compile"; $PY -m compileall -q src tests scripts
+echo "[5/13] Unit + reproducibility"; $PY -m pytest tests/unit tests/reproducibility -q 2>&1 | tee "$EVIDENCE/unit.log"
+echo "[6/13] Full pytest"; $PY -m pytest -q 2>&1 | tee "$EVIDENCE/full-pytest.log"
+echo "[7/13] Dependency audit"; $PY -m pip_audit 2>&1 | tee "$EVIDENCE/dependency-audit.log"
+echo "[8/13] Secret scan"; $PY -m detect_secrets scan src scripts tests pyproject.toml --all-files > /tmp/atlas-secrets.json; $PY -c 'import json; d=json.load(open("/tmp/atlas-secrets.json")); assert not d.get("results"), d["results"]'
+echo "[9/13] Offline governance certification"; $PY scripts/atlas_certify.py 2>&1 | tee "$EVIDENCE/governance.log"
+echo "[10/13] LEAN golden fixture"; $PY scripts/lean_golden_certify.py 2>&1 | tee "$EVIDENCE/lean-golden.log"
+echo "[11/13] LEAN dependency audit"; $PY scripts/lean_dependency_audit.py 2>&1 | tee "$EVIDENCE/lean-dependency-audit.log"
+echo "[12/13] Git whitespace"; git diff --check
 echo "git diff --check: PASS" > "$EVIDENCE/git-whitespace.log"
-echo "[12/12] Certification provenance"
+echo "[13/13] Certification provenance"
 read ATLAS_CERT_TESTS_PASSED ATLAS_CERT_TESTS_SKIPPED <<< "$($PY - <<'PYCOUNT'
 import re
 s=open("artifacts/certification/full-pytest.log").read()

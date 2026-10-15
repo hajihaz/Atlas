@@ -1,0 +1,2 @@
+# Unified-diff patch context lines intentionally contain a single leading space.
+scripts/lean-patches/*.patch whitespace=-blank-at-eol
