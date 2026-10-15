@@ -25,3 +25,23 @@ def test_risk_rejection_blocks_strategy_promotion() -> None:
     verdict = evaluate_paper_promotion(research, paper)
     assert not verdict.passed
     assert "no_risk_rejections" in verdict.checks
+
+
+def test_synthetic_or_historical_sessions_never_qualify_for_market_paper_promotion() -> None:
+    research = GateVerdict(True, {}, ())
+    historical = PaperEvidence(
+        30, "research", "ledger", True, market_source_type="historical_lean_fixture"
+    )
+    assert not evaluate_paper_promotion(research, historical).passed
+    verdict = evaluate_paper_promotion(
+        research,
+        PaperEvidence(
+            30,
+            "research",
+            "ledger",
+            True,
+            market_source_type="recorded_external_paper",
+        ),
+    )
+    assert not verdict.passed
+    assert not verdict.checks["recorded_external_market_paper"]

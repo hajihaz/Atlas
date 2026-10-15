@@ -117,5 +117,21 @@ class PortfolioAccount:
         self._state.validate()
         return transition
 
+    def mark_to_market(self, *, valuation_prices: Mapping[str, Decimal]) -> PortfolioState:
+        """Update equity from current marks without manufacturing a fill or cash event."""
+        for instrument, quantity in self._state.holdings.items():
+            if instrument not in valuation_prices:
+                raise ValueError(f"missing valuation price for position: {instrument}")
+            price = Decimal(valuation_prices[instrument])
+            if not price.is_finite() or price <= 0 or quantity < 0:
+                raise ValueError("invalid mark-to-market valuation")
+        equity = self._state.position_value(valuation_prices)
+        if not equity.is_finite():
+            raise ValueError("non-finite marked portfolio equity")
+        state = PortfolioState(self._state.cash, dict(self._state.holdings), equity)
+        state.validate()
+        self._state = state
+        return state
+
     def transitions(self) -> tuple[PortfolioTransition, ...]:
         return tuple(self._transitions)

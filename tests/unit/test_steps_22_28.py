@@ -110,7 +110,14 @@ class Steps22To28Tests(unittest.TestCase):
 
     def test_research_to_paper_promotion_requires_all_evidence(self):
         valid = GateVerdict(True, {"all": True}, ())
-        evidence = PaperEvidence(30, "result", "ledger", True)
+        evidence = PaperEvidence(
+            30,
+            "result",
+            "ledger",
+            True,
+            market_source_type="recorded_external_paper",
+            market_session_provenance_hash="fixture-source-attestation",
+        )
         self.assertTrue(evaluate_paper_promotion(valid, evidence).passed)
         bad = PaperEvidence(29, "result", "ledger", True)
         self.assertFalse(evaluate_paper_promotion(valid, bad).passed)

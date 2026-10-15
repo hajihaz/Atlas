@@ -6,6 +6,7 @@ selects a live broker, never sends network requests, and never changes live gove
 
 from __future__ import annotations
 
+import datetime as dt
 from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal
@@ -40,6 +41,7 @@ class PaperSessionRunner:
         valuation_prices: Mapping[str, Decimal],
         data_fresh: bool = True,
         kill_switch: bool = False,
+        event_time: dt.datetime | None = None,
     ) -> SessionResult:
         self.state_store.save(
             DurableState(1, session_id, "running", self.runtime.ledger.head_checkpoint())
@@ -53,6 +55,7 @@ class PaperSessionRunner:
             data_fresh=data_fresh,
             kill_switch=kill_switch,
             session_id=session_id,
+            event_time=event_time,
         )
         snapshot = self.runtime.snapshot(session_id)
         checkpoint = snapshot.ledger_checkpoint

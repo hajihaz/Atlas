@@ -76,8 +76,11 @@ class PaperRuntime:
             raise RuntimeError("paper runtime is disabled")
         if market_data_status is not None:
             MarketDataBoundary().admit(market_data_status)
+        current_equity = (
+            self.account.state.position_value(prices) if self.account is not None else Decimal(cash)
+        )
         decision = self.risk.evaluate(
-            targets, equity=cash, data_fresh=data_fresh, kill_switch=kill_switch
+            targets, equity=current_equity, data_fresh=data_fresh, kill_switch=kill_switch
         )
         if self.config.require_risk_approval and not decision.approved:
             raise RuntimeError("paper order set rejected by risk: " + ",".join(decision.reasons))
@@ -147,6 +150,29 @@ class PaperRuntime:
                     decision_id,
                 )
             )
+        marked = self.account.mark_to_market(valuation_prices=valuation_prices)
+        if (
+            marked.cash != result.ending_cash
+            or dict(marked.holdings) != dict(result.holdings)
+            or marked.equity != result.equity
+        ):
+            raise RuntimeError("paper simulator/account mark-to-market divergence")
+        self.ledger.append(
+            ExecutionEvent(
+                content_hash(
+                    {"session": session_id, "mark": dict(sorted(valuation_prices.items()))}
+                ),
+                "mark_to_market",
+                event_time or _deterministic_event_time(),
+                cash=marked.cash,
+                equity=marked.equity,
+                decision_id=decision_id,
+                metadata={
+                    "session_id": session_id,
+                    "valuation_prices": dict(sorted(valuation_prices.items())),
+                },
+            )
+        )
         self.ledger.verify_integrity()
         self._last_result_hash = content_hash(
             {

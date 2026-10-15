@@ -1,0 +1,11 @@
+# ADR-0068: Recorded historical replay and isolated LEAN unit-test certification
+
+Status: Accepted for offline engineering only; no production or live authorization.
+
+1. Historical ZIP fixtures are loaded from LEAN's archived SPY/AAPL US equity daily sample files. Every archive is hashed with SHA-256 and strictly validated for chronological dates, expected ZIP members, positive OHLC values and no duplicate date. A 30-decision session campaign uses point-in-time decision D close, hypothetical fill D+1 open, and next-session close to mark holdings. Trading costs, independent risk sizing and ledger checkpoints remain active.
+2. PortfolioAccount now marks equity to market even without fills; a mark-to-market entry commits each simulated session valuation to the ledger. Tests prove no cash/quantity changes and reject missing or non-finite marks. The paper evidence envelope hashes strategy source SHA-256, snapshot, configuration, ledger checkpoint, reconciliation outcomes and individual observations.
+3. Every report labels its source `historical_lean_fixture_not_live_paper`. Replaying 30 historical sessions is **not** sustained broker-connected market paper trading. Paper promotion now requires a separately recorded external-market source class and a nonempty market-session provenance reference; this field alone is not independent certification, and production/human gates remain separate.
+4. LEAN standalone C# compression smoke builds and runs a separate .NET executable referencing the patched LEAN Compression project, without loading LEAN Tests/Python.NET. It verifies the actual ZIP archive payload round-trips exactly. The isolated NUnit test harness remains diagnostic-only because individual tests intermittently crash at Python.NET GIL finalization. A failed GIL diagnostic is a **known outstanding blocker**, not counted as passing the full LEAN suite.
+5. Offline certification now contains 15 gates; the historical replay JSON, independent LEAN smoke log, test logs and relevant source files are included in the hash-verifiable certification manifest. These are locally tamper-evident records, not an external signature unless explicitly signed with a supplied key.
+
+No market-data account, real broker token, production database credentials or live-capital permission is created or used by this feature.

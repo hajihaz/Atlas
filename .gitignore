@@ -55,3 +55,7 @@ lean-adapter/obj/
 
 # Generated certification evidence
 /artifacts/
+
+# LEAN standalone smoke compiled binaries and NuGet caches
+/scripts/lean-smoke/bin/
+/scripts/lean-smoke/obj/

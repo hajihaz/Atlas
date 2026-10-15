@@ -15,6 +15,13 @@ ARTIFACTS = (
     ROOT / "scripts/certify.sh",
     ROOT / "scripts/lean_golden_certify.py",
     ROOT / "scripts/lean_dependency_audit.py",
+    ROOT / "scripts/lean_test_isolation.py",
+    ROOT / "scripts/historical_paper_replay.py",
+    ROOT / "src/atlas/paper/historical_replay.py",
+    ROOT / "artifacts/historical-paper-replay.json",
+    ROOT / "scripts/lean_independent_smoke.py",
+    ROOT / "scripts/lean-smoke/LeanCompressionSmoke.csproj",
+    ROOT / "scripts/lean-smoke/Program.cs",
     ROOT / "scripts/apply_lean_security_patch.sh",
     ROOT / "scripts/lean-patches/0001-lean-security-packages.patch",
     ROOT / "artifacts/security/lean-dependency-audit.json",
@@ -36,6 +43,12 @@ if "ATLAS OFFLINE CERTIFICATION: PASS" not in (logs / "governance.log").read_tex
     raise RuntimeError("governance evidence missing")
 if "LEAN DEPENDENCY SECURITY: PASS" not in (logs / "lean-dependency-audit.log").read_text():
     raise RuntimeError("LEAN dependency security evidence missing")
+if "LEAN INDEPENDENT COMPRESSION: PASS" not in (
+    logs / "lean-independent-smoke.log"
+).read_text():
+    raise RuntimeError("independent LEAN compression evidence missing")
+if "HISTORICAL REPLAY PASS" not in (logs / "historical-replay.log").read_text():
+    raise RuntimeError("historical replay evidence missing")
 manifest = CertificationManifest(
     git_sha=sha,
     timestamp_utc=dt.datetime.now(dt.UTC).isoformat(),

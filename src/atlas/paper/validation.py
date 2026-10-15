@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from decimal import Decimal
@@ -49,6 +50,11 @@ def run_sessions(
                 valuation_prices=cast(Mapping[str, Decimal], raw["valuation_prices"]),
                 data_fresh=bool(raw.get("data_fresh", True)),
                 kill_switch=bool(raw.get("kill_switch", False)),
+                event_time=(
+                    dt.datetime.fromisoformat(str(raw["event_time"]))
+                    if raw.get("event_time") is not None
+                    else None
+                ),
             )
             observations.append(
                 SessionObservation(session_id, result.snapshot.equity, result.checkpoint, True)

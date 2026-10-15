@@ -18,6 +18,8 @@ class PaperEvidence:
     reconciled: bool
     risk_rejections: int = 0
     runtime_errors: int = 0
+    market_source_type: str = "deterministic_fixture"
+    market_session_provenance_hash: str = ""
 
 
 @dataclass(frozen=True)
@@ -42,6 +44,10 @@ def evaluate_paper_promotion(
         "reconciled": evidence.reconciled,
         "no_runtime_errors": evidence.runtime_errors == 0,
         "no_risk_rejections": evidence.risk_rejections == 0,
+        "recorded_external_market_paper": (
+            evidence.market_source_type == "recorded_external_paper"
+            and bool(evidence.market_session_provenance_hash)
+        ),
     }
     reasons: list[str] = []
     if not checks["research_validated"]:
@@ -58,4 +64,6 @@ def evaluate_paper_promotion(
         reasons.append("paper runtime reported errors")
     if not checks["no_risk_rejections"]:
         reasons.append("paper evidence contains risk rejections")
+    if not checks["recorded_external_market_paper"]:
+        reasons.append("paper promotion requires recorded external-market session provenance")
     return PromotionVerdict(all(checks.values()), checks, tuple(reasons))
