@@ -69,7 +69,7 @@ def run() -> int:
         ],
         capture_output=True,
         text=True,
-        timeout=80,
+        timeout=240,
     )
     output = result.stdout + "\n" + result.stderr
     issues = parse_advisories(output)

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from atlas.broker.adapter import BrokerFill, BrokerOrderReceipt, BrokerOrderStatus, OrderSide
@@ -65,24 +65,42 @@ def parse_trade(raw: Mapping[str, Any]) -> ProviderTrade | None:
         trade_id = str(raw["trade_id"])
         order_id = str(raw["order_id"])
         instrument = str(raw["instrument_token"])
-        qty = int(raw["quantity"])
+        raw_qty = raw["quantity"]
+        if isinstance(raw_qty, bool) or str(raw_qty).strip() != str(int(raw_qty)):
+            return None
+        qty = int(raw_qty)
         price = Decimal(str(raw["average_price"] if "average_price" in raw else raw["fill_price"]))
         fee = Decimal(str(raw.get("fees", raw.get("fee", "0"))))
         side = OrderSide(str(raw.get("transaction_type", raw.get("side"))).upper())
-    except (KeyError, TypeError, ValueError):
+    except (KeyError, TypeError, ValueError, InvalidOperation):
         return None
-    if not trade_id or not order_id or not instrument or qty <= 0 or price <= 0 or fee < 0:
+    if (
+        not trade_id
+        or trade_id in {"None", "nan"}
+        or not order_id
+        or order_id in {"None", "nan"}
+        or not instrument
+        or instrument in {"None", "nan"}
+        or qty <= 0
+        or not price.is_finite()
+        or not fee.is_finite()
+        or price <= 0
+        or fee < 0
+    ):
         return None
     return ProviderTrade(trade_id, order_id, instrument, qty, price, fee, side)
 
 
 def deduplicate_trades(trades: list[ProviderTrade]) -> tuple[ProviderTrade, ...]:
-    seen: set[str] = set()
+    seen: dict[str, ProviderTrade] = {}
     result: list[ProviderTrade] = []
     for trade in trades:
-        if trade.trade_id in seen:
+        prior = seen.get(trade.trade_id)
+        if prior is not None:
+            if prior != trade:
+                raise RuntimeError("conflicting broker trade ID replay")
             continue
-        seen.add(trade.trade_id)
+        seen[trade.trade_id] = trade
         result.append(trade)
     return tuple(result)
 
@@ -99,23 +117,32 @@ def apply_provider_trades_to_account(
     transition event ID is derived from the provider trade ID and is stable across
     reconciliation retries.
     """
-    applied_ids = {t.event_id for t in account.transitions()}
-    results = []
+    applied = {t.event_id: t for t in account.transitions()}
+    # Validate the entire batch against a shadow account before changing the
+    # authoritative account. An invalid later fill must not leave a partial batch.
+    staged = PortfolioAccount(
+        cash=account.state.cash,
+        holdings=account.state.holdings,
+        equity=account.state.equity,
+    )
+    pending: list[tuple[str, Fill]] = []
     for trade in deduplicate_trades(list(trades)):
         event_id = content_hash({"provider": "upstox", "trade_id": trade.trade_id})
-        if event_id in applied_ids:
+        old = applied.get(event_id)
+        signed_qty = trade.quantity if trade.side is OrderSide.BUY else -trade.quantity
+        if old is not None:
+            if (
+                old.instrument_id != trade.instrument_id
+                or old.quantity != signed_qty
+                or old.fill_price != trade.fill_price
+                or old.fee != trade.fee
+            ):
+                raise RuntimeError("conflicting persisted broker trade replay")
             continue
-        fill = trade.to_fill()
-        # BrokerFill intentionally has no side field; encode direction in the
-        # accounting quantity at this boundary.
-        signed_fill = Fill(
-            fill.instrument_id,
-            fill.quantity if trade.side is OrderSide.BUY else -fill.quantity,
-            fill.fill_price,
-            fill.fee,
-        )
-        results.append(
-            account.apply_fill(signed_fill, event_id=event_id, valuation_prices=valuation_prices)
-        )
-        applied_ids.add(event_id)
-    return tuple(results)
+        fill = Fill(trade.instrument_id, signed_qty, trade.fill_price, trade.fee)
+        staged.apply_fill(fill, event_id=event_id, valuation_prices=valuation_prices)
+        pending.append((event_id, fill))
+    return tuple(
+        account.apply_fill(fill, event_id=event_id, valuation_prices=valuation_prices)
+        for event_id, fill in pending
+    )

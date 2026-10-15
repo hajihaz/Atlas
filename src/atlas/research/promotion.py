@@ -6,6 +6,10 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 
 from atlas.research.gates import GateVerdict
+from atlas.research.paper_source_attestation import (
+    RecordedPaperAttestation,
+    verify_recorded_paper_receipt,
+)
 
 
 @dataclass(frozen=True)
@@ -20,6 +24,7 @@ class PaperEvidence:
     runtime_errors: int = 0
     market_source_type: str = "deterministic_fixture"
     market_session_provenance_hash: str = ""
+    source_attestation: RecordedPaperAttestation | None = None
 
 
 @dataclass(frozen=True)
@@ -34,8 +39,18 @@ def evaluate_paper_promotion(
     evidence: PaperEvidence,
     *,
     min_sessions: int = 30,
+    verifier_key: bytes | None = None,
 ) -> PromotionVerdict:
     """Require research validation plus clean, reconciled paper evidence."""
+    receipt = evidence.source_attestation
+    receipt_verified = verify_recorded_paper_receipt(receipt, verifier_key=verifier_key)
+    receipt_matches = (
+        receipt is not None
+        and receipt.session_count == evidence.sessions
+        and receipt.research_result_hash == evidence.result_hash
+        and receipt.ledger_hash == evidence.ledger_hash
+        and receipt.market_sessions_hash == evidence.market_session_provenance_hash
+    )
     checks = {
         "research_validated": research_verdict.passed,
         "paper_sample_size": evidence.sessions >= min_sessions,
@@ -47,6 +62,8 @@ def evaluate_paper_promotion(
         "recorded_external_market_paper": (
             evidence.market_source_type == "recorded_external_paper"
             and bool(evidence.market_session_provenance_hash)
+            and receipt_verified
+            and receipt_matches
         ),
     }
     reasons: list[str] = []
@@ -65,5 +82,7 @@ def evaluate_paper_promotion(
     if not checks["no_risk_rejections"]:
         reasons.append("paper evidence contains risk rejections")
     if not checks["recorded_external_market_paper"]:
-        reasons.append("paper promotion requires recorded external-market session provenance")
+        reasons.append(
+            "paper promotion requires matching authenticated external-market session provenance"
+        )
     return PromotionVerdict(all(checks.values()), checks, tuple(reasons))

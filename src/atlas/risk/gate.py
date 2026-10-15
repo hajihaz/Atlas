@@ -31,14 +31,20 @@ class RiskGate:
 
     def __init__(self, limits: RiskLimits | None = None):
         self.limits = limits or RiskLimits()
+        monetary_limits = (
+            self.limits.max_gross,
+            self.limits.max_single_weight,
+            self.limits.min_equity,
+            self.limits.max_turnover,
+            self.limits.max_drawdown,
+        )
         if (
-            self.limits.max_gross < 0
-            or self.limits.max_single_weight < 0
-            or self.limits.max_turnover < 0
-            or self.limits.max_drawdown < 0
+            any(not value.is_finite() or value < 0 for value in monetary_limits)
+            or type(self.limits.max_positions) is not int
             or self.limits.max_positions < 0
+            or self.limits.max_drawdown > 1
         ):
-            raise ValueError("risk limits cannot be negative")
+            raise ValueError("invalid or non-finite risk limits")
 
     def evaluate(
         self,
@@ -68,8 +74,7 @@ class RiskGate:
             reasons.append("position_count_limit")
         if current_weights is not None:
             if any(
-                Decimal(w).is_nan() or Decimal(w).is_infinite()
-                for w in current_weights.values()
+                Decimal(w).is_nan() or Decimal(w).is_infinite() for w in current_weights.values()
             ):
                 reasons.append("non_finite_current_weight")
                 current_weights = None

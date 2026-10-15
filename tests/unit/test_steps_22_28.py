@@ -10,6 +10,10 @@ from atlas.market import MarketDataBoundary, MarketDataStatus
 from atlas.paper import PaperConfig, PaperRuntime
 from atlas.portfolio import PortfolioAccount
 from atlas.research.gates import GateVerdict
+from atlas.research.paper_source_attestation import (
+    RecordedPaperAttestation,
+    sign_recorded_paper_receipt,
+)
 from atlas.research.promotion import PaperEvidence, evaluate_paper_promotion
 from atlas.risk import RiskGate, RiskLimits
 
@@ -110,6 +114,18 @@ class Steps22To28Tests(unittest.TestCase):
 
     def test_research_to_paper_promotion_requires_all_evidence(self):
         valid = GateVerdict(True, {"all": True}, ())
+        receipt = sign_recorded_paper_receipt(
+            RecordedPaperAttestation(
+                "test-issuer",
+                dt.datetime(2026, 1, 1, tzinfo=dt.UTC),
+                dt.datetime(2026, 2, 1, tzinfo=dt.UTC),
+                30,
+                "result",
+                "ledger",
+                "fixture-source-attestation",
+            ),
+            signing_key=b"unit-test-only",
+        )
         evidence = PaperEvidence(
             30,
             "result",
@@ -117,8 +133,11 @@ class Steps22To28Tests(unittest.TestCase):
             True,
             market_source_type="recorded_external_paper",
             market_session_provenance_hash="fixture-source-attestation",
+            source_attestation=receipt,
         )
-        self.assertTrue(evaluate_paper_promotion(valid, evidence).passed)
+        self.assertTrue(
+            evaluate_paper_promotion(valid, evidence, verifier_key=b"unit-test-only").passed
+        )
         bad = PaperEvidence(29, "result", "ledger", True)
         self.assertFalse(evaluate_paper_promotion(valid, bad).passed)
         invalid = GateVerdict(False, {"all": False}, ("failed",))
