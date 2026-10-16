@@ -47,6 +47,18 @@ FIXTURES = {
         "Total Fees": "$0.00",
         "Portfolio Turnover": "0%",
     },
+    "AtlasLimitReplaceFixtureAlgorithm": {
+        "Total Orders": "1",
+        "End Equity": "100000",
+        "Total Fees": "$0.00",
+        "Portfolio Turnover": "0%",
+    },
+    "AtlasPartialCancelFixtureAlgorithm": {
+        "Total Orders": "1",
+        "End Equity": "100029.54",
+        "Total Fees": "$0.00",
+        "Portfolio Turnover": "0.05%",
+    },
     "AtlasPartialFillFixtureAlgorithm": {
         "Total Orders": "1",
         "End Equity": "100087.61",
@@ -122,6 +134,37 @@ def _run_fixture(name: str, expected: dict[str, str], *, env: dict[str, str], dl
                 mismatches["stop_market_cancellation"] = (
                     {"statuses": statuses, "fills": quantities, "order_ids": ids},
                     "one submitted -> cancelPending -> canceled with zero fills",
+                )
+        if name == "AtlasLimitReplaceFixtureAlgorithm":
+            events = json.loads((Path(tmp) / f"{name}-order-events.json").read_text())
+            statuses = tuple(event.get("status") for event in events)
+            prices = tuple(event.get("limitPrice") for event in events)
+            fills = tuple(event.get("fillQuantity") for event in events)
+            ids = {event.get("orderId") for event in events}
+            if (
+                statuses != ("submitted", "updateSubmitted", "cancelPending", "canceled")
+                or prices != (0.01, 0.02, 0.02, 0.02)
+                or fills != (0.0, 0.0, 0.0, 0.0)
+                or ids != {1}
+            ):
+                mismatches["limit_replace_cancel"] = (
+                    {"statuses": statuses, "prices": prices, "fills": fills, "ids": ids},
+                    "one order, price 0.01 -> 0.02 -> canceled, no fills",
+                )
+        if name == "AtlasPartialCancelFixtureAlgorithm":
+            events = json.loads((Path(tmp) / f"{name}-order-events.json").read_text())
+            statuses = tuple(event.get("status") for event in events)
+            fills = tuple(event.get("fillQuantity") for event in events)
+            ids = {event.get("orderId") for event in events}
+            if (
+                statuses != ("submitted", "partiallyFilled", "cancelPending", "canceled")
+                or fills != (0.0, 4.0, 0.0, 0.0)
+                or ids != {1}
+                or events[-1].get("quantity") != 12.0
+            ):
+                mismatches["partial_fill_then_cancel"] = (
+                    {"statuses": statuses, "fills": fills, "ids": ids},
+                    "one order, four of twelve filled, remainder canceled",
                 )
         if name == "AtlasPartialFillFixtureAlgorithm":
             events = json.loads((Path(tmp) / f"{name}-order-events.json").read_text())
