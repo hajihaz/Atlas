@@ -42,7 +42,9 @@ def classify_lean_test_output(output: str, returncode: int) -> str:
     return "FAILED"
 
 
-def run_cases(case_names: tuple[str, ...], *, log_dir: Path) -> tuple[IsolatedTestResult, ...]:
+def run_cases(
+    case_names: tuple[str, ...], *, log_dir: Path, nunit_single_worker: bool = False
+) -> tuple[IsolatedTestResult, ...]:
     if not DOTNET.is_file() or not PROJECT.is_file():
         raise RuntimeError("LEAN test SDK or project unavailable")
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -71,6 +73,10 @@ def run_cases(case_names: tuple[str, ...], *, log_dir: Path) -> tuple[IsolatedTe
             "--logger",
             "console;verbosity=minimal",
         ]
+        if nunit_single_worker:
+            cmd.extend(
+                ["--settings", str(ROOT / "scripts/lean-fixtures/nunit-single-worker.runsettings")]
+            )
         try:
             result = subprocess.run(  # noqa: S603 - pinned executable and fixed args
                 cmd, cwd=ROOT, env=runtime_env, text=True, capture_output=True, timeout=60
@@ -96,6 +102,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mode", choices=("smoke", "diagnostic"), default="smoke")
     parser.add_argument("--attempts", type=int, default=1)
+    parser.add_argument("--nunit-single-worker", action="store_true")
     args = parser.parse_args()
     if not 1 <= args.attempts <= 20:
         parser.error("--attempts must be between 1 and 20")
@@ -104,12 +111,15 @@ def main() -> int:
         result
         for attempt in range(1, args.attempts + 1)
         for result in run_cases(
-            cases, log_dir=ROOT / "artifacts/lean-test-isolation" / f"attempt-{attempt:02}"
+            cases,
+            log_dir=ROOT / "artifacts/lean-test-isolation" / f"attempt-{attempt:02}",
+            nunit_single_worker=args.nunit_single_worker
         )
     )
     report = {
         "mode": args.mode,
         "attempts": args.attempts,
+        "nunit_single_worker": args.nunit_single_worker,
         "results": [asdict(item) for item in results],
     }
     path = ROOT / f"artifacts/lean-test-isolation-{args.mode}.json"

@@ -23,3 +23,12 @@ def test_repeat_diagnostic_never_converts_one_crash_to_success():
     )
     assert len([case for case in history if case.state != "PASS"]) == 1
     assert not all(case.state == "PASS" for case in history)
+
+
+def test_single_worker_runsettings_declares_zero_nunit_workers():
+    from pathlib import Path
+    from xml.etree import ElementTree
+
+    path = Path("scripts/lean-fixtures/nunit-single-worker.runsettings")
+    doc = ElementTree.parse(path)
+    assert doc.findtext("./NUnit/NumberOfTestWorkers") == "0"
