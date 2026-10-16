@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import os
 import sqlite3
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -30,8 +31,11 @@ class BrokerOrderObservation:
     observed_at: dt.datetime
 
     def validate(self) -> None:
-        if not all((self.event_id, self.broker_order_id, self.client_order_id)):
-            raise ValueError("broker observation identities required")
+        if any(
+            type(value) is not str or not value.strip()
+            for value in (self.event_id, self.broker_order_id, self.client_order_id)
+        ):
+            raise ValueError("broker observation identities must be nonempty strings")
         if self.observed_at.tzinfo is None or self.observed_at.utcoffset() is None:
             raise ValueError("broker observation must have timezone-aware timestamp")
         if type(self.cumulative_filled) is not int or type(self.requested_quantity) is not int:
@@ -88,9 +92,9 @@ class BrokerOrderObservation:
             if not isinstance(status, str) or not isinstance(timestamp, str):
                 raise ValueError("bad broker observation enum or timestamp")
             observation = cls(
-                str(body["event_id"]),
-                str(body["broker_order_id"]),
-                str(body["client_order_id"]),
+                body["event_id"],  # type: ignore[arg-type]
+                body["broker_order_id"],  # type: ignore[arg-type]
+                body["client_order_id"],  # type: ignore[arg-type]
                 BrokerOrderStatus(status),
                 body["cumulative_filled"],  # type: ignore[arg-type]
                 body["requested_quantity"],  # type: ignore[arg-type]
@@ -108,15 +112,36 @@ class DurableOrderObservationJournal:
     def __init__(self, path: Path):
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        if self.path.is_symlink():
+            raise RuntimeError("broker observation journal symlinks forbidden")
         with self._connect() as db:
             db.execute(
                 "CREATE TABLE IF NOT EXISTS broker_order_observations("
                 "seq INTEGER PRIMARY KEY, event_id TEXT UNIQUE NOT NULL,"
                 "payload TEXT NOT NULL, previous_hash TEXT NOT NULL, chain_hash TEXT NOT NULL)"
             )
+            self._verify_layout(db)
+        os.chmod(self.path, 0o600)
+
+    @staticmethod
+    def _verify_layout(db: sqlite3.Connection) -> None:
+        actual = [
+            (r[1], r[2], r[5]) for r in db.execute("PRAGMA table_info(broker_order_observations)")
+        ]
+        expected = [
+            ("seq", "INTEGER", 1),
+            ("event_id", "TEXT", 0),
+            ("payload", "TEXT", 0),
+            ("previous_hash", "TEXT", 0),
+            ("chain_hash", "TEXT", 0),
+        ]
+        if actual != expected:
+            raise RuntimeError("unsafe broker observation journal schema")
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
+        if self.path.is_symlink():
+            raise RuntimeError("broker observation journal symlinks forbidden")
         db = sqlite3.connect(self.path, timeout=8)
         try:
             db.execute("PRAGMA journal_mode=WAL")
@@ -153,6 +178,7 @@ class DurableOrderObservationJournal:
 
     @classmethod
     def _read_verified(cls, db: sqlite3.Connection) -> tuple[BrokerOrderObservation, ...]:
+        cls._verify_layout(db)
         previous_hash = GENESIS_HASH
         result: list[BrokerOrderObservation] = []
         most_recent: dict[str, BrokerOrderObservation] = {}

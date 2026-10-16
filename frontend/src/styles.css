@@ -10,3 +10,5 @@
 @media(max-width:1140px){ .bottom-grid { grid-template-columns: minmax(0, 1fr); } }
 
 @media(max-width:360px){.workspace-label,.topbar-context>svg{display:none}.topbar{padding:0 10px}.topbar-right{gap:5px}.topbar-context{gap:5px}.topbar-left{gap:6px}}
+
+.chart-loading{display:flex;min-height:100%;align-items:center;justify-content:center;color:#8ea7b1;font-size:12px}

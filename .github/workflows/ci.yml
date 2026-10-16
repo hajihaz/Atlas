@@ -49,6 +49,10 @@ jobs:
         env:
           ATLAS_CI_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
         run: bash scripts/ci_postgres_backup_restore.sh
+      - name: Isolated PostgreSQL physical base-backup verification
+        env:
+          ATLAS_CI_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: bash scripts/ci_postgres_physical_backup_verify.sh
       - name: Repeat safety, crash-recovery and rounding regressions
         run: |
           for iteration in 1 2 3; do
@@ -60,7 +64,10 @@ jobs:
               tests/unit/test_sandbox_observation_reconciliation.py \
               tests/unit/test_order_observation_journal.py \
               tests/unit/test_risk_stress_certification.py \
-              tests/unit/test_historical_missing_bar_guard.py
+              tests/unit/test_historical_missing_bar_guard.py \
+              tests/unit/test_research_input_failsafe.py \
+              tests/unit/test_observation_journal_integrity_extended.py \
+              tests/unit/test_offline_sqlite_backup_restore.py
           done
       - name: Synthetic offline risk-stress contract
         run: PYTHONPATH=src python scripts/risk_stress_certify.py

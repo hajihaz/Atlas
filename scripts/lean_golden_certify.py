@@ -41,6 +41,12 @@ FIXTURES = {
         "Total Fees": "$0.00",
         "Portfolio Turnover": "0%",
     },
+    "AtlasStopCancelFixtureAlgorithm": {
+        "Total Orders": "1",
+        "End Equity": "100000",
+        "Total Fees": "$0.00",
+        "Portfolio Turnover": "0%",
+    },
     "AtlasPartialFillFixtureAlgorithm": {
         "Total Orders": "1",
         "End Equity": "100087.61",
@@ -102,6 +108,20 @@ def _run_fixture(name: str, expected: dict[str, str], *, env: dict[str, str], dl
                         "limit_prices": limit_prices,
                     },
                     "submitted -> cancelPending -> canceled, zero fills",
+                )
+        if name == "AtlasStopCancelFixtureAlgorithm":
+            events = json.loads((Path(tmp) / f"{name}-order-events.json").read_text())
+            statuses = tuple(event.get("status") for event in events)
+            quantities = tuple(event.get("fillQuantity") for event in events)
+            ids = {event.get("orderId") for event in events}
+            if (
+                statuses != ("submitted", "cancelPending", "canceled")
+                or quantities != (0.0, 0.0, 0.0)
+                or ids != {1}
+            ):
+                mismatches["stop_market_cancellation"] = (
+                    {"statuses": statuses, "fills": quantities, "order_ids": ids},
+                    "one submitted -> cancelPending -> canceled with zero fills",
                 )
         if name == "AtlasPartialFillFixtureAlgorithm":
             events = json.loads((Path(tmp) / f"{name}-order-events.json").read_text())

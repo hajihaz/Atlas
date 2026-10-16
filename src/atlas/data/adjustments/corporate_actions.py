@@ -17,7 +17,7 @@ from __future__ import annotations
 import datetime as _dt
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from atlas.common.types import CorporateActionType
 
@@ -59,6 +59,16 @@ def is_price_affecting(ca_type: CorporateActionType) -> bool:
     return ca_type in _PRICE_AFFECTING
 
 
+def _validated_term(terms: Mapping[str, str], key: str, *, allow_zero: bool = False) -> Decimal:
+    try:
+        value = Decimal(terms[key])
+    except (KeyError, InvalidOperation, TypeError, ValueError) as exc:
+        raise ValueError(f"invalid corporate action term: {key}") from exc
+    if not value.is_finite() or value < 0 or (not allow_zero and value == 0):
+        raise ValueError(f"corporate action term must be finite and positive: {key}")
+    return value
+
+
 def price_factor(ca: CorporateAction, ref_close: Decimal | None = None) -> Decimal:
     """Multiplicative factor applied to prices *before* ``ca.ex_date``.
 
@@ -75,14 +85,17 @@ def price_factor(ca: CorporateAction, ref_close: Decimal | None = None) -> Decim
     """
     t = ca.terms
     if ca.ca_type is CorporateActionType.SPLIT:
-        return Decimal(t["old"]) / Decimal(t["new"])
+        return _validated_term(t, "old") / _validated_term(t, "new")
     if ca.ca_type is CorporateActionType.BONUS:
-        held, bonus = Decimal(t["held"]), Decimal(t["bonus"])
+        held, bonus = _validated_term(t, "held"), _validated_term(t, "bonus", allow_zero=True)
         return held / (held + bonus)
     if ca.ca_type is CorporateActionType.DIVIDEND:
-        if ref_close is None or ref_close <= 0:
-            raise ValueError("dividend adjustment requires a positive reference close")
-        return (ref_close - Decimal(t["amount"])) / ref_close
+        if ref_close is None or not ref_close.is_finite() or ref_close <= 0:
+            raise ValueError("dividend adjustment requires a finite positive reference close")
+        amount = _validated_term(t, "amount", allow_zero=True)
+        if amount >= ref_close:
+            raise ValueError("dividend adjustment must preserve positive historical prices")
+        return (ref_close - amount) / ref_close
     if ca.ca_type is CorporateActionType.RIGHTS:
         raise NotImplementedError(
             "rights-issue price adjustment is not yet implemented; it fails closed rather "

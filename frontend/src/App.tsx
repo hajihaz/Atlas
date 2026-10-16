@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import {
   Activity, ArrowDownLeft, ArrowDownRight, ArrowRight, ArrowUpRight,
   BarChart3, Bell, BookOpenText, ChartNoAxesCombined, Check, CheckCircle2,
@@ -8,11 +8,9 @@ import {
   MoreHorizontal, Play, Search, Shield, ShieldAlert, ShieldCheck, SlidersHorizontal,
   Sparkles, TerminalSquare, TrendingUp, Wallet, X, Zap,
 } from 'lucide-react';
-import {
-  Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer,
-  Tooltip, XAxis, YAxis,
-} from 'recharts';
 import snapshot from './data/snapshot.json';
+
+const HistoricalEquityChart = lazy(() => import('./components/HistoricalEquityChart'));
 
 type Page = 'overview' | 'strategies' | 'research' | 'risk' | 'orders' | 'audit';
 type WindowSize = 7 | 14 | 30;
@@ -112,7 +110,7 @@ function Overview({ setPage }: { setPage: (page: Page) => void }) {
       <div className="chart-card panel">
         <div className="panel-heading"><div><div className="heading-kicker">HISTORICAL PERFORMANCE</div><h2>Portfolio equity curve</h2><p>Archived SPY / AAPL LEAN sample · <strong>not live performance</strong></p></div><div className="period-control" role="group" aria-label="Historical time period">{([7,14,30] as const).map(n=><button className={windowSize === n ? 'selected' : ''} type="button" onClick={()=>setWindowSize(n)} key={n}>{n}S</button>)}</div></div>
         <div className="chart-big-number"><strong>{usd(finalEquity)}</strong><span className={`change-pill ${positive(rangeReturn)}`}>{rangeReturn >= 0 ? <ArrowUpRight size={14}/> : <ArrowDownRight size={14}/>} {pct(rangeReturn)}</span><small>over selected {windowSize} sessions</small></div>
-        <div className="chart-graphic"><ResponsiveContainer width="100%" height="100%"><AreaChart data={chartData} margin={{top:10,right:5,left:-15,bottom:5}}><defs><linearGradient id="equityFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#72e5bb" stopOpacity={0.25}/><stop offset="95%" stopColor="#72e5bb" stopOpacity={0}/></linearGradient></defs><CartesianGrid stroke="#24313d" strokeDasharray="4 7" vertical={false}/><XAxis dataKey="dateLabel" axisLine={false} tickLine={false} tick={{fill:'#697c8c',fontSize:11}} minTickGap={23} dy={12}/><YAxis axisLine={false} tickLine={false} tick={{fill:'#697c8c',fontSize:11}} tickFormatter={(v:number)=>`$${(v/1000).toFixed(0)}k`} domain={[min,max]} width={56}/><Tooltip cursor={{stroke:'#86eac5',strokeDasharray:'3 6'}} content={({active,payload,label})=>active&&payload?.length ? <div className="chart-tooltip"><span>Historical date · {label}</span><strong>{usd(Number(payload[0].value))}</strong></div> : null}/><ReferenceLine y={100000} stroke="#658078" strokeDasharray="3 6"/><Area type="monotone" dataKey="equity" stroke="#8eebc9" strokeWidth={2.7} fill="url(#equityFill)" dot={false} activeDot={{r:4,fill:'#b0f7dd',stroke:'#0f191d',strokeWidth:3}} isAnimationActive={false}/></AreaChart></ResponsiveContainer></div>
+        <div className="chart-graphic"><Suspense fallback={<div role="status" aria-live="polite" className="chart-loading">Loading archived chart…</div>}><HistoricalEquityChart data={chartData} min={min} max={max}/></Suspense></div>
         <div className="chart-foot"><span><span className="legend-line"/> Archived portfolio equity</span><span><span className="legend-dashed"/> Starting capital</span><span className="chart-foot-end">Source SHA {snapshot.researchSourceHash}</span></div>
       </div>
       <div className="readiness-card panel"><div className="panel-heading tight"><div><div className="heading-kicker">CONTROL ENVIRONMENT</div><h2>System readiness</h2></div><Shield size={19} className="muted-icon"/></div><div className="readiness-ring" role="img" aria-label="Offline certification complete, live capital blocked"><div className="ring-inner"><span>17 / 17</span><strong>Passed</strong><small>Offline gates</small></div></div><div className="readiness-divider"/><div className="readiness-list"><div><span className="check-mark"><Check size={12}/></span> Offline certification <SmallTag style="mint">VERIFIED</SmallTag></div><div><span className="check-mark"><Check size={12}/></span> LEAN fixture matrix <span className="small-value">{snapshot.leanGoldenFixtures} / {snapshot.leanGoldenFixtures}</span></div><div><span className="blocked-mark"><X size={12}/></span> Live execution <SmallTag style="red">LOCKED</SmallTag></div></div><ArrowLink onClick={()=>setPage('risk')}>Review safety controls</ArrowLink></div>
