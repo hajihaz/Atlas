@@ -1,0 +1,182 @@
+{
+  "source": "archived_lean_fixture_not_live_paper",
+  "mode": "OFFLINE / READ ONLY",
+  "revision": "3f300ec5",
+  "certifiedAt": "2026-10-16T03:27:33.202105+00:00",
+  "testsPassed": 421,
+  "testsSkippedLocal": 5,
+  "leanGoldenFixtures": 5,
+  "certificationGates": 17,
+  "historical": [
+    {
+      "session": 1,
+      "date": "2013-10-08",
+      "equity": 99379.25905
+    },
+    {
+      "session": 2,
+      "date": "2013-10-09",
+      "equity": 99605.54441
+    },
+    {
+      "session": 3,
+      "date": "2013-10-10",
+      "equity": 100192.79553
+    },
+    {
+      "session": 4,
+      "date": "2013-10-11",
+      "equity": 100440.85773
+    },
+    {
+      "session": 5,
+      "date": "2013-10-14",
+      "equity": 100647.80849
+    },
+    {
+      "session": 6,
+      "date": "2013-10-15",
+      "equity": 100598.96849
+    },
+    {
+      "session": 7,
+      "date": "2013-10-16",
+      "equity": 100970.33777
+    },
+    {
+      "session": 8,
+      "date": "2013-10-17",
+      "equity": 101253.83639
+    },
+    {
+      "session": 9,
+      "date": "2013-10-18",
+      "equity": 101552.28254
+    },
+    {
+      "session": 10,
+      "date": "2013-10-21",
+      "equity": 102046.43102
+    },
+    {
+      "session": 11,
+      "date": "2013-10-22",
+      "equity": 102093.50102
+    },
+    {
+      "session": 12,
+      "date": "2013-10-23",
+      "equity": 102208.89102
+    },
+    {
+      "session": 13,
+      "date": "2013-10-24",
+      "equity": 102545.56602
+    },
+    {
+      "session": 14,
+      "date": "2013-10-25",
+      "equity": 102407.48602
+    },
+    {
+      "session": 15,
+      "date": "2013-10-28",
+      "equity": 102564.28602
+    },
+    {
+      "session": 16,
+      "date": "2013-10-29",
+      "equity": 102208.28602
+    },
+    {
+      "session": 17,
+      "date": "2013-10-30",
+      "equity": 102411.69906
+    },
+    {
+      "session": 18,
+      "date": "2013-10-31",
+      "equity": 102243.81406
+    },
+    {
+      "session": 19,
+      "date": "2013-11-01",
+      "equity": 102198.21361
+    },
+    {
+      "session": 20,
+      "date": "2013-11-04",
+      "equity": 102543.0969
+    },
+    {
+      "session": 21,
+      "date": "2013-11-05",
+      "equity": 102430.62246
+    },
+    {
+      "session": 22,
+      "date": "2013-11-06",
+      "equity": 102353.24246
+    },
+    {
+      "session": 23,
+      "date": "2013-11-07",
+      "equity": 101774.20288
+    },
+    {
+      "session": 24,
+      "date": "2013-11-08",
+      "equity": 102361.09803
+    },
+    {
+      "session": 25,
+      "date": "2013-11-11",
+      "equity": 102307.36089
+    },
+    {
+      "session": 26,
+      "date": "2013-11-12",
+      "equity": 102299.79089
+    },
+    {
+      "session": 27,
+      "date": "2013-11-13",
+      "equity": 102482.75089
+    },
+    {
+      "session": 28,
+      "date": "2013-11-14",
+      "equity": 102885.77236
+    },
+    {
+      "session": 29,
+      "date": "2013-11-15",
+      "equity": 102857.79581
+    },
+    {
+      "session": 30,
+      "date": "2013-11-18",
+      "equity": 102536.77058
+    }
+  ],
+  "historicalInitialCapital": 100000,
+  "cohorts": [
+    {
+      "start": "2013-10-07",
+      "sessions": 125,
+      "finalEquity": 103446.0719
+    },
+    {
+      "start": "2016-06-01",
+      "sessions": 125,
+      "finalEquity": 103844.51728
+    },
+    {
+      "start": "2020-09-01",
+      "sessions": 125,
+      "finalEquity": 99598.14823
+    }
+  ],
+  "researchSourceHash": "ae1e111d0a67",
+  "liveCapitalBlocked": true
+}
