@@ -54,6 +54,7 @@ ARTIFACTS = (
     ROOT / "src/atlas/risk/stress_certification.py",
     ROOT / "src/atlas/risk/gate.py",
     ROOT / "scripts/risk_stress_certify.py",
+    ROOT / "scripts/ci_postgres_backup_restore.sh",
     ROOT / "docs/adr/0069-paper-snapshot-recovery.md",
     ROOT / "docs/operations/atlas-npw18-evidence-register.md",
     *sorted((ROOT / "artifacts/certification").glob("*.log")),

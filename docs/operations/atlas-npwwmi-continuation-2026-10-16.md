@@ -15,3 +15,17 @@ Status: offline engineering hardening only. **Live-capital trading BLOCKED.**
 Test-only HMAC signature verification and offline authority checks do not provide independent production signing, isolation or market provenance. The full LEAN test host is intermittently unstable; ordinary Atlas golden fixtures are separate evidence. Real Upstox sandbox read APIs, licensed real-time feeds, sustained independent paper results, production secrets/firewall/backup drills, external compliance and explicit human authorization are required before any capital use.
 
 A successful local certification is evidence only for offline code. A separately green GitHub CI run is required to claim the new PostgreSQL test passed with a database. Existing unrelated `.ai/`, `AGENTS.md`, and ignored LEAN checkout modifications must remain uncommitted and untouched.
+
+## Additional CI-only PostgreSQL logical backup/restore drill
+
+The GitHub Actions PostgreSQL 17 service receives a disposable test table
+containing three amounts. Inside **that ephemeral service container only**,
+`pg_dump -Fc` exports the isolated schema and `pg_restore --exit-on-error`
+loads it into a separate disposable CI database. A strict equality check
+verifies three restored rows and a numeric total of 607.50. The script
+refuses execution outside GitHub Actions or without the fixed CI service
+container identity and expected local test-database URL structure.
+
+This tests **logical archival recovery** rather than physical disk backup,
+replication, disaster-recovery point objectives, or production PostgreSQL.
+It is not an authorization for a real database restore.

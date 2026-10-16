@@ -45,6 +45,10 @@ jobs:
           python -m mypy src/atlas
       - name: Run Python and PostgreSQL integration tests
         run: python -m pytest -q --disable-warnings --strict-markers
+      - name: Isolated PostgreSQL logical backup and restore drill
+        env:
+          ATLAS_CI_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: bash scripts/ci_postgres_backup_restore.sh
       - name: Repeat safety, crash-recovery and rounding regressions
         run: |
           for iteration in 1 2 3; do
