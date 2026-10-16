@@ -6,6 +6,7 @@ import datetime as dt
 import os
 import sqlite3
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from decimal import Decimal
 
 import pytest
@@ -113,3 +114,39 @@ def test_preexisting_incompatible_schema_migration_is_rejected(isolated_schemas)
     broken = PostgresExecutionPersistence(url, engine=engines[0])
     with pytest.raises(RuntimeError, match="schema column layout"):
         broken.migrate()
+
+
+def test_parallel_first_writer_contention_leaves_one_valid_postgres_record(
+    tmp_path, isolated_schemas
+):
+    """True serializable contention may abort competitors, never fork the ledger."""
+    url, _admin, _names, engines = isolated_schemas
+    store = PostgresExecutionPersistence(url, engine=engines[0])
+    store.migrate()
+    first = _source_record(tmp_path)
+
+    def attempt(_index: int) -> str:
+        try:
+            return "inserted" if store.append(first) else "duplicate"
+        except Exception as exc:
+            # SERIALIZABLE retries belong in a separate authorization layer.
+            # This test must not retry a broker submission or mask other SQL bugs.
+            from sqlalchemy.exc import OperationalError
+
+            if not isinstance(exc, OperationalError):
+                raise
+            sqlstate = getattr(exc.orig, "sqlstate", None)
+            if sqlstate not in {"40001", "40P01"}:
+                raise
+            return "serialization_conflict"
+
+    with ThreadPoolExecutor(max_workers=5) as pool:
+        outcomes = list(pool.map(attempt, range(12)))
+    assert outcomes.count("inserted") == 1
+    assert (
+        sum(outcome == "duplicate" for outcome in outcomes)
+        + sum(outcome == "serialization_conflict" for outcome in outcomes)
+        == 11
+    )
+    assert store.records() == (first,)
+    assert not store.append(first)

@@ -7,11 +7,15 @@ outbox. Unknown outcomes are NEVER automatically retried after process restart.
 from __future__ import annotations
 
 import hashlib
+import os
 import sqlite3
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
 from atlas.broker.adapter import ApprovedOrder, BrokerOrderReceipt, BrokerOrderStatus
+from atlas.broker.observation_journal import DurableOrderObservationJournal
 from atlas.broker.upstox_sandbox import UpstoxSandboxAdapter
 from atlas.common.hashing import canonical_json
 from atlas.health import HealthReport, assert_operational_clear
@@ -49,18 +53,67 @@ class SandboxAtMostOnceGate:
     def __init__(self, path: Path):
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        if self.path.is_symlink():
+            raise RuntimeError("sandbox submission journal symlinks are forbidden")
         with self._connect() as db:
             db.execute(
                 "CREATE TABLE IF NOT EXISTS sandbox_intents ("
                 "idempotency_key TEXT PRIMARY KEY, request_digest TEXT NOT NULL,"
                 "state TEXT NOT NULL, broker_order_id TEXT)"
             )
+            self._verify_layout(db)
+        # This file contains order identities. No bearer credentials belong here.
+        os.chmod(self.path, 0o600)
 
-    def _connect(self) -> sqlite3.Connection:
+    @contextmanager
+    def _connect(self) -> Iterator[sqlite3.Connection]:
+        if self.path.is_symlink():
+            raise RuntimeError("sandbox submission journal symlinks are forbidden")
         db = sqlite3.connect(self.path, timeout=8)
-        db.execute("PRAGMA journal_mode=WAL")
-        db.execute("PRAGMA synchronous=FULL")
-        return db
+        try:
+            db.execute("PRAGMA journal_mode=WAL")
+            db.execute("PRAGMA synchronous=FULL")
+            yield db
+            if db.in_transaction:
+                db.commit()
+        except BaseException:
+            if db.in_transaction:
+                db.rollback()
+            raise
+        finally:
+            db.close()
+
+    @staticmethod
+    def _verify_layout(db: sqlite3.Connection) -> None:
+        layout = db.execute("PRAGMA table_info(sandbox_intents)").fetchall()
+        actual = [(row[1], row[2], row[5]) for row in layout]
+        expected = [
+            ("idempotency_key", "TEXT", 1),
+            ("request_digest", "TEXT", 0),
+            ("state", "TEXT", 0),
+            ("broker_order_id", "TEXT", 0),
+        ]
+        if actual != expected:
+            raise RuntimeError("unsafe sandbox submission journal schema")
+
+    @staticmethod
+    def _checked_row(row: tuple[str, str, str, str | None]) -> SandboxedSubmissionState:
+        item = SandboxedSubmissionState(*row)
+        if (
+            not isinstance(item.idempotency_key, str)
+            or not item.idempotency_key.strip()
+            or not isinstance(item.request_digest, str)
+            or len(item.request_digest) != 64
+            or any(c not in "0123456789abcdef" for c in item.request_digest)
+            or item.state not in {"pending", "accepted", "unknown"}
+            or (
+                item.state == "accepted"
+                and (not isinstance(item.broker_order_id, str) or not item.broker_order_id.strip())
+            )
+            or (item.state != "accepted" and item.broker_order_id is not None)
+        ):
+            raise RuntimeError("invalid sandbox submission record; broker safety blocked")
+        return item
 
     def observed(self, key: str) -> SandboxedSubmissionState | None:
         with self._connect() as db:
@@ -71,10 +124,7 @@ class SandboxAtMostOnceGate:
             ).fetchone()
         if row is None:
             return None
-        item = SandboxedSubmissionState(*row)
-        if item.state not in {"pending", "accepted", "unknown"}:
-            raise RuntimeError("invalid sandbox submission state; broker safety blocked")
-        return item
+        return self._checked_row(row)
 
     def submit_once(
         self,
@@ -91,12 +141,15 @@ class SandboxAtMostOnceGate:
         digest = _digest_order(order)
         with self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
+            self._verify_layout(db)
             row = db.execute(
-                "SELECT request_digest FROM sandbox_intents WHERE idempotency_key=?",
+                "SELECT idempotency_key,request_digest,state,broker_order_id "
+                "FROM sandbox_intents WHERE idempotency_key=?",
                 (order.idempotency_key,),
             ).fetchone()
             if row:
-                if row[0] != digest:
+                checked = self._checked_row(row)
+                if checked.request_digest != digest:
                     raise RuntimeError("conflicting sandbox idempotency key replay")
                 raise RuntimeError(
                     "sandbox submission already attempted; reconcile by broker read-only "
@@ -134,3 +187,24 @@ class SandboxAtMostOnceGate:
             if updated.rowcount != 1:
                 raise RuntimeError("sandbox submission intent divergence")
             db.commit()
+
+    def verify_read_only_observations(
+        self, key: str, observations: DurableOrderObservationJournal
+    ) -> BrokerOrderStatus:
+        """Reconcile separately captured observations; NEVER unlocks a new submit.
+
+        The observations must come from an independently trusted broker-read
+        authority. Local hashes alone do not authenticate the broker source.
+        """
+        own = self.observed(key)
+        if own is None or own.state != "accepted" or not own.broker_order_id:
+            raise RuntimeError(
+                "submission has no confirmed broker identity; read-only recovery required"
+            )
+        observations.verify()
+        matched = [event for event in observations.records() if event.client_order_id == key]
+        if not matched:
+            raise RuntimeError("broker order observation missing; reconciliation blocked")
+        if any(event.broker_order_id != own.broker_order_id for event in matched):
+            raise RuntimeError("broker observation differs from durable submission identity")
+        return matched[-1].status

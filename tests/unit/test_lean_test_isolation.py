@@ -12,3 +12,14 @@ def test_smoke_accepts_only_exactly_one_pass_no_skips() -> None:
     assert classify_lean_test_output(clean, 0) == "PASS"
     assert classify_lean_test_output(clean, 1) == "FAILED"
     assert classify_lean_test_output("Skipped! - Failed: 0, Passed: 0, Skipped: 1", 0) == "SKIPPED"
+
+
+def test_repeat_diagnostic_never_converts_one_crash_to_success():
+    from scripts.lean_test_isolation import IsolatedTestResult
+
+    history = (
+        IsolatedTestResult("example", "PASS", 0, "attempt-1/example.log"),
+        IsolatedTestResult("example", "BLOCKED_PYTHONNET_GIL", 1, "attempt-2/example.log"),
+    )
+    assert len([case for case in history if case.state != "PASS"]) == 1
+    assert not all(case.state == "PASS" for case in history)

@@ -95,14 +95,31 @@ def run_cases(case_names: tuple[str, ...], *, log_dir: Path) -> tuple[IsolatedTe
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mode", choices=("smoke", "diagnostic"), default="smoke")
+    parser.add_argument("--attempts", type=int, default=1)
     args = parser.parse_args()
+    if not 1 <= args.attempts <= 20:
+        parser.error("--attempts must be between 1 and 20")
     cases = SMOKE if args.mode == "smoke" else KNOWN_DIAGNOSTIC
-    results = run_cases(cases, log_dir=ROOT / "artifacts/lean-test-isolation")
-    report = {"mode": args.mode, "results": [asdict(item) for item in results]}
+    results = tuple(
+        result
+        for attempt in range(1, args.attempts + 1)
+        for result in run_cases(
+            cases, log_dir=ROOT / "artifacts/lean-test-isolation" / f"attempt-{attempt:02}"
+        )
+    )
+    report = {
+        "mode": args.mode,
+        "attempts": args.attempts,
+        "results": [asdict(item) for item in results],
+    }
     path = ROOT / f"artifacts/lean-test-isolation-{args.mode}.json"
     path.write_text(json.dumps(report, sort_keys=True, indent=2) + "\n")
-    if any(item.state != "PASS" for item in results):
-        print(f"LEAN isolated {args.mode}: BLOCKED (see {path})")
+    failures = [item for item in results if item.state != "PASS"]
+    if failures:
+        print(
+            f"LEAN isolated {args.mode}: BLOCKED "
+            f"({len(failures)} of {len(results)} attempts failed; see {path})"
+        )
         return 2
     print(f"LEAN isolated {args.mode}: PASS ({len(results)} processes)")
     return 0

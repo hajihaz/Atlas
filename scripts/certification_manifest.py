@@ -50,6 +50,7 @@ ARTIFACTS = (
     ROOT / "src/atlas/broker/sandbox_submission_gate.py",
     ROOT / "src/atlas/deployment_policy.py",
     ROOT / "docs/operations/atlas-npwwmi-20-autonomous-wave.md",
+    ROOT / "docs/operations/atlas-npwwmi-continuation-2026-10-16.md",
     ROOT / "src/atlas/risk/stress_certification.py",
     ROOT / "src/atlas/risk/gate.py",
     ROOT / "scripts/risk_stress_certify.py",

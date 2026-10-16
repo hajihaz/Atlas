@@ -52,6 +52,8 @@ jobs:
             python -m pytest -q \
               tests/unit/test_forged_policy_and_client_idempotency.py \
               tests/unit/test_sandbox_submission_gate.py \
+              tests/unit/test_sandbox_submission_integrity.py \
+              tests/unit/test_sandbox_observation_reconciliation.py \
               tests/unit/test_order_observation_journal.py \
               tests/unit/test_risk_stress_certification.py \
               tests/unit/test_historical_missing_bar_guard.py
