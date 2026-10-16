@@ -1,11 +1,11 @@
 {
   "source": "archived_lean_fixture_not_live_paper",
   "mode": "OFFLINE / READ ONLY",
-  "revision": "925706b2",
-  "certifiedAt": "2026-10-16T14:04:37.582116+00:00",
-  "testsPassed": 456,
+  "revision": "8e7fc98b",
+  "certifiedAt": "2026-10-16T14:18:11.313894+00:00",
+  "testsPassed": 459,
   "testsSkippedLocal": 5,
-  "leanGoldenFixtures": 6,
+  "leanGoldenFixtures": 8,
   "certificationGates": 17,
   "historical": [
     {
