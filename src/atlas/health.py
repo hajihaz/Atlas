@@ -34,7 +34,16 @@ class HealthReport:
         return tuple(s.name for s in self.signals if not s.healthy and s.capital_blocking)
 
     def assert_capital_safe(self) -> None:
-        if self.status == HealthStatus.BLOCKED or self.blockers:
+        names = [item.name for item in self.signals]
+        structurally_invalid = (
+            not self.signals
+            or any(not name or not name.strip() for name in names)
+            or len(names) != len(set(names))
+            or any(type(item.healthy) is not bool for item in self.signals)
+            or any(type(item.capital_blocking) is not bool for item in self.signals)
+            or self.status != evaluate_health(self.signals).status
+        )
+        if structurally_invalid or self.status == HealthStatus.BLOCKED or self.blockers:
             reasons = self.blockers or ("missing_or_blocked_health_evidence",)
             raise RuntimeError("capital-increasing action blocked: " + ", ".join(reasons))
 

@@ -19,12 +19,12 @@ class PortfolioState:
         return self.cash + sum(Decimal(q) * prices[i] for i, q in self.holdings.items())
 
     def validate(self) -> None:
-        if self.cash < 0:
-            raise ValueError("portfolio cash cannot be negative")
-        if any(q < 0 for q in self.holdings.values()):
-            raise ValueError("long-only portfolio cannot contain negative positions")
-        if self.equity < 0:
-            raise ValueError("portfolio equity cannot be negative")
+        if not self.cash.is_finite() or self.cash < 0:
+            raise ValueError("portfolio cash must be finite and nonnegative")
+        if any(type(q) is not int or q < 0 for q in self.holdings.values()):
+            raise ValueError("long-only portfolio requires nonnegative integer positions")
+        if not self.equity.is_finite() or self.equity < 0:
+            raise ValueError("portfolio equity must be finite and nonnegative")
 
 
 @dataclass(frozen=True)
@@ -69,11 +69,78 @@ class PortfolioAccount:
     def state(self) -> PortfolioState:
         return self._state
 
+    @classmethod
+    def restore_with_transitions(
+        cls,
+        *,
+        cash: Decimal,
+        holdings: Mapping[str, int],
+        equity: Decimal,
+        transitions: tuple[PortfolioTransition, ...],
+    ) -> PortfolioAccount:
+        """Restore immutable fill identities only after checking every cash/share transition."""
+        result = cls(cash=cash, holdings=holdings, equity=equity)
+        original = dict(holdings)
+        for item in transitions:
+            original[item.instrument_id] = original.get(item.instrument_id, 0) - item.quantity
+        if any(type(quantity) is not int or quantity < 0 for quantity in original.values()):
+            raise ValueError("paper recovery implies invalid opening positions")
+        positions = {key: value for key, value in original.items() if value}
+        running_cash = transitions[0].cash_before if transitions else result.state.cash
+        seen: set[str] = set()
+        for seq, item in enumerate(transitions):
+            numeric = (
+                item.fill_price,
+                item.fee,
+                item.cash_before,
+                item.cash_after,
+                item.equity_after,
+            )
+            if (
+                type(item.sequence) is not int
+                or item.sequence != seq
+                or not item.event_id
+                or item.event_id in seen
+                or not item.instrument_id
+                or type(item.quantity) is not int
+                or item.quantity == 0
+                or type(item.position_before) is not int
+                or type(item.position_after) is not int
+                or any(not value.is_finite() for value in numeric)
+                or item.fill_price <= 0
+                or item.fee < 0
+                or item.cash_before != running_cash
+                or item.position_before != positions.get(item.instrument_id, 0)
+            ):
+                raise ValueError("invalid restored paper transition")
+            changed = item.position_before + item.quantity
+            expected_cash = running_cash - Decimal(item.quantity) * item.fill_price - item.fee
+            if (
+                changed < 0
+                or changed != item.position_after
+                or expected_cash != item.cash_after
+                or item.cash_after < 0
+                or item.equity_after < 0
+            ):
+                raise ValueError("paper recovery cash/position transition mismatch")
+            if changed:
+                positions[item.instrument_id] = changed
+            else:
+                positions.pop(item.instrument_id, None)
+            running_cash = item.cash_after
+            seen.add(item.event_id)
+        if running_cash != cash or positions != {k: v for k, v in holdings.items() if v}:
+            raise ValueError("restored paper transitions disagree with snapshot")
+        result._transitions = list(transitions)
+        return result
+
     def apply_fill(
         self, fill: Fill, *, event_id: str, valuation_prices: Mapping[str, Decimal]
     ) -> PortfolioTransition:
         if not event_id:
             raise ValueError("event_id is required")
+        if any(transition.event_id == event_id for transition in self._transitions):
+            raise RuntimeError("duplicate portfolio fill event ID")
         if fill.quantity == 0 or fill.fill_price <= 0 or fill.fee < 0:
             raise ValueError("invalid fill")
         before = self._state

@@ -41,6 +41,12 @@ FIXTURES = {
         "Total Fees": "$0.00",
         "Portfolio Turnover": "0%",
     },
+    "AtlasPartialFillFixtureAlgorithm": {
+        "Total Orders": "1",
+        "End Equity": "100087.61",
+        "Total Fees": "$1.00",
+        "Portfolio Turnover": "0.16%",
+    },
 }
 
 
@@ -96,6 +102,20 @@ def _run_fixture(name: str, expected: dict[str, str], *, env: dict[str, str], dl
                         "limit_prices": limit_prices,
                     },
                     "submitted -> cancelPending -> canceled, zero fills",
+                )
+        if name == "AtlasPartialFillFixtureAlgorithm":
+            events = json.loads((Path(tmp) / f"{name}-order-events.json").read_text())
+            statuses = [item.get("status") for item in events]
+            quantities = [item.get("fillQuantity") for item in events]
+            ids = {item.get("orderId") for item in events}
+            if (
+                statuses != ["submitted", "partiallyFilled", "partiallyFilled", "filled"]
+                or quantities != [0.0, 4.0, 4.0, 4.0]
+                or ids != {1}
+            ):
+                mismatches["partial_fill_lifecycle"] = (
+                    {"statuses": statuses, "quantities": quantities, "ids": sorted(ids)},
+                    "one order, partial 4 + partial 4 + final 4",
                 )
         if mismatches:
             raise RuntimeError(f"LEAN golden fixture diverged ({name}): {mismatches}")

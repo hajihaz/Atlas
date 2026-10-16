@@ -20,7 +20,20 @@ class PaperPersistenceTests(unittest.TestCase):
                 valuation_prices={"A": Decimal("11")},
             )
             ledger = ExecutionLedger()
-            ledger.append(ExecutionEvent("fill-1", "fill", dt.datetime.now(dt.UTC)))
+            t = account.transitions()[0]
+            ledger.append(
+                ExecutionEvent(
+                    t.event_id,
+                    "fill",
+                    dt.datetime.now(dt.UTC),
+                    t.instrument_id,
+                    t.quantity,
+                    t.fill_price,
+                    t.fee,
+                    t.cash_after,
+                    t.equity_after,
+                )
+            )
             store = DurablePaperAccountStore(Path(tmp) / "account.json")
             store.save(account, ledger)
             restored = store.load(ledger=ledger, valuation_prices={"A": Decimal("11")})

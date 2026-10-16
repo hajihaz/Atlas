@@ -18,6 +18,10 @@ ARTIFACTS = (
     ROOT / "scripts/lean_dependency_audit.py",
     ROOT / "scripts/lean_test_isolation.py",
     ROOT / "scripts/historical_paper_replay.py",
+    ROOT / "scripts/historical_cohort_certify.py",
+    ROOT / "src/atlas/paper/historical_cohorts.py",
+    ROOT / "src/atlas/broker/observation_journal.py",
+    ROOT / "artifacts/historical-cohorts.json",
     ROOT / "src/atlas/paper/historical_replay.py",
     ROOT / "artifacts/historical-paper-replay.json",
     ROOT / "scripts/lean_independent_smoke.py",
@@ -39,6 +43,12 @@ ARTIFACTS = (
     ROOT / "src/atlas/monitoring_drills.py",
     ROOT / ".github/workflows/ci.yml",
     ROOT / "src/atlas/paper/evidence.py",
+    ROOT / "src/atlas/paper/persistence.py",
+    ROOT / "src/atlas/paper/runtime.py",
+    ROOT / "src/atlas/portfolio/account.py",
+    ROOT / "src/atlas/health.py",
+    ROOT / "docs/adr/0069-paper-snapshot-recovery.md",
+    ROOT / "docs/operations/atlas-npw18-evidence-register.md",
     *sorted((ROOT / "artifacts/certification").glob("*.log")),
 )
 sha = subprocess.check_output(
@@ -57,6 +67,8 @@ if "LEAN INDEPENDENT COMPRESSION: PASS" not in (logs / "lean-independent-smoke.l
     raise RuntimeError("independent LEAN compression evidence missing")
 if "HISTORICAL REPLAY PASS" not in (logs / "historical-replay.log").read_text():
     raise RuntimeError("historical replay evidence missing")
+if "HISTORICAL COHORT CERTIFICATION: PASS" not in (logs / "historical-cohorts.log").read_text():
+    raise RuntimeError("historical cohort evidence missing")
 manifest = CertificationManifest(
     git_sha=sha,
     timestamp_utc=dt.datetime.now(dt.UTC).isoformat(),
