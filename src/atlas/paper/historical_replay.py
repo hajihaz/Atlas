@@ -99,11 +99,18 @@ def replay_lean_history(
             source_directory / f"{symbol}.zip", symbol=symbol
         )
     by_symbol = {symbol: {bar.day: bar for bar in bars} for symbol, bars in sources.items()}
-    common_days = sorted(set(by_symbol["spy"]) & set(by_symbol["aapl"]))
+    dates_spy = set(by_symbol["spy"])
+    dates_aapl = set(by_symbol["aapl"])
+    # Intersection alone silently skips a bar missing in just one instrument.
+    # Fail closed on asymmetric session coverage within the requested replay.
+    common_days = sorted(dates_spy & dates_aapl)
     common_days = [d for d in common_days if d >= start]
     if len(common_days) < sessions + 1:
         raise ValueError("insufficient aligned historical sessions for next-open fills")
     dates = common_days[: sessions + 1]
+    asymmetric = dates_spy ^ dates_aapl
+    if any(dates[0] <= day <= dates[-1] for day in asymmetric):
+        raise ValueError("asymmetric historical bar coverage; refusing implicit date skipping")
     raw_sessions = []
     targets = {"SPY": Decimal("0.2"), "AAPL": Decimal("0.2")}
     for i in range(sessions):

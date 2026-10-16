@@ -76,6 +76,12 @@ def validate_deployment_policy(
 
 
 def assert_zone_capability(zone: ZoneAuthority, *, capability: str) -> None:
+    # An injected/fabricated ZoneAuthority is never an authorization token.
+    # Compare the FULL policy, including secrets and egress, before accepting
+    # a capability. This is still an offline policy check, not a firewall.
+    canonical = next((item for item in EXPECTED_ZONES if item.name == zone.name), None)
+    if canonical is None or zone != canonical:
+        raise RuntimeError(f"deployment authority denied: {zone.name}/{capability}")
     if capability == "place-order" and zone.can_place_orders and zone.name == "execution":
         return
     if capability == "halt" and zone.can_halt:

@@ -45,6 +45,19 @@ jobs:
           python -m mypy src/atlas
       - name: Run Python and PostgreSQL integration tests
         run: python -m pytest -q --disable-warnings --strict-markers
+      - name: Repeat safety, crash-recovery and rounding regressions
+        run: |
+          for iteration in 1 2 3; do
+            echo "Safety repeat $iteration"
+            python -m pytest -q \
+              tests/unit/test_forged_policy_and_client_idempotency.py \
+              tests/unit/test_sandbox_submission_gate.py \
+              tests/unit/test_order_observation_journal.py \
+              tests/unit/test_risk_stress_certification.py \
+              tests/unit/test_historical_missing_bar_guard.py
+          done
+      - name: Synthetic offline risk-stress contract
+        run: PYTHONPATH=src python scripts/risk_stress_certify.py
       - name: Audit Python dependencies
         run: python -m pip_audit
       - name: Scan source for accidental secrets

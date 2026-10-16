@@ -157,6 +157,9 @@ class DurableOrderObservationJournal:
         result: list[BrokerOrderObservation] = []
         most_recent: dict[str, BrokerOrderObservation] = {}
         event_ids: set[str] = set()
+        # Client idempotency tags are unique per broker order. A forged second
+        # broker ID with the same client key must not bypass recovery checks.
+        client_orders: dict[str, str] = {}
         rows = db.execute(
             "SELECT seq,event_id,payload,previous_hash,chain_hash "
             "FROM broker_order_observations ORDER BY seq"
@@ -179,7 +182,11 @@ class DurableOrderObservationJournal:
                 or observed_hash != expected_hash
             ):
                 raise RuntimeError("broker observation journal integrity failure")
+            existing_broker = client_orders.get(observation.client_order_id)
+            if existing_broker is not None and existing_broker != observation.broker_order_id:
+                raise RuntimeError("conflicting broker ID for client idempotency key")
             cls._check_transition(most_recent.get(observation.broker_order_id), observation)
+            client_orders[observation.client_order_id] = observation.broker_order_id
             most_recent[observation.broker_order_id] = observation
             event_ids.add(event_id)
             previous_hash = expected_hash
@@ -209,6 +216,15 @@ class DurableOrderObservationJournal:
                 ),
                 None,
             )
+            client_match = next(
+                (item for item in existing if item.client_order_id == observation.client_order_id),
+                None,
+            )
+            if (
+                client_match is not None
+                and client_match.broker_order_id != observation.broker_order_id
+            ):
+                raise RuntimeError("conflicting broker ID for client idempotency key")
             self._check_transition(latest, observation)
             old_chain = GENESIS_HASH
             if existing:

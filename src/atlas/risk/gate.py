@@ -107,7 +107,18 @@ class RiskGate:
         gross = sum(abs(w) for w in bounded.values())
         if gross > self.limits.max_gross and gross > 0:
             scale = self.limits.max_gross / gross
-            bounded = {iid: w * scale for iid, w in bounded.items()}
+            # Decimal division/multiplication can round the sum *above* the
+            # exposure limit. Allocate a decreasing residual in stable order
+            # instead; all rounding slack stays unallocated, never leveraged.
+            residual = self.limits.max_gross
+            revised: dict[str, Decimal] = {}
+            for iid in sorted(bounded):
+                original = bounded[iid]
+                proposed = abs(original * scale)
+                allowed = min(proposed, residual)
+                revised[iid] = allowed if original >= 0 else -allowed
+                residual -= allowed
+            bounded = revised
             reduced = True
         if reduced:
             reasons.append("risk_reduced_target")

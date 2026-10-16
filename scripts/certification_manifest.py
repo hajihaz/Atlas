@@ -47,6 +47,12 @@ ARTIFACTS = (
     ROOT / "src/atlas/paper/runtime.py",
     ROOT / "src/atlas/portfolio/account.py",
     ROOT / "src/atlas/health.py",
+    ROOT / "src/atlas/broker/sandbox_submission_gate.py",
+    ROOT / "src/atlas/deployment_policy.py",
+    ROOT / "docs/operations/atlas-npwwmi-20-autonomous-wave.md",
+    ROOT / "src/atlas/risk/stress_certification.py",
+    ROOT / "src/atlas/risk/gate.py",
+    ROOT / "scripts/risk_stress_certify.py",
     ROOT / "docs/adr/0069-paper-snapshot-recovery.md",
     ROOT / "docs/operations/atlas-npw18-evidence-register.md",
     *sorted((ROOT / "artifacts/certification").glob("*.log")),
@@ -69,6 +75,8 @@ if "HISTORICAL REPLAY PASS" not in (logs / "historical-replay.log").read_text():
     raise RuntimeError("historical replay evidence missing")
 if "HISTORICAL COHORT CERTIFICATION: PASS" not in (logs / "historical-cohorts.log").read_text():
     raise RuntimeError("historical cohort evidence missing")
+if "ATLAS RISK STRESS: PASS" not in (logs / "risk-stress.log").read_text():
+    raise RuntimeError("risk stress evidence missing")
 manifest = CertificationManifest(
     git_sha=sha,
     timestamp_utc=dt.datetime.now(dt.UTC).isoformat(),
