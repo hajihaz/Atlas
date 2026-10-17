@@ -59,3 +59,27 @@ with a nested quotation error (exit 127). The restore wrapper was repaired
 to avoid embedded single quotes and gained an independently parsed
 embedded-shell contract test. The failed run remains retained as evidence;
 only a new successful hosted restore can close workstream #5.
+
+
+## Hosted acceptance — repair release c3d7a0a
+
+- GitHub `atlas-python-ci`: **PASS**, 484 tests passed, one unrelated
+  archived LEAN sample test skipped on the disposable GitHub runner.
+- PostgreSQL 17 CI: **PASS**, genuine SQLSTATE 40P01 deadlock rollback test.
+- PostgreSQL 17 backup integrity: **PASS**, physical `pg_basebackup` and
+  `pg_verifybackup`; the copied cluster actually started on isolated local
+  port 55433, returned the original 3 rows and numeric total 607.50, and was
+  stopped by the test-only cleanup trap.
+- Synthetic risk-stress, repeated offline safety, Python dependency audit,
+  and secret scanning: **PASS** as part of hosted workflow.
+- Vercel git-sourced production `dpl_EZDndCvzgprvgwGP6dHhP5wADHo1`:
+  **READY** for SHA `c3d7a0a`; public dashboard returned HTTP 200.
+- Earlier failed CI `f3ce903` is retained as a meaningful detected/repaired
+  quoting defect, not ignored.
+- **Outcome:** 13 of 15 approved workstreams have verified deliverables
+  within offline or isolated-CI scope. #1 is upstream-blocked (intermittent
+  Python.NET NUnit/GIL); #3 remains partially verified because independent
+  production broker/database atomicity cannot be certified offline.
+  Some accepted items still have independent *production* owner/external
+  gates, and none imply readiness for real-money execution.
+- **Capital authorization remains BLOCKED.** No order placement occurred.
