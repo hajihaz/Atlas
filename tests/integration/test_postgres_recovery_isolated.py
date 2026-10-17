@@ -150,3 +150,55 @@ def test_parallel_first_writer_contention_leaves_one_valid_postgres_record(
     )
     assert store.records() == (first,)
     assert not store.append(first)
+
+
+def test_genuine_postgres_deadlock_rolls_back_loser_in_disposable_ci_schema(
+    isolated_schemas,
+):
+    """Two cross-locked test rows: one SQLSTATE 40P01, no partial writes."""
+    from threading import Barrier
+
+    from sqlalchemy import text
+    from sqlalchemy.exc import OperationalError
+
+    _url, _admin, _names, engines = isolated_schemas
+    engine = engines[0]
+    with engine.begin() as conn:
+        conn.execute(text("CREATE TABLE atlas_deadlock_probe(id integer primary key, n integer)"))
+        conn.execute(text("INSERT INTO atlas_deadlock_probe VALUES (1,10),(2,20)"))
+    start_second_lock = Barrier(2)
+
+    def cross_lock(first: int, second: int) -> str:
+        with engine.connect() as conn:
+            tx = conn.begin()
+            try:
+                conn.execute(text("SET LOCAL deadlock_timeout='150ms'"))
+                conn.execute(text("SET LOCAL statement_timeout='7000ms'"))
+                conn.execute(
+                    text("SELECT n FROM atlas_deadlock_probe WHERE id=:n FOR UPDATE"),
+                    {"n": first},
+                )
+                start_second_lock.wait(timeout=5)
+                conn.execute(
+                    text("SELECT n FROM atlas_deadlock_probe WHERE id=:n FOR UPDATE"),
+                    {"n": second},
+                )
+                tx.commit()
+                return "committed"
+            except OperationalError as exc:
+                tx.rollback()
+                if getattr(exc.orig, "sqlstate", "") != "40P01":
+                    raise
+                return "deadlock_victim"
+            finally:
+                if tx.is_active:
+                    tx.rollback()
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        a = pool.submit(cross_lock, 1, 2)
+        b = pool.submit(cross_lock, 2, 1)
+        results = [a.result(timeout=15), b.result(timeout=15)]
+    assert sorted(results) == ["committed", "deadlock_victim"]
+    with engine.connect() as conn:
+        observed = conn.execute(text("SELECT id,n FROM atlas_deadlock_probe ORDER BY id")).all()
+    assert observed == [(1, 10), (2, 20)]

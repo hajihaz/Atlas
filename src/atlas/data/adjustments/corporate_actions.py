@@ -119,7 +119,12 @@ def cumulative_price_factor(
     """
     factor = _ONE
     refs = ref_closes or {}
-    for ca in sorted(actions, key=lambda a: a.ex_date):
+    ordered = sorted(actions, key=lambda a: a.ex_date)
+    if len({ca.key() for ca in ordered}) != len(ordered):
+        raise ValueError("duplicate corporate action identity; adjustment blocked")
+    if len({ca.instrument_id for ca in ordered}) > 1:
+        raise ValueError("mixed-instrument corporate action adjustment blocked")
+    for ca in ordered:
         if ca.ex_date > bar_date:
             factor *= price_factor(ca, refs.get(ca.key()))
     return factor

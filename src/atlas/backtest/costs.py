@@ -34,3 +34,47 @@ class CostModel:
     def describe(self) -> dict[str, float]:
         """Auditable summary of the cost assumptions (recorded with every backtest)."""
         return {"bps_per_side": self.bps_per_side}
+
+
+@dataclass(frozen=True)
+class AdverseMarketCostModel(CostModel):
+    """Conservative historical-stress assumptions, not observed market liquidity.
+
+    The three independent nonnegative shock components remain auditable in
+    backtest metadata; they never reduce baseline transaction costs.
+    """
+
+    spread_bps_per_side: float = 5.0
+    gap_bps_per_side: float = 20.0
+    liquidity_impact_bps_per_side: float = 15.0
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        shocks = (
+            self.spread_bps_per_side,
+            self.gap_bps_per_side,
+            self.liquidity_impact_bps_per_side,
+        )
+        if any(not isfinite(item) or item < 0 for item in shocks):
+            raise ValueError("adverse-market shock assumptions must be finite and nonnegative")
+        if not isfinite(sum(shocks) + self.bps_per_side):
+            raise ValueError("adverse-market total cost overflow")
+
+    def cost(self, turnover: float) -> float:
+        baseline = super().cost(turnover)
+        stress = turnover * (
+            (self.spread_bps_per_side + self.gap_bps_per_side + self.liquidity_impact_bps_per_side)
+            / 10_000.0
+        )
+        result = baseline + stress
+        if not isfinite(result):
+            raise ValueError("adverse-market cost calculation overflow")
+        return result
+
+    def describe(self) -> dict[str, float]:
+        return {
+            **super().describe(),
+            "spread_bps_per_side": self.spread_bps_per_side,
+            "gap_bps_per_side": self.gap_bps_per_side,
+            "liquidity_impact_bps_per_side": self.liquidity_impact_bps_per_side,
+        }

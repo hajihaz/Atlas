@@ -26,4 +26,23 @@ docker exec "$container" sh -ceu '
     -D /tmp/atlas-ci-physical-backup -Fp -Xs -c fast --no-password
 '
 docker exec "$container" pg_verifybackup /tmp/atlas-ci-physical-backup
-echo "ATLAS CI POSTGRESQL PHYSICAL BACKUP: VERIFIED (no restore or production certification)"
+
+# On a disposable GitHub service only, boot the physical copy on an isolated
+# local port and socket; this checks it can actually replay and answer queries.
+# The original PostgreSQL service remains running and untouched.
+docker exec "$container" chown -R postgres:postgres /tmp/atlas-ci-physical-backup
+docker exec --user postgres "$container" sh -ceu '
+  restore=/tmp/atlas-ci-physical-backup
+  log=/tmp/atlas-ci-physical-restore.log
+  pg_ctl -D "$restore" \
+    -o "-p 55433 -c listen_addresses=127.0.0.1 -c unix_socket_directories=/tmp" \
+    -l "$log" -w start
+  trap '''pg_ctl -D /tmp/atlas-ci-physical-backup -m immediate -w stop''' EXIT
+  result="$(psql -h /tmp -p 55433 -U atlas_ci -d atlas_ci -v ON_ERROR_STOP=1 \
+    -At -c "SELECT COUNT(*)::text || '''|''' || SUM(cash)::text FROM atlas_ci_backup_restore.replay_probe")"
+  if [ "$result" != "3|607.50" ]; then
+    echo "ATLAS CI PHYSICAL RESTORE REJECTED: $result"; exit 2
+  fi
+  echo "ATLAS CI POSTGRESQL PHYSICAL RESTORE: PASS (3 rows; 607.50)"
+'
+echo "ATLAS CI POSTGRESQL PHYSICAL BACKUP+RESTORE: VERIFIED (ephemeral CI only)"

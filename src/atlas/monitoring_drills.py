@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -65,3 +66,34 @@ def simulate_fail_closed_incident(path: Path) -> FailClosedDrillEvidence:
         reopened.load().engaged,
         content_hash(facts),
     )
+
+
+@dataclass(frozen=True)
+class AlertEscalationEvidence:
+    """Injected fake-notifier results; never a real message-delivery claim."""
+
+    delivery_attempted: bool
+    delivery_acknowledged: bool
+    escalation_required: bool
+    emergency_still_engaged: bool
+    live_orders_submitted: int
+
+
+def simulate_alert_escalation(
+    path: Path, deliver: Callable[[str], bool]
+) -> AlertEscalationEvidence:
+    """Use a fresh disposable halt state; failed alert cannot unhalt execution."""
+    if path.exists() or path.is_symlink():
+        raise RuntimeError("refuse to overwrite existing emergency state")
+    store = DurableEmergencyStore(path)
+    store.engage("offline simulated critical incident")
+    accepted = False
+    try:
+        accepted = deliver("ATLAS_OFFLINE_CRITICAL_INCIDENT") is True
+    except Exception:
+        # Suppressed notification exceptions never clear the durable halt.
+        accepted = False
+    reopened = DurableEmergencyStore(path)
+    if not reopened.load().engaged:
+        raise RuntimeError("simulated alert path cleared emergency state")
+    return AlertEscalationEvidence(True, accepted, not accepted, True, 0)
