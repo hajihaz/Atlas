@@ -37,11 +37,13 @@ docker exec --user postgres "$container" sh -ceu '
   pg_ctl -D "$restore" \
     -o "-p 55433 -c listen_addresses=127.0.0.1 -c unix_socket_directories=/tmp" \
     -l "$log" -w start
-  trap '''pg_ctl -D /tmp/atlas-ci-physical-backup -m immediate -w stop''' EXIT
-  result="$(psql -h /tmp -p 55433 -U atlas_ci -d atlas_ci -v ON_ERROR_STOP=1 \
-    -At -c "SELECT COUNT(*)::text || '''|''' || SUM(cash)::text FROM atlas_ci_backup_restore.replay_probe")"
-  if [ "$result" != "3|607.50" ]; then
-    echo "ATLAS CI PHYSICAL RESTORE REJECTED: $result"; exit 2
+  trap "pg_ctl -D /tmp/atlas-ci-physical-backup -m immediate -w stop" EXIT
+  count="$(psql -h /tmp -p 55433 -U atlas_ci -d atlas_ci -v ON_ERROR_STOP=1 \
+    -At -c "SELECT COUNT(*) FROM atlas_ci_backup_restore.replay_probe")"
+  total="$(psql -h /tmp -p 55433 -U atlas_ci -d atlas_ci -v ON_ERROR_STOP=1 \
+    -At -c "SELECT SUM(cash) FROM atlas_ci_backup_restore.replay_probe")"
+  if [ "$count" != "3" ] || [ "$total" != "607.50" ]; then
+    echo "ATLAS CI PHYSICAL RESTORE REJECTED: count=$count sum=$total"; exit 2
   fi
   echo "ATLAS CI POSTGRESQL PHYSICAL RESTORE: PASS (3 rows; 607.50)"
 '

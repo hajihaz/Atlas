@@ -48,3 +48,14 @@ Live broker credentials, production PostgreSQL, production secret management,
 real-market data, independent alert delivery, compliance review and explicit
 human live approval remain independent external or owner gates. This report
 must not be used to mark Atlas live-trading-ready.
+
+
+## CI recovery note
+
+Initial hosted run for `f3ce903` verified **483 passed / 1 skipped**
+including the genuine PostgreSQL deadlock test (server recorded SQLSTATE
+40P01), but the subsequent physical restore shell failed before execution
+with a nested quotation error (exit 127). The restore wrapper was repaired
+to avoid embedded single quotes and gained an independently parsed
+embedded-shell contract test. The failed run remains retained as evidence;
+only a new successful hosted restore can close workstream #5.

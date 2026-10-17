@@ -30,5 +30,19 @@ def test_physical_backup_is_started_on_separate_ephemeral_port_and_stopped() -> 
     assert '55433' in source
     assert 'pg_ctl -D /tmp/atlas-ci-physical-backup -m immediate -w stop' in source
     assert "atlas_ci_backup_restore.replay_probe" in source
-    assert '3|607.50' in source
+    assert 'SELECT SUM(cash) FROM atlas_ci_backup_restore.replay_probe' in source
     assert "docker exec --user postgres" in source
+
+
+def test_embedded_disposable_restore_shell_is_individually_parseable() -> None:
+    # bash -n of the outer wrapper does not guarantee correct nested sh quoting.
+    source = SCRIPT.read_text()
+    marker = "docker exec --user postgres \"$container\" sh -ceu '"
+    assert marker in source
+    shell_source = source.split(marker, 1)[1].split("\n'", 1)[0]
+    assert "'" not in shell_source
+    check = subprocess.run(
+        ["sh", "-n", "-c", shell_source],
+        capture_output=True, text=True, timeout=5,
+    )
+    assert check.returncode == 0, check.stderr
