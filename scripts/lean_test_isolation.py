@@ -10,6 +10,7 @@ import re
 import subprocess
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parents[1]
 DOTNET = ROOT / ".tooling/dotnet/dotnet"
@@ -30,16 +31,29 @@ class IsolatedTestResult:
 
 
 def classify_lean_test_output(output: str, returncode: int) -> str:
-    passed = re.search(r"Passed!\s+- Failed:\s*0, Passed:\s*1, Skipped:\s*0, Total:\s*1,", output)
-    if returncode == 0 and passed:
-        return "PASS"
+    """Never accept a passing summary if this process also reports fatal evidence."""
     if "GIL must always be released" in output or "Python.Runtime.Py.GILState.Finalize" in output:
         return "BLOCKED_PYTHONNET_GIL"
-    if "Skipped!" in output or "Skipped:     1" in output:
-        return "SKIPPED"
-    if "The active test run was aborted" in output:
+    if "The active test run was aborted" in output or "Test Run Aborted." in output:
         return "HOST_ABORTED"
+    if "Skipped!" in output or re.search(r"Skipped:\s*[1-9]", output):
+        return "SKIPPED"
+    successful = re.findall(
+        r"Passed!\s+- Failed:\s*0, Passed:\s*1, Skipped:\s*0, Total:\s*1,",
+        output,
+    )
+    if returncode == 0 and len(successful) == 1:
+        return "PASS"
     return "FAILED"
+
+
+def new_run_dir(run_id: str, *, root: Path) -> Path:
+    """Allocate immutable per-run evidence without touching earlier diagnostics."""
+    if not re.fullmatch(r"[a-zA-Z0-9_-]{8,64}", run_id):
+        raise ValueError("run-id must be 8-64 alphanumeric, underscore or hyphen characters")
+    run_dir = root / run_id
+    run_dir.mkdir(parents=True, exist_ok=False)
+    return run_dir
 
 
 def run_cases(
@@ -93,6 +107,7 @@ def run_cases(
             status, code = "TIMEOUT", -1
         log = log_dir / f"{case}.log"
         log.write_text(output)
+        log.chmod(0o600)
         observed.append(IsolatedTestResult(case, status, code, str(log.relative_to(ROOT))))
         print(f"  {status} {case}")
     return tuple(observed)
@@ -103,27 +118,36 @@ def main() -> int:
     parser.add_argument("--mode", choices=("smoke", "diagnostic"), default="smoke")
     parser.add_argument("--attempts", type=int, default=1)
     parser.add_argument("--nunit-single-worker", action="store_true")
+    parser.add_argument("--run-id", help="Unique immutable diagnostic run name (8-64 safe chars)")
     args = parser.parse_args()
     if not 1 <= args.attempts <= 20:
         parser.error("--attempts must be between 1 and 20")
+    run_id = args.run_id or f"{args.mode}-{uuid4().hex}"
+    try:
+        run_dir = new_run_dir(run_id, root=ROOT / "artifacts/lean-test-isolation-runs")
+    except (ValueError, FileExistsError) as exc:
+        parser.error(f"refusing to overwrite or misuse diagnostic evidence: {exc}")
     cases = SMOKE if args.mode == "smoke" else KNOWN_DIAGNOSTIC
     results = tuple(
         result
         for attempt in range(1, args.attempts + 1)
         for result in run_cases(
             cases,
-            log_dir=ROOT / "artifacts/lean-test-isolation" / f"attempt-{attempt:02}",
-            nunit_single_worker=args.nunit_single_worker
+            log_dir=run_dir / f"attempt-{attempt:02}",
+            nunit_single_worker=args.nunit_single_worker,
         )
     )
     report = {
+        "run_id": run_id,
         "mode": args.mode,
         "attempts": args.attempts,
         "nunit_single_worker": args.nunit_single_worker,
         "results": [asdict(item) for item in results],
     }
-    path = ROOT / f"artifacts/lean-test-isolation-{args.mode}.json"
-    path.write_text(json.dumps(report, sort_keys=True, indent=2) + "\n")
+    path = run_dir / "report.json"
+    with path.open("x") as evidence:
+        evidence.write(json.dumps(report, sort_keys=True, indent=2) + "\n")
+    path.chmod(0o600)
     failures = [item for item in results if item.state != "PASS"]
     if failures:
         print(

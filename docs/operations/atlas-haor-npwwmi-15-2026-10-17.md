@@ -83,3 +83,12 @@ only a new successful hosted restore can close workstream #5.
   Some accepted items still have independent *production* owner/external
   gates, and none imply readiness for real-money execution.
 - **Capital authorization remains BLOCKED.** No order placement occurred.
+
+
+## Follow-on LEAN GIL experiment, 17 October
+
+See `docs/operations/atlas-lean-gil-isolation-2026-10-17.md`.
+Supplying a disposable SGX map fixture did not resolve GIL host finalization:
+3 of 20 attempts still crashed. The LEAN diagnostic runner now preserves
+immutable per-run evidence, verifies unique IDs and refuses to misclassify
+a fatal host error as PASS. **Upstream reliability gate remains blocked**.
