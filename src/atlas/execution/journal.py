@@ -123,6 +123,35 @@ class TransactionalExecutionJournal:
         if not match:
             raise RuntimeError("conflicting replay for durable execution event")
 
+    @staticmethod
+    def _assert_live_state_matches_journal(
+        db: sqlite3.Connection,
+        *,
+        account: PortfolioAccount,
+        ledger: ExecutionLedger,
+    ) -> None:
+        """Prevent a stale or substituted caller state from crossing a commit boundary."""
+        last = db.execute(
+            "SELECT seq,cash_after,holdings_json,equity_after,chain_hash "
+            "FROM execution_events ORDER BY seq DESC LIMIT 1"
+        ).fetchone()
+        expected_checkpoint = (
+            (int(last[0]), str(last[4])) if last is not None else (-1, GENESIS_HASH)
+        )
+        if ledger.head_checkpoint() != expected_checkpoint:
+            raise RuntimeError("journal/ledger checkpoint divergence")
+        if last is None:
+            if account.state.holdings or account.state.equity != account.state.cash:
+                raise RuntimeError("unjournaled initial portfolio state")
+            return
+        holdings = {k: int(v) for k, v in json.loads(last[2]).items()}
+        if (
+            account.state.cash != Decimal(str(last[1]))
+            or dict(account.state.holdings) != holdings
+            or account.state.equity != Decimal(str(last[3]))
+        ):
+            raise RuntimeError("stale portfolio state does not match committed journal")
+
     def apply_broker_fill(
         self,
         *,
@@ -203,6 +232,9 @@ class TransactionalExecutionJournal:
                 )
                 db.rollback()
                 return False
+            self._assert_live_state_matches_journal(
+                db, account=account, ledger=ledger
+            )
             expected_seq = len(observed)
             if expected_seq != staged_entry.seq:
                 db.rollback()
@@ -278,6 +310,27 @@ class TransactionalExecutionJournal:
             state.validate()
             if event.cash != state.cash or event.equity != state.equity:
                 raise RuntimeError("journal event/account state divergence")
+            if (
+                event.event_type != "broker_fill"
+                or not event.instrument_id
+                or not isinstance(event.quantity, int)
+                or event.quantity == 0
+                or event.price is None
+            ):
+                raise RuntimeError("invalid persisted broker fill")
+            expected_cash = (
+                account.state.cash - Decimal(event.quantity) * event.price - event.fee
+            )
+            expected_holdings = dict(account.state.holdings)
+            new_quantity = expected_holdings.get(event.instrument_id, 0) + event.quantity
+            if new_quantity < 0:
+                raise RuntimeError("journal fill exceeds recorded holdings")
+            if new_quantity:
+                expected_holdings[event.instrument_id] = new_quantity
+            else:
+                expected_holdings.pop(event.instrument_id, None)
+            if state.cash != expected_cash or state.holdings != expected_holdings:
+                raise RuntimeError("journal fill/account transition divergence")
             state_payload = {
                 "cash": str(state.cash),
                 "holdings": dict(sorted(state.holdings.items())),
