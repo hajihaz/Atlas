@@ -26,7 +26,7 @@ not an execution-grade market-data feed. No P&L is calculated from these quotes.
   passed in process memory, authenticates only to Upstox's fixed quote
   endpoint, validates the matching instrument, positive numeric price,
   exchange last-trade timestamp and a 120-second freshness bound.
-  It is **not exposed** by any public or unauthenticated web endpoint.
+  It has **no built-in outbound network authority** and is **not exposed** by any public or unauthenticated web endpoint.
 - **UI:** Market Watch is a distinct responsive sidebar page with honest
   status badges, explicit price-source and timestamp disclaimers, a manual
   refresh button, placeholders when offline, and permanent trade lock copy.
