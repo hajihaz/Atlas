@@ -110,7 +110,7 @@ def upstox_private_stock_observation(
     if not isinstance(access_token, str) or not access_token.strip():
         raise PermissionError("authenticated market-data access required")
     instrument = _NSE_INSTRUMENTS[symbol]
-    request = Request(
+    request = Request(  # noqa: S310 - fixed HTTPS origin and audited symbol allowlist
         _UPSTOX_QUOTE_URL + "?" + urlencode({"instrument_key": instrument}),
         headers={"Accept": "application/json", "Authorization": "Bearer " + access_token},
     )
