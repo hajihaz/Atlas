@@ -1,5 +1,6 @@
-"""Strict read-only market observations for stock/crypto research, never order execution.
+"""Pure, network-inert read-only market observations for stock/crypto research.
 
+Transports are explicitly injected by an independently authorized integration layer.
 This adapter has an explicit private-provider boundary. A public Atlas dashboard
 must never proxy an owner's Upstox access token or licensed NSE quotes.
 """
@@ -7,12 +8,11 @@ must never proxy an owner's Upstox access token or licensed NSE quotes.
 from __future__ import annotations
 
 import datetime as dt
-import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+from urllib.request import Request
 
 from atlas.market.boundary import MarketDataBoundary, MarketDataStatus
 
@@ -20,7 +20,6 @@ _UPSTOX_QUOTE_URL = "https://api.upstox.com/v2/market-quote/quotes"
 # Initial exchange-identified symbol verified in Upstox's official examples.
 _NSE_INSTRUMENTS = {"RELIANCE": "NSE_EQ|INE002A01018"}
 _KRAKEN_URL = "https://api.kraken.com/0/public/Ticker?pair=XBTUSD,ETHUSD"
-_MAX_BYTES = 200_000
 
 
 @dataclass(frozen=True)
@@ -43,18 +42,6 @@ class ObservedPrice:
             raise ValueError("observed timestamp must be aware")
 
 
-def _response_json(request: Request) -> Mapping[str, object]:
-    """Bound response size; fixed endpoints prevent user-controlled SSRF."""
-    with urlopen(request, timeout=5) as response:  # noqa: S310 - fixed provider allowlist
-        raw = response.read(_MAX_BYTES + 1)
-    if len(raw) > _MAX_BYTES:
-        raise ValueError("market response exceeds bound")
-    decoded: object = json.loads(raw)
-    if not isinstance(decoded, dict):
-        raise ValueError("invalid upstream market document")
-    return decoded
-
-
 def _positive_decimal(value: object) -> Decimal:
     if not isinstance(value, (str, int, float)) or isinstance(value, bool):
         raise ValueError("invalid provider price type")
@@ -71,7 +58,7 @@ def kraken_public_observation(
     symbol: str,
     *,
     received_at: dt.datetime,
-    transport: Callable[[Request], Mapping[str, object]] = _response_json,
+    transport: Callable[[Request], Mapping[str, object]],
 ) -> ObservedPrice:
     """Real public crypto ticker; trade time not supplied, never paper eligible."""
     mapping = {"BTC/USD": "XXBTZUSD", "ETH/USD": "XETHZUSD"}
@@ -102,7 +89,7 @@ def upstox_private_stock_observation(
     *,
     access_token: str,
     received_at: dt.datetime,
-    transport: Callable[[Request], Mapping[str, object]] = _response_json,
+    transport: Callable[[Request], Mapping[str, object]],
 ) -> ObservedPrice:
     """Owner-private NSE quote. Token never leaves this transport boundary."""
     if symbol not in _NSE_INSTRUMENTS:
