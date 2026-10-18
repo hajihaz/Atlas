@@ -11,11 +11,13 @@ import {
 import snapshot from './data/snapshot.json';
 
 const HistoricalEquityChart = lazy(() => import('./components/HistoricalEquityChart'));
+const MarketsPage = lazy(() => import('./components/MarketsPage'));
 
-type Page = 'overview' | 'strategies' | 'research' | 'risk' | 'orders' | 'audit';
+type Page = 'overview' | 'markets' | 'strategies' | 'research' | 'risk' | 'orders' | 'audit';
 type WindowSize = 7 | 14 | 30;
 const nav = [
   { id: 'overview', title: 'Overview', Icon: LayoutDashboard },
+  { id: 'markets', title: 'Market Watch', Icon: ChartNoAxesCombined },
   { id: 'strategies', title: 'Strategies', Icon: Layers3 },
   { id: 'research', title: 'Research Lab', Icon: ChartNoAxesCombined },
   { id: 'risk', title: 'Risk Center', Icon: ShieldCheck },
@@ -178,9 +180,9 @@ export default function App() {
   const [collapsed,setCollapsed]=useState(false);
   const [mobileOpen,setMobileOpen]=useState(false);
   const [notices,setNotices]=useState(false);
-  const pages:Record<Page,string> = {overview:'Overview',strategies:'Strategies',research:'Research Lab',risk:'Risk Center',orders:'Orders & Activity',audit:'Audit & Evidence'};
+  const pages:Record<Page,string> = {overview:'Overview',markets:'Market Watch',strategies:'Strategies',research:'Research Lab',risk:'Risk Center',orders:'Orders & Activity',audit:'Audit & Evidence'};
   return <div className={`app-shell ${collapsed ? 'sidebar-collapsed' : ''}`}>
     <Sidebar page={page} setPage={setPage} collapsed={collapsed} toggle={()=>setCollapsed(s=>!s)} mobileOpen={mobileOpen} closeMobile={()=>setMobileOpen(false)}/>
-    <div className="app-body"><header className="topbar"><div className="topbar-left"><button className="icon-button mobile-menu" onClick={()=>setMobileOpen(true)} aria-label="Open menu"><Menu size={22}/></button><span className="topbar-context"><span className="topbar-world"><Command size={15}/></span> <span className="workspace-label">Atlas Workspace</span> <ChevronRight size={14}/><strong>{pages[page]}</strong></span></div><div className="topbar-right"><span className="topbar-mode"><span className="mode-dot"/> Offline Mode</span><div className="topbar-separator"/><div className="notice-wrap"><button onClick={()=>setNotices(v=>!v)} className="icon-button header-bell" title="System notices" aria-label="System notices"><Bell size={19}/><span className="notification-dot"/></button>{notices&&<div className="notice-popover"><strong>System notification</strong><p>Live-capital execution is locked. Research figures are archived simulations.</p><button onClick={()=>{setPage('risk');setNotices(false);}}>Review safety <ArrowRight size={14}/></button></div>}</div><button className="header-user" onClick={()=>setPage('audit')} title="Audit profile" aria-label="Audit and evidence">A</button></div></header><main className="main-content" key={page}>{page==='overview'?<Overview setPage={setPage}/>:page==='strategies'?<StrategiesPage/>:page==='research'?<ResearchPage/>:page==='risk'?<RiskPage/>:page==='orders'?<OrdersPage/>:<AuditPage/>}<footer className="app-footer"><span>© 2026 ATLAS QUANTITATIVE SYSTEMS</span><div><span className="footer-safety-dot"/> Offline-certified research preview <span className="footer-separator">·</span> No live trading <span className="footer-separator">·</span> Build {snapshot.revision}</div></footer></main></div>
+    <div className="app-body"><header className="topbar"><div className="topbar-left"><button className="icon-button mobile-menu" onClick={()=>setMobileOpen(true)} aria-label="Open menu"><Menu size={22}/></button><span className="topbar-context"><span className="topbar-world"><Command size={15}/></span> <span className="workspace-label">Atlas Workspace</span> <ChevronRight size={14}/><strong>{pages[page]}</strong></span></div><div className="topbar-right"><span className="topbar-mode"><span className="mode-dot"/> Offline Mode</span><div className="topbar-separator"/><div className="notice-wrap"><button onClick={()=>setNotices(v=>!v)} className="icon-button header-bell" title="System notices" aria-label="System notices"><Bell size={19}/><span className="notification-dot"/></button>{notices&&<div className="notice-popover"><strong>System notification</strong><p>Live-capital execution is locked. Research figures are archived simulations.</p><button onClick={()=>{setPage('risk');setNotices(false);}}>Review safety <ArrowRight size={14}/></button></div>}</div><button className="header-user" onClick={()=>setPage('audit')} title="Audit profile" aria-label="Audit and evidence">A</button></div></header><main className="main-content" key={page}>{page==='overview'?<Overview setPage={setPage}/>:page==='markets'?<Suspense fallback={<div role="status" className="market-loading panel">Opening market watch…</div>}><MarketsPage/></Suspense>:page==='strategies'?<StrategiesPage/>:page==='research'?<ResearchPage/>:page==='risk'?<RiskPage/>:page==='orders'?<OrdersPage/>:<AuditPage/>}<footer className="app-footer"><span>© 2026 ATLAS QUANTITATIVE SYSTEMS</span><div><span className="footer-safety-dot"/> Offline-certified research preview <span className="footer-separator">·</span> No live trading <span className="footer-separator">·</span> Build {snapshot.revision}</div></footer></main></div>
   </div>;
 }

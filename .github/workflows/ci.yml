@@ -70,7 +70,8 @@ jobs:
               tests/unit/test_offline_sqlite_backup_restore.py \
               tests/unit/test_haor_adverse_market_and_actions.py \
               tests/unit/test_haor_interrupt_and_reconciliation.py \
-              tests/unit/test_haor_alert_signing_jarvis.py
+              tests/unit/test_haor_alert_signing_jarvis.py \
+              tests/unit/test_market_observation_providers.py
           done
       - name: Synthetic offline risk-stress contract
         run: PYTHONPATH=src python scripts/risk_stress_certify.py
