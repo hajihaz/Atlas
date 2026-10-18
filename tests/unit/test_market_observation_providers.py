@@ -77,9 +77,9 @@ def test_private_stock_quote_uses_official_instrument_and_stays_read_only() -> N
 
 def test_private_stock_quote_rejects_missing_authority_and_arbitrary_instruments() -> None:
     with pytest.raises(PermissionError):
-        upstox_private_stock_observation("RELIANCE", access_token="", received_at=NOW)
+        upstox_private_stock_observation("RELIANCE", access_token="", received_at=NOW, transport=lambda _r: {})
     with pytest.raises(ValueError, match="allowlist"):
-        upstox_private_stock_observation("FAKE-NSE-SYMBOL", access_token=TOKEN, received_at=NOW)
+        upstox_private_stock_observation("FAKE-NSE-SYMBOL", access_token=TOKEN, received_at=NOW, transport=lambda _r: {})
 
 
 @pytest.mark.parametrize("offset_seconds", [-180, 30])
