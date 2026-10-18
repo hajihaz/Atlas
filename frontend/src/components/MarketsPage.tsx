@@ -13,6 +13,15 @@ type Quote = {
   status: string;
   paperEligible: boolean;
 };
+type ClosedBar = {
+  symbol: string; status: string; close: number | null; observedAt: string | null;
+  provider: string; currency: 'USD'; paperEligible: false; ageSeconds?: number;
+};
+type ClosedBarSnapshot = {
+  schema: number; source: string; retrievedAt: string; bars: ClosedBar[];
+  paperExecutionEnabled: false; liveOrdersEnabled: false;
+};
+
 type Snapshot = {
   schema: number;
   retrievedAt: string;
@@ -35,10 +44,32 @@ export default function MarketsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
+  const [closedBars, setClosedBars] = useState<ClosedBarSnapshot | null>(null);
+  const [candleError, setCandleError] = useState('');
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
     setError('');
+    setCandleError('');
+    fetch('/api/closed-candles', { method: 'GET', signal: controller.signal, credentials: 'omit' })
+      .then(async response => {
+        if (!response.ok) throw new Error('Closed-candle provider unavailable');
+        return response.json() as Promise<ClosedBarSnapshot>;
+      })
+      .then(body => {
+        if (body.schema !== 1 || body.liveOrdersEnabled !== false
+          || body.paperExecutionEnabled !== false || !Array.isArray(body.bars)
+          || body.bars.some(bar => bar.paperEligible !== false)) {
+          throw new Error('Untrusted candle evidence format');
+        }
+        setClosedBars(body);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setClosedBars(null);
+          setCandleError('Closed-candle feed unavailable; paper readiness not verified.');
+        }
+      });
     fetch('/api/market-quotes', { method: 'GET', signal: controller.signal, credentials: 'omit' })
       .then(async response => {
         if (!response.ok) throw new Error('Market feed unavailable');
@@ -99,6 +130,25 @@ export default function MarketsPage() {
       </article>)}
       {loading && !snapshot && <div role="status" className="panel market-loading">Connecting to public observation source…</div>}
     </div>
+    <section className="panel closed-candle-panel" aria-labelledby="candle-readiness-title">
+      <div className="closed-candle-heading">
+        <div><div className="heading-kicker">NEXT PAPER-READINESS MILESTONE</div>
+          <h2 id="candle-readiness-title">Timestamped closed candles</h2>
+          <p>Kraken public 1-minute OHLC · current unfinished bar excluded · no simulated fills.</p>
+        </div><span className="candle-readiness-tag"><LockKeyhole size={14}/> RESEARCH ONLY</span>
+      </div>
+      <div className="closed-candle-grid">
+        {closedBars ? closedBars.bars.map(bar => <article className="closed-candle-card" key={bar.symbol}>
+          <strong>{bar.symbol}</strong>
+          <span className="closed-candle-price">{formatPrice(bar.close, bar.currency)}</span>
+          <span className={bar.status === 'recent_closed_candle' ? 'closed-candle-status' : 'closed-candle-status warning'}>
+            <Clock3 size={13}/> {bar.status === 'recent_closed_candle' ? 'Recent closed bar' : bar.status.replaceAll('_', ' ')}
+          </span>
+          <small>{bar.observedAt ? 'Bar ended ' + new Date(bar.observedAt).toLocaleString() : 'No validated bar timestamp'}</small>
+        </article>) : <p role="status">{candleError || 'Checking timestamped public market data…'}</p>}
+      </div>
+      <p className="candle-disclaimer">These are source observations, not an authenticated order book or broker paper-trading record. Missing or stale bars are never replaced with estimated prices.</p>
+    </section>
     <div className="markets-info panel">
       <div><h2>How the data pipeline works</h2><p>Public crypto tickers use Kraken's read-only endpoint. NSE stock quotes require a private authenticated feed and licensed market-data access; this public dashboard intentionally never carries a broker token.</p></div>
       <div className="market-pipeline">

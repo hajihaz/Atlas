@@ -1,12 +1,12 @@
-import { lazy, Suspense, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import {
   Activity, ArrowDownLeft, ArrowDownRight, ArrowRight, ArrowUpRight,
   BarChart3, Bell, BookOpenText, ChartNoAxesCombined, Check, CheckCircle2,
   ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleHelp, Clock3,
   Command, Copy, Download, ExternalLink, FileClock, Fingerprint, Gauge,
   GitBranch, History, Layers3, LayoutDashboard, LockKeyhole, Menu,
-  MoreHorizontal, Play, Search, Shield, ShieldAlert, ShieldCheck, SlidersHorizontal,
-  Sparkles, TerminalSquare, TrendingUp, Wallet, X, Zap,
+  MoreHorizontal, Moon, Play, Search, Shield, ShieldAlert, ShieldCheck, SlidersHorizontal,
+  Sparkles, Sun, TerminalSquare, TrendingUp, Wallet, X, Zap,
 } from 'lucide-react';
 import snapshot from './data/snapshot.json';
 
@@ -15,6 +15,12 @@ const MarketsPage = lazy(() => import('./components/MarketsPage'));
 
 type Page = 'overview' | 'markets' | 'strategies' | 'research' | 'risk' | 'orders' | 'audit';
 type WindowSize = 7 | 14 | 30;
+type Theme = 'light' | 'dark';
+const THEME_KEY = 'atlas.theme.preference';
+function initialTheme(): Theme {
+  try { return window.localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light'; }
+  catch { return 'light'; }
+}
 const nav = [
   { id: 'overview', title: 'Overview', Icon: LayoutDashboard },
   { id: 'markets', title: 'Market Watch', Icon: ChartNoAxesCombined },
@@ -180,9 +186,16 @@ export default function App() {
   const [collapsed,setCollapsed]=useState(false);
   const [mobileOpen,setMobileOpen]=useState(false);
   const [notices,setNotices]=useState(false);
+  const [theme,setTheme]=useState<Theme>(initialTheme);
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#f7f9fc' : '#090f17');
+    try { window.localStorage.setItem(THEME_KEY, theme); } catch { /* Private browsing can disallow storage. */ }
+  }, [theme]);
   const pages:Record<Page,string> = {overview:'Overview',markets:'Market Watch',strategies:'Strategies',research:'Research Lab',risk:'Risk Center',orders:'Orders & Activity',audit:'Audit & Evidence'};
   return <div className={`app-shell ${collapsed ? 'sidebar-collapsed' : ''}`}>
     <Sidebar page={page} setPage={setPage} collapsed={collapsed} toggle={()=>setCollapsed(s=>!s)} mobileOpen={mobileOpen} closeMobile={()=>setMobileOpen(false)}/>
-    <div className="app-body"><header className="topbar"><div className="topbar-left"><button className="icon-button mobile-menu" onClick={()=>setMobileOpen(true)} aria-label="Open menu"><Menu size={22}/></button><span className="topbar-context"><span className="topbar-world"><Command size={15}/></span> <span className="workspace-label">Atlas Workspace</span> <ChevronRight size={14}/><strong>{pages[page]}</strong></span></div><div className="topbar-right"><span className="topbar-mode"><span className="mode-dot"/> Offline Mode</span><div className="topbar-separator"/><div className="notice-wrap"><button onClick={()=>setNotices(v=>!v)} className="icon-button header-bell" title="System notices" aria-label="System notices"><Bell size={19}/><span className="notification-dot"/></button>{notices&&<div className="notice-popover"><strong>System notification</strong><p>Live-capital execution is locked. Research figures are archived simulations.</p><button onClick={()=>{setPage('risk');setNotices(false);}}>Review safety <ArrowRight size={14}/></button></div>}</div><button className="header-user" onClick={()=>setPage('audit')} title="Audit profile" aria-label="Audit and evidence">A</button></div></header><main className="main-content" key={page}>{page==='overview'?<Overview setPage={setPage}/>:page==='markets'?<Suspense fallback={<div role="status" className="market-loading panel">Opening market watch…</div>}><MarketsPage/></Suspense>:page==='strategies'?<StrategiesPage/>:page==='research'?<ResearchPage/>:page==='risk'?<RiskPage/>:page==='orders'?<OrdersPage/>:<AuditPage/>}<footer className="app-footer"><span>© 2026 ATLAS QUANTITATIVE SYSTEMS</span><div><span className="footer-safety-dot"/> Offline-certified research preview <span className="footer-separator">·</span> No live trading <span className="footer-separator">·</span> Build {snapshot.revision}</div></footer></main></div>
+    <div className="app-body"><header className="topbar"><div className="topbar-left"><button className="icon-button mobile-menu" onClick={()=>setMobileOpen(true)} aria-label="Open menu"><Menu size={22}/></button><span className="topbar-context"><span className="topbar-world"><Command size={15}/></span> <span className="workspace-label">Atlas Workspace</span> <ChevronRight size={14}/><strong>{pages[page]}</strong></span></div><div className="topbar-right"><button type="button" className="icon-button theme-toggle" aria-label={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'} title={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'} aria-pressed={theme === 'dark'} onClick={() => setTheme(current => current === 'light' ? 'dark' : 'light')}>{theme === 'light' ? <Moon size={18}/> : <Sun size={18}/>}</button><span className="topbar-mode"><span className="mode-dot"/> Offline Mode</span><div className="topbar-separator"/><div className="notice-wrap"><button onClick={()=>setNotices(v=>!v)} className="icon-button header-bell" title="System notices" aria-label="System notices"><Bell size={19}/><span className="notification-dot"/></button>{notices&&<div className="notice-popover"><strong>System notification</strong><p>Live-capital execution is locked. Research figures are archived simulations.</p><button onClick={()=>{setPage('risk');setNotices(false);}}>Review safety <ArrowRight size={14}/></button></div>}</div><button className="header-user" onClick={()=>setPage('audit')} title="Audit profile" aria-label="Audit and evidence">A</button></div></header><main className="main-content" key={page}>{page==='overview'?<Overview setPage={setPage}/>:page==='markets'?<Suspense fallback={<div role="status" className="market-loading panel">Opening market watch…</div>}><MarketsPage/></Suspense>:page==='strategies'?<StrategiesPage/>:page==='research'?<ResearchPage/>:page==='risk'?<RiskPage/>:page==='orders'?<OrdersPage/>:<AuditPage/>}<footer className="app-footer"><span>© 2026 ATLAS QUANTITATIVE SYSTEMS</span><div><span className="footer-safety-dot"/> Offline-certified research preview <span className="footer-separator">·</span> No live trading <span className="footer-separator">·</span> Build {snapshot.revision}</div></footer></main></div>
   </div>;
 }
