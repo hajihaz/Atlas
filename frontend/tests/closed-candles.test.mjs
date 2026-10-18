@@ -55,7 +55,7 @@ test('upstream errors provide no invented closed candles', async () => {
     requests += 1;
     throw Error('provider down');
   }, now - 15000);
-  assert.equal(requests, 1);
+  assert.equal(requests, 2);
   assert.ok(snapshot.bars.every(bar => bar.close === null));
   assert.equal(snapshot.paperExecutionEnabled, false);
   assert.equal(snapshot.liveOrdersEnabled, false);
@@ -64,10 +64,13 @@ test('public source can only fetch its fixed Kraken OHLC URL', async () => {
   let calls = 0;
   const snapshot = await getClosedCandleSnapshot(async (url) => {
     calls++;
-    assert.equal(url, 'https://api.kraken.com/0/public/OHLC?pair=XBTUSD,ETHUSD&interval=1');
+    assert.ok([
+      'https://api.kraken.com/0/public/OHLC?interval=1&pair=XBTUSD',
+      'https://api.kraken.com/0/public/OHLC?interval=1&pair=ETHUSD',
+    ].includes(url));
     return { ok: true, json: async () => fixture() };
   }, now);
-  assert.equal(calls, 1);
+  assert.equal(calls, 2);
   assert.equal(snapshot.bars[0].status, 'recent_closed_candle');
   const cached = await getClosedCandleSnapshot(async () => { throw Error('cache unexpectedly missed'); }, now + 1000);
   assert.equal(cached, snapshot);
