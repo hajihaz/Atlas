@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import snapshot from './data/snapshot.json';
 import ScalpStormDetailed from './components/ScalpStormDetailed';
+import PremiumStatCard from './components/PremiumStatCard';
 
 const HistoricalEquityChart = lazy(() => import('./components/HistoricalEquityChart'));
 const MarketsPage = lazy(() => import('./components/MarketsPage'));
@@ -105,16 +106,37 @@ function Overview({ setPage }: { setPage: (page: Page) => void }) {
   const min = Math.floor(Math.min(...chartData.map(v => v.equity)) / 500) * 500;
 
   return <>
-    <section className="intro-row">
-      <div><div className="breadcrumb">WORKSPACE <ChevronRight size={13}/> OVERVIEW</div><h1>Good to see you<span className="period">.</span></h1><p>Here's an overview of your Atlas research environment.</p></div>
-      <div className="intro-actions"><span className="asof-label"><Clock3 size={14}/> Evidence as of {lastCertified}</span><button className="primary-button" type="button" onClick={() => setPage('research')}>View research <ArrowUpRight size={16}/></button></div>
+    <section className="intro-row premium-hero" aria-label="Research command center">
+      <div className="premium-hero-main">
+        <div className="premium-hero-eyebrow"><span className="hero-eyebrow-dot"/> ATLAS / QUANTITATIVE INTELLIGENCE</div>
+        <h1>Clarity behind every <span>market move.</span></h1>
+        <p>Your command center for historical research, market observations, and independent risk controls. Built for evidence—not promises.</p>
+        <div className="premium-hero-actions">
+          <button className="primary-button" type="button" onClick={() => setPage('research')}>Explore research <ArrowUpRight size={16}/></button>
+          <button className="premium-outline-button" type="button" onClick={() => setPage('markets')}>Market watch <ArrowRight size={15}/></button>
+        </div>
+        <div className="premium-hero-trust">
+          <span><ShieldCheck size={15}/> Offline certification: 17/17 gates</span>
+          <span><LockKeyhole size={15}/> Capital execution disabled</span>
+        </div>
+      </div>
+      <div className="premium-hero-art" aria-hidden="true">
+        <div className="hero-orbit hero-orbit-outer"/><div className="hero-orbit hero-orbit-mid"/>
+        <div className="hero-orbit hero-orbit-inner"/><div className="hero-orbit-core"><Activity size={33}/></div>
+        <div className="hero-floating-stat"><small>ARCHIVED REPLAY EQUITY</small><strong>{usd(finalEquity)}</strong><span>Illustrative · not a live account</span></div>
+        <div className="hero-floating-pill"><span/> RESEARCH MODE</div>
+      </div>
     </section>
     <div className="alert-banner"><div className="alert-icon"><LockKeyhole size={19}/></div><div><strong>Live trading is disabled</strong><span>This is an offline research dashboard displaying archived LEAN sample results. No broker connection or real portfolio data.</span></div><button onClick={() => setPage('risk')} type="button">Safety details <ArrowRight size={15}/></button></div>
+    <div className="premium-section-heading">
+      <div><span className="premium-kicker">YOUR WORKSPACE</span><h2>Research at a glance</h2></div>
+      <span className="premium-evidence-date"><Clock3 size={14}/> Evidence as of {lastCertified}</span>
+    </div>
     <section className="metrics-grid" aria-label="Key statistics">
-      <Metric icon={Wallet} title="Archived replay equity" value={usd(finalEquity)} sub="30 historical sessions · illustrative" subIcon={<span className="small-dot"/>} />
-      <Metric icon={TrendingUp} title="Archived replay return" value={pct(totalReturn)} isPositive={totalReturn >= 0} sub="Versus $100,000 simulation start" subIcon={<ArrowUpRight size={14}/>} />
-      <Metric icon={Gauge} title="Engineering tests" value={snapshot.testsPassed.toLocaleString()} sub={`${snapshot.testsSkippedLocal} DB tests skipped locally`} subIcon={<CheckCircle2 size={14} />} />
-      <Metric icon={ShieldCheck} title="Capital authorization" value="BLOCKED" kind="warning" sub="No live execution permissions" subIcon={<LockKeyhole size={14}/>} />
+      <PremiumStatCard icon={Wallet} title="Archived replay equity" value={usd(finalEquity)} sub="30 sessions · illustrative" subIcon={<span className="small-dot"/>} tone="mint" tag="ARCHIVED" series={all.slice(-20).map(point => point.equity)}/>
+      <PremiumStatCard icon={TrendingUp} title="Archived replay return" value={pct(totalReturn)} isPositive={totalReturn >= 0} sub="Vs. $100k modeled start" subIcon={<ArrowUpRight size={14}/>} tone="blue" tag="MODEL ONLY"/>
+      <PremiumStatCard icon={Gauge} title="Engineering tests" value={snapshot.testsPassed.toLocaleString()} sub={`${snapshot.testsSkippedLocal} DB tests skipped locally`} subIcon={<CheckCircle2 size={14}/>} tone="violet" tag="CERTIFIED SNAPSHOT"/>
+      <PremiumStatCard icon={ShieldCheck} title="Capital authorization" value="BLOCKED" kind="warning" sub="No live execution permissions" subIcon={<LockKeyhole size={14}/>} tone="amber" tag="NOT AUTHORIZED"/>
     </section>
     <section className="dashboard-grid">
       <div className="chart-card panel">
@@ -127,10 +149,6 @@ function Overview({ setPage }: { setPage: (page: Page) => void }) {
     </section>
     <section className="bottom-grid"><div className="panel cohort-panel"><div className="panel-heading"><div><div className="heading-kicker">RESEARCH VALIDATION</div><h2>Historical research windows</h2><p>Three independent 125-session sample windows</p></div><ArrowLink onClick={()=>setPage('research')}>View all</ArrowLink></div><div className="table-scroller"><table><thead><tr><th>WINDOW START</th><th>SESSIONS</th><th>ENDING EQUITY*</th><th>RETURN*</th><th>TYPE</th></tr></thead><tbody>{snapshot.cohorts.map(c=>{const change=(c.finalEquity/100000-1)*100;return <tr key={c.start}><td><span className="table-icon"><Activity size={14}/></span>{c.start}</td><td>{c.sessions}</td><td>{usd(c.finalEquity)}</td><td className={positive(change)}>{pct(change)}</td><td><SmallTag>ARCHIVED</SmallTag></td></tr>})}</tbody></table></div><div className="table-caption">*Illustrative simulation figures. Not actual invested capital or realized gains.</div></div><div className="panel health-panel"><div className="panel-heading"><div><div className="heading-kicker">ENGINEERING HEALTH</div><h2>Verification snapshot</h2></div><ArrowLink onClick={()=>setPage('audit')}>Audit</ArrowLink></div><div className="verification-list"><div><span className="verification-icon"><CheckCircle2 size={19}/></span><div><strong>{snapshot.testsPassed} passing tests</strong><span>Certified local Python run</span></div><small>PASS</small></div><div><span className="verification-icon"><GitBranch size={19}/></span><div><strong>Version {snapshot.revision}</strong><span>Source-bound certification</span></div><small>TRACEABLE</small></div><div><span className="verification-icon warning"><CircleAlert size={19}/></span><div><strong>LEAN full-suite limitation</strong><span>Python.NET host issue outstanding</span></div><small className="warning-text">OPEN</small></div></div></div></section>
   </>;
-}
-
-function Metric({icon: Icon, title, value, sub, subIcon, isPositive, kind}: {icon:typeof Wallet;title:string;value:string;sub:string;subIcon:React.ReactNode;isPositive?:boolean;kind?:'warning'}) {
-  return <div className="metric-card panel"><div className="metric-heading"><span>{title}</span><Icon size={19} strokeWidth={1.7}/></div><div className={`metric-value ${kind === 'warning' ? 'warning-text' : ''}`}>{value}</div><div className={`metric-sub ${isPositive ? 'positive' : ''}`}>{subIcon}<span>{sub}</span></div></div>;
 }
 
 function ResearchPage() {
@@ -198,6 +216,6 @@ export default function App() {
   const pages:Record<Page,string> = {overview:'Overview',markets:'Market Watch',strategies:'Strategies',research:'Research Lab',scalpstorm:'ScalpStorm X',risk:'Risk Center',orders:'Orders & Activity',audit:'Audit & Evidence'};
   return <div className={`app-shell ${collapsed ? 'sidebar-collapsed' : ''}`}>
     <Sidebar page={page} setPage={setPage} collapsed={collapsed} toggle={()=>setCollapsed(s=>!s)} mobileOpen={mobileOpen} closeMobile={()=>setMobileOpen(false)}/>
-    <div className="app-body"><header className="topbar"><div className="topbar-left"><button className="icon-button mobile-menu" onClick={()=>setMobileOpen(true)} aria-label="Open menu"><Menu size={22}/></button><span className="topbar-context"><span className="topbar-world"><Command size={15}/></span> <span className="workspace-label">Atlas Workspace</span> <ChevronRight size={14}/><strong>{pages[page]}</strong></span></div><div className="topbar-right"><button type="button" className="icon-button theme-toggle" aria-label={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'} title={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'} aria-pressed={theme === 'dark'} onClick={() => setTheme(current => current === 'light' ? 'dark' : 'light')}>{theme === 'light' ? <Moon size={18}/> : <Sun size={18}/>}</button><span className="topbar-mode"><span className="mode-dot"/> Offline Mode</span><div className="topbar-separator"/><div className="notice-wrap"><button onClick={()=>setNotices(v=>!v)} className="icon-button header-bell" title="System notices" aria-label="System notices"><Bell size={19}/><span className="notification-dot"/></button>{notices&&<div className="notice-popover"><strong>System notification</strong><p>Live-capital execution is locked. Research figures are archived simulations.</p><button onClick={()=>{setPage('risk');setNotices(false);}}>Review safety <ArrowRight size={14}/></button></div>}</div><button className="header-user" onClick={()=>setPage('audit')} title="Audit profile" aria-label="Audit and evidence">A</button></div></header><main className="main-content" key={page}>{page==='overview'?<Overview setPage={setPage}/>:page==='markets'?<Suspense fallback={<div role="status" className="market-loading panel">Opening market watch…</div>}><MarketsPage/></Suspense>:page==='strategies'?<StrategiesPage/>:page==='research'?<ResearchPage/>:page==='scalpstorm'?<ScalpStormDetailed/>:page==='risk'?<RiskPage/>:page==='orders'?<OrdersPage/>:<AuditPage/>}<footer className="app-footer"><span>© 2026 ATLAS QUANTITATIVE SYSTEMS</span><div><span className="footer-safety-dot"/> Offline-certified research preview <span className="footer-separator">·</span> No live trading <span className="footer-separator">·</span> Build {snapshot.revision}</div></footer></main></div>
+    <div className="app-body"><header className="topbar"><div className="topbar-left"><button className="icon-button mobile-menu" onClick={()=>setMobileOpen(true)} aria-label="Open menu"><Menu size={22}/></button><span className="topbar-context"><span className="topbar-world"><Command size={15}/></span> <span className="workspace-label">Atlas Workspace</span> <ChevronRight size={14}/><strong>{pages[page]}</strong></span></div><div className="topbar-right"><button type="button" className="icon-button theme-toggle" aria-label={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'} title={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'} aria-pressed={theme === 'dark'} onClick={() => setTheme(current => current === 'light' ? 'dark' : 'light')}>{theme === 'light' ? <Moon size={18}/> : <Sun size={18}/>}</button><span className="topbar-mode"><span className="mode-dot"/> Research mode</span><div className="topbar-separator"/><div className="notice-wrap"><button onClick={()=>setNotices(v=>!v)} className="icon-button header-bell" title="System notices" aria-label="System notices"><Bell size={19}/><span className="notification-dot"/></button>{notices&&<div className="notice-popover"><strong>System notification</strong><p>Live-capital execution is locked. Research figures are archived simulations.</p><button onClick={()=>{setPage('risk');setNotices(false);}}>Review safety <ArrowRight size={14}/></button></div>}</div><button className="header-user" onClick={()=>setPage('audit')} title="Audit profile" aria-label="Audit and evidence">A</button></div></header><main className="main-content premium-page-view" key={page}>{page==='overview'?<Overview setPage={setPage}/>:page==='markets'?<Suspense fallback={<div role="status" className="market-loading panel">Opening market watch…</div>}><MarketsPage/></Suspense>:page==='strategies'?<StrategiesPage/>:page==='research'?<ResearchPage/>:page==='scalpstorm'?<ScalpStormDetailed/>:page==='risk'?<RiskPage/>:page==='orders'?<OrdersPage/>:<AuditPage/>}<footer className="app-footer"><span>© 2026 ATLAS QUANTITATIVE SYSTEMS</span><div><span className="footer-safety-dot"/> Offline-certified research preview <span className="footer-separator">·</span> No live trading <span className="footer-separator">·</span> Build {snapshot.revision}</div></footer></main></div>
   </div>;
 }
