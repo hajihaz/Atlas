@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Check, Copy, Download, ExternalLink, LockKeyhole } from 'lucide-react';
 import scalpstorm from '../data/scalpstorm-campaign.json';
+import ScalpStormLedgerPanels from './ScalpStormLedgerPanels';
 
 function exportText(name: string, value: string) {
   const url = URL.createObjectURL(new Blob([value], {type:'text/plain'}));
@@ -26,6 +27,9 @@ export default function ScalpStormDetailed() {
     'Nifty provisional 09:30 signals: BUY ' + scalpstorm.signalCounts.BUY +
       ', SELL ' + scalpstorm.signalCounts.SELL +
       ', NO TRADE ' + scalpstorm.signalCounts.NO_TRADE,
+    'Capital allocation: 10 equal slots of ₹10,000 each at the 1x baseline.',
+    'Stress comparison only: 2x ₹20,000 per slot, 5x ₹50,000 per slot. Not real leverage.',
+    'Actual stocks, entries, exits, charges, wins and losses: NOT VERIFIED.',
     'Exact top-ten stock trades verified: 0/20. Net trading profit: UNAVAILABLE (not zero).',
     'Broker order placement BLOCKED. Source-of-truth report: ' + publicUrl,
     'Signals are NOT profitable trades. Community index source is not independently NSE-attested.',
@@ -92,6 +96,9 @@ export default function ScalpStormDetailed() {
         <div><small>10 STOCKS / P&L</small><strong>UNVERIFIED / —</strong></div>
       </div>
     </div>
+    <ScalpStormLedgerPanels day={day as Parameters<typeof ScalpStormLedgerPanels>[0]["day"]}
+      days={scalpstorm.days as Parameters<typeof ScalpStormLedgerPanels>[0]["days"]}
+      verifiedSessions={scalpstorm.verifiedSessions} onSelectDay={setSelectedDay}/>
     <div className="panel scalp-panel">
       <div className="panel-heading"><div>
         <div className="heading-kicker">CHATGPT + ATLAS</div>
@@ -99,6 +106,9 @@ export default function ScalpStormDetailed() {
         <p>Public read-only JSON and a plain-text transcript come from the exact same validated dataset.</p>
       </div><span className="tag tag-mint">REPORTS READY</span></div>
       <div className="scalp-export-actions">
+        <a className="secondary-button" href="/scalpstorm-breakdown.json" target="_blank" rel="noopener noreferrer">
+          <Download size={16}/> Ten-slot evidence JSON
+        </a>
         <a className="secondary-button" href="/scalpstorm-report.json" target="_blank" rel="noopener noreferrer">
           <ExternalLink size={16}/> JSON evidence
         </a>
