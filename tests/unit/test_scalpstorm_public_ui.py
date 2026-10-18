@@ -1,4 +1,5 @@
-"""No fictional intraday campaign P&L may be displayed as historical fact."""
+"""Atlas public campaign must never imply paper positions are verified."""
+
 from __future__ import annotations
 
 import json
@@ -17,17 +18,18 @@ def test_scalpstorm_public_status_is_explicitly_unverified():
     assert obj["expectedSessions"] == len(SESSIONS) == 20
     assert obj["verifiedSessions"] == 0
     assert obj["netPnlINR"] is None
-    assert obj["sourceStatus"] == "NOT CONNECTED"
+    assert obj["sourceStatus"] == "COMMUNITY_NIFTY_OHLC_VALIDATED_NOT_EXCHANGE_ATTESTED"
     assert [date.fromisoformat(d["date"]) for d in obj["days"]] == list(SESSIONS)
     assert all(d["netPnl"] is None and d["trades"] is None for d in obj["days"])
 
 
 def test_public_ui_never_sources_prices_or_credentials():
     ui = (ROOT / "frontend/src/App.tsx").read_text()
-    assert "function ScalpStormPage()" in ui
-    assert "no market feed, orders, trades, or returns are connected" in ui
-    assert "import scalpstorm from './data/scalpstorm-campaign.json'" in ui
+    detail = (ROOT / "frontend/src/components/ScalpStormDetailed.tsx").read_text()
+    assert "ScalpStormDetailed" in ui
+    assert "NET STOCK TRADING P&L" in detail
+    assert "scalpstorm-report.json" in detail
     assert "Live trading is disabled" in ui
-    assert "fetch(" not in ui
-    assert "UPSTOX_ACCESS_TOKEN" not in ui
-    assert "GROWW_API_TOKEN" not in ui
+    assert "fetch(" not in detail
+    assert "UPSTOX_ACCESS_TOKEN" not in detail
+    assert "GROWW_API_TOKEN" not in detail

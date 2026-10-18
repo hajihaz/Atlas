@@ -1,0 +1,32 @@
+ATLAS / SCALPSTORM X — 20-SESSION RESEARCH REPORT
+Period: 18 Sep–16 Oct 2026 | Virtual capital ₹1,00,000
+DATA VERDICT: 20 NSE calendar sessions verified; 20/20 community NIFTY index signals reconstructed;
+0/20 complete top-volume-stock selection and backtest sessions verified.
+ACTUAL INTRADAY P&L: UNAVAILABLE — not zero and not estimated.
+Real-money order execution: BLOCKED.
+Source: https://github.com/technovusin/nifty50-historical-data
+Exact source commit: a8f61f16328e09c25d4da9ca921d7e487207c9cb
+Signals use provisional +/-0.15% 9:15-to-9:29 NIFTY rule; not stock-trade returns.
+Date       NIFTY 09:15→09:29      Signal    Stock trade P&L
+2026-09-18   -0.1446%  NO_TRADE  NOT VERIFIED
+2026-09-21   +0.3003%  BUY       NOT VERIFIED
+2026-09-22   -0.0345%  NO_TRADE  NOT VERIFIED
+2026-09-23   +0.0672%  NO_TRADE  NOT VERIFIED
+2026-09-24   +0.1654%  BUY       NOT VERIFIED
+2026-09-25   +0.3545%  BUY       NOT VERIFIED
+2026-09-28   -0.6777%  SELL      NOT VERIFIED
+2026-09-29   -0.4700%  SELL      NOT VERIFIED
+2026-09-30   +0.2502%  BUY       NOT VERIFIED
+2026-10-01   -0.0173%  NO_TRADE  NOT VERIFIED
+2026-10-05   +0.1618%  BUY       NOT VERIFIED
+2026-10-06   -0.0325%  NO_TRADE  NOT VERIFIED
+2026-10-07   -0.2929%  SELL      NOT VERIFIED
+2026-10-08   -0.4226%  SELL      NOT VERIFIED
+2026-10-09   +0.2696%  BUY       NOT VERIFIED
+2026-10-12   -0.0505%  NO_TRADE  NOT VERIFIED
+2026-10-13   +0.4796%  BUY       NOT VERIFIED
+2026-10-14   -0.1268%  NO_TRADE  NOT VERIFIED
+2026-10-15   +0.3496%  BUY       NOT VERIFIED
+2026-10-16   -0.4891%  SELL      NOT VERIFIED
+Counts: BUY 8 | SELL 5 | NO_TRADE 7.
+Do not treat these directional signals as profitable positions.

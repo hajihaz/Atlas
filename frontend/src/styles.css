@@ -250,3 +250,29 @@ html[data-theme="light"] .scalp-steps>div{border-color:#d9e4e7}
 html[data-theme="light"] .scalp-steps>div>span{color:#21654c}
 html[data-theme="light"] .scalp-controls button{color:#276849;border-color:#bcd9cb}
 html[data-theme="light"] .scalp-controls button.active{background:#daf6e7;color:#17533a}
+
+/* ScalpStorm source-backed signals, responsive selection and chat reports. */
+.scalp-signal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.scalp-signal-card{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:7px;padding:18px;border:1px solid #40534d;cursor:pointer;font-family:inherit;color:inherit}
+.scalp-signal-card small{font-size:10px;color:#a9d8c6;font-weight:850}
+.scalp-signal-card strong{font-size:29px}
+.scalp-signal-card span{font-size:10px;color:#92a5ad}
+.scalp-signal-card.scalp-active{outline:2px solid #59b986;outline-offset:-3px}
+.scalp-day-button{text-align:left;cursor:pointer;font-family:inherit;color:inherit}
+.scalp-day-button:hover,.scalp-day-selected{border-color:#8acb9f;background:#263c38}
+.scalp-day-buy{color:#91e6bb}.scalp-day-sell{color:#f5aaa1}.scalp-day-no_trade{color:#e9c186}
+.scalp-detail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:16px;border-top:1px solid #46565d;padding-top:17px}
+.scalp-detail>div{display:flex;flex-direction:column;gap:8px;min-width:0}
+.scalp-detail small{font-size:9px;color:#99acb6}
+.scalp-detail strong{font-size:12px;overflow-wrap:anywhere}
+.scalp-export-actions{display:flex;flex-wrap:wrap;gap:9px;margin:18px 0}
+.scalp-footnote a{color:#8ce8bb;text-decoration:underline}
+html[data-theme="light"] .scalp-signal-card{border-color:#dce8e4}
+html[data-theme="light"] .scalp-signal-card small,html[data-theme="light"] .scalp-day-buy{color:#147951}
+html[data-theme="light"] .scalp-signal-card span,html[data-theme="light"] .scalp-detail small{color:#5e737a}
+html[data-theme="light"] .scalp-day-sell{color:#b43b33}
+html[data-theme="light"] .scalp-day-no_trade{color:#87631d}
+html[data-theme="light"] .scalp-day-button:hover,html[data-theme="light"] .scalp-day-selected{background:#e1f7ec;border-color:#429b75}
+html[data-theme="light"] .scalp-footnote a{color:#086b49}
+@media(max-width:800px){.scalp-detail{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:565px){.scalp-signal-grid{gap:6px}.scalp-signal-card{padding:13px 8px}.scalp-signal-card strong{font-size:22px}.scalp-export-actions>*{width:100%;justify-content:center}}

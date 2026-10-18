@@ -1,0 +1,282 @@
+{
+  "schemaVersion": 2,
+  "strategy": "ScalpStorm X",
+  "mode": "PAPER / RESEARCH ONLY",
+  "capitalINR": 100000,
+  "windowStart": "2026-09-18",
+  "windowEnd": "2026-10-16",
+  "expectedSessions": 20,
+  "calendarSessionsVerified": 20,
+  "indexSignalSessionsValidated": 20,
+  "verifiedSessions": 0,
+  "sourceStatus": "COMMUNITY_NIFTY_OHLC_VALIDATED_NOT_EXCHANGE_ATTESTED",
+  "selectionStatus": "FULL_STOCK_UNIVERSE_ONE_MINUTE_DATA_MISSING",
+  "indexSource": {
+    "repository": "https://github.com/technovusin/nifty50-historical-data",
+    "commit": "a8f61f16328e09c25d4da9ca921d7e487207c9cb",
+    "files": [
+      {
+        "name": "NIFTY50_1min_2026-09.csv",
+        "sha256": "489c95b84e7f9fb7e90c80cd09e9410949c8f0eb5e48508c4fe7ccd0d15bd93a",
+        "bytes": 567714
+      },
+      {
+        "name": "NIFTY50_1min_2026-10.csv",
+        "sha256": "00c5f8647a7bce9fe4073b5ed8bdeee479be62904e129202c8aab4c583dfc660",
+        "bytes": 296164
+      }
+    ],
+    "verifiedMethod": "375 complete IST candles/session, consistent epochs, OHLC sanity, no missing bars",
+    "attestation": "Community archive only; not independently corroborated with NSE/broker"
+  },
+  "signalRule": "NIFTY 09:15 open vs 09:29 close; +/-0.15%, research assumption",
+  "signalCounts": {
+    "BUY": 8,
+    "SELL": 5,
+    "NO_TRADE": 7
+  },
+  "netPnlINR": null,
+  "liveCapitalBlocked": true,
+  "days": [
+    {
+      "date": "2026-09-18",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "NO_TRADE",
+      "niftyOpen": "23334.7",
+      "nifty929Close": "23300.95",
+      "niftyOpeningChangePct": "-0.1446",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-09-21",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "BUY",
+      "niftyOpen": "23330.2",
+      "nifty929Close": "23400.25",
+      "niftyOpeningChangePct": "0.3003",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-09-22",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "NO_TRADE",
+      "niftyOpen": "23454.05",
+      "nifty929Close": "23445.95",
+      "niftyOpeningChangePct": "-0.0345",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-09-23",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "NO_TRADE",
+      "niftyOpen": "23352.15",
+      "nifty929Close": "23367.85",
+      "niftyOpeningChangePct": "0.0672",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-09-24",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "BUY",
+      "niftyOpen": "23221.8",
+      "nifty929Close": "23260.2",
+      "niftyOpeningChangePct": "0.1654",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-09-25",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "BUY",
+      "niftyOpen": "23035.0",
+      "nifty929Close": "23116.65",
+      "niftyOpeningChangePct": "0.3545",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-09-28",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "SELL",
+      "niftyOpen": "23064.9",
+      "nifty929Close": "22908.6",
+      "niftyOpeningChangePct": "-0.6777",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-09-29",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "SELL",
+      "niftyOpen": "22732.45",
+      "nifty929Close": "22625.6",
+      "niftyOpeningChangePct": "-0.4700",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-09-30",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "BUY",
+      "niftyOpen": "22664.95",
+      "nifty929Close": "22721.65",
+      "niftyOpeningChangePct": "0.2502",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-01",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "NO_TRADE",
+      "niftyOpen": "22543.7",
+      "nifty929Close": "22539.8",
+      "niftyOpeningChangePct": "-0.0173",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-05",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "BUY",
+      "niftyOpen": "22532.4",
+      "nifty929Close": "22568.85",
+      "niftyOpeningChangePct": "0.1618",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-06",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "NO_TRADE",
+      "niftyOpen": "22603.25",
+      "nifty929Close": "22595.9",
+      "niftyOpeningChangePct": "-0.0325",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-07",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "SELL",
+      "niftyOpen": "22690.45",
+      "nifty929Close": "22624",
+      "niftyOpeningChangePct": "-0.2929",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-08",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "SELL",
+      "niftyOpen": "22599.05",
+      "nifty929Close": "22503.55",
+      "niftyOpeningChangePct": "-0.4226",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-09",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "BUY",
+      "niftyOpen": "22314.95",
+      "nifty929Close": "22375.1",
+      "niftyOpeningChangePct": "0.2696",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-12",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "NO_TRADE",
+      "niftyOpen": "22593.2",
+      "nifty929Close": "22581.8",
+      "niftyOpeningChangePct": "-0.0505",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-13",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "BUY",
+      "niftyOpen": "22364.15",
+      "nifty929Close": "22471.4",
+      "niftyOpeningChangePct": "0.4796",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-14",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "NO_TRADE",
+      "niftyOpen": "22715.75",
+      "nifty929Close": "22686.95",
+      "niftyOpeningChangePct": "-0.1268",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-15",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "BUY",
+      "niftyOpen": "22671.3",
+      "nifty929Close": "22750.55",
+      "niftyOpeningChangePct": "0.3496",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-16",
+      "status": "INDEX_SIGNAL_RECONSTRUCTED_STOCK_DATA_MISSING",
+      "indexSignal": "SELL",
+      "niftyOpen": "23065.1",
+      "nifty929Close": "22952.3",
+      "niftyOpeningChangePct": "-0.4891",
+      "niftyMinutesChecked": 375,
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    }
+  ]
+}
