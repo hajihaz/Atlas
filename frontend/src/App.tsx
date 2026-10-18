@@ -184,7 +184,7 @@ function SectionTitle({kicker,title,desc}:{kicker:string;title:string;desc:strin
 }
 
 export default function App() {
-  const [page,setPage]=useState<Page>('overview');
+  const [page,setPage]=useState<Page>(window.location.hash === '#scalpstorm' ? 'scalpstorm' : 'overview');
   const [collapsed,setCollapsed]=useState(false);
   const [mobileOpen,setMobileOpen]=useState(false);
   const [notices,setNotices]=useState(false);

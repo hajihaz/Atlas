@@ -89,3 +89,8 @@ def test_requires_full_index_coverage(tmp_path: Path):
 def test_bad_git_commit_rejected():
     with pytest.raises(ValueError, match="exact SHA1"):
         build_campaign(_synthetic_index(), [], "INVALID")
+
+
+def test_atlas_direct_link_opens_scalpstorm_without_router():
+    ui = (ROOT / "frontend/src/App.tsx").read_text()
+    assert "window.location.hash === '#scalpstorm'" in ui
