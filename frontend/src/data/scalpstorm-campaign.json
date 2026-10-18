@@ -1,0 +1,155 @@
+{
+  "strategy": "ScalpStorm X",
+  "mode": "PAPER / RESEARCH ONLY",
+  "capitalINR": 100000,
+  "windowStart": "2026-09-18",
+  "windowEnd": "2026-10-16",
+  "expectedSessions": 20,
+  "verifiedSessions": 0,
+  "sourceStatus": "NOT CONNECTED",
+  "selectionStatus": "NOT VERIFIED",
+  "netPnlINR": null,
+  "liveCapitalBlocked": true,
+  "days": [
+    {
+      "date": "2026-09-18",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-09-21",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-09-22",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-09-23",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-09-24",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-09-25",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-09-28",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-09-29",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-09-30",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-01",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-05",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-06",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-07",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-08",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-09",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-12",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-13",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-14",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-15",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    },
+    {
+      "date": "2026-10-16",
+      "status": "AWAITING_VERIFIED_MINUTE_DATA",
+      "selected": null,
+      "trades": null,
+      "netPnl": null
+    }
+  ]
+}

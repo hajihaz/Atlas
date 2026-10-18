@@ -1,0 +1,33 @@
+"""No fictional intraday campaign P&L may be displayed as historical fact."""
+from __future__ import annotations
+
+import json
+from datetime import date
+from pathlib import Path
+
+from atlas.paper.scalpstorm import SESSIONS
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_scalpstorm_public_status_is_explicitly_unverified():
+    obj = json.loads((ROOT / "frontend/src/data/scalpstorm-campaign.json").read_text())
+    assert obj["liveCapitalBlocked"] is True
+    assert obj["capitalINR"] == 100000
+    assert obj["expectedSessions"] == len(SESSIONS) == 20
+    assert obj["verifiedSessions"] == 0
+    assert obj["netPnlINR"] is None
+    assert obj["sourceStatus"] == "NOT CONNECTED"
+    assert [date.fromisoformat(d["date"]) for d in obj["days"]] == list(SESSIONS)
+    assert all(d["netPnl"] is None and d["trades"] is None for d in obj["days"])
+
+
+def test_public_ui_never_sources_prices_or_credentials():
+    ui = (ROOT / "frontend/src/App.tsx").read_text()
+    assert "function ScalpStormPage()" in ui
+    assert "no market feed, orders, trades, or returns are connected" in ui
+    assert "import scalpstorm from './data/scalpstorm-campaign.json'" in ui
+    assert "Live trading is disabled" in ui
+    assert "fetch(" not in ui
+    assert "UPSTOX_ACCESS_TOKEN" not in ui
+    assert "GROWW_API_TOKEN" not in ui

@@ -9,11 +9,12 @@ import {
   Sparkles, Sun, TerminalSquare, TrendingUp, Wallet, X, Zap,
 } from 'lucide-react';
 import snapshot from './data/snapshot.json';
+import scalpstorm from './data/scalpstorm-campaign.json';
 
 const HistoricalEquityChart = lazy(() => import('./components/HistoricalEquityChart'));
 const MarketsPage = lazy(() => import('./components/MarketsPage'));
 
-type Page = 'overview' | 'markets' | 'strategies' | 'research' | 'risk' | 'orders' | 'audit';
+type Page = 'overview' | 'markets' | 'strategies' | 'research' | 'scalpstorm' | 'risk' | 'orders' | 'audit';
 type WindowSize = 7 | 14 | 30;
 type Theme = 'light' | 'dark';
 const THEME_KEY = 'atlas.theme.preference';
@@ -26,6 +27,7 @@ const nav = [
   { id: 'markets', title: 'Market Watch', Icon: ChartNoAxesCombined },
   { id: 'strategies', title: 'Strategies', Icon: Layers3 },
   { id: 'research', title: 'Research Lab', Icon: ChartNoAxesCombined },
+  { id: 'scalpstorm', title: 'ScalpStorm X', Icon: BarChart3 },
   { id: 'risk', title: 'Risk Center', Icon: ShieldCheck },
   { id: 'orders', title: 'Orders & Activity', Icon: History },
   { id: 'audit', title: 'Audit & Evidence', Icon: FileClock },
@@ -177,6 +179,35 @@ function AuditPage() {
   return <><SectionTitle kicker="PROVENANCE & CONTROLS" title="Audit & evidence." desc="Read-only engineering certification, traceable to the Atlas source repository." /><div className="audit-top"><div className="panel audit-card"><div className="heading-kicker">CERTIFIED BUILD</div><div className="audit-main-line"><GitBranch size={23}/><h2>{snapshot.revision}</h2><button className="icon-button" aria-label="Copy revision" title="Copy revision" onClick={copy}>{copied?<Check size={17}/>:<Copy size={17}/>}</button></div><p>Evidence generated {lastCertified} (UTC) using offline certification artifacts.</p><SmallTag style="mint">HASH-BOUND SOURCE</SmallTag></div><div className="panel audit-card"><div className="heading-kicker">TEST COVERAGE</div><div className="audit-main-line"><CheckCircle2 size={25}/><h2>{snapshot.testsPassed}</h2></div><p>Passing Python tests · {snapshot.testsSkippedLocal} database checks skipped in local manifest.</p><SmallTag style="mint">LOCAL PASS</SmallTag></div><div className="panel audit-card"><div className="heading-kicker">ENGINE VERIFICATION</div><div className="audit-main-line"><Activity size={25}/><h2>{snapshot.leanGoldenFixtures} / {snapshot.leanGoldenFixtures}</h2></div><p>Deterministic LEAN golden trading fixtures; not the full upstream test suite.</p><SmallTag style="mint">FIXTURES PASS</SmallTag></div></div><div className="panel audit-detail"><div className="panel-heading"><div><div className="heading-kicker">ARTIFACT TRANSPARENCY</div><h2>What this console does—and doesn't prove</h2></div></div><div className="audit-lines"><div><span><CheckCircle2 size={18}/></span><div><strong>Auditable archived experiments</strong><small>30-session sample replay and three independent historical windows are displayed from the certified research artifacts.</small></div></div><div><span><CheckCircle2 size={18}/></span><div><strong>Local engineering certification</strong><small>Certification manifest counts and source revision are exported as read-only aggregate information.</small></div></div><div><span className="audit-risk"><CircleAlert size={18}/></span><div><strong>No live provider attestation</strong><small>There is no externally authenticated real-market feed, genuine paper-trading track record, or actual customer portfolio on this site.</small></div></div><div><span className="audit-risk"><LockKeyhole size={18}/></span><div><strong>Execution has no route</strong><small>The frontend contains no broker API keys, order-submission API, or live-capital authorization controls.</small></div></div></div><div className="audit-actions"><button className="secondary-button" onClick={exportEvidence}><Download size={17}/> Export safe snapshot</button><a className="secondary-button" href="https://github.com/hajihaz/Atlas" target="_blank" rel="noreferrer">Source repository <ExternalLink size={16}/></a></div></div></>;
 }
 
+function ScalpStormPage() {
+  const [view, setView] = useState<'all' | 'pending'>('all');
+  const days = scalpstorm.days.filter(d => view === 'all' || d.status !== 'VERIFIED');
+  return <><SectionTitle kicker="PAPER TRADING LAB" title="ScalpStorm X."
+    desc="Point-in-time Indian intraday research. Past-month results remain unavailable until genuine one-minute opening-volume data passes validation."/>
+    <div className="section-warning"><LockKeyhole size={19}/><span><strong>Zero real-money execution.</strong> This is a read-only preparation monitor — no market feed, orders, trades, or returns are connected. The existing Atlas archive is an unrelated historical fixture.</span></div>
+    <div className="scalp-summary">
+      <div className="panel"><small>VIRTUAL CAPITAL</small><strong>₹{scalpstorm.capitalINR.toLocaleString('en-IN')}</strong><span>1x gross exposure ceiling</span></div>
+      <div className="panel"><small>REQUIRED SESSIONS</small><strong>{scalpstorm.expectedSessions}</strong><span>18 Sep – 16 Oct 2026</span></div>
+      <div className="panel"><small>DATA VERIFIED</small><strong>{scalpstorm.verifiedSessions} / {scalpstorm.expectedSessions}</strong><span>09:15–09:29 source ranking required</span></div>
+      <div className="panel"><small>BACKTEST NET P&L</small><strong>—</strong><span>Not computed; no synthetic profits</span></div>
+    </div>
+    <div className="panel scalp-panel">
+      <div className="panel-heading"><div><div className="heading-kicker">HISTORICAL CAMPAIGN</div><h2>20 NSE sessions · as-of 09:30</h2><p>Incomplete data blocks the entire campaign rather than quietly skipping losing sessions.</p></div><SmallTag style="red">AWAITING SOURCE</SmallTag></div>
+      <div className="scalp-controls"><button className={view==='all'?'active':''} onClick={()=>setView('all')}>All dates</button><button className={view==='pending'?'active':''} onClick={()=>setView('pending')}>Unverified</button></div>
+      <div className="scalp-session-grid">{days.map((d,i)=><div className="scalp-session" key={d.date}><span>DAY {String(i+1).padStart(2,'0')}</span><strong>{new Date(d.date+'T12:00:00Z').toLocaleDateString('en-IN',{day:'2-digit',month:'short',timeZone:'UTC'})}</strong><small>Awaiting verified bars</small></div>)}</div>
+    </div>
+    <div className="panel scalp-panel"><div className="panel-heading"><div><div className="heading-kicker">REPLAY PIPELINE</div><h2>What Atlas needs to start</h2></div></div>
+      <div className="scalp-steps">{[
+        ['09:15–09:29','Complete point-in-time stock universe and opening one-minute volumes','NOT CONNECTED'],
+        ['09:30','Select ten stocks from opening cumulative volume, never end-of-day volume','NOT VERIFIED'],
+        ['09:40','Determine signal and simulate 10 independent virtual positions','NO TRADES'],
+        ['15:00','Square off, assess stop losses, brokerage, slippage and daily net results','NOT RUN'],
+      ].map(([time,detail,status])=><div key={time}><span>{time}</span><p>{detail}</p><SmallTag style="gold">{status}</SmallTag></div>)}</div>
+      <p className="scalp-footnote">Source policy: ₹0-first licensed data only. Groww/Dhan market-data subscriptions not activated. The backend offline importer refuses incomplete datasets, and no broker order path is present here.</p>
+    </div>
+  </>;
+}
+
 function SectionTitle({kicker,title,desc}:{kicker:string;title:string;desc:string}) {
   return <div className="sub-page-header"><div className="breadcrumb">ATLAS <ChevronRight size={13}/> {kicker}</div><h1>{title}</h1><p>{desc}</p></div>;
 }
@@ -193,9 +224,9 @@ export default function App() {
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#f7f9fc' : '#090f17');
     try { window.localStorage.setItem(THEME_KEY, theme); } catch { /* Private browsing can disallow storage. */ }
   }, [theme]);
-  const pages:Record<Page,string> = {overview:'Overview',markets:'Market Watch',strategies:'Strategies',research:'Research Lab',risk:'Risk Center',orders:'Orders & Activity',audit:'Audit & Evidence'};
+  const pages:Record<Page,string> = {overview:'Overview',markets:'Market Watch',strategies:'Strategies',research:'Research Lab',scalpstorm:'ScalpStorm X',risk:'Risk Center',orders:'Orders & Activity',audit:'Audit & Evidence'};
   return <div className={`app-shell ${collapsed ? 'sidebar-collapsed' : ''}`}>
     <Sidebar page={page} setPage={setPage} collapsed={collapsed} toggle={()=>setCollapsed(s=>!s)} mobileOpen={mobileOpen} closeMobile={()=>setMobileOpen(false)}/>
-    <div className="app-body"><header className="topbar"><div className="topbar-left"><button className="icon-button mobile-menu" onClick={()=>setMobileOpen(true)} aria-label="Open menu"><Menu size={22}/></button><span className="topbar-context"><span className="topbar-world"><Command size={15}/></span> <span className="workspace-label">Atlas Workspace</span> <ChevronRight size={14}/><strong>{pages[page]}</strong></span></div><div className="topbar-right"><button type="button" className="icon-button theme-toggle" aria-label={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'} title={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'} aria-pressed={theme === 'dark'} onClick={() => setTheme(current => current === 'light' ? 'dark' : 'light')}>{theme === 'light' ? <Moon size={18}/> : <Sun size={18}/>}</button><span className="topbar-mode"><span className="mode-dot"/> Offline Mode</span><div className="topbar-separator"/><div className="notice-wrap"><button onClick={()=>setNotices(v=>!v)} className="icon-button header-bell" title="System notices" aria-label="System notices"><Bell size={19}/><span className="notification-dot"/></button>{notices&&<div className="notice-popover"><strong>System notification</strong><p>Live-capital execution is locked. Research figures are archived simulations.</p><button onClick={()=>{setPage('risk');setNotices(false);}}>Review safety <ArrowRight size={14}/></button></div>}</div><button className="header-user" onClick={()=>setPage('audit')} title="Audit profile" aria-label="Audit and evidence">A</button></div></header><main className="main-content" key={page}>{page==='overview'?<Overview setPage={setPage}/>:page==='markets'?<Suspense fallback={<div role="status" className="market-loading panel">Opening market watch…</div>}><MarketsPage/></Suspense>:page==='strategies'?<StrategiesPage/>:page==='research'?<ResearchPage/>:page==='risk'?<RiskPage/>:page==='orders'?<OrdersPage/>:<AuditPage/>}<footer className="app-footer"><span>© 2026 ATLAS QUANTITATIVE SYSTEMS</span><div><span className="footer-safety-dot"/> Offline-certified research preview <span className="footer-separator">·</span> No live trading <span className="footer-separator">·</span> Build {snapshot.revision}</div></footer></main></div>
+    <div className="app-body"><header className="topbar"><div className="topbar-left"><button className="icon-button mobile-menu" onClick={()=>setMobileOpen(true)} aria-label="Open menu"><Menu size={22}/></button><span className="topbar-context"><span className="topbar-world"><Command size={15}/></span> <span className="workspace-label">Atlas Workspace</span> <ChevronRight size={14}/><strong>{pages[page]}</strong></span></div><div className="topbar-right"><button type="button" className="icon-button theme-toggle" aria-label={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'} title={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'} aria-pressed={theme === 'dark'} onClick={() => setTheme(current => current === 'light' ? 'dark' : 'light')}>{theme === 'light' ? <Moon size={18}/> : <Sun size={18}/>}</button><span className="topbar-mode"><span className="mode-dot"/> Offline Mode</span><div className="topbar-separator"/><div className="notice-wrap"><button onClick={()=>setNotices(v=>!v)} className="icon-button header-bell" title="System notices" aria-label="System notices"><Bell size={19}/><span className="notification-dot"/></button>{notices&&<div className="notice-popover"><strong>System notification</strong><p>Live-capital execution is locked. Research figures are archived simulations.</p><button onClick={()=>{setPage('risk');setNotices(false);}}>Review safety <ArrowRight size={14}/></button></div>}</div><button className="header-user" onClick={()=>setPage('audit')} title="Audit profile" aria-label="Audit and evidence">A</button></div></header><main className="main-content" key={page}>{page==='overview'?<Overview setPage={setPage}/>:page==='markets'?<Suspense fallback={<div role="status" className="market-loading panel">Opening market watch…</div>}><MarketsPage/></Suspense>:page==='strategies'?<StrategiesPage/>:page==='research'?<ResearchPage/>:page==='scalpstorm'?<ScalpStormPage/>:page==='risk'?<RiskPage/>:page==='orders'?<OrdersPage/>:<AuditPage/>}<footer className="app-footer"><span>© 2026 ATLAS QUANTITATIVE SYSTEMS</span><div><span className="footer-safety-dot"/> Offline-certified research preview <span className="footer-separator">·</span> No live trading <span className="footer-separator">·</span> Build {snapshot.revision}</div></footer></main></div>
   </div>;
 }
