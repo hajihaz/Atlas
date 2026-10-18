@@ -8,7 +8,6 @@ import pytest
 
 from atlas.market.closed_candles import ClosedCandleQualityGate, ClosedResearchCandle
 
-
 NOW = dt.datetime(2026, 10, 18, 8, 0, 30, tzinfo=dt.UTC)
 
 
