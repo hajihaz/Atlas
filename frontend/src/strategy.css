@@ -123,3 +123,15 @@ html[data-theme] .stock-quote{padding:19px;display:flex;flex-direction:column;ga
 }
 @media(prefers-reduced-motion:reduce){html[data-theme] .research-strategy-choice,
  html[data-theme] .paper-forward-card{transition:none!important;transform:none!important}}
+
+html[data-theme] .real-stat-action{color:var(--pm-ink);font:inherit;text-align:left;cursor:pointer;min-width:0}
+html[data-theme] .real-stat-action:hover{border-color:var(--pm-border-hover);
+ box-shadow:var(--pm-hover-shadow);transform:translateY(-2px)}
+html[data-theme] .real-stat-action:focus-visible{outline:2px solid var(--pm-accent);outline-offset:3px}
+.real-market-note{display:flex;gap:10px;align-items:center;padding:10px 4px;color:var(--pm-muted);
+ font-size:11px;line-height:1.65}
+.real-market-note svg{color:var(--pm-accent);flex:none}
+html[data-theme] .real-stock-discovery{padding:25px;display:flex;gap:22px;
+ justify-content:space-between;align-items:center;flex-wrap:wrap}
+.real-stock-discovery h2{font-size:18px;margin:5px 0}
+.real-stock-discovery p{font-size:11px;max-width:670px;line-height:1.75;color:var(--pm-muted)}
