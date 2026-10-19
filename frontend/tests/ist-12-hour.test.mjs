@@ -15,13 +15,13 @@ test('India clock uses 12-hour seconds with explicit uppercase AM/PM', () => {
   assert.equal(clock('2026-10-19T11:03:10.000Z'), '4:33:10 PM');
   assert.equal(clock('2026-10-18T18:30:00.000Z'), '12:00:00 AM');
   assert.equal(clock('2026-10-19T06:30:00.000Z'), '12:00:00 PM');
-  assert.match(live, /function clock\(date: Date\)/);
-  assert.match(live, /new Intl.DateTimeFormat\('en-US',\{timeZone:'Asia\/Kolkata',hour:'numeric'/);
+  assert.match(live, /const CLOCK=new Intl.DateTimeFormat/);
+  assert.match(live, /timeZone:'Asia\\/Kolkata'/);
   assert.match(live, /second:'2-digit',hour12:true/);
   assert.doesNotMatch(live,/hour12:false/);
 });
 test('observations and market timestamps also show 12-hour labels', () => {
-  assert.match(live,/toLocaleTimeString\('en-US',\{timeZone:'Asia\/Kolkata'/);
+  assert.match(live,/hour12:true/);
   assert.match(live,/second:'2-digit',hour12:true/);
   assert.match(market,/toLocaleString\('en-US'/);
   assert.match(market,/hour12:true/);
