@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {composeTwoHourCandles,sourceEligible,freshState,advanceCloud,
- failureState,CHECKPOINT_MS} from '../../scripts/scheduled_paper_engine.mjs';
+ failureState,recordUnverifiedFirstCheckpoint,CHECKPOINT_MS} from '../../scripts/scheduled_paper_engine.mjs';
 const H=3600000,T=2*H;
 const base=Date.parse('2026-10-12T00:00:00Z');
 const hourly=Array.from({length:150},(_,i)=>{
@@ -71,4 +71,26 @@ test('source outage reports degradation without faking fills',()=>{
  assert.equal(next.sessions.length,5);
  assert.ok(next.sessions.every(s=>s.events.length===0));
  assert.equal(next.realOrdersEnabled,false);
+});
+
+test('first failed cloud checkpoint records attempt but never invents market data or trades',()=>{
+ const seed={schema:1,mode:'SCHEDULED_VIRTUAL_PAPER',currency:'INR',
+  symbol:'BTCINR',interval:'2h',status:'AWAITING_FIRST_RUN',
+  actualCapitalINR:0,realOrdersEnabled:false,runCount:0,lastRunAt:null,
+  lastProviderAt:null,lastBarClosedAt:null,sessions:[],alert:null};
+ const failure=recordUnverifiedFirstCheckpoint(seed,now,'provider down');
+ assert.equal(failure.status,'AWAITING_VALID_SOURCE');
+ assert.equal(failure.runCount,1);
+ assert.deepEqual(failure.sessions,[]);
+ assert.equal(failure.actualCapitalINR,0);
+ assert.equal(failure.lastProviderAt,null);
+ assert.equal(failure.lastBarClosedAt,null);
+ assert.equal(failure.realOrdersEnabled,false);
+ const retry=recordUnverifiedFirstCheckpoint(failure,now+T,'still down');
+ assert.equal(retry.runCount,2);
+ const seeded=advanceCloud(null,aggregated,quote,now);
+ assert.equal(seeded.sessions.length,5);
+ assert.ok(seeded.sessions.every(s=>s.events.length===0&&s.quantity===0));
+ assert.throws(()=>recordUnverifiedFirstCheckpoint(failure,now-10,'clock regression'));
+ assert.throws(()=>recordUnverifiedFirstCheckpoint({...failure,realOrdersEnabled:true},now+T,'unsafe'));
 });
