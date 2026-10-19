@@ -29,7 +29,7 @@ test('source and stale controls prevent fabricated references',()=>{
   assert.match(market,/item\.price!==null&&!stale/);
   assert.match(market,/setInterval\(\(\)=>setRefresh\(v=>v\+1\),60000\)/);
   assert.match(market,/last trade time not provided/);
-  assert.match(market,/Free TradingView stock charts/);
+  assert.match(market,/Free BSE end-of-day TradingView charts/);
 });
 test('premium styling persists with new responsive rupee-only dashboard',()=>{
   assert.ok(main.indexOf("import './premium.css';")<main.indexOf("import './real.css';"));
