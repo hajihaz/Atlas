@@ -31,7 +31,7 @@ test('paper sessions are virtual and explicit, with stop/resume, audited local r
  assert.match(paper,/Start 5 forward paper trials/);
  assert.match(paper,/window\.confirm/);
  assert.match(paper,/VIRTUAL_SOURCE_SNAPSHOT|Virtual realized P\/L|Virtual change/);
- assert.match(paper,/Running in this browser/);
+ assert.match(paper,/Runs only while Atlas is open in this browser/);
  assert.match(app,/usePaperTrials\(\)/);
 });
 test('free Indian equities have a vendor-attributed chart, not a scraped API',()=>{
