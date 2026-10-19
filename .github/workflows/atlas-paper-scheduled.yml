@@ -1,0 +1,41 @@
+name: atlas-paper-scheduled
+on:
+  schedule:
+    # Run every two hours; do not imply guaranteed exact start times.
+    - cron: '17 */2 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: atlas-paper-scheduled
+  cancel-in-progress: false
+jobs:
+  virtual-checkpoint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      ATLAS_EXECUTION_MODE: PAPER_ONLY
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Guard against accidental live trading
+        run: |
+          test "${ATLAS_EXECUTION_MODE}" = "PAPER_ONLY"
+          test ! -f frontend/public/real-orders.json
+      - name: Source-matched scheduled virtual paper checkpoint
+        run: node scripts/run_scheduled_paper.mjs
+      - name: Commit bounded public research state
+        run: |
+          if git diff --quiet -- frontend/public/cloud-paper.json; then
+            echo 'No new accepted market observations, no commit.'
+            exit 0
+          fi
+          git config user.name "atlas-paper-research[bot]"
+          git config user.email "atlas-paper-research[bot]@users.noreply.github.com"
+          git add -- frontend/public/cloud-paper.json
+          git commit -m "data(atlas): scheduled virtual paper snapshot [skip ci]"
+          git push origin HEAD:main

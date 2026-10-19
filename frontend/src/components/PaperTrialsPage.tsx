@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import CloudPaperCard from './CloudPaperCard';
 import {Activity,ArrowRight,BookOpenText,Clock3,Play,Pause,RotateCcw,ShieldCheck,Wallet} from 'lucide-react';
 import {summarizePaperGroup} from '../lib/paperEngine.js';
 import type {PaperGroup} from '../lib/paperEngine.js';
@@ -19,13 +20,14 @@ export default function PaperTrialsPage({group,statusMessage,start,pause,resume,
  const resumeReady=group?.sessions.some(s=>s.status!=='running')??false;
  return <section className="paper-forward">
   <div className="sub-page-header"><div className="breadcrumb">ATLAS / FORWARD PAPER SIMULATION</div>
-   <h1>Paper-trading workspace<span className="period">.</span></h1>
+   <h1>Local paper-trading workspace<span className="period">.</span></h1>
    <p>Track virtual strategy positions from new provider observations, with no real-money trading.</p>
   </div>
   <div className="research-topnote"><ShieldCheck size={19}/>
    <span><strong>Zero real money. No broker connection.</strong> Five independent ₹1,00,000 virtual accounts.
      Source-candle signals are evaluated only after the bar closes. Orders use the subsequently received public quote as a hypothetical fill.
      This local paper experiment is not externally reconciled.</span></div>
+  <CloudPaperCard/>
   <div className="panel paper-forward-controls">
     {!group?<><label htmlFor="paper-source">Choose INR market</label>
      <select id="paper-source" value={symbol} onChange={e=>setSymbol(e.target.value)}>

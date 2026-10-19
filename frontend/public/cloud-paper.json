@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "mode": "SCHEDULED_VIRTUAL_PAPER",
+  "status": "AWAITING_FIRST_RUN",
+  "currency": "INR",
+  "symbol": "BTCINR",
+  "interval": "2h",
+  "actualCapitalINR": 0,
+  "realOrdersEnabled": false,
+  "scheduledEveryMinutes": 120,
+  "createdAt": null,
+  "lastRunAt": null,
+  "lastProviderAt": null,
+  "lastBarClosedAt": null,
+  "runCount": 0,
+  "skippedIntervals": 0,
+  "alert": "Scheduled worker has not yet completed its first verified market checkpoint.",
+  "sessions": []
+}
