@@ -61,20 +61,35 @@ export function assertNextCloudSnapshot(before,after,now){
   if(!old)throw Error('Strategy portfolio identity changed');
   if(next.events.length<old.events.length && old.events.length!==120)
    throw Error('Modeled transaction history was lost');
-  // Up to one new entry/exit per completed 2-hour candle, no duplicate replay.
-  const fresh=old.events.length<120
-   ? next.events.slice(old.events.length)
-   :next.events.filter(e=>!old.events.some(p=>p.barClosedAt===e.barClosedAt));
+  // At most one modeled entry/exit per checkpoint, including at the
+  // 120-event retention boundary. The old prefix/suffix must be unaltered.
+  let fresh;
+  if(old.events.length<120){
+   if(exact(next.events.slice(0,old.events.length))!==exact(old.events))
+    throw Error('Retained modeled transaction history changed');
+   fresh=next.events.slice(old.events.length);
+  }else if(exact(next.events)===exact(old.events)){
+   fresh=[];
+  }else{
+   if(next.events.length!==120 ||
+      exact(next.events.slice(0,119))!==exact(old.events.slice(1)))
+    throw Error('Retained model history rolling window changed');
+   fresh=next.events.slice(119);
+  }
   if(fresh.length>1)throw Error('Too many modeled trades in one checkpoint');
-  if(old.events.length<120 &&
-   exact(next.events.slice(0,old.events.length))!==exact(old.events))
-   throw Error('Retained modeled transaction history changed');
   if((oldBar===newBar||oldBar===null)&&fresh.length)
    throw Error('Duplicate modeled fill for repeated market bar');
   if(['DEGRADED','GAP_SKIPPED'].includes(after.status)&&fresh.length)
    throw Error('Fills forbidden during market outage/gap');
   if(fresh.length && newBar-oldBar!==7200000)
    throw Error('Nonconsecutive candle produced a modeled fill');
+  if(fresh.length){
+   const model=fresh[0],qTime=asTime(model.quoteAt);
+   if(model.barClosedAt!==after.lastBarClosedAt
+     ||!Number.isFinite(qTime)||qTime>asTime(after.lastRunAt)+5000
+     ||(before.lastRunAt&&qTime<asTime(before.lastRunAt)))
+    throw Error('Modeled fill not tied to the new source candle and run');
+  }
  }
  return true;
 }
