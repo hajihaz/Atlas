@@ -12,7 +12,10 @@ export type CloudStrategyDaybook={
  strategyId:string;strategyName:string;status:string;
  virtualCapitalINR:number;virtualEquityINR:number;totalModeledPnlINR:number;
  realizedExitPnlINR:number;feesINR:number;maxDrawdownPct:number;
- closedTrades:number;modeledFillsInRetainedHistory:number;days:CloudDay[];
+ closedTrades:number;winningModeledExits:number;observedWinRatePct:number|null;
+ virtualCashINR:number;markedPositionValueINR:number;openQuantity:number;
+ marginBorrowedINR:0;leverageModel:'NONE';modeledUnrealizedResidualINR:number;
+ modeledFillsInRetainedHistory:number;days:CloudDay[];
 };
 export type CloudPaperSummary={
  schema:1;mode:'PUBLIC_READ_ONLY_PAPER_DAYBOOK';currency:'INR';
