@@ -49,3 +49,17 @@ test('mobile responsive safe styles are loaded after existing themes',()=>{
  assert.match(css,/prefers-reduced-motion/);
  assert.match(stock,/theme:'light'\|'dark'/);
 });
+
+test('six research roles are rendered from selected source-backed historical results',()=>{
+ const council=read('../src/components/AgentCouncilPanel.tsx');
+ const engine=read('../src/lib/councilEngine.js');
+ assert.match(strat,/AgentCouncilPanel lab=\{lab\} strategyId=\{item\?\.id\?\?selected\}/);
+ assert.match(council,/evaluateCouncil\(lab,strategyId\)/);
+ for(const name of ['Scout','News','Sentiment','Charts','Risk','Decision'])
+   assert.ok(council.includes(name));
+ assert.match(engine,/paperOrdersExecuted===false/);
+ assert.match(engine,/liveOrdersEnabled:false/);
+ assert.match(engine,/outcome=!measured\|\|overLimit\?'SKIP':'WAIT'/);
+ assert.match(css,/\.council-grid/);
+ assert.match(css,/@media\(max-width:640px\)/);
+});
