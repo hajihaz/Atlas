@@ -26,10 +26,13 @@ def test_scalpstorm_public_status_is_explicitly_unverified():
 def test_public_ui_never_sources_prices_or_credentials():
     ui = (ROOT / "frontend/src/App.tsx").read_text()
     detail = (ROOT / "frontend/src/components/ScalpStormDetailed.tsx").read_text()
-    assert "ScalpStormDetailed" in ui
+    # Archived campaign remains as evidence, not as a public P&L display.
+    assert "ScalpStormDetailed" not in ui
+    assert "Stock trading results not verified" in ui
+    assert "RealMarketPage" in ui
     assert "NET STOCK TRADING P&L" in detail
     assert "scalpstorm-report.json" in detail
-    assert "Live trading is disabled" in ui
+    assert "Live-capital authorization" in ui
     assert "fetch(" not in detail
     assert "UPSTOX_ACCESS_TOKEN" not in detail
     assert "GROWW_API_TOKEN" not in detail
