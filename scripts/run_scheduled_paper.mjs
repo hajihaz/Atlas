@@ -5,12 +5,14 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {getChart} from '../frontend/api/market-history.js';
 import {getLiveFeed} from '../frontend/api/live-feed.js';
-import {advanceCloud,composeTwoHourCandles,failureState,MODE} from './scheduled_paper_engine.mjs';
+import {advanceCloud,composeTwoHourCandles,failureState,recordUnverifiedFirstCheckpoint,MODE} from './scheduled_paper_engine.mjs';
 
 const OUTPUT=path.resolve('frontend/public/cloud-paper.json');
 const SYMBOL='BTCINR';
 const LIMIT_BYTES=100000;
-function isSeed(d){return d?.schema===1&&d?.mode===MODE&&d.status==='AWAITING_FIRST_RUN'&&
+function isSeed(d){return d?.schema===1&&d?.mode===MODE&&
+  ['AWAITING_FIRST_RUN','AWAITING_VALID_SOURCE'].includes(d.status)&&
+  d.symbol===SYMBOL&&d.actualCapitalINR===0&&
   Array.isArray(d.sessions)&&d.sessions.length===0&&d.realOrdersEnabled===false;}
 async function main(){
  const now=Date.now();
@@ -36,9 +38,13 @@ async function main(){
   next=advanceCloud(previous,bars,quote,now);
  }catch(e){
   const reason='Provider/candle freshness gate did not pass; no virtual fills processed.';
-  if(!previous){console.log('First cloud paper checkpoint postponed:',reason);return;}
-  console.log('Cloud paper checkpoint degraded:',String(e?.message??e).slice(0,250));
-  next=failureState(previous,reason,now);
+  if(!previous){
+    console.log('First cloud paper source check unavailable:',String(e?.message??e).slice(0,140));
+    next=recordUnverifiedFirstCheckpoint(old,now,reason);
+  }else{
+    console.log('Cloud paper checkpoint degraded:',String(e?.message??e).slice(0,250));
+    next=failureState(previous,reason,now);
+  }
  }
  const data=JSON.stringify(next,null,2)+'\n';
  if(Buffer.byteLength(data,'utf8')>LIMIT_BYTES)throw Error('State report exceeded bounded size');
