@@ -169,7 +169,7 @@ export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props)
     // Extend with actual public socket events, never interpolate new ticks.
     const last=history.candles.at(-1)!.time;
     const recent=(streamPoints[selection]??[])
-      .filter(p=>p.time>last&&p.time<=now+5000)
+      .filter(p=>p.time>last)
       .map(p=>({...p,label:formatStamp(p.time,range)}));
     const all=[...mapped,...recent].sort((a,b)=>a.time-b.time);
     // Display only actual sampled provider observations for long history,
@@ -179,7 +179,7 @@ export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props)
     const sampled=all.filter((_,i)=>i%stride===0);
     if(sampled.at(-1)?.time!==all.at(-1)?.time)sampled.push(all.at(-1)!);
     return sampled;
-  },[history,selection,range,streamPoints,now]);
+  },[history,selection,range,streamPoints]);
 
   return <section className="live-lab" aria-labelledby="live-title">
     <div className="sub-page-header"><div className="breadcrumb">ATLAS / LIVE PAPER LAB</div>
