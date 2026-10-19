@@ -8,7 +8,7 @@ function validTime(value,now){
   const t=Date.parse(value);
   return Number.isFinite(t)&&t>0&&t<=now+5000;
 }
-export function evaluateCouncil(lab,strategyId,now=Date.now()){
+export function evaluateCouncil(lab,strategyId,now=Date.now(),newsEvidence=null){
   if(!Number.isFinite(now)||now<=0)throw new RangeError('invalid council time');
   const historical=!!lab&&lab.schema===1&&lab.mode==='HISTORICAL_HYPOTHETICAL_REPLAY'
     &&lab.currency==='INR'&&lab.liveOrdersEnabled===false
@@ -24,11 +24,24 @@ export function evaluateCouncil(lab,strategyId,now=Date.now()){
     &&Number.isFinite(strategy.endingEquityINR)
     &&strategy.endingEquityINR>=0;
   const overLimit=measured&&strategy.maxDrawdownPct>5;
+  const newsPresent=!!newsEvidence&&newsEvidence.schema===1
+    &&newsEvidence.mode==='SOURCE_HEADLINES_ONLY'
+    &&newsEvidence.source==='GDELT DOC 2.0'&&newsEvidence.symbol===lab?.symbol
+    &&newsEvidence.publicationVerified===false
+    &&newsEvidence.liveOrdersEnabled===false&&newsEvidence.realOrdersPlaced===0
+    &&validTime(newsEvidence.observedAt,now)
+    &&now-Date.parse(newsEvidence.observedAt)<=15*60000
+    &&newsEvidence.status==='OBSERVED'
+    &&Array.isArray(newsEvidence.articles)&&newsEvidence.articles.length>0
+    &&newsEvidence.articles.length<=8;
+  const newsCount=newsPresent?newsEvidence.articles.length:0;
   const agents=[
     historical
       ?row('scout','OBSERVED',lab.barCount+' completed INR candles · '+lab.source+'. Last completed bar: '+lab.latestClosedAt)
       :row('scout','NO DATA','No validated, timestamped historical source.'),
-    row('news','NOT CONNECTED','No independently sourced, timestamped market-news feed is wired to this council.'),
+    newsPresent
+      ?row('news','OBSERVED',newsCount+' source-linked headline observations from GDELT. Headline mentions are not verified catalysts or predictions.')
+      :row('news','UNAVAILABLE','No fresh source-validated news observations; headlines are not fabricated.'),
     row('sentiment','NOT CONNECTED','No verified social-media sentiment feed or licensed attribution is connected.'),
     measured
       ?row('charts','HISTORICAL ONLY',strategy.name+': modeled return '+strategy.modeledReturnPct.toFixed(2)+'%; historical drawdown '+strategy.maxDrawdownPct.toFixed(2)+'%. No current entry signal.')
