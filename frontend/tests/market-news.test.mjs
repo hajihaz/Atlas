@@ -109,3 +109,13 @@ test('hosted source unavailable falls back safely to GDELT metadata, not fake re
  assert.match(result.source,/GDELT/);
  assert.equal(result.status,'OBSERVED');
 });
+
+test('gas-price telemetry and blockchain-explorer dashboards are not financial news headlines',()=>{
+ const news=normalizeHostedNews([
+  {title:'⛽ ETH Gas: 0.05 Gwei',link:'https://etherscan.io/gastracker',
+   pubDate:'2026-10-20T04:10:00Z'},
+  {title:'Ethereum developer roadmap discussion',link:'https://example.com/research/article',
+   pubDate:'2026-10-20T04:10:00Z'}],now);
+ assert.equal(news.length,1);
+ assert.equal(news[0].domain,'example.com');
+});
