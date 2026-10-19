@@ -128,9 +128,9 @@ export default function RealMarketPage({variant='overview',paperGroup,onNavigate
         <small>Five source-driven virtual accounts, local to this browser</small>
       </button>
       <button type="button" className="panel real-stat real-stat-action" onClick={()=>onNavigate?.('markets')}>
-        <span className="real-stat-label">NSE stock viewing <CalendarClock size={18}/></span>
+        <span className="real-stat-label">Indian stock viewing <CalendarClock size={18}/></span>
         <strong>{data?sessionText(data.nse.phase):'Checking calendar…'}</strong>
-        <small>Free TradingView stock charts · session reference, not exchange-open confirmation</small>
+        <small>Free BSE end-of-day charts · NSE session reference</small>
       </button>
       <button type="button" className="panel real-stat real-stat-action" onClick={()=>onNavigate?.('live')}>
         <span className="real-stat-label">Crypto data <Activity size={18}/></span>
@@ -155,8 +155,8 @@ export default function RealMarketPage({variant='overview',paperGroup,onNavigate
     </div>
     <div className="panel real-stock-discovery">
       <div><span className="premium-kicker">FREE STOCK CHARTS</span>
-        <h2>Indian stocks on TradingView</h2>
-        <p>View Reliance, TCS, Infosys, HDFC Bank, SBI and NIFTY in the Market Watch's official third-party chart. Delays and permissions are vendor-controlled.</p>
+        <h2>BSE stock charts on TradingView</h2>
+        <p>View Reliance, TCS, Infosys, HDFC Bank, SBI and SENSEX on official BSE end-of-day widgets. These are not live NSE quotes.</p>
       </div>
       <button className="secondary-button" type="button" onClick={()=>onNavigate?.('markets')}>Explore NSE charts <ArrowRight size={16}/></button>
     </div>
