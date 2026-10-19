@@ -1,6 +1,6 @@
 // Atlas public INR market observation endpoint. No trading or credentials.
 const URL = 'https://api.coindcx.com/exchange/ticker';
-const MARKETS = ['BTCINR', 'ETHINR'];
+const MARKETS = ['BTCINR', 'ETHINR', 'SOLINR', 'XRPINR', 'DOGEINR'];
 const CACHE_MS = 12000;
 const MAX_AGE_SECONDS = 90;
 let cached = null;
