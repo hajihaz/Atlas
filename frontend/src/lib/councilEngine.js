@@ -16,6 +16,8 @@ export function evaluateCouncil(lab,strategyId,now=Date.now()){
     &&Number.isInteger(lab.barCount)&&lab.barCount>=55
     &&typeof lab.source==='string'&&lab.source.length>0
     &&validTime(lab.generatedAt,now)&&validTime(lab.latestClosedAt,now)
+    &&now-Date.parse(lab.generatedAt)<=15*60*1000
+    &&Date.parse(lab.latestClosedAt)<=Date.parse(lab.generatedAt)+5000
     &&Array.isArray(lab.strategies)&&typeof strategyId==='string';
   const strategy=historical?lab.strategies.find(s=>s.id===strategyId):null;
   const measured=!!strategy&&!strategy.status&&Number.isFinite(strategy.modeledReturnPct)
