@@ -53,17 +53,17 @@ export default function CloudPaperCard(){
   <div className="research-detail-title">
    <div><div className="heading-kicker"><Cloud size={15}/> SCHEDULED GITHUB PAPER RUNNER</div>
     <h2>Cloud paper monitor</h2>
-    <p>Continues on scheduled GitHub runners when Atlas and your Mac are closed.
-      Approximate two-hour checkpoints; not tick-by-tick trading.</p></div>
+    <p>Designed for best-effort GitHub checkpoints while Atlas and your Mac are closed.
+      Runs can be delayed or skipped; not tick-by-tick trading.</p></div>
     <span className="research-tag"><ShieldCheck size={14}/> Virtual only</span>
   </div>
   {loading?<div className="research-status">Checking published paper state…</div>:
    !report?<div className="research-status">{problem||'No scheduled report published.'}</div>:
    <>
     <div className="cloud-paper-meta">
-      <div><small>Runtime</small><strong>{report.sessions.length===0?'Awaiting first scheduled run':
+      <div><small>Runtime</small><strong>{report.sessions.length===0?(report.runCount>0?'First source check unsuccessful':'Awaiting first scheduled run'):
         stale?'Last snapshot old':report.status==='DEGRADED'?'Source check paused':'Scheduled checkpoints'}</strong></div>
-      <div><small>Last verified check</small><strong>{ts(report.lastRunAt)}</strong></div>
+      <div><small>Last runner attempt</small><strong>{ts(report.lastRunAt)}</strong></div>
       <div><small>Model</small><strong>{report.symbol.replace('INR',' / INR')} · {report.interval} candles</strong></div>
       <div><small>Skipped intervals</small><strong>{report.skippedIntervals}</strong></div>
     </div>
@@ -71,7 +71,7 @@ export default function CloudPaperCard(){
     {stale&&report.sessions.length>0&&<p className="cloud-paper-notice">
       No recent scheduled checkpoint. Numbers below are the LAST published observations, not live prices.</p>}
     {report.sessions.length===0?<div className="research-status">
-      GitHub Actions has not published an accepted source observation yet. No simulated trades or returns are invented.
+      GitHub Actions has not published an accepted market observation yet. Attempts without eligible source data do not create simulated positions, trades or returns.
     </div>:<>
     <div className="cloud-paper-choices">
       {report.sessions.map(s=><button type="button" key={s.strategyId} aria-pressed={selected===s.strategyId}
