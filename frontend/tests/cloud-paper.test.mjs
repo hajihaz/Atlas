@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {composeTwoHourCandles,sourceEligible,freshState,advanceCloud,
- failureState,CHECKPOINT_MS} from '../scripts/scheduled_paper_engine.mjs';
+ failureState,CHECKPOINT_MS} from '../../scripts/scheduled_paper_engine.mjs';
 const H=3600000,T=2*H;
 const base=Date.parse('2026-10-12T00:00:00Z');
 const hourly=Array.from({length:150},(_,i)=>{
