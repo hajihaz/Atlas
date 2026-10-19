@@ -1,0 +1,21 @@
+name: atlas-cloud-source-probe
+on:
+  pull_request:
+    paths:
+      - "scripts/verify_scheduled_paper_source.mjs"
+      - "scripts/scheduled_paper_engine.mjs"
+      - ".github/workflows/atlas-cloud-source-probe.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Source-only, zero-order paper eligibility probe
+        run: node scripts/verify_scheduled_paper_source.mjs
