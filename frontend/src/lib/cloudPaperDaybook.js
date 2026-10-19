@@ -30,6 +30,13 @@ export function buildCloudPaperSummary(report){
    throw new Error('Untrusted virtual research ledger');
  if(report.sessions.length===0 && !['AWAITING_FIRST_RUN','AWAITING_VALID_SOURCE'].includes(report.status))
    throw new Error('Empty running ledger');
+ // Retained observations may never extend beyond the source report's run time.
+ const observedAt=when(report.lastRunAt),startedAt=when(report.createdAt);
+ if(report.sessions.length && (observedAt===null||startedAt===null||
+   startedAt>observedAt+5000||!Number.isSafeInteger(report.runCount)||
+   report.runCount<1))
+   throw new Error('Invalid cloud-paper run provenance');
+ const isWithinRun=at=>at!==null && at>=startedAt-5000 && at<=observedAt+5000;
  const seen=new Set();
  const strategies=report.sessions.map(s=>{
    if(typeof s.strategyId!=='string'||seen.has(s.strategyId)||
@@ -48,7 +55,7 @@ export function buildCloudPaperSummary(report){
      return days.get(k);
    }
    const points=s.equityHistory.map(p=>{
-     if(!when(p?.at)||!validMoney(p.equityINR)||p.equityINR<0)
+     if(!isWithinRun(when(p?.at))||!validMoney(p.equityINR)||p.equityINR<0)
        throw new Error('Invalid equity observation');
      return p;
    }).sort((a,b)=>Date.parse(a.at)-Date.parse(b.at));
@@ -58,11 +65,15 @@ export function buildCloudPaperSummary(report){
      d.lastEquityINR=round(p.equityINR);d.lastSnapshotAt=p.at;
    }
    for(const e of s.events){
-     if(!when(e?.quoteAt)||!when(e.barClosedAt)||
-       !['BUY','SELL'].includes(e.side)||!validMoney(e.modeledPriceINR)
-       ||e.modeledPriceINR<=0||!validMoney(e.feeINR)||e.feeINR<0||
+     const quoteAt=when(e?.quoteAt),barAt=when(e?.barClosedAt);
+     if(!isWithinRun(quoteAt)||barAt===null||barAt>quoteAt||
+       barAt<startedAt-7*86400000||
+       !['BUY','SELL'].includes(e.side)||e.mode!=='HYPOTHETICAL_AFTER_OBSERVED_SIGNAL'||
+       !validMoney(e.modeledPriceINR)||e.modeledPriceINR<=0||
+       !validMoney(e.feeINR)||e.feeINR<0||
        !validMoney(e.quantity)||e.quantity<=0||
-       (e.realizedPnlINR!==null&&!validMoney(e.realizedPnlINR)))
+       (e.side==='SELL'&&!validMoney(e.realizedPnlINR))||
+       (e.side==='BUY'&&e.realizedPnlINR!==null))
        throw new Error('Invalid modeled event');
      const d=dayOf(istDay(e.quoteAt));
      if(e.side==='BUY')d.modeledBuys++;
