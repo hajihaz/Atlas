@@ -37,9 +37,15 @@ export function startPublicStream({
 }){
   let stopped=false,ws=null,retryTimer=null,version=4,attempts=0,received=false;
   let openTimer=null;
+  let pingTimer=null;
   function status(value){if(!stopped)onStatus?.(value);}
   function safeSend(message){
     if(ws?.readyState===1){try{ws.send(message);}catch{status('DISCONNECTED');}}
+  }
+  function armLegacyPing(interval){
+    if(pingTimer!==null)cancel(pingTimer);
+    if(version!==3||!Number.isSafeInteger(interval)||interval<1000||interval>120000)return;
+    pingTimer=after(()=>{pingTimer=null;if(!stopped&&ws?.readyState===1){safeSend('2');armLegacyPing(interval);}},interval);
   }
   function connect(){
     if(stopped)return;
@@ -54,7 +60,10 @@ export function startPublicStream({
     active.onmessage=(message)=>{
       if(stopped||ws!==active||typeof message.data!=='string')return;
       const frame=message.data;
-      if(frame.startsWith('0')){safeSend('40');return;}
+      if(frame.startsWith('0')){
+        try{armLegacyPing(JSON.parse(frame.slice(1)).pingInterval);}catch{}
+        safeSend('40');return;
+      }
       if(frame==='2'){safeSend('3');return;}
       if(frame.startsWith('40')&&!joined){
         joined=true;
@@ -74,6 +83,7 @@ export function startPublicStream({
     active.onerror=()=>status('DEGRADED');
     active.onclose=()=>{if(ws===active){ws=null;status('DISCONNECTED');
       if(openTimer!==null){cancel(openTimer);openTimer=null;}
+      if(pingTimer!==null){cancel(pingTimer);pingTimer=null;}
       // Probe legacy Engine.IO v3 if server rejects v4. Do not claim verified
       // streaming until a correctly parsed, timestamp-valid provider event.
       if(!received&&attempts>=2)version=3;
@@ -89,6 +99,7 @@ export function startPublicStream({
     stopped=true;
     if(retryTimer!==null)cancel(retryTimer);
     if(openTimer!==null)cancel(openTimer);
+    if(pingTimer!==null)cancel(pingTimer);
     if(ws){try{ws.close();}catch{}}ws=null;
   };
 }
