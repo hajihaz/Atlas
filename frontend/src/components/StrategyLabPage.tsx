@@ -1,4 +1,5 @@
 import {useEffect,useState} from 'react';
+import AgentCouncilPanel from './AgentCouncilPanel';
 import {Activity,ArrowRight,BookOpenText,Clock3,ShieldCheck,TrendingUp,TrendingDown,FlaskConical,Layers3} from 'lucide-react';
 import {LineChart,Line,ResponsiveContainer,CartesianGrid,XAxis,YAxis,Tooltip} from 'recharts';
 type T={side:string;barTime:number;signalBarTime:number;price:number;quantity:number;feeINR:number;positionPnlINR:number|null};
@@ -77,6 +78,7 @@ export default function StrategyLabPage({mode='strategies',goRisk}:{
     <span>{lab.barCount} completed bars · {lab.historyCoverage.replaceAll('_',' ')} ·
     {lab.earliestBarAt?' Since '+date(Date.parse(lab.earliestBarAt)):''}</span>
     <span>Updated {date(Date.parse(lab.generatedAt))}</span></div>}
+  {lab&&<AgentCouncilPanel lab={lab} strategyId={item?.id??selected}/>}
   {lab&&<div className="research-layout">
     <div className="research-strategy-list">
       <div className="research-list-heading"><Layers3 size={16}/> Choose strategy</div>
