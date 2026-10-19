@@ -41,7 +41,7 @@ Each upstream repository was verified public, not archived, and its last default
 | Next slice | Preferred input | Acceptance evidence | Status |
 |---|---|---|---|
 | Existing six-role advisory design | TradingAgents + FinRobot *architectural patterns* | Source-gated WAIT/SKIP panels with risk veto and no order rights | Already delivered separately in Atlas |
-| Reproducible weights-based comparison | FinRL-X contract in isolated test | Atlas-only deterministic 10-position equal allocation, fees/limits and no accidental external imports | **Candidate**, not yet integrated |
+| Reproducible weights-based comparison | FinRL-X equal-weight contract concept, independent Atlas-only implementation | `scripts/prototypes/scalpstorm_equal_weight.mjs`: 10 distinct NSE symbols -> 10 × ₹10,000, zero orders and no invented prices; tested in CI | **Isolated no-order proof of concept**, not connected to NSE signals or the UI |
 | Independent simulation cross-check | LEAN / NautilusTrader | Same timestamped fixture leads to reconciled fills, costs, balances; cold restart and gap cases | **Candidate**, no engine installed |
 | ML strategy research | Qlib | Verified no look-ahead, source freshness and artifact load isolation | **Defer** until security and data trials |
 | Crypto dry-run comparison | Freqtrade / Hummingbot | No private-source license leakage, no broker credential route, same market bars | **Hold/research** |
@@ -62,6 +62,7 @@ Each upstream repository was verified public, not archived, and its last default
 - [x] Maintenance snapshot and selected install requirements reviewed.
 - [x] Cost/legal/data-rights risks recorded, including FinBERT weight and VectorBT Commons Clause.
 - [ ] Third-party full CVE/penetration, signed-artifact provenance, resource benchmarking, sandbox E2E and license counsel clearance — **not represented as completed**.
+- [x] Zero-dependency isolated equal-weight research contract implemented and test added; **no external library imported**.
 - [ ] Actual import and integration tests of any external upstream library — **not yet authorized/needed for this audit**.
 
 ## Phase-1 acceptance
