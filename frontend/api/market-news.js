@@ -42,26 +42,62 @@ export function buildNewsUrl(symbol){
    maxrecords:String(MAX_RECORDS),timespan:'1day',sort:'datedesc',format:'json'}).toString();
  return url.href;
 }
-export async function getMarketNews(symbol='BTCINR',getter=fetch,now=Date.now()){
- const url=buildNewsUrl(symbol);
+// Hosted API access is permitted by the publisher's README; its CODE is NOT
+// open-licensed (all rights reserved). Do not vendor, rehost or redistribute code.
+export function buildHostedNewsUrl(symbol){
+ if(!Object.hasOwn(SEARCH,symbol))throw new RangeError('unsupported news symbol');
+ const u=new URL(symbol==='BTCINR'
+   ?'https://cryptocurrency.cv/api/bitcoin'
+   :'https://cryptocurrency.cv/api/search');
+ if(symbol!=='BTCINR')u.searchParams.set('q',SEARCH[symbol]);
+ u.searchParams.set('limit',String(MAX_RECORDS));
+ return u.href;
+}
+export function normalizeHostedNews(articles,now=Date.now()){
+ if(!Array.isArray(articles))throw Error('invalid hosted news');
+ return normalizeGdelt(articles.map(a=>{
+  const at=Date.parse(a?.pubDate??'');
+  const stamp=Number.isFinite(at)?new Date(at).toISOString().replace(/[-:]/g,'').replace('.000Z','Z'):null;
+  return {title:a?.title,url:a?.link,seendate:stamp};
+ }),now);
+}
+async function loadNews(url,normalize,getter,now,label){
  const ac=new AbortController();
- const timeout=setTimeout(()=>ac.abort(),6500);
+ const timer=setTimeout(()=>ac.abort(),3600);
  try{
-  const response=await getter(url,{method:'GET',signal:ac.signal,
-    headers:{Accept:'application/json'}});
+  const response=await getter(url,{method:'GET',signal:ac.signal,headers:{Accept:'application/json'}});
   if(!response?.ok)throw Error('provider_http_'+String(response?.status??'unknown'));
   const ct=response.headers?.get?.('content-type')??'';
-  if(!ct.toLowerCase().includes('json'))throw Error('news provider did not return JSON');
-  const source=await response.json();
-  if(!source||typeof source!=='object'||!Array.isArray(source.articles))
+  if(!ct.toLowerCase().includes('json'))throw Error('provider_format_error');
+  const json=await response.json();
+  if(!json||typeof json!=='object'||!Array.isArray(json.articles))
     throw Error('untrusted news provider contract');
-  const articles=normalizeGdelt(source.articles,now);
-  return {schema:1,mode:'SOURCE_LINKS_ONLY',symbol,
-    source:SOURCE,sourceUrl:'https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/',
-    observedAt:new Date(now).toISOString(),status:articles.length?'OBSERVED':'NO_MATCHES',
-    articles,liveOrdersEnabled:false,paperOrdersExecuted:false,
-    warning:'News links may be delayed, incomplete or incorrect. No sentiment score, independent verification or trading signal is inferred. Publisher rights apply.'};
- }finally{clearTimeout(timeout)}
+  const articles=normalize(json.articles,now);
+  return {schema:1,mode:'SOURCE_LINKS_ONLY',symbol:null,
+   source:label,observedAt:new Date(now).toISOString(),
+   status:articles.length?'OBSERVED':'NO_MATCHES',articles,
+   liveOrdersEnabled:false,paperOrdersExecuted:false,
+   warning:'Source article links may be inaccurate or incomplete. No independently verified news, model sentiment or trading signal. Publisher rights apply.'};
+ }finally{clearTimeout(timer)}
+}
+export async function getMarketNews(symbol='BTCINR',getter=fetch,now=Date.now()){
+ if(!Number.isFinite(now)||now<=0)throw new RangeError('invalid time');
+ // Two bounded free public providers, no credentials and no LLM billing.
+ // Prefer an explicitly free hosted article-link API; GDELT is best-effort fallback.
+ const providers=[
+  [buildHostedNewsUrl(symbol),normalizeHostedNews,'cryptocurrency.cv (publisher-linked news aggregation)'],
+  [buildNewsUrl(symbol),normalizeGdelt,SOURCE],
+ ];
+ let firstEmpty=null,lastError=null;
+ for(const [url,normalizer,label] of providers){
+  try{
+   const item=await loadNews(url,normalizer,getter,now,label);
+   if(item.articles.length)return {...item,symbol};
+   if(!firstEmpty)firstEmpty={...item,symbol};
+  }catch(e){lastError=e;}
+ }
+ if(firstEmpty)return firstEmpty;
+ throw lastError??new Error('news provider unavailable');
 }
 export default async function handler(req,res){
  res.setHeader('X-Content-Type-Options','nosniff');
