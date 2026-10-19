@@ -9,7 +9,7 @@ type PaperRow={strategyId:string;strategyName:string;status:'RUNNING'|'HALTED';
  lastSignal:string;events:Event[];pausedReason:string|null;
  equityHistory?:{at:string;equityINR:number}[]};
 type Report={schema:number;mode:string;currency:'INR';status:string;symbol:string;
- actualCapitalINR:number;realOrdersEnabled:false;interval:string;
+ actualCapitalINR:number;realOrdersEnabled:false;interval:string;runCount:number;
  createdAt:string|null;lastRunAt:string|null;lastProviderAt:string|null;
  skippedIntervals:number;scheduledEveryMinutes:number;alert:string|null;
  sessions:PaperRow[]};
