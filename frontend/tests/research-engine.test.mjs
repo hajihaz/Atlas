@@ -80,7 +80,7 @@ test('unavailable historical provider does not fabricate returns',async()=>{
  assert.ok(r.strategies.every(x=>x.modeledReturnPct===undefined));
 });
 test('reject untrusted input and any execution/mutation HTTP methods',async()=>{
- assert.throws(()=>getLab({symbol:'NSE:RELIANCE'}),/unsupported/);
+ await assert.rejects(getLab({symbol:'NSE:RELIANCE'}),/unsupported/);
  const response={status(n){this.code=n;return this},setHeader(k,v){this[k]=v},json(x){return x}};
  const r=await handler({method:'POST',query:{symbol:'BTCINR'},body:{side:'BUY'}},response);
  assert.equal(response.code,405);assert.equal(response.Allow,'GET');
