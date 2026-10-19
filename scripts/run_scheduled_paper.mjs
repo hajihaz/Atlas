@@ -3,6 +3,7 @@
 // historical backfill. The state is a public virtual RESEARCH REPORT.
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import {assertNextCloudSnapshot} from './paper_ledger_guard.mjs';
 import {getChart} from '../frontend/api/market-history.js';
 import {getLiveFeed} from '../frontend/api/live-feed.js';
 import {advanceCloud,composeTwoHourCandles,failureState,recordUnverifiedFirstCheckpoint,MODE} from './scheduled_paper_engine.mjs';
@@ -36,6 +37,8 @@ async function main(){
   const bars=composeTwoHourCandles(hourly,now);
   const quote=feed.quotes.find(q=>q.symbol===SYMBOL);
   next=advanceCloud(previous,bars,quote,now);
+  // Even repeated failed first checks keep their real attempt counter.
+  if(!previous&&next.sessions.length===5)next.runCount=old.runCount+1;
  }catch(e){
   const reason='Provider/candle freshness gate did not pass; no virtual fills processed.';
   if(!previous){
@@ -50,6 +53,7 @@ async function main(){
  if(Buffer.byteLength(data,'utf8')>LIMIT_BYTES)throw Error('State report exceeded bounded size');
  if(next.realOrdersEnabled!==false||next.actualCapitalINR!==0||next.mode!==MODE)
    throw Error('Unsafe paper output');
+ assertNextCloudSnapshot(old,next,now);
  await fs.writeFile(OUTPUT,data,'utf8');
  console.log('Virtual checkpoint:',JSON.stringify({
    status:next.status,source:next.source,checkAt:next.lastRunAt,
