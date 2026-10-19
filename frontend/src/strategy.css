@@ -201,3 +201,32 @@ html[data-theme] .scalpstorm-allocation{padding:22px;display:flex;flex-direction
 @media(max-width:640px){html[data-theme] .scalpstorm-allocation{padding:15px}
 .scalpstorm-capital-summary{grid-template-columns:1fr}
 .scalpstorm-slot-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* Day-by-day paper accounting (source snapshot only) */
+.cloud-daybook{display:flex;flex-direction:column;gap:14px;padding:15px 0;
+ border-top:1px solid var(--pm-border);min-width:0}
+.cloud-daybook-title h3{font-size:14px;letter-spacing:-.2px;margin:0 0 4px}
+.cloud-daybook-title p{color:var(--pm-muted);font-size:10px;line-height:1.8;max-width:690px}
+.cloud-daybook-dates{display:flex;flex-wrap:wrap;gap:8px;max-height:180px;overflow:auto}
+html[data-theme] .cloud-daybook-date{display:flex;flex-direction:column;gap:6px;
+ padding:11px 13px;border:1px solid var(--pm-border);border-radius:9px;
+ color:var(--pm-ink);background:var(--pm-raised);font:inherit;
+ font-size:11px;text-align:left;cursor:pointer;min-width:138px;max-width:210px}
+.cloud-daybook-date span{font-size:13px;font-weight:800;color:var(--pm-ink)}
+.cloud-daybook-date small{font-size:9px;color:var(--pm-muted);line-height:1.6}
+html[data-theme] .cloud-daybook-date.selected{border-color:var(--pm-accent);
+ box-shadow:0 0 0 1px var(--pm-accent)}
+html[data-theme] .cloud-daybook-date:focus-visible,
+.cloud-daybook-export:focus-visible{outline:2px solid var(--pm-accent);outline-offset:3px}
+.cloud-daybook-details{padding:14px;background:var(--pm-raised);
+ border:1px solid var(--pm-border);border-radius:11px;display:flex;flex-direction:column;gap:13px;min-width:0}
+.cloud-daybook-detail-heading{display:flex;gap:8px;flex-direction:column;font-size:12px}
+.cloud-daybook-detail-heading span{font-size:10px;color:var(--pm-muted)}
+.cloud-daybook-export{color:var(--pm-accent);font-size:11px;
+ text-decoration:underline;overflow-wrap:anywhere;width:fit-content}
+@media(max-width:640px){
+ .cloud-daybook-dates{flex-wrap:nowrap;overflow-x:auto;max-height:none}
+ html[data-theme] .cloud-daybook-date{min-width:155px;flex-shrink:0}
+ .cloud-daybook-details{padding:10px}
+}
