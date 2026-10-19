@@ -19,6 +19,12 @@ test('deployed source ledgers create reproducible, read-only daybook results',()
  for(const v of s.strategies){
   assert.equal(v.virtualCapitalINR,100000);
   assert.equal(v.totalModeledPnlINR,v.virtualEquityINR-100000);
+  assert.equal(v.marginBorrowedINR,0);
+  assert.equal(v.leverageModel,'NONE');
+  assert.equal(v.virtualCashINR,100000);
+  assert.equal(v.markedPositionValueINR,0);
+  assert.equal(v.modeledUnrealizedResidualINR,0);
+  assert.equal(v.observedWinRatePct,null);
   assert.ok(v.days.every(d=>d.dayChangeINR===null||Number.isFinite(d.dayChangeINR)));
   assert.ok(v.days.every(d=>d.events.every(e=>e.note.includes('not a broker'))));
  }
@@ -139,4 +145,26 @@ test('future, pre-start, non-hypothetical, or impossible source events fail clos
  const badWindow=cloned();
  badWindow.lastRunAt='2026-10-18T00:00:00Z';
  assert.throws(()=>buildCloudPaperSummary(badWindow),/Invalid cloud-paper run provenance/);
+});
+
+test('win-rate denominator requires recorded exits and is never invented',()=>{
+ const r=cloned(),s=r.sessions[0];
+ s.closedTrades=4;s.wins=3;
+ const row=buildCloudPaperSummary(r).strategies[0];
+ assert.equal(row.winningModeledExits,3);
+ assert.equal(row.observedWinRatePct,75);
+ assert.equal(row.marginBorrowedINR,0);
+ const bad=cloned();bad.sessions[0].wins=2;
+ assert.throws(()=>buildCloudPaperSummary(bad),/Unsafe strategy/);
+});
+test('modeled exposure and residual derive from virtual cash and equity only',()=>{
+ const r=cloned(),s=r.sessions[0];
+ s.cashINR=70000;s.quantity=0.005;s.virtualEquityINR=101500;
+ s.realizedPnlINR=250;
+ const v=buildCloudPaperSummary(r).strategies[0];
+ assert.equal(v.virtualCashINR,70000);
+ assert.equal(v.markedPositionValueINR,31500);
+ assert.equal(v.modeledUnrealizedResidualINR,1250);
+ assert.equal(v.marginBorrowedINR,0);
+ assert.equal(v.leverageModel,'NONE');
 });
