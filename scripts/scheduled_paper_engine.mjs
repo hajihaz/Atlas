@@ -130,3 +130,27 @@ export function failureState(current,reason,now){
    lastRunAt:new Date(now).toISOString(),status:'DEGRADED',
    alert:reason,realOrdersEnabled:false};
 }
+
+
+/**
+ * Record a real scheduled attempt without asserting a verified source or fill.
+ * A subsequent valid completed candle may still initialize from scratch.
+ */
+export function recordUnverifiedFirstCheckpoint(seed,now,reason){
+ if(!seed||seed.schema!==1||seed.mode!==MODE||seed.realOrdersEnabled!==false
+   ||seed.actualCapitalINR!==0||seed.symbol!=='BTCINR'
+   ||!['AWAITING_FIRST_RUN','AWAITING_VALID_SOURCE'].includes(seed.status)
+   ||!Array.isArray(seed.sessions)||seed.sessions.length!==0
+   ||!Number.isFinite(now)||now<=0
+   ||typeof reason!=='string'||reason.length===0)
+   throw Error('Unsafe first checkpoint recovery');
+ const previous=seed.lastRunAt?Date.parse(seed.lastRunAt):null;
+ if(previous!==null&&(!Number.isFinite(previous)||now<previous))
+   throw Error('First checkpoint clock regression');
+ return {...seed,status:'AWAITING_VALID_SOURCE',
+   lastRunAt:new Date(now).toISOString(),
+   runCount:(Number.isSafeInteger(seed.runCount)&&seed.runCount>=0?seed.runCount:0)+1,
+   alert:'Scheduled runner attempted source validation but no eligible market observation was available. No virtual positions or returns created.',
+   lastProviderAt:null,lastBarClosedAt:null,sessions:[],
+   realOrdersEnabled:false,actualCapitalINR:0};
+}
