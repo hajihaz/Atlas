@@ -1,5 +1,6 @@
 import {useEffect,useState} from 'react';
 import AgentCouncilPanel from './AgentCouncilPanel';
+import ScalpStormAllocationPlan from './ScalpStormAllocationPlan';
 import {Activity,ArrowRight,BookOpenText,Clock3,ShieldCheck,TrendingUp,TrendingDown,FlaskConical,Layers3} from 'lucide-react';
 import {LineChart,Line,ResponsiveContainer,CartesianGrid,XAxis,YAxis,Tooltip} from 'recharts';
 type T={side:string;barTime:number;signalBarTime:number;price:number;quantity:number;feeINR:number;positionPnlINR:number|null};
@@ -53,6 +54,7 @@ export default function StrategyLabPage({mode='strategies',goRisk}:{
  return <section className="research-workbench">
   <div className="sub-page-header"><div className="breadcrumb">ATLAS / {heading.toUpperCase()}</div>
     <h1>{heading}<span className="period">.</span></h1><p>{desc}</p></div>
+  {mode==='scalpstorm'&&<ScalpStormAllocationPlan/>}
   <div className="research-topnote" role="note"><FlaskConical size={20}/>
     <span><strong>Real historical prices · simulated results.</strong> ₹1,00,000 is explicitly virtual starting capital, not a real portfolio. Results model fees/slippage and are not earnings or forward paper fills.</span>
   </div>
