@@ -77,7 +77,7 @@ async function loadNews(url,normalize,getter,now,label){
    source:label,observedAt:new Date(now).toISOString(),
    status:articles.length?'OBSERVED':'NO_MATCHES',articles,
    liveOrdersEnabled:false,paperOrdersExecuted:false,
-   warning:'Source article links may be inaccurate or incomplete. No independently verified news, model sentiment or trading signal. Publisher rights apply.'};
+   warning:'Source article links may be inaccurate or incomplete. No sentiment score, independently verified news or trading signal. Publisher rights apply.'};
  }finally{clearTimeout(timer)}
 }
 export async function getMarketNews(symbol='BTCINR',getter=fetch,now=Date.now()){
