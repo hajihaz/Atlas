@@ -41,7 +41,9 @@ export function evaluateCouncil(lab,strategyId,now=Date.now(),newsEvidence=null)
       :row('scout','NO DATA','No validated, timestamped historical source.'),
     newsPresent
       ?row('news','OBSERVED',newsCount+' source-linked headline observations from GDELT. Headline mentions are not verified catalysts or predictions.')
-      :row('news','UNAVAILABLE','No fresh source-validated news observations; headlines are not fabricated.'),
+      :newsEvidence
+      ?row('news','UNAVAILABLE','No fresh source-validated news observations; headlines are not fabricated.')
+      :row('news','NOT CONNECTED','No fresh verified news evidence has been supplied to this research evaluation.'),
     row('sentiment','NOT CONNECTED','No verified social-media sentiment feed or licensed attribution is connected.'),
     measured
       ?row('charts','HISTORICAL ONLY',strategy.name+': modeled return '+strategy.modeledReturnPct.toFixed(2)+'%; historical drawdown '+strategy.maxDrawdownPct.toFixed(2)+'%. No current entry signal.')
