@@ -11,7 +11,7 @@ const sample = [
 ];
 test('INR quotes are timestamped and not fabricated', () => {
  const result=normalizeTickers(sample,now);
- assert.deepEqual(result.map(x=>x.symbol),['BTCINR','ETHINR']);
+ assert.deepEqual(result.map(x=>x.symbol),['BTCINR','ETHINR','SOLINR','XRPINR','DOGEINR']);
  assert.equal(result[0].currency,'INR');
  assert.equal(result[0].price,8245000);
  assert.equal(result[0].status,'recent_provider_snapshot');

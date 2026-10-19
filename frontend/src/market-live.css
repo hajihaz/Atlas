@@ -1,0 +1,46 @@
+
+/* CoinDCX public market stream and timeframe browser, keyboard-first. */
+html[data-theme] .live-ticker{grid-template-columns:1.15fr 1fr 1fr}
+.live-coin-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+html[data-theme] .live-quote-button{text-align:left;color:inherit;border:1px solid var(--pm-border);
+  background:var(--pm-surface);cursor:pointer;font:inherit;width:100%;
+  transition:transform .2s,background .2s,border-color .2s,box-shadow .2s}
+html[data-theme] .live-quote-button:hover{transform:translateY(-2px);border-color:var(--pm-border-hover);
+  box-shadow:var(--pm-hover-shadow)}
+html[data-theme] .live-quote-button.live-selected{border-color:#3ba97f;
+  box-shadow:0 0 0 1px #3ba97f40,var(--pm-drop)}
+html[data-theme] .live-quote-button:focus-visible,
+html[data-theme] .live-chart-ranges button:focus-visible,
+html[data-theme] .live-chart-controls select:focus-visible{outline:2px solid #268b70;outline-offset:3px}
+.live-chart-heading{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:20px}
+.live-chart-heading .panel-heading{flex:1;min-width:230px}
+.live-chart-controls{display:flex;flex-direction:column;gap:6px;min-width:190px}
+.live-chart-controls label{font-size:10px;letter-spacing:1.2px;font-weight:820;color:var(--pm-muted)}
+.live-chart-controls select{min-height:39px;padding:7px 30px 7px 11px;border:1px solid var(--pm-border);
+ border-radius:9px;background:var(--pm-surface);color:var(--pm-ink);font:inherit;font-size:12px;
+ max-width:100%}
+.live-chart-controls option{background:var(--pm-raised);color:var(--pm-ink)}
+.live-chart-ranges{display:flex;align-items:center;gap:5px;flex-wrap:wrap;
+ margin:16px 0 15px;border-bottom:1px solid var(--pm-border);padding-bottom:13px}
+.live-chart-ranges button{min-width:48px;min-height:36px;padding:7px 10px;cursor:pointer;
+ border:1px solid transparent;border-radius:9px;background:transparent;
+ font-size:11px;font-weight:760;color:var(--pm-muted);
+ transition:background .2s,color .2s}
+.live-chart-ranges button:hover{background:rgba(83,181,139,.10);color:var(--pm-ink)}
+html[data-theme] .live-chart-ranges button.selected{
+ border-color:rgba(37,155,109,.25);background:rgba(81,189,140,.16);
+ color:var(--pm-accent)}
+.live-history-chart{height:320px}
+.live-chart-evidence{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+ gap:12px;color:var(--pm-muted);font-size:10px;margin-top:15px}
+@media(max-width:950px){html[data-theme] .live-ticker{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.live-coin-grid{grid-template-columns:1fr}
+ .live-chart-controls{width:100%}
+ .live-chart-controls select{width:100%}
+ html[data-theme] .live-ticker{grid-template-columns:1fr 1fr}
+ .live-chart-ranges button{flex:1}
+ .live-history-chart{height:260px}}
+@media(max-width:470px){html[data-theme] .live-ticker{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){
+ html[data-theme] .live-quote-button{transition:none;transform:none!important}
+}

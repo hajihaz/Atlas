@@ -31,4 +31,7 @@ jobs:
       - run: node --test frontend/tests/premium-ui.test.mjs
       - run: node --test frontend/tests/market-inr.test.mjs
       - run: node --test frontend/tests/ist-12-hour.test.mjs
+      - run: node --test frontend/tests/market-history.test.mjs
+      - run: node --test frontend/tests/market-stream.test.mjs
+      - run: node --test frontend/tests/live-feed.test.mjs
       - run: npm run build --prefix frontend
