@@ -13,7 +13,7 @@ Cron is `17 */2 * * *`, in UTC: nominally 00:17, 02:17, 04:17 ... UTC (05:47, 07
 | 1 — Cron reliability | Verify UTC cron and first-run; show next target and publication lateness in UI; preserve exact existing schedule | Observe >=2 genuine consecutive `schedule` events and published checkpoint ledger changes |
 | 2 — Crash/restart tests | New fixtures for same bar/restart, provider timeout/recovery, skipped intervals, duplicate commit | Execute GitHub CI; extended long-running chaos beyond this fixture still pending |
 | 3 — Durable ledger protection | GitHub commit remains source-of-truth; new `assertNextCloudSnapshot` validates monotonic run counters, account safety, unique modeled bar fills, no backfill; push rejects stale main before publish | Prove under a naturally overlapping scheduled run in production |
-| 4 — P/L and provenance | Retain merged IST daybook and its exact source math; comparison table uses modeled equity/fees/drawdown, never unrecorded leverage or stock P/L | Expand genuine observed transactions; no new fees invented |
+| 4 — P/L and provenance | Retain merged IST daybook and exact source math; append ledger-derived virtual cash, modeled mark-to-market exposure, recorded win rate, exit P/L, unrealized residual and explicit **zero borrowed margin/no modeled leverage** to UI and ChatGPT JSON | Expand with actual observed transactions; no new fees or nonexistent broker margin invented |
 | 5 — Comparison/ranking | Five-account comparison; ranking **withheld** until minimum five checkpoints, three closed trades per strategy and zero skipped intervals; any ranking is still provisional | Waiting for enough forward observations; out-of-sample statistical certification |
 | 6 — Audit 10 public frameworks | Prior 10/10 repository license/dependency/source intake manifest remains authoritative; CI still prohibits direct bot imports; FinRL weight contract already isolated | Full third-party vulnerability/isolated-runtime benchmarks and protected licenses are not certified; do not install or imply validated |
 | 7 — Council improvement | Reject historical reports generated more than 15 minutes ago and candles timestamped after source generation; independent risk/WAIT/SKIP unchanged | No independent six-LLM system; live BUY still blocked |
@@ -40,3 +40,7 @@ Cron is `17 */2 * * *`, in UTC: nominally 00:17, 02:17, 04:17 ... UTC (05:47, 07
 
 ## Future finite objectives
 Observe real 2-hour cron cycle, legal NSE intraday feed discovery, point-in-time ScalpStorm ranking without look-ahead, authorized runtime experiments of safe permissive upstream candidates, incremental sentiment research after rights review, opt-in authenticated write integration, and quantitative walk-forward performance certification.
+
+## Later verified release gate
+
+Vercel rejected the requested exact-head preview deployment with HTTP 402 `api-deployments-free-per-day` (>100 free API deployments/day). The branch therefore remains **unmerged** until exact-head preview and production rollout can be verified without paying. A follow-up task has been requested for the free quota reset; it does not authorize paid plans or unattended live trades.
