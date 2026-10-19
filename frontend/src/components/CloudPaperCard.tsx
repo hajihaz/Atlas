@@ -55,7 +55,8 @@ export default function CloudPaperCard(){
  const stale=age===null||age>5*3600000||age<0;
  const cadence=assessPaperCadence(report?.lastRunAt??null,now);
  const daybook=report?buildCloudPaperSummary(report):null;
- const dayRows=daybook?.strategies.find(s=>s.strategyId===current?.strategyId)?.days??[];
+ const selectedSummary=daybook?.strategies.find(s=>s.strategyId===current?.strategyId);
+ const dayRows=selectedSummary?.days??[];
  const activeDay=dayRows.find(d=>d.dayIST===selectedDay)??dayRows[0];
  const comparison=daybook?.strategies??[];
  const rankReady=report?.runCount!==undefined&&report.runCount>=5
@@ -128,6 +129,13 @@ export default function CloudPaperCard(){
       <div><small>Completed exits</small><strong>{current.closedTrades}</strong></div>
       <div><small>Model fees</small><strong>{money(current.feesINR)}</strong></div>
       <div><small>Open virtual coins</small><strong>{current.quantity.toFixed(8)}</strong></div>
+      <div><small>Virtual available cash</small><strong>{money(selectedSummary?.virtualCashINR??current.cashINR)}</strong></div>
+      <div><small>Marked virtual exposure</small><strong>{money(selectedSummary?.markedPositionValueINR??0)}</strong></div>
+      <div><small>Recorded exit win rate</small><strong>{selectedSummary?.observedWinRatePct===null?'—':
+       selectedSummary?.observedWinRatePct?.toFixed(2)+'%'}</strong></div>
+      <div><small>Modeled realized P/L</small><strong>{money(current.realizedPnlINR)}</strong></div>
+      <div><small>Borrowed margin / leverage</small><strong>₹0 · None modeled</strong></div>
+      <div><small>Unrealized residual estimate</small><strong>{money(selectedSummary?.modeledUnrealizedResidualINR??0)}</strong></div>
      </div>
      {(current.equityHistory?.length??0)>1&&<div className="cloud-equity-chart">
       <ResponsiveContainer width="100%" height="100%">
