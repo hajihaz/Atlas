@@ -19,8 +19,8 @@ const formatINR = (value: number|null, digits = 2) =>
   }).format(value);
 
 function clock(date: Date) {
-  return new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',
-    minute:'2-digit',second:'2-digit',hour12:false}).format(date);
+  return new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',hour:'numeric',
+    minute:'2-digit',second:'2-digit',hour12:true}).format(date);
 }
 function quoteFresh(q: Quote, now: number) {
   if(q.price === null || !q.sourceAt) return false;
@@ -55,7 +55,7 @@ export default function LiveLabPage({ goStrategies, goMarkets, goScalpStorm }: P
         const ts=Date.parse(body.observedAt);
         if(Number.isFinite(ts)){
           setHistory(current=>{
-            const point:Point={at:new Date(ts).toLocaleTimeString('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',second:'2-digit'})};
+            const point:Point={at:new Date(ts).toLocaleTimeString('en-US',{timeZone:'Asia/Kolkata',hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true})};
             for(const q of body.quotes) {
               if(quoteFresh(q,ts) && (q.symbol==='BTCINR' || q.symbol==='ETHINR')) point[q.symbol]=q.price!;
             }

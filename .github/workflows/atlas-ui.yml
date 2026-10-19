@@ -30,4 +30,5 @@ jobs:
       - run: node --test frontend/tests/theme-contract.test.mjs
       - run: node --test frontend/tests/premium-ui.test.mjs
       - run: node --test frontend/tests/market-inr.test.mjs
+      - run: node --test frontend/tests/ist-12-hour.test.mjs
       - run: npm run build --prefix frontend
