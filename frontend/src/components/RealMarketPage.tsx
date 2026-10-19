@@ -1,3 +1,4 @@
+import type {PaperGroup} from '../lib/paperEngine.js';
 import { useEffect, useState } from 'react';
 import {
   Activity, ArrowRight, ArrowUpRight, CalendarClock, CircleAlert, Clock3,
@@ -45,8 +46,8 @@ function sessionText(phase:string) {
     default:return 'Session calendar not verified';
   }
 }
-export default function RealMarketPage({variant='overview',onNavigate}:{
-  variant?:'overview'|'markets';onNavigate?:(page:'markets'|'risk'|'scalpstorm')=>void;
+export default function RealMarketPage({variant='overview',paperGroup,onNavigate}:{
+  variant?:'overview'|'markets';paperGroup?:PaperGroup|null;onNavigate?:(page:'markets'|'risk'|'scalpstorm'|'strategies'|'orders'|'live')=>void;
 }) {
   const [data,setData]=useState<MarketSnapshot|null>(null);
   const [error,setError]=useState('');
@@ -90,11 +91,11 @@ export default function RealMarketPage({variant='overview',onNavigate}:{
         <h1>{variant==='overview'?'Your markets. Real data.':'Market watch.'}</h1>
         <p>All money values in Indian rupees. Provider-backed crypto references, honest NSE connectivity and no fictional profits.</p>
         <div className="real-hero-buttons">
-          <button className="primary-button" type="button" disabled={loading} onClick={()=>setRefresh(v=>v+1)}>
-            <RefreshCcw size={16}/>{loading?'Checking sources…':'Refresh market data'}
+          <button className="primary-button" type="button" onClick={()=>onNavigate?.('strategies')}>
+            Explore 5 strategies <ArrowRight size={16}/>
           </button>
           {variant==='overview'&&<button className="premium-outline-button" onClick={()=>onNavigate?.('markets')} type="button">
-            Full market watch <ArrowRight size={15}/>
+            Live crypto charts <ArrowRight size={15}/>
           </button>}
         </div>
         <div className="real-hero-trust"><span><LockKeyhole size={15}/> Real-money trading disabled</span>
@@ -105,8 +106,9 @@ export default function RealMarketPage({variant='overview',onNavigate}:{
         <span>₹</span>
       </div>
     </div>
-    <div className="real-message" role="note"><CircleAlert size={19}/>
-      <span><strong>Real account not connected.</strong> No account value, trade profit or stock price is shown until independently verified. Cryptocurrency references are indicative, not order-book executions.</span>
+    <div className="real-market-note"><Activity size={16}/>
+      <span>Free public INR observations, live crypto charts and source-based strategy experiments.
+        NSE stock charts use TradingView; real-capital orders remain disabled.</span>
     </div>
     <div className="real-section-title"><div><span className="premium-kicker">SOURCE-VERIFIED DISPLAY</span>
       <h2>Market status <span className={hasCrypto?'real-dot ok':'real-dot'}/></h2></div>
@@ -115,26 +117,26 @@ export default function RealMarketPage({variant='overview',onNavigate}:{
       </div></div>
     {error&&<p className="real-error" role="alert">{error}. Real values are hidden until the source reconnects.</p>}
     <div className="real-stats-grid">
-      <article className="panel real-stat">
-        <span className="real-stat-label">Real portfolio value <Wallet size={18}/></span>
-        <strong>Not connected</strong>
-        <small>No authenticated holdings or account balance</small>
-      </article>
-      <article className="panel real-stat">
-        <span className="real-stat-label">Verified trading P&amp;L <TrendingUp size={18}/></span>
-        <strong>Not available</strong>
-        <small>No verified stock trades or reconciled paper ledger</small>
-      </article>
-      <article className="panel real-stat">
-        <span className="real-stat-label">NSE cash market <CalendarClock size={18}/></span>
+      <button type="button" className="panel real-stat real-stat-action" onClick={()=>onNavigate?.('strategies')}>
+        <span className="real-stat-label">Research strategies <TrendingUp size={18}/></span>
+        <strong>5 named models</strong>
+        <small>Click for real historical INR backtests and modeled P&amp;L</small>
+      </button>
+      <button type="button" className="panel real-stat real-stat-action" onClick={()=>onNavigate?.('orders')}>
+        <span className="real-stat-label">Virtual paper trials <Wallet size={18}/></span>
+        <strong>{paperGroup?paperGroup.sessions.filter(x=>x.status==='running').length+' / 5 running':'Ready to start'}</strong>
+        <small>Five source-driven virtual accounts, local to this browser</small>
+      </button>
+      <button type="button" className="panel real-stat real-stat-action" onClick={()=>onNavigate?.('markets')}>
+        <span className="real-stat-label">NSE stock viewing <CalendarClock size={18}/></span>
         <strong>{data?sessionText(data.nse.phase):'Checking calendar…'}</strong>
-        <small>{data?data.nse.date+' · '+nseDisplayTime(data.nse.date,data.nse.timeIST):'Calendar pending'} · 9:15 AM–3:30 PM IST</small>
-      </article>
-      <article className="panel real-stat">
-        <span className="real-stat-label">Market connection <Activity size={18}/></span>
-        <strong>{hasCrypto?'Crypto reference available':'Data unavailable'}</strong>
-        <small>NSE authenticated quote feed: not connected</small>
-      </article>
+        <small>Free TradingView stock charts · session reference, not exchange-open confirmation</small>
+      </button>
+      <button type="button" className="panel real-stat real-stat-action" onClick={()=>onNavigate?.('live')}>
+        <span className="real-stat-label">Crypto data <Activity size={18}/></span>
+        <strong>{hasCrypto?'INR quotes available':'Checking source…'}</strong>
+        <small>Public CoinDCX streaming in Live Paper Lab</small>
+      </button>
     </div>
     <div className="real-section-title"><div><span className="premium-kicker">INDICATIVE PUBLIC SPOT REFERENCES</span>
       <h2>Crypto prices in ₹</h2></div><span className="real-source-label">Source: Coinbase public spot</span></div>
@@ -151,20 +153,15 @@ export default function RealMarketPage({variant='overview',onNavigate}:{
         <div className="real-crypto-footer">{data&&!stale?'Fetched '+time(data.retrievedAt):'No fresh observation'}</div>
       </article>)}
     </div>
-    <div className="real-section-title"><div><span className="premium-kicker">AUTHORIZED NSE DATA NEEDED</span>
-      <h2>Indian stocks</h2></div></div>
-    <div className="panel real-stock-list">
-      {(rows.filter(row=>row.market==='equity').length?rows.filter(row=>row.market==='equity'):
-        ['RELIANCE','TCS','INFY'].map(symbol=>({symbol:symbol+'/INR',market:'equity',currency:'INR',price:null,
-          provider:'NSE authenticated provider not connected',observedAt:null,status:'unavailable',paperEligible:false} as MarketRow)))
-      .map(row=><div className="real-stock-row" key={row.symbol}>
-        <div><strong>{row.symbol.replace('/INR','')}</strong><small>NSE equity · quote not connected</small></div>
-        <span>Not available</span><span className="real-stock-lock"><LockKeyhole size={14}/> Private source required</span>
-      </div>)}
-      <div className="real-stock-note">NSE prices cannot be claimed real-time until a permitted, authenticated market-data source supplies timestamps. Market-session schedule does not confirm the exchange is open.</div>
+    <div className="panel real-stock-discovery">
+      <div><span className="premium-kicker">FREE STOCK CHARTS</span>
+        <h2>Indian stocks on TradingView</h2>
+        <p>View Reliance, TCS, Infosys, HDFC Bank, SBI and NIFTY in the Market Watch's official third-party chart. Delays and permissions are vendor-controlled.</p>
+      </div>
+      <button className="secondary-button" type="button" onClick={()=>onNavigate?.('markets')}>Explore NSE charts <ArrowRight size={16}/></button>
     </div>
-    <div className="real-bottom-note"><LockKeyhole size={17}/>
-      <p>Read-only research interface. No fake portfolio, estimated P&amp;L, fabricated stock prices, order placement, automated fills, or live-capital authorization. For actual stocks and paper trading, connect an authorized source and verified ledger first.</p>
+    <div className="real-bottom-note"><ShieldCheck size={17}/>
+      <p>Prices are indicative public observations. Backtests use modeled fills; paper experiments are browser-local. Real-money execution is separately disabled.</p>
       {variant==='overview'&&<button type="button" onClick={()=>onNavigate?.('risk')}>Risk controls <ArrowUpRight size={15}/></button>}
     </div>
   </section>;
