@@ -16,7 +16,7 @@ test('India clock uses 12-hour seconds with explicit uppercase AM/PM', () => {
   assert.equal(clock('2026-10-18T18:30:00.000Z'), '12:00:00 AM');
   assert.equal(clock('2026-10-19T06:30:00.000Z'), '12:00:00 PM');
   assert.match(live, /const CLOCK=new Intl.DateTimeFormat/);
-  assert.match(live, /timeZone:'Asia\\/Kolkata'/);
+  assert.ok(live.includes("timeZone:'Asia/Kolkata'"));
   assert.match(live, /second:'2-digit',hour12:true/);
   assert.doesNotMatch(live,/hour12:false/);
 });
