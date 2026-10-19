@@ -36,9 +36,12 @@ def test_frontend_exports_only_allowlisted_offline_research_evidence():
 
 def test_frontend_has_no_broker_backend_or_vite_secret_env():
     ui = (ROOT / "frontend/src/App.tsx").read_text()
-    assert "import snapshot" in ui
-    assert "Live trading is disabled" in ui
-    assert "No live orders to display" in ui
+    # Archived fixture values remain auditable, not rendered as current portfolio figures.
+    assert "import snapshot" not in ui
+    assert "historicalInitialCapital" not in ui
+    assert "Live-capital authorization" in ui
+    assert "No verified order records connected" in ui
+    assert "RealMarketPage" in ui
     assert not any(
         secret in ui
         for secret in (
