@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import handler,{buildNewsUrl,buildHostedNewsUrl,getMarketNews,normalizeGdelt,normalizeHostedNews} from '../api/market-news.js';
+import handler,{buildNewsUrl,buildHostedNewsUrl,getMarketNews,normalizeGdelt,normalizeHostedNews,filterRelevantNews} from '../api/market-news.js';
 const now=Date.parse('2026-10-20T04:30:00Z');
 const valid={title:'Bitcoin cryptocurrency market update',
  url:'https://example.com/bitcoin-market?foo=1',
@@ -118,4 +118,39 @@ test('gas-price telemetry and blockchain-explorer dashboards are not financial n
    pubDate:'2026-10-20T04:10:00Z'}],now);
  assert.equal(news.length,1);
  assert.equal(news[0].domain,'example.com');
+});
+
+test('headline market relevance rejects unrelated and cross-asset news',async()=>{
+ const mixed=[
+  {title:'DIESEL SHOCK - on-going diesel crisis in numbers',
+   link:'https://research.example/diesel',pubDate:'2026-10-20T04:05:00Z'},
+  {title:'JPM Coin comes to Ethereum',
+   link:'https://research.example/ethereum',pubDate:'2026-10-20T04:06:00Z'},
+  {title:'Bitcoin quantum security developments',
+   link:'https://research.example/bitcoin',pubDate:'2026-10-20T04:07:00Z'},
+  {title:'Would you trust a BTC wallet?',
+   link:'https://research.example/btc',pubDate:'2026-10-20T04:08:00Z'},
+ ];
+ const btc=await getMarketNews('BTCINR',async()=>({
+  ...source,json:async()=>({articles:mixed})}),now);
+ assert.equal(btc.status,'OBSERVED');
+ assert.equal(btc.articles.length,2);
+ assert.ok(btc.articles.every(a=>/bitcoin|btc/i.test(a.title)));
+ const eth=await getMarketNews('ETHINR',async()=>({
+  ...source,json:async()=>({articles:mixed})}),now);
+ assert.equal(eth.articles.length,1);
+ assert.match(eth.articles[0].title,/Ethereum/);
+ const none=filterRelevantNews([{title:'Random market bulletin'}],'BTCINR');
+ assert.deepEqual(none,[]);
+ assert.throws(()=>filterRelevantNews(mixed,'NSE:RELIANCE'),RangeError);
+});
+test('unrelated headline-only responses fail closed instead of displaying fake relevance',async()=>{
+ const out=await getMarketNews('BTCINR',async()=>({
+  ...source,json:async()=>({articles:[{
+   title:'DIESEL SHOCK - on-going crisis',
+   link:'https://research.example/diesel',pubDate:'2026-10-20T04:05:00Z'
+  }]})}),now);
+ assert.equal(out.status,'NO_MATCHES');
+ assert.deepEqual(out.articles,[]);
+ assert.equal(out.liveOrdersEnabled,false);
 });
