@@ -26,6 +26,7 @@ jobs:
       - run: npm ci --prefix frontend
       - run: npm run check --prefix frontend
       - run: node --test scripts/tests/upstream-intake.test.mjs
+      - run: node --test scripts/tests/scalpstorm_equal_weight.test.mjs
       - run: node scripts/check_upstream_intake.mjs
       - run: node --test frontend/tests/market-quotes.test.mjs
       - run: node --test frontend/tests/closed-candles.test.mjs
