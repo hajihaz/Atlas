@@ -35,12 +35,12 @@ test('dependency-intake scanner ignores comments but finds python and node packa
  const dir=mkdtempSync(join(tmpdir(),'atlas-upstream-test-'));
  try{
   const f=join(dir,'sample.py');
-  writeFileSync(f,'# import freqtrade\\nfrom freqtrade.optimize import X\\n');
+  writeFileSync(f,'# import freqtrade\nfrom freqtrade.optimize import X\n');
   assert.ok(findUnapprovedImports([f]).some(x=>x.includes('freqtrade')));
   const j=join(dir,'sample.mjs');
-  writeFileSync(j,'import x from "vectorbt";\\n');
+  writeFileSync(j,'import x from "vectorbt";\n');
   assert.ok(findUnapprovedImports([j]).some(x=>x.includes('vectorbt')));
-  writeFileSync(j,'// import x from "vectorbt";\\nimport {ok} from "./local.js";\\n');
+  writeFileSync(j,'// import x from "vectorbt";\nimport {ok} from "./local.js";\n');
   assert.deepEqual(findUnapprovedImports([j]),[]);
  }finally{rmSync(dir,{recursive:true,force:true});}
 });
