@@ -170,3 +170,20 @@ html[data-theme] .council-shell{padding:23px;display:flex;flex-direction:column;
  .council-grid{grid-template-columns:1fr}
  .council-agent{padding:14px}
 }
+
+/* Attributed news from optional GDELT source. Never implies live trading approval. */
+.council-news{border:1px solid var(--pm-border);border-radius:12px;
+ padding:16px;min-width:0;background:var(--pm-raised)}
+.council-news-title{display:flex;align-items:center;gap:8px;font-size:12px}
+.council-news-title svg{color:var(--pm-accent)}
+.council-news>p{font-size:10px;color:var(--pm-muted);margin:9px 0;line-height:1.7}
+.council-news-items{margin:12px 0 0;padding:0;list-style:none;display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.council-news-items li{border-top:1px solid var(--pm-border);padding-top:10px;
+ display:flex;flex-direction:column;gap:5px;min-width:0}
+.council-news-items a{color:var(--pm-ink);font-size:11px;font-weight:700;
+ line-height:1.55;overflow-wrap:anywhere}
+.council-news-items a:hover{text-decoration:underline;color:var(--pm-accent)}
+.council-news-items small{color:var(--pm-muted);font-size:9px;overflow-wrap:anywhere}
+@media(max-width:640px){.council-news{padding:13px}
+ .council-news-items{grid-template-columns:1fr}}
