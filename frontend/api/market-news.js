@@ -8,11 +8,11 @@ const SEARCH=Object.freeze({
 const SOURCE='GDELT DOC 2.0 public article metadata';
 const MAX_RECORDS=8,MAX_SOURCE_AGE=36*60*60*1000;
 const TITLE_TERMS=Object.freeze({
- BTCINR:/\\b(?:bitcoin|btc)\\b/i,
- ETHINR:/\\b(?:ethereum|ether|eth)\\b/i,
- SOLINR:/\\bsolana\\b/i,
- XRPINR:/\\b(?:xrp|ripple)\\b/i,
- DOGEINR:/\\b(?:dogecoin|doge)\\b/i,
+ BTCINR:/\b(?:bitcoin|btc)\b/i,
+ ETHINR:/\b(?:ethereum|ether|eth)\b/i,
+ SOLINR:/\bsolana\b/i,
+ XRPINR:/\b(?:xrp|ripple)\b/i,
+ DOGEINR:/\b(?:dogecoin|doge)\b/i,
 });
 // Source queries retrieve CANDIDATES only. Do not display an unrelated story
 // merely because an upstream category or tag claims it belongs to this symbol.
