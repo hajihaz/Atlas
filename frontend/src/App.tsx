@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import {
   Activity, ArrowRight, ArrowUpRight, Bell, ChartNoAxesCombined,
   ChevronLeft, ChevronRight, CircleAlert, Clock3, Command, FileClock,
@@ -6,7 +6,7 @@ import {
   MoreHorizontal, ShieldCheck, Sun, X, BarChart3, BookOpenText,
 } from 'lucide-react';
 import RealMarketPage from './components/RealMarketPage';
-import LiveLabPage from './components/LiveLabPage';
+const LiveLabPage = lazy(() => import('./components/LiveLabPage'));
 
 type Page='live'|'overview'|'markets'|'strategies'|'research'|'scalpstorm'|'risk'|'orders'|'audit';
 type Theme='light'|'dark';
@@ -115,7 +115,7 @@ export default function App(){
         <button type="button" className="header-user" onClick={()=>go('audit')} aria-label="Audit and evidence">A</button>
       </div>
     </header><main className="main-content premium-page-view" key={page}>
-      {page==='live'?<LiveLabPage goStrategies={()=>go('strategies')} goMarkets={()=>go('markets')} goScalpStorm={()=>go('scalpstorm')}/>:
+      {page==='live'?<Suspense fallback={<div role="status" className="panel market-loading">Checking live INR sources…</div>}><LiveLabPage goStrategies={()=>go('strategies')} goMarkets={()=>go('markets')} goScalpStorm={()=>go('scalpstorm')}/></Suspense>:
        page==='overview'?<RealMarketPage variant="overview" onNavigate={v=>go(v)}/>:
         page==='markets'?<RealMarketPage variant="markets"/>:<SimplePage page={page} go={go}/>}
       <footer className="app-footer"><span>© 2026 ATLAS QUANTITATIVE SYSTEMS</span><div><span className="footer-safety-dot"/> All financial amounts in ₹ <span className="footer-separator">·</span> No verified broker portfolio <span className="footer-separator">·</span> Live trading blocked</div></footer>
