@@ -7,6 +7,21 @@ const SEARCH=Object.freeze({
 });
 const SOURCE='GDELT DOC 2.0 public article metadata';
 const MAX_RECORDS=8,MAX_SOURCE_AGE=36*60*60*1000;
+const TITLE_TERMS=Object.freeze({
+ BTCINR:/\b(?:bitcoin|btc)\b/i,
+ ETHINR:/\b(?:ethereum|ether|eth)\b/i,
+ SOLINR:/\bsolana\b/i,
+ XRPINR:/\b(?:xrp|ripple)\b/i,
+ DOGEINR:/\b(?:dogecoin|doge)\b/i,
+});
+// Source queries retrieve CANDIDATES only. Do not display an unrelated story
+// merely because an upstream category or tag claims it belongs to this symbol.
+export function filterRelevantNews(items,symbol){
+ if(!Object.hasOwn(TITLE_TERMS,symbol)||!Array.isArray(items))
+   throw new RangeError('invalid market relevance filter');
+ return items.filter(a=>typeof a?.title==='string' && TITLE_TERMS[symbol].test(a.title));
+}
+
 function isoDate(value){
  if(typeof value!=='string'||!/^[0-9]{8}T[0-9]{6}Z$/.test(value))return null;
  const converted=value.slice(0,4)+'-'+value.slice(4,6)+'-'+value.slice(6,8)+
@@ -64,7 +79,7 @@ export function normalizeHostedNews(articles,now=Date.now()){
   return {title:a?.title,url:a?.link,seendate:stamp};
  }),now);
 }
-async function loadNews(url,normalize,getter,now,label){
+async function loadNews(url,normalize,getter,now,label,symbol){
  const ac=new AbortController();
  const timer=setTimeout(()=>ac.abort(),3600);
  try{
@@ -75,7 +90,7 @@ async function loadNews(url,normalize,getter,now,label){
   const json=await response.json();
   if(!json||typeof json!=='object'||!Array.isArray(json.articles))
     throw Error('untrusted news provider contract');
-  const articles=normalize(json.articles,now);
+  const articles=filterRelevantNews(normalize(json.articles,now),symbol);
   return {schema:1,mode:'SOURCE_LINKS_ONLY',symbol:null,
    source:label,observedAt:new Date(now).toISOString(),
    status:articles.length?'OBSERVED':'NO_MATCHES',articles,
@@ -94,7 +109,7 @@ export async function getMarketNews(symbol='BTCINR',getter=fetch,now=Date.now())
  let firstEmpty=null,lastError=null;
  for(const [url,normalizer,label] of providers){
   try{
-   const item=await loadNews(url,normalizer,getter,now,label);
+   const item=await loadNews(url,normalizer,getter,now,label,symbol);
    if(item.articles.length)return {...item,symbol};
    if(!firstEmpty)firstEmpty={...item,symbol};
   }catch(e){lastError=e;}
