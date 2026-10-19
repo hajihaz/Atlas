@@ -170,3 +170,12 @@ html[data-theme] .council-shell{padding:23px;display:flex;flex-direction:column;
  .council-grid{grid-template-columns:1fr}
  .council-agent{padding:14px}
 }
+
+/* Source-attributed market headlines, without AI price predictions. */
+.council-headline-list{display:flex;flex-direction:column;gap:9px;margin-top:12px;
+ border-top:1px solid var(--pm-border);padding-top:12px;min-width:0}
+.council-headline-list a{font-size:10px;font-weight:650;color:var(--pm-ink);
+ text-decoration:none;line-height:1.6;display:flex;flex-direction:column;gap:4px;
+ overflow-wrap:anywhere}
+.council-headline-list a:hover{text-decoration:underline;color:var(--pm-accent)}
+.council-headline-list small{color:var(--pm-muted);font-size:9px;line-height:1.6}
