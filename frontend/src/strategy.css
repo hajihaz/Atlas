@@ -179,3 +179,25 @@ html[data-theme] .council-shell{padding:23px;display:flex;flex-direction:column;
  overflow-wrap:anywhere}
 .council-headline-list a:hover{text-decoration:underline;color:var(--pm-accent)}
 .council-headline-list small{color:var(--pm-muted);font-size:9px;line-height:1.6}
+
+/* ScalpStorm equal-weight research preview: virtual plan only, no NSE P/L. */
+html[data-theme] .scalpstorm-allocation{padding:22px;display:flex;flex-direction:column;gap:16px}
+.scalpstorm-allocation .research-detail-title p{font-size:11px;line-height:1.7;color:var(--pm-muted);margin-top:8px}
+.scalpstorm-capital-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.scalpstorm-capital-summary>div{display:flex;flex-direction:column;gap:8px;border:1px solid var(--pm-border);border-radius:10px;padding:14px}
+.scalpstorm-capital-summary small,.scalpstorm-slot small,.scalpstorm-slot span{font-size:10px;color:var(--pm-muted)}
+.scalpstorm-capital-summary strong{font-size:20px;overflow-wrap:anywhere}
+.scalpstorm-bars{display:flex;gap:3px;height:16px;width:100%;overflow:hidden;border-radius:8px}
+.scalpstorm-bars span{flex:1;background:var(--pm-accent);opacity:.9}
+.scalpstorm-bars span:nth-child(even){opacity:.55}
+.scalpstorm-slot-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.scalpstorm-slot{display:flex;flex-direction:column;align-items:start;gap:7px;
+ border:1px solid var(--pm-border);border-radius:10px;padding:12px;min-width:0}
+.scalpstorm-slot strong{font-size:15px;overflow-wrap:anywhere}
+.scalpstorm-capital-note{display:flex;flex-direction:column;gap:5px;padding:14px;
+ border:1px solid var(--pm-border);border-radius:9px;font-size:11px;line-height:1.7}
+.scalpstorm-capital-note span{color:var(--pm-muted)}
+@media(max-width:940px){.scalpstorm-slot-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){html[data-theme] .scalpstorm-allocation{padding:15px}
+.scalpstorm-capital-summary{grid-template-columns:1fr}
+.scalpstorm-slot-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
