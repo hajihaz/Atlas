@@ -1,6 +1,6 @@
 // Atlas upstream dependency intake guard — source-only, offline and zero-cost.
 // This is not a CVE scanner. It prevents unreviewed installs from entering core paths.
-import {readFileSync,readdirSync,statSync,existsSync} from 'node:fs';
+import {readFileSync,readdirSync,existsSync} from 'node:fs';
 import {resolve,join,extname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -65,7 +65,7 @@ export function findUnapprovedImports(paths){
      const python=trimmed.match(/^(?:from|import)\s+([A-Za-z_][\w.]*)/);
      const js=trimmed.match(/^import\s+(?:[\s\S]*?\s+from\s+)?['"]([^'"]+)['"]/)
        ??trimmed.match(/\brequire\(\s*['"]([^'"]+)['"]\s*\)/);
-     const imported=(python?.[1]??js?.[1]??'').split(/[./]/)[0].replace(/^@/,'');
+     const imported=(js?.[1]??python?.[1]??'').split(/[./]/)[0].replace(/^@/,'');
      if(FOREIGN_MODULES.has(imported))failures.push(p+': unapproved '+imported+' dependency');
    }
  }
