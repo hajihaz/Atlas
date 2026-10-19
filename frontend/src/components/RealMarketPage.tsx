@@ -27,8 +27,8 @@ const time = (iso: string) => new Date(iso).toLocaleString('en-US', {
 function nseDisplayTime(date: string, timeIST: string) {
   // The private market session API retains 24-hour times for machine use.
   // Always format user-visible timestamps with explicit 12-hour AM/PM.
-  const match = /^([01]\\d|2[0-3]):([0-5]\\d) IST$/.exec(timeIST);
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date) || !match) return 'Time unavailable';
+  const match = /^([01]\d|2[0-3]):([0-5]\d) IST$/.exec(timeIST);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !match) return 'Time unavailable';
   const stamp = new Date(date+'T'+match[1]+':'+match[2]+':00+05:30');
   if (Number.isNaN(stamp.getTime())) return 'Time unavailable';
   return new Intl.DateTimeFormat('en-US', {
