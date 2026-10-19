@@ -42,6 +42,7 @@ jobs:
       - run: node --test frontend/tests/paper-engine.test.mjs
       - run: node --test frontend/tests/cloud-paper.test.mjs
       - run: node --test frontend/tests/workbench-ui.test.mjs
+      - run: node --test frontend/tests/scalpstorm-allocation-ui.test.mjs
       - run: node --test frontend/tests/agent-council.test.mjs
       - run: node --test frontend/tests/council-engine.test.mjs
       - run: npm run build --prefix frontend
