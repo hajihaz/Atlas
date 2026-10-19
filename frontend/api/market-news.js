@@ -30,6 +30,9 @@ export function normalizeGdelt(articles,now=Date.now()){
   const title=a.title.replace(/[\x00-\x1F\x7F]/g,' ').trim().slice(0,180);
   if(title.length<5)continue;
   const domain=u.hostname.toLowerCase().slice(0,120);
+  // Explorer gas dashboards and bot telemetry are not editorial headlines.
+  if(['etherscan.io','bscscan.com','solscan.io','tronscan.org'].includes(domain)
+    ||/^(eth|btc|bnb|sol)\s+(gas|price)\s*:/i.test(title))continue;
   safe.push({title,url,domain,publishedAt:parsed.iso});
   if(safe.length>=5)break;
  }
