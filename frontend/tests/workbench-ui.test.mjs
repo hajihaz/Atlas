@@ -36,7 +36,7 @@ test('paper sessions are virtual and explicit, with stop/resume, audited local r
 });
 test('free Indian equities have a vendor-attributed chart, not a scraped API',()=>{
  assert.match(stock,/embed-widget-advanced-chart\.js/);
- assert.match(stock,/NSE:RELIANCE/);
+ assert.match(stock,/BSE:RELIANCE/);
  assert.match(stock,/TradingView/);
  assert.match(stock,/Some fake regex that will not be used|last trade time|CoinDCX public ticker/);
  assert.match(vercel.headers[0].headers.find(x=>x.key==='Content-Security-Policy').value,
