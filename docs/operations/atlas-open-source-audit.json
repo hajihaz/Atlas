@@ -16,9 +16,9 @@
       "inspectedCodePath": "tradingagents/graph/trading_graph.py",
       "atlasUse": "Role-based analyst workflows, checkpoint/replay and source-attributed advisory outputs",
       "blocker": "LangGraph and multiple model-provider dependencies; access to LLMs/data may cost money.",
-      "installedInAtlas": false,
       "directInstallApproved": false,
-      "liveTradingAllowed": false
+      "liveTradingAllowed": false,
+      "installedByThisAudit": false
     },
     {
       "id": "finrlx",
@@ -31,9 +31,9 @@
       "inspectedCodePath": "src/strategies/base_strategy.py",
       "atlasUse": "Weight-centric strategy contract, equal-weight portfolio benchmark and cost-aware backtests",
       "blocker": "Large ML stack and Alpaca API; requires isolated reproducibility and broker isolation tests.",
-      "installedInAtlas": false,
       "directInstallApproved": false,
-      "liveTradingAllowed": false
+      "liveTradingAllowed": false,
+      "installedByThisAudit": false
     },
     {
       "id": "nautilus",
@@ -46,9 +46,9 @@
       "inspectedCodePath": "python/nautilus_trader/backtest/__init__.pyi",
       "atlasUse": "Event-driven fills, replay and market/strategy separation",
       "blocker": "Rust/Python complexity, LGPL distribution/linking obligations, external data costs.",
-      "installedInAtlas": false,
       "directInstallApproved": false,
-      "liveTradingAllowed": false
+      "liveTradingAllowed": false,
+      "installedByThisAudit": false
     },
     {
       "id": "freqtrade",
@@ -61,9 +61,9 @@
       "inspectedCodePath": "freqtrade/optimize/backtesting.py",
       "atlasUse": "Backtest/fee modeling ideas for comparative research only",
       "blocker": "GPL copyleft review required before redistribution or combining code; large exchange-capable bot.",
-      "installedInAtlas": false,
       "directInstallApproved": false,
-      "liveTradingAllowed": false
+      "liveTradingAllowed": false,
+      "installedByThisAudit": false
     },
     {
       "id": "qlib",
@@ -76,9 +76,9 @@
       "inspectedCodePath": "qlib/backtest/backtest.py",
       "atlasUse": "Feature pipelines, point-in-time ML dataset preparation and walk-forward benchmarks",
       "blocker": "Heavy Python runtime; 2026-10 security fixes for config execution and artifact loading demand trusted-data sandbox.",
-      "installedInAtlas": false,
       "directInstallApproved": false,
-      "liveTradingAllowed": false
+      "liveTradingAllowed": false,
+      "installedByThisAudit": false
     },
     {
       "id": "finrobot",
@@ -91,9 +91,9 @@
       "inspectedCodePath": "finrobot_equity/README.md",
       "atlasUse": "Separate deterministic finance calculations from optional AI explanations",
       "blocker": "OpenAI and FMP keys listed by web app; model and data APIs may be paid. No new charges.",
-      "installedInAtlas": false,
       "directInstallApproved": false,
-      "liveTradingAllowed": false
+      "liveTradingAllowed": false,
+      "installedByThisAudit": false
     },
     {
       "id": "lean",
@@ -106,9 +106,9 @@
       "inspectedCodePath": "Engine/Engine.cs",
       "atlasUse": "Independent comparison engine for completed-candle backtests and fill accounting",
       "blocker": "Large .NET solution, compute/storage footprint; QuantConnect cloud data subscriptions are not assumed free.",
-      "installedInAtlas": false,
       "directInstallApproved": false,
-      "liveTradingAllowed": false
+      "liveTradingAllowed": false,
+      "installedByThisAudit": false
     },
     {
       "id": "hummingbot",
@@ -121,9 +121,9 @@
       "inspectedCodePath": "hummingbot/strategy/strategy_base.pyx",
       "atlasUse": "Paper-exchange interface and order lifecycle design patterns",
       "blocker": "Large exchange-capable Cython runtime with credential paths; no live connectors allowed in Atlas.",
-      "installedInAtlas": false,
       "directInstallApproved": false,
-      "liveTradingAllowed": false
+      "liveTradingAllowed": false,
+      "installedByThisAudit": false
     },
     {
       "id": "vectorbt",
@@ -136,9 +136,9 @@
       "inspectedCodePath": "vectorbt/portfolio/base.py",
       "atlasUse": "High-throughput parameter sweep methodology only, no code or package redistribution",
       "blocker": "Fair-code Commons Clause limits selling services; commercial product permissions must be cleared.",
-      "installedInAtlas": false,
       "directInstallApproved": false,
-      "liveTradingAllowed": false
+      "liveTradingAllowed": false,
+      "installedByThisAudit": false
     },
     {
       "id": "finbert",
@@ -151,9 +151,9 @@
       "inspectedCodePath": "scripts/predict.py",
       "atlasUse": "Research sentiment inference only after model/dataset license and data provenance verification",
       "blocker": "FinBERT weights and Financial PhraseBank dataset explicitly excluded from code license; inference compute may cost.",
-      "installedInAtlas": false,
       "directInstallApproved": false,
-      "liveTradingAllowed": false
+      "liveTradingAllowed": false,
+      "installedByThisAudit": false
     }
   ]
 }
