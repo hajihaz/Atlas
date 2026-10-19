@@ -390,3 +390,44 @@ html[data-theme="light"] .scx-need-data{color:#3a6254}
   .scx-movement-chart{grid-template-columns:1fr}
   .scx-options button{padding:9px 10px}
 }
+
+/* Atlas live INR observations — no synthetic portfolio figures. */
+.live-lab{display:flex;flex-direction:column;gap:18px;min-width:0}
+.live-lab .sub-page-header{margin-bottom:4px}
+.live-ticker{padding:20px;display:grid;grid-template-columns:1.3fr 1fr 1fr auto;align-items:center;gap:20px}
+.live-ticker>div{display:flex;flex-direction:column;gap:7px;min-width:0}
+.live-ticker small,.live-quote-header,.live-progress-grid small{font-size:10px;font-weight:800;letter-spacing:1px;color:#8ba4ac}
+.live-ticker strong{font-size:23px;letter-spacing:-.6px}
+.live-ticker span,.live-quote small,.live-progress-grid span{font-size:10px;color:#8da3af;line-height:1.5}
+.live-ticker .live-good{color:#9de8c4}
+.live-ticker .live-warning{color:#e5ba80}
+.live-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.live-quote{padding:22px;min-width:0;display:flex;flex-direction:column;gap:13px}
+.live-quote-header{display:flex;align-items:center;justify-content:space-between}
+.live-quote-header svg{color:#8cadb1}
+.live-quote>strong{font-size:clamp(20px,3vw,34px);letter-spacing:-.9px;overflow-wrap:anywhere}
+.live-bidask{display:flex;gap:15px;flex-wrap:wrap;border-top:1px solid #35444a;padding-top:12px}
+.live-bidask span{font-size:11px;color:#9cb7c3}
+.live-chart{min-width:0;padding:23px}
+.live-chart-graphic{width:100%;height:245px;margin-top:21px;min-width:0}
+.live-chart-empty{display:grid;place-items:center;min-height:195px;color:#809ba8;font-size:12px;text-align:center;padding:20px}
+.live-system{padding:22px}
+.live-progress-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:24px 0}
+.live-progress-grid>div{border:1px solid #30414b;padding:17px;border-radius:10px;display:flex;flex-direction:column;gap:9px;min-width:0}
+.live-progress-grid strong{font-size:25px}
+.live-actions{display:flex;gap:9px;flex-wrap:wrap}
+.live-disclaimer{font-size:11px;color:#9caeba;margin-top:18px;display:flex;gap:9px;line-height:1.7}
+html[data-theme="light"] .live-bidask{border-color:#dee8ea}
+html[data-theme="light"] .live-progress-grid>div{border-color:#dfe7ea}
+html[data-theme="light"] .live-ticker small,
+html[data-theme="light"] .live-quote-header,
+html[data-theme="light"] .live-progress-grid small{color:#5e7b88}
+html[data-theme="light"] .live-ticker span,
+html[data-theme="light"] .live-quote small,
+html[data-theme="light"] .live-progress-grid span,
+html[data-theme="light"] .live-chart-empty,
+html[data-theme="light"] .live-disclaimer{color:#5b7580}
+html[data-theme="light"] .live-bidask span{color:#3c6269}
+@media(max-width:1150px){.live-ticker{grid-template-columns:repeat(3,minmax(0,1fr))}.live-ticker>button{grid-column:1 / -1;justify-self:start}}
+@media(max-width:740px){.live-grid{grid-template-columns:1fr}.live-ticker{grid-template-columns:1fr 1fr}.live-ticker>button{grid-column:1/-1}.live-progress-grid{grid-template-columns:1fr}}
+@media(max-width:460px){.live-ticker{grid-template-columns:1fr}.live-ticker>button{grid-column:auto}.live-lab h1{font-size:26px}.live-quote>strong{font-size:24px}}

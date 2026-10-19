@@ -6,8 +6,9 @@ import {
   MoreHorizontal, ShieldCheck, Sun, X, BarChart3, BookOpenText,
 } from 'lucide-react';
 import RealMarketPage from './components/RealMarketPage';
+import LiveLabPage from './components/LiveLabPage';
 
-type Page='overview'|'markets'|'strategies'|'research'|'scalpstorm'|'risk'|'orders'|'audit';
+type Page='live'|'overview'|'markets'|'strategies'|'research'|'scalpstorm'|'risk'|'orders'|'audit';
 type Theme='light'|'dark';
 const THEME_KEY='atlas.theme.preference';
 function initialTheme():Theme{
@@ -15,6 +16,7 @@ function initialTheme():Theme{
   catch{return 'light';}
 }
 const nav=[
+  {id:'live',title:'Live Paper Lab',Icon:Activity},
   {id:'overview',title:'Overview',Icon:LayoutDashboard},
   {id:'markets',title:'Market Watch',Icon:ChartNoAxesCombined},
   {id:'strategies',title:'Strategies',Icon:Layers3},
@@ -31,7 +33,7 @@ const facts=[
   {title:'Crypto public references',status:'INDICATIVE',text:'Direct INR provider observations, not guaranteed executable prices.'},
   {title:'Independent execution gate',status:'BLOCKED',text:'This public frontend cannot place orders or enable real trading.'},
 ];
-function SimplePage({page,go}:{page:Exclude<Page,'overview'|'markets'>;go:(next:Page)=>void}){
+function SimplePage({page,go}:{page:Exclude<Page,'overview'|'markets'|'live'>;go:(next:Page)=>void}){
   const data={
     strategies:{heading:'Strategies',desc:'Strategies require verified market data, reproducible results and risk approval.',title:'No verified live strategy results',
       detail:'Historical LEAN sample returns and illustrative portfolio simulations are no longer displayed as real performance.'},
@@ -41,7 +43,7 @@ function SimplePage({page,go}:{page:Exclude<Page,'overview'|'markets'>;go:(next:
       detail:'Top-volume NSE stocks, exact entries and exits, margins, fees, profits and losses cannot be displayed as completed trades until source-matched real historical data and a reconciled ledger exist.'},
     risk:{heading:'Risk Center',desc:'Independent controls stay locked until verified.',title:'Trading authority remains blocked',
       detail:'No public-facing controls can place or authorize an order. A live execution permit requires separate owner review, broker integration and risk certification.'},
-    orders:{heading:'Orders & Activity',desc:'Only actual or independently reconciled trading records belong here.',title:'No verified order records connected',
+    orders:{heading:'Orders & Activity',desc:'Only actual or independently reconciled trading records belong here.',title:'No broker order records connected',
       detail:'An unavailable order history is not the same as zero executed orders. No authenticated broker account, statements or paper-trading ledger are connected.'},
     audit:{heading:'Audit & Evidence',desc:'Only verifiable current status; no outdated static test counts.',title:'Engineering evidence remains on GitHub',
       detail:'The previous static dashboard embedded older archived samples, old revision IDs and stale test totals. They have been removed from the active financial display. Review CI results and commit hashes directly at source.'},
@@ -71,7 +73,7 @@ function SimplePage({page,go}:{page:Exclude<Page,'overview'|'markets'>;go:(next:
   </section>;
 }
 export default function App(){
-  const [page,setPage]=useState<Page>(window.location.hash==='#scalpstorm'?'scalpstorm':'overview');
+  const [page,setPage]=useState<Page>(window.location.hash==='#scalpstorm'?'scalpstorm':'live');
   const [collapsed,setCollapsed]=useState(false);
   const [mobileOpen,setMobileOpen]=useState(false);
   const [notices,setNotices]=useState(false);
@@ -113,7 +115,8 @@ export default function App(){
         <button type="button" className="header-user" onClick={()=>go('audit')} aria-label="Audit and evidence">A</button>
       </div>
     </header><main className="main-content premium-page-view" key={page}>
-      {page==='overview'?<RealMarketPage variant="overview" onNavigate={v=>go(v)}/>:
+      {page==='live'?<LiveLabPage goStrategies={()=>go('strategies')} goMarkets={()=>go('markets')} goScalpStorm={()=>go('scalpstorm')}/>:
+       page==='overview'?<RealMarketPage variant="overview" onNavigate={v=>go(v)}/>:
         page==='markets'?<RealMarketPage variant="markets"/>:<SimplePage page={page} go={go}/>}
       <footer className="app-footer"><span>© 2026 ATLAS QUANTITATIVE SYSTEMS</span><div><span className="footer-safety-dot"/> All financial amounts in ₹ <span className="footer-separator">·</span> No verified broker portfolio <span className="footer-separator">·</span> Live trading blocked</div></footer>
     </main></div>
