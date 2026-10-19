@@ -431,3 +431,6 @@ html[data-theme="light"] .live-bidask span{color:#3c6269}
 @media(max-width:1150px){.live-ticker{grid-template-columns:repeat(3,minmax(0,1fr))}.live-ticker>button{grid-column:1 / -1;justify-self:start}}
 @media(max-width:740px){.live-grid{grid-template-columns:1fr}.live-ticker{grid-template-columns:1fr 1fr}.live-ticker>button{grid-column:1/-1}.live-progress-grid{grid-template-columns:1fr}}
 @media(max-width:460px){.live-ticker{grid-template-columns:1fr}.live-ticker>button{grid-column:auto}.live-lab h1{font-size:26px}.live-quote>strong{font-size:24px}}
+
+/* Keep 12-hour IST clock digits stable without wrapping the AM/PM indicator. */
+.live-ticker>div:first-child strong{font-variant-numeric:tabular-nums;white-space:nowrap}

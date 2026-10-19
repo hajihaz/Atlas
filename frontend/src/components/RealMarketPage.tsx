@@ -19,10 +19,21 @@ type MarketSnapshot = {
 };
 const inr = (value: number|null) => value === null ? 'Not available'
   : new Intl.NumberFormat('en-IN', {style:'currency',currency:'INR',maximumFractionDigits:2}).format(value);
-const time = (iso: string) => new Date(iso).toLocaleString('en-IN', {
-  timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',second:'2-digit',
-  day:'2-digit',month:'short',year:'numeric',
+const time = (iso: string) => new Date(iso).toLocaleString('en-US', {
+  timeZone:'Asia/Kolkata',hour:'numeric',minute:'2-digit',second:'2-digit',
+  hour12:true,day:'2-digit',month:'short',year:'numeric',
 })+' IST';
+function nseDisplayTime(date: string, timeIST: string) {
+  // The private market session API retains 24-hour times for machine use.
+  // Always format user-visible timestamps with explicit 12-hour AM/PM.
+  const match = /^([01]\\d|2[0-3]):([0-5]\\d) IST$/.exec(timeIST);
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date) || !match) return 'Time unavailable';
+  const stamp = new Date(date+'T'+match[1]+':'+match[2]+':00+05:30');
+  if (Number.isNaN(stamp.getTime())) return 'Time unavailable';
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone:'Asia/Kolkata',hour:'numeric',minute:'2-digit',hour12:true,
+  }).format(stamp)+' IST';
+}
 function sessionText(phase:string) {
   switch(phase){
     case 'before_preopen':return 'Before NSE pre-open';
@@ -117,7 +128,7 @@ export default function RealMarketPage({variant='overview',onNavigate}:{
       <article className="panel real-stat">
         <span className="real-stat-label">NSE cash market <CalendarClock size={18}/></span>
         <strong>{data?sessionText(data.nse.phase):'Checking calendar…'}</strong>
-        <small>{data?data.nse.date+' · '+data.nse.timeIST:'Calendar pending'} · 09:15–15:30 IST</small>
+        <small>{data?data.nse.date+' · '+nseDisplayTime(data.nse.date,data.nse.timeIST):'Calendar pending'} · 9:15 AM–3:30 PM IST</small>
       </article>
       <article className="panel real-stat">
         <span className="real-stat-label">Market connection <Activity size={18}/></span>
