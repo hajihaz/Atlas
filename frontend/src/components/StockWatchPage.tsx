@@ -1,14 +1,14 @@
 import {useEffect,useRef,useState} from 'react';
 import {Activity,ArrowUpRight,BookOpenText,ChartNoAxesCombined,Clock3,ShieldCheck} from 'lucide-react';
 type Asset={key:string,label:string};
-const NSE:Asset[]=[
- {key:'NSE:RELIANCE',label:'Reliance Industries'},
- {key:'NSE:TCS',label:'TCS'},
- {key:'NSE:INFY',label:'Infosys'},
- {key:'NSE:HDFCBANK',label:'HDFC Bank'},
- {key:'NSE:SBIN',label:'SBI'},
- {key:'NSE:ICICIBANK',label:'ICICI Bank'},
- {key:'NSE:NIFTY',label:'NIFTY 50'},
+const BSE:Asset[]=[
+ {key:'BSE:RELIANCE',label:'Reliance Industries'},
+ {key:'BSE:TCS',label:'TCS'},
+ {key:'BSE:INFY',label:'Infosys'},
+ {key:'BSE:HDFCBANK',label:'HDFC Bank'},
+ {key:'BSE:SBIN',label:'SBI'},
+ {key:'BSE:ICICIBANK',label:'ICICI Bank'},
+ {key:'BSE:SENSEX',label:'SENSEX · BSE EOD'},
 ];
 const watch=['BTCINR','ETHINR','SOLINR','XRPINR','DOGEINR'];
 type Spot={symbol:string;price:number|null;sourceAt:string|null;currency:'INR';status:string};
@@ -40,7 +40,7 @@ function TradingViewChart({symbol,theme}:{symbol:string;theme:'light'|'dark'}){
 export default function StockWatchPage({theme,goResearch}:{
  theme:'light'|'dark';goResearch:()=>void;
 }){
- const [symbol,setSymbol]=useState('NSE:RELIANCE');
+ const [symbol,setSymbol]=useState('BSE:RELIANCE');
  const [quotes,setQuotes]=useState<Spot[]>([]);
  const [updated,setUpdated]=useState('');
  const [section,setSection]=useState<'stocks'|'crypto'>('stocks');
@@ -63,18 +63,18 @@ export default function StockWatchPage({theme,goResearch}:{
  return <section className="stock-watch">
   <div className="sub-page-header"><div className="breadcrumb">ATLAS / FREE MARKET TERMINAL</div>
    <h1>Market watch<span className="period">.</span></h1>
-   <p>Official third-party Indian equity charts and real INR public crypto quotes. No paid data keys.</p>
+   <p>Official third-party BSE end-of-day equity charts and public INR crypto quotes. No paid data keys.</p>
   </div>
   <div className="market-switch">
    <button type="button" className={section==='stocks'?'active':''} onClick={()=>setSection('stocks')}
-    aria-pressed={section==='stocks'}><ChartNoAxesCombined size={16}/> Indian stocks</button>
+    aria-pressed={section==='stocks'}><ChartNoAxesCombined size={16}/> BSE stock charts · EOD</button>
    <button type="button" className={section==='crypto'?'active':''} onClick={()=>setSection('crypto')}
     aria-pressed={section==='crypto'}><Activity size={16}/> INR crypto quotes</button>
   </div>
   {section==='stocks'?<>
    <div className="stock-tv-toolbar panel"><label htmlFor="stock-symbol">Stock / index</label>
     <select id="stock-symbol" value={symbol} onChange={e=>setSymbol(e.target.value)}>
-      {NSE.map(s=><option value={s.key} key={s.key}>{s.label}</option>)}
+      {BSE.map(s=><option value={s.key} key={s.key}>{s.label}</option>)}
     </select><a href={'https://www.tradingview.com/symbols/'+symbol.replace(':','-')+'/'}
     target="_blank" rel="noreferrer noopener">View at source <ArrowUpRight size={14}/></a>
    </div>
@@ -82,12 +82,12 @@ export default function StockWatchPage({theme,goResearch}:{
      <TradingViewChart symbol={symbol} theme={theme}/>
      <div className="stock-tv-attribution">
       <span>Stock charts and any price delays are controlled by <a href="https://www.tradingview.com/" target="_blank" rel="noopener noreferrer">TradingView</a>.
-       Availability and real-time entitlement depend on their exchange feed.</span>
+       BSE stock widgets are end-of-day, not live trading quotes.</span>
       <span>This embedded chart is not an Atlas broker/trading-data API.</span>
      </div>
    </div>
    <div className="panel market-info-row"><ShieldCheck size={17}/>
-     <span>Free stock chart viewer is available for independent analysis. Indian equity strategy backtests still require reusable licensed historical candles.</span>
+     <span>Free BSE EOD stock charts are available for independent analysis. Intraday NSE quotes and strategy backtests still require a lawful machine-readable source.</span>
    </div>
   </>:<>
    <div className="stock-quote-grid">{watch.map(sym=>{
