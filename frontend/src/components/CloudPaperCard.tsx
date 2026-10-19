@@ -1,4 +1,5 @@
 import {useEffect,useState} from 'react';
+import {buildCloudPaperSummary} from '../lib/cloudPaperDaybook.js';
 import {Activity,Clock3,Cloud,ShieldCheck,TrendingUp} from 'lucide-react';
 import {CartesianGrid,LineChart,Line,ResponsiveContainer,XAxis,YAxis,Tooltip} from 'recharts';
 type Event={side:'BUY'|'SELL';quoteAt:string;barClosedAt:string;
@@ -24,6 +25,7 @@ export default function CloudPaperCard(){
  const [loading,setLoading]=useState(true);
  const [problem,setProblem]=useState('');
  const [selected,setSelected]=useState('sma_9_21');
+ const [selectedDay,setSelectedDay]=useState<string|null>(null);
  const [now,setNow]=useState(Date.now());
  useEffect(()=>{
    let active=true;const controller=new AbortController();
@@ -37,6 +39,7 @@ export default function CloudPaperCard(){
         ||d.sessions.length>5||d.sessions.some(s=>!Number.isFinite(s.virtualEquityINR)
           ||!Array.isArray(s.events)||s.events.length>120))
         throw Error('Untrusted virtual paper report');
+       buildCloudPaperSummary(d); // full source-contract gate before use
        if(active){setReport(d);setProblem('');}
      }catch(e){if(active&&!controller.signal.aborted)
        setProblem(e instanceof Error?e.message:'Unavailable');}
@@ -49,6 +52,9 @@ export default function CloudPaperCard(){
  const age=report?.lastRunAt?now-Date.parse(report.lastRunAt):null;
  const current=report?.sessions.find(s=>s.strategyId===selected)??report?.sessions[0];
  const stale=age===null||age>5*3600000||age<0;
+ const daybook=report?buildCloudPaperSummary(report):null;
+ const dayRows=daybook?.strategies.find(s=>s.strategyId===current?.strategyId)?.days??[];
+ const activeDay=dayRows.find(d=>d.dayIST===selectedDay)??dayRows[0];
  return <section className="panel cloud-paper-card" aria-label="Scheduled server-side virtual paper trading">
   <div className="research-detail-title">
    <div><div className="heading-kicker"><Cloud size={15}/> SCHEDULED GITHUB PAPER RUNNER</div>
@@ -106,6 +112,52 @@ export default function CloudPaperCard(){
        </LineChart>
       </ResponsiveContainer>
      </div>}
+     <section className="cloud-daybook" aria-label="Day-by-day verified virtual paper results">
+      <div className="cloud-daybook-title">
+       <h3>Daily checkpoint breakdown</h3>
+       <p>Choose an IST date. Day changes are only calculated from actual retained,
+       consecutive observations. Figures and fills are hypothetical, not realized brokerage profits.</p>
+      </div>
+      {dayRows.length===0?<p className="research-status">No dated virtual source observations yet.</p>:<>
+       <div className="cloud-daybook-dates">
+        {dayRows.map(d=><button key={d.dayIST} type="button"
+         className={'cloud-daybook-date '+(activeDay?.dayIST===d.dayIST?'selected':'')}
+         aria-pressed={activeDay?.dayIST===d.dayIST}
+         onClick={()=>setSelectedDay(d.dayIST)}>
+          <strong>{d.dayIST}</strong>
+          <span>{d.dayChangeINR===null?'No comparable day':money(d.dayChangeINR)}</span>
+          <small>{d.checkpoints} observations · {d.modeledBuys+d.modeledSells} modeled fills</small>
+        </button>)}
+       </div>
+       {activeDay&&<div className="cloud-daybook-details">
+        <div className="cloud-daybook-detail-heading">
+         <strong>{activeDay.dayIST} · India time</strong>
+         <span>{activeDay.changeBasis==='INITIAL_VIRTUAL_BALANCE'?'Seed-day virtual baseline':
+          activeDay.changeBasis==='PREVIOUS_CALENDAR_DAY_LAST_SNAPSHOT'?'Compared with previous calendar day':
+          'No adjacent daily closing observations — change not available'}</span>
+        </div>
+        <div className="research-metric-grid">
+         <div><small>Observed day change</small><strong>{activeDay.dayChangeINR===null?'—':money(activeDay.dayChangeINR)}</strong></div>
+         <div><small>Closing virtual equity</small><strong>{activeDay.lastEquityINR===null?'—':money(activeDay.lastEquityINR)}</strong></div>
+         <div><small>Modeled entries / exits</small><strong>{activeDay.modeledBuys} / {activeDay.modeledSells}</strong></div>
+         <div><small>Modeled fees in retained fills</small><strong>{money(activeDay.modeledFeesINR)}</strong></div>
+         <div><small>Realized P/L on modeled exits</small><strong>{activeDay.modeledSells?money(activeDay.realizedExitPnlINR):'—'}</strong></div>
+         <div><small>Checkpoint observations</small><strong>{activeDay.checkpoints}</strong></div>
+        </div>
+        {activeDay.events.length>0?<div className="research-trade-scroll">
+         <table><thead><tr><th>Event (IST)</th><th>Modeled side</th><th>Price</th><th>Fee</th><th>Exit P/L</th></tr></thead>
+          <tbody>{activeDay.events.map((e,i)=><tr key={e.at+'-'+i}>
+           <td>{ts(e.at)}</td><td>{e.side}</td><td>{money(e.priceINR)}</td>
+           <td>{money(e.feeINR)}</td>
+           <td>{e.realizedPnlINR===null?'—':money(e.realizedPnlINR)}</td>
+          </tr>)}</tbody>
+         </table>
+        </div>:<p className="research-status">No modeled trades recorded on this day.</p>}
+       </div>}
+      </>}
+      <a className="cloud-daybook-export" href="/cloud-paper-daybook.json"
+       target="_blank" rel="noopener noreferrer">Read-only paper daybook JSON — same saved evidence for ChatGPT</a>
+     </section>
      <div className="research-trade-scroll">
       <table><thead><tr><th>Observed</th><th>Modeled side</th><th>Price</th><th>Virtual fee</th><th>Modeled P/L</th></tr></thead>
        <tbody>{current.events.slice().reverse().slice(0,30).map((e,i)=><tr key={i}>
