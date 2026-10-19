@@ -43,7 +43,7 @@ function SimplePage({page,go}:{page:Exclude<Page,'overview'|'markets'|'live'>;go
       detail:'Top-volume NSE stocks, exact entries and exits, margins, fees, profits and losses cannot be displayed as completed trades until source-matched real historical data and a reconciled ledger exist.'},
     risk:{heading:'Risk Center',desc:'Independent controls stay locked until verified.',title:'Trading authority remains blocked',
       detail:'No public-facing controls can place or authorize an order. A live execution permit requires separate owner review, broker integration and risk certification.'},
-    orders:{heading:'Orders & Activity',desc:'Only actual or independently reconciled trading records belong here.',title:'No broker order records connected',
+    orders:{heading:'Orders & Activity',desc:'Only actual or independently reconciled trading records belong here.',title:'No verified order records connected',
       detail:'An unavailable order history is not the same as zero executed orders. No authenticated broker account, statements or paper-trading ledger are connected.'},
     audit:{heading:'Audit & Evidence',desc:'Only verifiable current status; no outdated static test counts.',title:'Engineering evidence remains on GitHub',
       detail:'The previous static dashboard embedded older archived samples, old revision IDs and stale test totals. They have been removed from the active financial display. Review CI results and commit hashes directly at source.'},
