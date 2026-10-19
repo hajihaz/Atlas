@@ -61,3 +61,37 @@ test('duplicate trades for the same strategy/source candle are rejected',()=>{
  trial.status='GAP_SKIPPED';
  assert.throws(()=>assertNextCloudSnapshot(old,trial,now),/Fills forbidden/);
 });
+
+test('rolling 120-event window preserves every retained event except oldest',()=>{
+ const old=original(),prior=Date.parse(old.lastBarClosedAt);
+ const sourceRows=Array.from({length:120},(_,i)=>{
+  const close=new Date(prior-(119-i)*7200000).toISOString();
+  return {side:i%2?'SELL':'BUY',quoteAt:new Date(Date.parse(close)+10000).toISOString(),
+   barClosedAt:close,modeledPriceINR:900000+i,quantity:0.01,
+   feeINR:8,realizedPnlINR:i%2?5:null,
+   mode:'HYPOTHETICAL_AFTER_OBSERVED_SIGNAL'};
+ });
+ old.sessions[0].events=sourceRows;
+ const now=Date.parse(old.lastRunAt)+7200000;
+ const next=copy(old);next.runCount++;next.lastRunAt=new Date(now).toISOString();
+ next.lastBarClosedAt=new Date(prior+7200000).toISOString();
+ const fresh={side:'BUY',quoteAt:new Date(now-1000).toISOString(),
+  barClosedAt:next.lastBarClosedAt,modeledPriceINR:990000,
+  quantity:0.01,feeINR:10,realizedPnlINR:null,
+  mode:'HYPOTHETICAL_AFTER_OBSERVED_SIGNAL'};
+ next.sessions[0].events=[...sourceRows.slice(1),fresh];
+ assert.equal(assertNextCloudSnapshot(old,next,now),true);
+ const tamper=copy(next);
+ tamper.sessions[0].events[52].modeledPriceINR+=100;
+ assert.throws(()=>assertNextCloudSnapshot(old,tamper,now),/rolling window changed/);
+ const wrongBar=copy(next);
+ wrongBar.sessions[0].events[119].barClosedAt=
+   new Date(prior+3600000).toISOString();
+ assert.throws(()=>assertNextCloudSnapshot(old,wrongBar,now),
+   /not tied to the new source candle/);
+ const wrongClock=copy(next);
+ wrongClock.sessions[0].events[119].quoteAt=
+   new Date(now+600000).toISOString();
+ assert.throws(()=>assertNextCloudSnapshot(old,wrongClock,now),
+   /not tied to the new source candle/);
+});
