@@ -12,8 +12,8 @@ test('active app has no simulated equity, frozen financial figures or dollar cur
   assert.doesNotMatch(app,/snapshot\.json|historicalInitialCapital|Archived replay equity|finalEquity|usd\(|currency:\s*'USD'/);
   assert.doesNotMatch(market,/currency:\s*'USD'|\$102,536|\$100,000|459|\+2\.54%/);
   assert.doesNotMatch(app,/ScalpStormDetailed/);
-  assert.match(market,/Not connected/);
-  assert.match(market,/Not available/);
+  assert.match(market,/5 named models/);
+  assert.match(market,/Ready to start/);
   assert.match(market,/currency:'INR'/);
 });
 test('all existing sections remain reachable without demonstrative trades',()=>{
@@ -29,7 +29,7 @@ test('source and stale controls prevent fabricated references',()=>{
   assert.match(market,/item\.price!==null&&!stale/);
   assert.match(market,/setInterval\(\(\)=>setRefresh\(v=>v\+1\),60000\)/);
   assert.match(market,/last trade time not provided/);
-  assert.match(market,/NSE authenticated quote feed: not connected/);
+  assert.match(market,/BSE stock charts on TradingView/);
 });
 test('premium styling persists with new responsive rupee-only dashboard',()=>{
   assert.ok(main.indexOf("import './premium.css';")<main.indexOf("import './real.css';"));
@@ -42,9 +42,9 @@ test('premium styling persists with new responsive rupee-only dashboard',()=>{
   assert.match(app,/aria-pressed=\{theme === 'dark'\}/);
 });
 test('only read-only indicative values are permitted in financial cards',()=>{
-  assert.match(market,/Real portfolio value/);
-  assert.match(market,/No authenticated holdings or account balance/);
-  assert.match(market,/Verified trading P&amp;L/);
+  assert.match(market,/Virtual paper trials/);
+  assert.match(market,/Five source-driven virtual accounts/);
+  assert.match(market,/real historical INR backtests/);
   assert.match(market,/All money values in Indian rupees/);
   assert.match(app,/No verified broker portfolio/);
 });

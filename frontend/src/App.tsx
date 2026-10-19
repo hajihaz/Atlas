@@ -6,6 +6,11 @@ import {
   MoreHorizontal, ShieldCheck, Sun, X, BarChart3, BookOpenText,
 } from 'lucide-react';
 import RealMarketPage from './components/RealMarketPage';
+import StrategyLabPage from './components/StrategyLabPage';
+import StockWatchPage from './components/StockWatchPage';
+import PaperTrialsPage from './components/PaperTrialsPage';
+import RiskAuditPage from './components/RiskAuditPage';
+import {usePaperTrials} from './lib/usePaperTrials';
 const LiveLabPage = lazy(() => import('./components/LiveLabPage'));
 
 type Page='live'|'overview'|'markets'|'strategies'|'research'|'scalpstorm'|'risk'|'orders'|'audit';
@@ -77,6 +82,7 @@ export default function App(){
   const [collapsed,setCollapsed]=useState(false);
   const [mobileOpen,setMobileOpen]=useState(false);
   const [notices,setNotices]=useState(false);
+  const paper=usePaperTrials();
   const [theme,setTheme]=useState<Theme>(initialTheme);
   useEffect(()=>{
     document.documentElement.dataset.theme = theme;
@@ -116,8 +122,16 @@ export default function App(){
       </div>
     </header><main className="main-content premium-page-view" key={page}>
       {page==='live'?<Suspense fallback={<div role="status" className="panel market-loading">Checking live INR sources…</div>}><LiveLabPage goStrategies={()=>go('strategies')} goMarkets={()=>go('markets')} goScalpStorm={()=>go('scalpstorm')}/></Suspense>:
-       page==='overview'?<RealMarketPage variant="overview" onNavigate={v=>go(v)}/>:
-        page==='markets'?<RealMarketPage variant="markets"/>:<SimplePage page={page} go={go}/>}
+        page==='overview'?<RealMarketPage variant="overview" paperGroup={paper.group} onNavigate={v=>go(v)}/>:
+        page==='markets'?<StockWatchPage theme={theme} goResearch={()=>go('strategies')}/>:
+        page==='strategies'||page==='research'||page==='scalpstorm'?<StrategyLabPage mode={page} goRisk={()=>go('risk')}/>:
+        page==='orders'?<PaperTrialsPage group={paper.group} statusMessage={paper.providerMessage}
+          start={paper.start} pause={paper.pause} resume={paper.resume} clear={paper.clear}
+          goStrategies={()=>go('strategies')}/>:
+        page==='risk'||page==='audit'?<RiskAuditPage mode={page} group={paper.group}
+          openPaper={()=>go('orders')} openResearch={()=>go('strategies')}/>:
+        <SimplePage page={page} go={go}/>}
+
       <footer className="app-footer"><span>© 2026 ATLAS QUANTITATIVE SYSTEMS</span><div><span className="footer-safety-dot"/> All financial amounts in ₹ <span className="footer-separator">·</span> No verified broker portfolio <span className="footer-separator">·</span> Live trading blocked</div></footer>
     </main></div>
   </div>;
