@@ -27,7 +27,7 @@ test('observations and market timestamps also show 12-hour labels', () => {
   assert.match(market,/hour12:true/);
   assert.match(market,/function nseDisplayTime\(/);
   assert.match(market,/sessionText\(data.nse.phase\)/);
-  assert.match(market,/9:15 AM–3:30 PM IST/);
+  assert.match(market,/NSE scheduled regular hours/);
   assert.doesNotMatch(market,/09:15–15:30 IST/);
 });
 test('clock still ticks once per second and maintains all trade gates', () => {
