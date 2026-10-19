@@ -41,6 +41,7 @@ jobs:
       - run: node --test frontend/tests/research-engine.test.mjs
       - run: node --test frontend/tests/paper-engine.test.mjs
       - run: node --test frontend/tests/cloud-paper.test.mjs
+      - run: node --test frontend/tests/cloud-paper-daybook.test.mjs
       - run: node --test frontend/tests/workbench-ui.test.mjs
       - run: node --test frontend/tests/scalpstorm-allocation-ui.test.mjs
       - run: node --test frontend/tests/agent-council.test.mjs
