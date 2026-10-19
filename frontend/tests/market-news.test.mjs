@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import handler,{buildNewsUrl,getMarketNews,normalizeGdelt} from '../api/market-news.js';
+import handler,{buildNewsUrl,buildHostedNewsUrl,getMarketNews,normalizeGdelt,normalizeHostedNews} from '../api/market-news.js';
 const now=Date.parse('2026-10-20T04:30:00Z');
 const valid={title:'Bitcoin cryptocurrency market update',
  url:'https://example.com/bitcoin-market?foo=1',
@@ -73,4 +73,39 @@ test('client displays headline citations, but council decision remains independe
  assert.match(text,/noopener noreferrer nofollow/);
  assert.match(text,/report.outcome/);
  assert.doesNotMatch(text,/tradeExecution|placeOrder\(/);
+});
+
+test('public hosted crypto reference API validates timestamps, titles and links',async()=>{
+ const u=new URL(buildHostedNewsUrl('BTCINR'));
+ assert.equal(u.host,'cryptocurrency.cv');
+ assert.equal(u.pathname,'/api/bitcoin');
+ assert.throws(()=>buildHostedNewsUrl('NSE:TCS'),RangeError);
+ const items=normalizeHostedNews([
+  {title:'Bitcoin market update',link:'https://example.org/news',
+   pubDate:'2026-10-20T04:10:00.123Z'},
+  {title:'Evil redirect',link:'javascript:alert(1)',
+   pubDate:'2026-10-20T04:11:00Z'}],now);
+ assert.equal(items.length,1);assert.equal(items[0].domain,'example.org');
+ assert.equal(items[0].publishedAt,'2026-10-20T04:10:00.000Z');
+ const fetched=await getMarketNews('BTCINR',async url=>{
+  assert.match(url,/cryptocurrency\.cv/);
+  return {...source,json:async()=>({articles:[{
+   title:'Bitcoin market update',link:'https://example.org/news',
+   pubDate:'2026-10-20T04:10:00Z'}]})};
+ },now);
+ assert.equal(fetched.status,'OBSERVED');
+ assert.match(fetched.source,/cryptocurrency\.cv/);
+ assert.equal(fetched.articles.length,1);
+ assert.equal(fetched.liveOrdersEnabled,false);
+});
+test('hosted source unavailable falls back safely to GDELT metadata, not fake results',async()=>{
+ const calls=[];
+ const result=await getMarketNews('BTCINR',async url=>{
+  calls.push(url);
+  if(url.includes('cryptocurrency.cv'))return {ok:false,status:503};
+  return source;
+ },now);
+ assert.equal(calls.length,2);
+ assert.match(result.source,/GDELT/);
+ assert.equal(result.status,'OBSERVED');
 });
