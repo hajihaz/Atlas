@@ -49,7 +49,7 @@ export async function getMarketNews(symbol='BTCINR',getter=fetch,now=Date.now())
  try{
   const response=await getter(url,{method:'GET',signal:ac.signal,
     headers:{Accept:'application/json'}});
-  if(!response?.ok)throw Error('news provider unavailable');
+  if(!response?.ok)throw Error('provider_http_'+String(response?.status??'unknown'));
   const ct=response.headers?.get?.('content-type')??'';
   if(!ct.toLowerCase().includes('json'))throw Error('news provider did not return JSON');
   const source=await response.json();
@@ -72,6 +72,12 @@ export default async function handler(req,res){
  const symbol=typeof req.query?.symbol==='string'?req.query.symbol:'BTCINR';
  if(!Object.hasOwn(SEARCH,symbol))return res.status(400).json({error:'unsupported_market'});
  try{return res.status(200).json(await getMarketNews(symbol))}
- catch{return res.status(503).json({error:'news_provider_unavailable',articles:[],
-   liveOrdersEnabled:false});}
+ catch(e){
+  const msg=String(e?.message??'');
+  const reason=/^provider_http_[0-9]{3}$/.test(msg)?msg:
+    msg.includes('JSON')?'provider_format_error':
+    e?.name==='AbortError'?'provider_timeout':'provider_network_error';
+  return res.status(503).json({error:'news_provider_unavailable',reason,
+    articles:[],liveOrdersEnabled:false});
+ }
 }
