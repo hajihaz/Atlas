@@ -4,12 +4,6 @@ on:
     # Run every two hours; do not imply guaranteed exact start times.
     - cron: '17 */2 * * *'
   workflow_dispatch:
-  # One-time bootstrap only when the named evidence marker first lands on main.
-  # The paper worker itself is unchanged and refuses unverified market fills.
-  push:
-    branches: [main]
-    paths:
-      - 'docs/operations/atlas-paper-kickoff-20261020.md'
 permissions:
   contents: write
 concurrency:
