@@ -5,6 +5,7 @@ import './styles.css';
 import './premium.css';
 import './real.css';
 import './market-live.css';
+import './strategy.css';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode><App /></React.StrictMode>,
