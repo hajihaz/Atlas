@@ -5,11 +5,19 @@ on:
     paths:
       - 'frontend/**'
       - 'scripts/export_atlas_dashboard.py'
+      - 'scripts/run_scheduled_paper.mjs'
+      - 'scripts/scheduled_paper_engine.mjs'
+      - 'scripts/paper_ledger_guard.mjs'
+      - '.github/workflows/atlas-paper-scheduled.yml'
       - '.github/workflows/atlas-ui.yml'
   pull_request:
     paths:
       - 'frontend/**'
       - 'scripts/export_atlas_dashboard.py'
+      - 'scripts/run_scheduled_paper.mjs'
+      - 'scripts/scheduled_paper_engine.mjs'
+      - 'scripts/paper_ledger_guard.mjs'
+      - '.github/workflows/atlas-paper-scheduled.yml'
       - '.github/workflows/atlas-ui.yml'
 permissions:
   contents: read
