@@ -122,7 +122,7 @@ export default function App(){
       </div>
     </header><main className="main-content premium-page-view" key={page}>
       {page==='live'?<Suspense fallback={<div role="status" className="panel market-loading">Checking live INR sources…</div>}><LiveLabPage goStrategies={()=>go('strategies')} goMarkets={()=>go('markets')} goScalpStorm={()=>go('scalpstorm')}/></Suspense>:
-        page==='overview'?<RealMarketPage variant="overview" onNavigate={v=>go(v)}/>:
+        page==='overview'?<RealMarketPage variant="overview" paperGroup={paper.group} onNavigate={v=>go(v)}/>:
         page==='markets'?<StockWatchPage theme={theme} goResearch={()=>go('strategies')}/>:
         page==='strategies'||page==='research'||page==='scalpstorm'?<StrategyLabPage mode={page} goRisk={()=>go('risk')}/>:
         page==='orders'?<PaperTrialsPage group={paper.group} statusMessage={paper.providerMessage}
