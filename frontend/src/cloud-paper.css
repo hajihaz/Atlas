@@ -1,0 +1,28 @@
+
+html[data-theme] .cloud-paper-card{padding:24px;min-width:0}
+.cloud-paper-card .heading-kicker{display:flex;gap:8px;align-items:center}
+.cloud-paper-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:18px 0}
+.cloud-paper-meta>div{border:1px solid var(--pm-border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:7px}
+.cloud-paper-meta small{color:var(--pm-muted);font-size:10px}
+.cloud-paper-meta strong{font-size:12px;overflow-wrap:anywhere}
+.cloud-paper-choices{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:12px 0}
+.cloud-strategy-button{background:var(--pm-surface);color:var(--pm-ink);border:1px solid var(--pm-border);
+ border-radius:10px;display:flex;flex-direction:column;align-items:start;gap:9px;
+ padding:13px;text-align:left;cursor:pointer;font:inherit}
+.cloud-strategy-button.selected{border-color:#219d72;box-shadow:0 0 0 1px rgba(33,157,114,.2)}
+.cloud-strategy-button>span{font-size:11px;font-weight:800}
+.cloud-strategy-button>strong{font-size:16px}
+.cloud-strategy-button>small{font-size:10px;color:var(--pm-muted)}
+.cloud-paper-detail{margin-top:17px;display:flex;flex-direction:column;gap:15px}
+.cloud-paper-detail h3{font-size:17px}
+.cloud-equity-chart{height:220px;min-width:0}
+.cloud-paper-notice{font-size:11px;line-height:1.7;color:#a47a3f;padding:10px 0}
+.cloud-paper-footer{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:10px;
+ line-height:1.7;color:var(--pm-muted);border-top:1px solid var(--pm-border);padding-top:15px;margin-top:20px}
+.cloud-paper-footer>span{flex:1;min-width:180px}
+.cloud-paper-footer a{color:var(--pm-accent);display:flex;gap:5px;align-items:center}
+@media(max-width:1100px){.cloud-paper-choices{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.cloud-paper-meta{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cloud-paper-choices{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:500px){.cloud-paper-choices{grid-template-columns:1fr}
+html[data-theme] .cloud-paper-card{padding:17px}}
