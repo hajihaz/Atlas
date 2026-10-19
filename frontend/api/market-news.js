@@ -57,7 +57,7 @@ export function normalizeHostedNews(articles,now=Date.now()){
  if(!Array.isArray(articles))throw Error('invalid hosted news');
  return normalizeGdelt(articles.map(a=>{
   const at=Date.parse(a?.pubDate??'');
-  const stamp=Number.isFinite(at)?new Date(at).toISOString().replace(/[-:]/g,'').replace('.000Z','Z'):null;
+  const stamp=Number.isFinite(at)?new Date(at).toISOString().replace(/[-:]/g,'').slice(0,15)+'Z':null;
   return {title:a?.title,url:a?.link,seendate:stamp};
  }),now);
 }
