@@ -55,10 +55,14 @@ export function assertNextCloudSnapshot(before,after,now){
   return true;
  }
  if(after.sessions.length!==5)throw Error('Existing portfolio history erased');
+ if(!['RUNNING','DEGRADED','GAP_SKIPPED'].includes(after.status))
+  throw Error('Unrecognized modeled-paper run status');
  const initial=new Map(before.sessions.map(s=>[s.strategyId,s]));
  for(const next of after.sessions){
   const old=initial.get(next.strategyId);
   if(!old)throw Error('Strategy portfolio identity changed');
+  if(after.status==='DEGRADED'&&exact(next)!==exact(old))
+    throw Error('Degraded source must preserve prior virtual portfolio exactly');
   if(next.events.length<old.events.length && old.events.length!==120)
    throw Error('Modeled transaction history was lost');
   // At most one modeled entry/exit per checkpoint, including at the
@@ -77,6 +81,15 @@ export function assertNextCloudSnapshot(before,after,now){
    fresh=next.events.slice(119);
   }
   if(fresh.length>1)throw Error('Too many modeled trades in one checkpoint');
+  // A no-trade checkpoint can revalue equity with a verified quote and
+  // apply a virtual risk halt, but cannot mint cash or realized returns.
+  if(fresh.length===0){
+   for(const field of ['cashINR','quantity','costINR','feesINR',
+    'realizedPnlINR','closedTrades','wins','lastFillAt']){
+    if(!Object.is(old[field],next[field]))
+     throw Error('No modeled fill can change virtual holdings or P/L: '+field);
+   }
+  }
   if((oldBar===newBar||oldBar===null)&&fresh.length)
    throw Error('Duplicate modeled fill for repeated market bar');
   if(['DEGRADED','GAP_SKIPPED'].includes(after.status)&&fresh.length)

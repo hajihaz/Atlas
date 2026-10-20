@@ -15,6 +15,7 @@ test('published paper ledger accepts a genuinely recorded no-trade retry',()=>{
 test('a repeated completed candle cannot produce another synthetic BUY',()=>{
  const old=original(),at=Date.parse(old.lastRunAt)+20_000;
  const next=copy(old);next.runCount++;next.lastRunAt=new Date(at).toISOString();
+ next.status='RUNNING'; // Synthetic accepted-source context for replay test.
  next.sessions[0].events.push({side:'BUY',quoteAt:new Date(at).toISOString(),
   barClosedAt:old.lastBarClosedAt,modeledPriceINR:8e6,
   quantity:0.012,feeINR:100,realizedPnlINR:null,
@@ -95,4 +96,51 @@ test('rolling 120-event window preserves every retained event except oldest',()=
    new Date(now+600000).toISOString();
  assert.throws(()=>assertNextCloudSnapshot(old,wrongClock,now),
    /not tied to the new source candle/);
+});
+
+test('no-fill cloud checkpoint cannot mint virtual cash, fees, positions or gains',()=>{
+ const before=original(),now=Date.parse(before.lastRunAt)+30000;
+ const baseline=failureState(before,'missing source',now);
+ assert.equal(assertNextCloudSnapshot(before,baseline,now),true);
+ const bad=[
+  next=>{next.sessions[0].cashINR+=250;},
+  next=>{next.sessions[0].quantity=0.01;},
+  next=>{next.sessions[0].costINR+=50;},
+  next=>{next.sessions[0].feesINR+=25;},
+  next=>{next.sessions[0].realizedPnlINR+=500;},
+  next=>{next.sessions[0].closedTrades++;},
+  next=>{next.sessions[0].wins++;},
+  next=>{next.sessions[0].lastFillAt=new Date(now).toISOString();},
+  next=>{next.status='EXECUTING_REAL_ORDER';}
+ ];
+ for(const change of bad){
+  const next=structuredClone(baseline);
+  change(next);
+  assert.throws(()=>assertNextCloudSnapshot(before,next,now),
+   /No modeled fill can change virtual holdings or P\/L|Unrecognized modeled-paper run status|Degraded source must preserve/);
+ }
+});
+test('a no-fill risk revaluation may update equity, not create realized profit',()=>{
+ const before=original(),now=Date.parse(before.lastRunAt)+30000;
+ const next=failureState(before,'risk-marking-only',now);
+ next.status='RUNNING'; // Explicitly source-accepted hypothetical revaluation fixture.
+ const row=next.sessions[0];
+ next.sessions[0]={...row,virtualEquityINR:row.virtualEquityINR-50,
+  maxDrawdownPct:Math.max(row.maxDrawdownPct,0.05)};
+ assert.equal(assertNextCloudSnapshot(before,next,now),true);
+ assert.equal(next.sessions[0].cashINR,before.sessions[0].cashINR);
+});
+
+test('provider-degraded cloud attempts cannot revalue cash-free equity either',()=>{
+ const before=original(),now=Date.parse(before.lastRunAt)+30000;
+ const fail=failureState(before,'no valid source',now);
+ const forged=structuredClone(fail);
+ forged.sessions[0].virtualEquityINR+=10000;
+ assert.throws(()=>assertNextCloudSnapshot(before,forged,now),
+  /Degraded source must preserve prior virtual portfolio exactly/);
+ const replay=structuredClone(fail);
+ replay.sessions[0].equityHistory.push({
+  at:new Date(now).toISOString(),equityINR:replay.sessions[0].virtualEquityINR});
+ assert.throws(()=>assertNextCloudSnapshot(before,replay,now),
+  /Degraded source must preserve prior virtual portfolio exactly/);
 });
