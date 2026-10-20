@@ -96,3 +96,35 @@ test('rolling 120-event window preserves every retained event except oldest',()=
  assert.throws(()=>assertNextCloudSnapshot(old,wrongClock,now),
    /not tied to the new source candle/);
 });
+
+test('no-fill cloud checkpoint cannot mint virtual cash, fees, positions or gains',()=>{
+ const before=original(),now=Date.parse(before.lastRunAt)+30000;
+ const baseline=failureState(before,'missing source',now);
+ assert.equal(assertNextCloudSnapshot(before,baseline,now),true);
+ const bad=[
+  next=>{next.sessions[0].cashINR+=250;},
+  next=>{next.sessions[0].quantity=0.01;},
+  next=>{next.sessions[0].costINR+=50;},
+  next=>{next.sessions[0].feesINR+=25;},
+  next=>{next.sessions[0].realizedPnlINR+=500;},
+  next=>{next.sessions[0].closedTrades++;},
+  next=>{next.sessions[0].wins++;},
+  next=>{next.sessions[0].lastFillAt=new Date(now).toISOString();},
+  next=>{next.status='EXECUTING_REAL_ORDER';}
+ ];
+ for(const change of bad){
+  const next=structuredClone(baseline);
+  change(next);
+  assert.throws(()=>assertNextCloudSnapshot(before,next,now),
+   /No modeled fill can change virtual holdings or P\/L|Unrecognized modeled-paper run status/);
+ }
+});
+test('a no-fill risk revaluation may update equity, not create realized profit',()=>{
+ const before=original(),now=Date.parse(before.lastRunAt)+30000;
+ const next=failureState(before,'risk-marking-only',now);
+ const row=next.sessions[0];
+ next.sessions[0]={...row,virtualEquityINR:row.virtualEquityINR-50,
+  maxDrawdownPct:Math.max(row.maxDrawdownPct,0.05)};
+ assert.equal(assertNextCloudSnapshot(before,next,now),true);
+ assert.equal(next.sessions[0].cashINR,before.sessions[0].cashINR);
+});
