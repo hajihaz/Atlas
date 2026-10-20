@@ -32,7 +32,8 @@ async function main(){
   if(history?.source!=='CoinDCX public INR spot candles'
     ||history.symbol!==SYMBOL||history.currency!=='INR'
     ||history.realOrdersEnabled!==false||history.paperExecutionEnabled!==false
-    ||!Array.isArray(history.candles)||feed.currency!=='INR'||feed.realOrdersEnabled!==false)
+    ||!Array.isArray(history.candles)||feed?.currency!=='INR'||feed.realOrdersEnabled!==false
+    ||!Array.isArray(feed.quotes))
     {
       diagnostic={...diagnostic,code:'SOURCE_CONTRACT_INVALID'};
       throw Error('Provider response contract failed');
