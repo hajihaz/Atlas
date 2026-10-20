@@ -5,6 +5,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {assertNextCloudSnapshot} from './paper_ledger_guard.mjs';
 import {auditGeneratedPaperFills} from './paper_generated_fill_audit.mjs';
+import {describePaperRun,renderPaperRunHealthMarkdown} from './paper_run_health.mjs';
 import {diagnosePaperSource,unavailablePaperSource} from './paper_source_diagnostics.mjs';
 import {getChart} from '../frontend/api/market-history.js';
 import {getLiveFeed} from '../frontend/api/live-feed.js';
@@ -73,7 +74,18 @@ async function main(){
  if(next.realOrdersEnabled!==false||next.actualCapitalINR!==0||next.mode!==MODE)
    throw Error('Unsafe paper output');
  assertNextCloudSnapshot(old,next,now);
+ const health=describePaperRun(old,next);
+ const markdown=renderPaperRunHealthMarkdown(health);
  await fs.writeFile(OUTPUT,data,'utf8');
+ // GitHub's job may succeed while the provider is safely DEGRADED; surface
+ // this distinction without converting an unverified observation into a fill.
+ console.log('ATLAS_MODEL_ONLY_HEALTH',JSON.stringify(health));
+ if(health.classification!=='SOURCE_VERIFIED_PAPER_ONLY')
+   console.log('::warning title=Atlas virtual paper source::'+health.classification+' — '+health.sourceCode);
+ if(process.env.GITHUB_STEP_SUMMARY){
+   try{await fs.appendFile(process.env.GITHUB_STEP_SUMMARY,markdown,'utf8');}
+   catch(e){console.warn('Read-only run summary could not be written:',String(e?.code??'unavailable'));}
+ }
  console.log('Virtual checkpoint:',JSON.stringify({
    status:next.status,source:next.source,checkAt:next.lastRunAt,
    closedBar:next.lastBarClosedAt,simulations:next.sessions?.length,
