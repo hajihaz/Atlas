@@ -14,6 +14,9 @@ type Report={schema:number;mode:string;currency:'INR';status:string;symbol:strin
  actualCapitalINR:number;realOrdersEnabled:false;interval:string;runCount:number;
  createdAt:string|null;lastRunAt:string|null;lastProviderAt:string|null;
  skippedIntervals:number;scheduledEveryMinutes:number;alert:string|null;
+ lastSourceCheck?:{schema:1;status:'PASS'|'BLOCKED';code:string;
+   checkedAt:string|null;latestBarClosedAt:string|null;providerQuoteAt:string|null;
+   liveOrdersEnabled:false;paperOrdersExecuted:false};
  sessions:PaperRow[]};
 const money=(n:number)=>new Intl.NumberFormat('en-IN',{style:'currency',
  currency:'INR',maximumFractionDigits:2}).format(n);
@@ -83,8 +86,19 @@ export default function CloudPaperCard(){
       <div><small>Model</small><strong>{report.symbol.replace('INR',' / INR')} · {report.interval} candles</strong></div>
       <div><small>Skipped intervals</small><strong>{report.skippedIntervals}</strong></div>
       <div><small>Next nominal runner slot</small><strong>{ts(cadence.nextDueAt)}</strong></div>
+      <div><small>Last source check</small><strong>
+        {report.lastSourceCheck?.status==='PASS'?'Accepted':
+         report.lastSourceCheck?.status==='BLOCKED'?'Blocked':'Not yet recorded'}
+      </strong></div>
     </div>
     {report.alert&&<p className="cloud-paper-notice">{report.alert}</p>}
+    {report.lastSourceCheck?.status==='BLOCKED'&&
+      <p className="cloud-paper-notice">
+        Market source validation: {report.lastSourceCheck.code}.
+        {report.lastSourceCheck.latestBarClosedAt&&
+          <> Last received completed bar: {ts(report.lastSourceCheck.latestBarClosedAt)}.</>}
+        No simulated orders were permitted for this checkpoint.
+      </p>}
     {cadence.overdue&&<p className="cloud-paper-notice">
       The expected schedule window passed without a newer published ledger.
       This does not prove the GitHub job failed. Check runner history before using stale figures.

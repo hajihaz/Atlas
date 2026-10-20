@@ -74,6 +74,7 @@ test('rolling 120-event window preserves every retained event except oldest',()=
  old.sessions[0].events=sourceRows;
  const now=Date.parse(old.lastRunAt)+7200000;
  const next=copy(old);next.runCount++;next.lastRunAt=new Date(now).toISOString();
+ next.status='RUNNING'; // Explicit source recovery; never permit fills in DEGRADED.
  next.lastBarClosedAt=new Date(prior+7200000).toISOString();
  const fresh={side:'BUY',quoteAt:new Date(now-1000).toISOString(),
   barClosedAt:next.lastBarClosedAt,modeledPriceINR:990000,
