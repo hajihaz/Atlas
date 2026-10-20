@@ -1,3 +1,4 @@
+import {describePaperRun} from './paper_run_health.mjs';
 // Append-only bounded evidence of GENUINE FUTURE virtual runner attempts.
 // No backfill from legacy runCount; an older published ledger with no history
 // starts its audit window with the first NEW observed attempt.
@@ -59,6 +60,16 @@ export function appendPaperCheckpointEvidence(before,after,health){
   realOrdersEnabled:false,actualCapitalINR:0
  };
  validateRecord(entry);
+ // Do not allow callers to invent a source PASS / modeled fill count.
+ // Validate the proposed record against independently derived ledger health.
+ const derived=describePaperRun(before,after);
+ if(derived.classification!==entry.classification||
+    derived.sourceAccepted!==entry.sourceAccepted||
+    derived.sourceCode!==entry.sourceCode||
+    derived.newlyModeledFills!==entry.newModeledFills||
+    derived.haltedStrategies!==entry.haltedStrategies||
+    derived.skippedIntervals!==entry.skippedIntervals)
+  throw Error('Checkpoint evidence conflicts with actual modeled ledger');
  if(prev.length){
   const last=prev.at(-1);
   if(entry.runCount!==last.runCount+1||
@@ -86,6 +97,19 @@ export function assertPaperCheckpointContinuity(before,after){
   throw Error('Historical paper checkpoint evidence changed');
  if(history.length&&now.at(-1).runCount!==history.at(-1).runCount+1)
   throw Error('Duplicate or skipped paper checkpoint run ID');
+ // A saved checkpoint cannot change a genuine source reason, market bar,
+ // modeled event count, risk veto or missed-interval count after publication.
+ const health=describePaperRun(before,after),latest=now.at(-1);
+ if(latest.status!==health.runStatus||
+   latest.classification!==health.classification||
+   latest.sourceAccepted!==health.sourceAccepted||
+   latest.sourceCode!==health.sourceCode||
+   latest.completedBarAt!==(health.lastBarClosedAt??null)||
+   latest.candleAgeMinutes!==(health.candleAgeMinutes??null)||
+   latest.newModeledFills!==health.newlyModeledFills||
+   latest.haltedStrategies!==health.haltedStrategies||
+   latest.skippedIntervals!==health.skippedIntervals)
+  throw Error('Latest checkpoint evidence conflicts with real source/fill data');
  return true;
 }
 export function checkpointEvidenceSummary(report){
