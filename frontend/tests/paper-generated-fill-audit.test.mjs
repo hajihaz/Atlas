@@ -75,3 +75,22 @@ test('same-bar replays and incorrect source quote are rejected',()=>{
  bad.lastBarClosedAt=before.lastBarClosedAt;
  assert.throws(()=>auditGeneratedPaperFills(before,bad,quote,now),/Duplicate modeled fill/);
 });
+
+test('independent fill audit accepts bounded 77-minute delayed quote without live trades',()=>{
+ const before=init(),newClose=Date.parse(before.lastBarClosedAt)+T;
+ const now=newClose+77*60000;
+ const sourceAt=stamp(now-1000),closed=stamp(newClose);
+ const id='audit:delayed:123456';
+ const original=createVirtualOrder({id,strategyId:before.sessions[0].strategyId,
+  symbol:'BTCINR',side:'BUY',requestedQty:0.02,
+  virtualCashLimitINR:100000,signalBarClosedAt:closed,submittedAt:sourceAt});
+ const submitted=applyVirtualOrder(original,{action:'SUBMIT',at:sourceAt},now);
+ const filled=applyVirtualOrder(submitted,{action:'FILL',fillId:id,
+  at:stamp(now),sourceAt,barClosedAt:closed,
+  quantity:0.02,modeledPriceINR:4000000,feeINR:80},now);
+ const quote={symbol:'BTCINR',currency:'INR',
+  price:4000000,sourceAt,status:'recent_provider_snapshot'};
+ const after=buildVirtualSettlementCandidate(before,filled,quote,now).candidate;
+ assert.equal(auditGeneratedPaperFills(before,after,quote,now).audited,1);
+ assert.equal(after.realOrdersEnabled,false);
+});

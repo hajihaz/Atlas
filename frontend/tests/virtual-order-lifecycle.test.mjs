@@ -105,3 +105,23 @@ test('a replay cannot turn a cancelled order into a new fill or fake P/L',()=>{
  assert.equal(cancelled.actualCapitalINR,0);
  assert.equal('realizedPnlINR' in cancelled,false);
 });
+
+test('77-minute closed candle with a fresh independent quote stays model-only',()=>{
+ const delayed=Date.parse(barClosedAt)+77*60000;
+ const observed=new Date(delayed-1000).toISOString();
+ const order=createVirtualOrder({...params,submittedAt:observed});
+ const pending=applyVirtualOrder(order,{action:'SUBMIT',at:observed},delayed);
+ const filled=applyVirtualOrder(pending,{
+  action:'FILL',fillId:'delayed:modeled:001',at:new Date(delayed).toISOString(),
+  sourceAt:observed,barClosedAt,quantity:0.02,
+  modeledPriceINR:5000000,feeINR:100
+ },delayed);
+ assert.equal(filled.status,'FILLED');
+ assert.equal(filled.realOrdersEnabled,false);
+ const later=delayed+14*60000;
+ assert.throws(()=>applyVirtualOrder(pending,{
+  action:'FILL',fillId:'too:old:modeled:01',at:new Date(later).toISOString(),
+  sourceAt:new Date(later-1000).toISOString(),barClosedAt,
+  quantity:0.02,modeledPriceINR:5000000,feeINR:100
+ },later),/Unverified or invalid modeled fill evidence/);
+});

@@ -94,3 +94,18 @@ test('first failed cloud checkpoint records attempt but never invents market dat
  assert.throws(()=>recordUnverifiedFirstCheckpoint(failure,now-10,'clock regression'));
  assert.throws(()=>recordUnverifiedFirstCheckpoint({...failure,realOrdersEnabled:true},now+T,'unsafe'));
 });
+
+test('delayed public candle model uses fresh current quote at 77m, but rejects 91m',()=>{
+ const close=aggregated.at(-1).time+T;
+ const delayedAt=close+77*60000;
+ const quote77={...quote,sourceAt:new Date(delayedAt-1000).toISOString()};
+ assert.equal(sourceEligible(aggregated,quote77,delayedAt,'BTCINR'),true);
+ const lateAt=close+91*60000;
+ const quote91={...quote,sourceAt:new Date(lateAt-1000).toISOString()};
+ assert.equal(sourceEligible(aggregated,quote91,lateAt,'BTCINR'),false);
+ const s=advanceCloud(null,aggregated,quote77,delayedAt);
+ assert.equal(s.lastCandleAgeMinutes,77);
+ assert.equal(s.latencyPolicy,'DELAYED_PUBLIC_CANDLE_MODEL_ONLY_MAX_90_MIN');
+ assert.equal(s.actualCapitalINR,0);
+ assert.ok(s.sessions.every(x=>x.events.length===0));
+});

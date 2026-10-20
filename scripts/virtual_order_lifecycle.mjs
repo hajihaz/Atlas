@@ -61,7 +61,7 @@ export function applyVirtualOrder(order,event,now){
    ||!validTime(fill.barClosedAt)||parsed(fill.sourceAt)<parsed(fill.barClosedAt)
    ||parsed(fill.sourceAt)>now+5000||now-parsed(fill.sourceAt)>90000
    ||parsed(fill.barClosedAt)<parsed(order.signalBarClosedAt)
-   ||now-parsed(fill.barClosedAt)>45*60000
+   ||now-parsed(fill.barClosedAt)>90*60000
    ||parsed(fill.at)<parsed(fill.sourceAt)
    ||parsed(fill.at)>now+5000)
    throw Error('Unverified or invalid modeled fill evidence');

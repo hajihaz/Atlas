@@ -16,6 +16,7 @@ type Report={schema:number;mode:string;currency:'INR';status:string;symbol:strin
  skippedIntervals:number;scheduledEveryMinutes:number;alert:string|null;
  lastSourceCheck?:{schema:1;status:'PASS'|'BLOCKED';code:string;
    checkedAt:string|null;latestBarClosedAt:string|null;providerQuoteAt:string|null;
+   candleAgeMinutes?:number|null;latencyClass?:'DELAYED_PAPER_ONLY'|'RECENT_OR_UNVERIFIED';
    liveOrdersEnabled:false;paperOrdersExecuted:false};
  sessions:PaperRow[]};
 const money=(n:number)=>new Intl.NumberFormat('en-IN',{style:'currency',
@@ -86,6 +87,10 @@ export default function CloudPaperCard(){
       <div><small>Model</small><strong>{report.symbol.replace('INR',' / INR')} · {report.interval} candles</strong></div>
       <div><small>Skipped intervals</small><strong>{report.skippedIntervals}</strong></div>
       <div><small>Next nominal runner slot</small><strong>{ts(cadence.nextDueAt)}</strong></div>
+      <div><small>Completed bar age at attempt</small><strong>
+        {report.lastSourceCheck?.candleAgeMinutes!=null
+          ?report.lastSourceCheck.candleAgeMinutes+' min':'Not recorded'}
+      </strong></div>
       <div><small>Last source check</small><strong>
         {report.lastSourceCheck?.status==='PASS'?'Accepted':
          report.lastSourceCheck?.status==='BLOCKED'?'Blocked':'Not yet recorded'}
@@ -98,6 +103,13 @@ export default function CloudPaperCard(){
         {report.lastSourceCheck.latestBarClosedAt&&
           <> Last received completed bar: {ts(report.lastSourceCheck.latestBarClosedAt)}.</>}
         No simulated orders were permitted for this checkpoint.
+      </p>}
+    {report.lastSourceCheck?.latencyClass==='DELAYED_PAPER_ONLY'&&
+      <p className="cloud-paper-notice">
+        Delayed public-candle research only: the most recent completed candle
+        was {report.lastSourceCheck.candleAgeMinutes} minutes old.
+        Hypothetical entries, if any, use a fresh observed quote, never a historic close.
+        This is not second-by-second trading.
       </p>}
     {cadence.overdue&&<p className="cloud-paper-notice">
       The expected schedule window passed without a newer published ledger.

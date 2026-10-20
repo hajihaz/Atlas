@@ -27,13 +27,28 @@ test('only an independently source-eligible observation returns PASS',()=>{
  assert.equal(sourceEligible(bars,quote,now,'BTCINR'),true);
 });
 test('late GitHub runner is labeled as candle stale, never as a trade',()=>{
- const time=lastClose+67*60000;
+ const time=lastClose+97*60000;
  const q={...quote,sourceAt:new Date(time-1000).toISOString()};
  const x=check({now:time,quote:q});
  assert.equal(x.code,'CLOSED_CANDLE_TOO_OLD');
  assert.equal(x.status,'BLOCKED');
  assert.equal(sourceEligible(bars,q,time,'BTCINR'),false);
  assert.equal(x.providerQuoteAt,null);
+});
+test('observed 77-minute provider delay is explicitly marked paper-only, 91 minutes still blocks',()=>{
+ const time=lastClose+77*60000,q={...quote,sourceAt:new Date(time-1000).toISOString()};
+ const x=check({now:time,quote:q});
+ assert.equal(x.status,'PASS');
+ assert.equal(x.code,'ELIGIBLE');
+ assert.equal(x.latencyClass,'DELAYED_PAPER_ONLY');
+ assert.equal(x.candleAgeMinutes,77);
+ assert.equal(x.paperOrdersExecuted,false);
+ assert.equal(x.liveOrdersEnabled,false);
+ assert.equal(sourceEligible(bars,q,time,'BTCINR'),true);
+ const tooLate=lastClose+91*60000;
+ const reject=check({now:tooLate,quote:{...quote,sourceAt:new Date(tooLate-1000).toISOString()}});
+ assert.equal(reject.code,'CLOSED_CANDLE_TOO_OLD');
+ assert.equal(reject.status,'BLOCKED');
 });
 test('quotes with missing prices, future timestamps and staleness are blocked',()=>{
  for(const [delta,want] of [
