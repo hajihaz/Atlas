@@ -96,23 +96,36 @@ export function advanceCloud(state,bars,quote,now){
    const signal=decision(session.strategyId,bars,bars.length-1);
    s={...s,lastSignal:signal};
    if(signal==='BUY'&&s.quantity===0){
-     const modeledPrice=quote.price*(1+SLIPPAGE);
-     const quantity=s.cashINR/(modeledPrice*(1+FEE));
+     // Persist exactly the modeled price, quantity and fee used in the cash
+     // ledger. No hidden fractional tokens or rounding-driven overdrafts.
+     const modeledPrice=money(quote.price*(1+SLIPPAGE));
+     if(!Number.isFinite(modeledPrice)||modeledPrice<=0)return s;
+     let quantity=Math.floor((s.cashINR/(modeledPrice*(1+FEE)))*1e8)/1e8;
      if(!Number.isFinite(quantity)||quantity<=0)return s;
-     const fee=quantity*modeledPrice*FEE,spent=quantity*modeledPrice+fee;
+     let fee=money(quantity*modeledPrice*FEE);
+     let spent=quantity*modeledPrice+fee;
+     // An exchange-fee round-up must never produce negative virtual cash.
+     if(spent>s.cashINR+1e-7){
+       quantity=Number((quantity-1e-8).toFixed(8));
+       if(quantity<=0)return s;
+       fee=money(quantity*modeledPrice*FEE);
+       spent=quantity*modeledPrice+fee;
+     }
+     if(!Number.isFinite(spent)||spent>s.cashINR+1e-7)return s;
      const ev={side:'BUY',quoteAt:quote.sourceAt,barClosedAt:new Date(closeAt).toISOString(),
-       modeledPriceINR:money(modeledPrice),quantity:Number(quantity.toFixed(8)),
-       feeINR:money(fee),realizedPnlINR:null,mode:'HYPOTHETICAL_AFTER_OBSERVED_SIGNAL'};
+       modeledPriceINR:modeledPrice,quantity,
+       feeINR:fee,realizedPnlINR:null,mode:'HYPOTHETICAL_AFTER_OBSERVED_SIGNAL'};
      s={...s,quantity,cashINR:Math.max(0,s.cashINR-spent),costINR:spent,
        feesINR:money(s.feesINR+fee),events:[...s.events,ev].slice(-120),
        lastFillAt:quote.sourceAt};
    }else if(signal==='SELL'&&s.quantity>0){
-     const modeledPrice=quote.price*(1-SLIPPAGE);
-     const fee=s.quantity*modeledPrice*FEE,proceeds=s.quantity*modeledPrice-fee;
+     const modeledPrice=money(quote.price*(1-SLIPPAGE));
+     const fee=money(s.quantity*modeledPrice*FEE);
+     const proceeds=s.quantity*modeledPrice-fee;
      const profit=proceeds-s.costINR;
      const ev={side:'SELL',quoteAt:quote.sourceAt,barClosedAt:new Date(closeAt).toISOString(),
-       modeledPriceINR:money(modeledPrice),quantity:Number(s.quantity.toFixed(8)),
-       feeINR:money(fee),realizedPnlINR:money(profit),mode:'HYPOTHETICAL_AFTER_OBSERVED_SIGNAL'};
+       modeledPriceINR:modeledPrice,quantity:Number(s.quantity.toFixed(8)),
+       feeINR:fee,realizedPnlINR:money(profit),mode:'HYPOTHETICAL_AFTER_OBSERVED_SIGNAL'};
      s={...s,cashINR:s.cashINR+proceeds,quantity:0,costINR:0,
        feesINR:money(s.feesINR+fee),closedTrades:s.closedTrades+1,
        wins:s.wins+(profit>0?1:0),realizedPnlINR:money(s.realizedPnlINR+profit),
