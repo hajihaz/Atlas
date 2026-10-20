@@ -10,6 +10,7 @@ on:
       - 'scripts/paper_ledger_guard.mjs'
       - 'scripts/paper_source_diagnostics.mjs'
       - 'scripts/virtual_order_lifecycle.mjs'
+      - 'scripts/virtual_order_accounting_bridge.mjs'
       - '.github/workflows/atlas-paper-scheduled.yml'
       - '.github/workflows/atlas-ui.yml'
   pull_request:
@@ -21,6 +22,7 @@ on:
       - 'scripts/paper_ledger_guard.mjs'
       - 'scripts/paper_source_diagnostics.mjs'
       - 'scripts/virtual_order_lifecycle.mjs'
+      - 'scripts/virtual_order_accounting_bridge.mjs'
       - '.github/workflows/atlas-paper-scheduled.yml'
       - '.github/workflows/atlas-ui.yml'
 permissions:
@@ -57,6 +59,7 @@ jobs:
       - run: node --test frontend/tests/cloud-paper-chaos.test.mjs
       - run: node --test frontend/tests/paper-source-diagnostics.test.mjs
       - run: node --test frontend/tests/virtual-order-lifecycle.test.mjs
+      - run: node --test frontend/tests/virtual-order-accounting-bridge.test.mjs
       - run: node --test frontend/tests/paper-cadence.test.mjs
       - run: node --test frontend/tests/cloud-paper-daybook.test.mjs
       - run: node --test frontend/tests/workbench-ui.test.mjs
