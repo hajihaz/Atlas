@@ -56,7 +56,7 @@ test('only actual sequential new attempts can append to retained published histo
  const editedRun=structuredClone(second.next);
  editedRun.recentCheckpoints[1].newModeledFills=5;
  assert.throws(()=>assertPaperCheckpointContinuity(first.next,editedRun),
-  /Latest paper checkpoint evidence does not match ledger|Historical paper checkpoint evidence changed|Nonmonotonic/);
+  /Latest checkpoint evidence conflicts|Invalid published paper checkpoint evidence/);
 });
 test('ring buffer retains precisely the last 24 real subsequent attempts',()=>{
  const begin=published();
