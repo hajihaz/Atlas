@@ -61,6 +61,8 @@ export function assertNextCloudSnapshot(before,after,now){
  for(const next of after.sessions){
   const old=initial.get(next.strategyId);
   if(!old)throw Error('Strategy portfolio identity changed');
+  if(after.status==='DEGRADED'&&exact(next)!==exact(old))
+    throw Error('Degraded source must preserve prior virtual portfolio exactly');
   if(next.events.length<old.events.length && old.events.length!==120)
    throw Error('Modeled transaction history was lost');
   // At most one modeled entry/exit per checkpoint, including at the
