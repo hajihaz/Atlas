@@ -6,6 +6,7 @@ import path from 'node:path';
 import {assertNextCloudSnapshot} from './paper_ledger_guard.mjs';
 import {auditGeneratedPaperFills} from './paper_generated_fill_audit.mjs';
 import {describePaperRun,renderPaperRunHealthMarkdown} from './paper_run_health.mjs';
+import {appendPaperCheckpointEvidence} from './paper_checkpoint_evidence.mjs';
 import {diagnosePaperSource,unavailablePaperSource} from './paper_source_diagnostics.mjs';
 import {getChart} from '../frontend/api/market-history.js';
 import {getLiveFeed} from '../frontend/api/live-feed.js';
@@ -69,12 +70,15 @@ async function main(){
   }
  }
  next={...next,lastSourceCheck:diagnostic};
+ // Record only this genuine forward attempt. Older runCount values are not
+ // retroactively fabricated; the retained evidence covers at most 24 runs.
+ const health=describePaperRun(old,next);
+ next.recentCheckpoints=appendPaperCheckpointEvidence(old,next,health);
  const data=JSON.stringify(next,null,2)+'\n';
  if(Buffer.byteLength(data,'utf8')>LIMIT_BYTES)throw Error('State report exceeded bounded size');
  if(next.realOrdersEnabled!==false||next.actualCapitalINR!==0||next.mode!==MODE)
    throw Error('Unsafe paper output');
  assertNextCloudSnapshot(old,next,now);
- const health=describePaperRun(old,next);
  const markdown=renderPaperRunHealthMarkdown(health);
  await fs.writeFile(OUTPUT,data,'utf8');
  // GitHub's job may succeed while the provider is safely DEGRADED; surface
