@@ -2,7 +2,7 @@
 // scheduled runner, market provider, broker, or any real-money order route.
 // Every candidate must pass the existing persisted ledger replay guard.
 import {assertNextCloudSnapshot} from './paper_ledger_guard.mjs';
-const T=7200000,MAX_QUOTE_AGE=90000,MAX_BAR_AGE=45*60000;
+const T=7200000,MAX_QUOTE_AGE=90000,MAX_BAR_AGE=90*60000;
 const round=n=>Number(n.toFixed(2));
 const valid=n=>typeof n==='number'&&Number.isFinite(n);
 const ms=s=>typeof s==='string'?Date.parse(s):NaN;
