@@ -110,3 +110,16 @@ test('no same-bar modeled entry can be inserted as replay on a restarted ledger'
    /existing position/);
  assert.equal(next.actualCapitalINR,0);
 });
+
+test('77-minute delayed candle accepted only with a fresh matching modeled quote',()=>{
+ const before=seed();
+ const current=Date.parse(before.lastBarClosedAt)+T+77*60000;
+ const {filled,quote,now}=modeledOrder({before,now:current});
+ const candidate=buildVirtualSettlementCandidate(before,filled,quote,now);
+ assert.equal(candidate.candidate.sessions[0].events.length,1);
+ assert.equal(candidate.actualCapitalINR,0);
+ const badAt=now+14*60000;
+ assert.throws(()=>buildVirtualSettlementCandidate(before,filled,{
+  ...quote,sourceAt:new Date(badAt-1000).toISOString()
+ },badAt),/Virtual settlement blocked/);
+});
