@@ -10,14 +10,14 @@
   "virtualCapitalPerStrategyINR": 100000,
   "realOrdersEnabled": false,
   "createdAt": "2026-10-19T22:37:32.197Z",
-  "lastRunAt": "2026-10-20T01:05:59.117Z",
-  "lastProviderAt": "2026-10-19T22:37:31.000Z",
-  "lastBarClosedAt": "2026-10-19T22:00:00.000Z",
+  "lastRunAt": "2026-10-20T12:40:18.345Z",
+  "lastProviderAt": "2026-10-20T12:40:17.000Z",
+  "lastBarClosedAt": "2026-10-20T12:00:00.000Z",
   "scheduledEveryMinutes": 120,
-  "runCount": 2,
-  "skippedIntervals": 0,
-  "status": "DEGRADED",
-  "alert": "Provider/candle freshness gate did not pass; no virtual fills processed.",
+  "runCount": 3,
+  "skippedIntervals": 6,
+  "status": "GAP_SKIPPED",
+  "alert": "Missing scheduled candle snapshots; no backfilled fills.",
   "firstRunHasNoBackfilledTrades": true,
   "sessions": [
     {
@@ -144,6 +144,37 @@
           "equityINR": 100000
         }
       ]
+    }
+  ],
+  "lastCandleAgeMinutes": 40,
+  "latencyPolicy": "DELAYED_PUBLIC_CANDLE_MODEL_ONLY_MAX_90_MIN",
+  "lastSourceCheck": {
+    "schema": 1,
+    "status": "PASS",
+    "code": "ELIGIBLE",
+    "checkedAt": "2026-10-20T12:40:18.345Z",
+    "latestBarClosedAt": "2026-10-20T12:00:00.000Z",
+    "providerQuoteAt": "2026-10-20T12:40:17.000Z",
+    "candleAgeMinutes": 40,
+    "latencyClass": "RECENT_OR_UNVERIFIED",
+    "liveOrdersEnabled": false,
+    "paperOrdersExecuted": false
+  },
+  "recentCheckpoints": [
+    {
+      "runCount": 3,
+      "at": "2026-10-20T12:40:18.345Z",
+      "status": "GAP_SKIPPED",
+      "classification": "SKIPPED_SOURCE_INTERVALS",
+      "sourceAccepted": true,
+      "sourceCode": "ELIGIBLE",
+      "completedBarAt": "2026-10-20T12:00:00.000Z",
+      "candleAgeMinutes": 40,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 6,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
     }
   ]
 }
