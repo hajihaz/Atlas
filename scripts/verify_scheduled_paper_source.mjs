@@ -26,6 +26,9 @@ console.log('ATLAS_READ_ONLY_PAPER_SOURCE_PROBE',JSON.stringify({
   historyCoverage:history.coverage,hourlyClosedCandles:history.candles.length,
   completeTwoHourCandles:bars.length,latestBarClosedAt:latestClose?new Date(latestClose).toISOString():null,
   lastQuoteTime:quote?.sourceAt??null,quoteStatus:quote?.status??'unknown',
+  lastCandleAgeMinutes:latestClose?Math.floor((now-latestClose)/60000):null,
+  latencyClass:ok&&now-latestClose>45*60000?'DELAYED_PAPER_ONLY':
+    ok?'RECENT_PAPER_ONLY':'SOURCE_INELIGIBLE',
   parseError,eligibleAtProbeTime:Boolean(ok),
   researchPortfoliosIfSeeded:snapshot?.sessions.length??0,
   actualCapitalINR:0,ordersPlaced:0,transactionsCommitted:false,
