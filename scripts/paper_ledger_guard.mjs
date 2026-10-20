@@ -1,3 +1,4 @@
+import {assertPaperCheckpointContinuity} from './paper_checkpoint_evidence.mjs';
 // Public virtual-paper ledger persistence boundary. No broker/order routes.
 // A saved state must be strictly newer; a repeated completed candle may never
 // cause another modeled fill. This is invariant checking, NOT authentication.
@@ -52,6 +53,7 @@ export function assertNextCloudSnapshot(before,after,now){
    throw Error('First checkpoint must not backfill fills');
   if(after.sessions.length===0&&after.status!=='AWAITING_VALID_SOURCE')
    throw Error('Unverified first run has misleading status');
+  assertPaperCheckpointContinuity(before,after);
   return true;
  }
  if(after.sessions.length!==5)throw Error('Existing portfolio history erased');
@@ -104,5 +106,6 @@ export function assertNextCloudSnapshot(before,after,now){
     throw Error('Modeled fill not tied to the new source candle and run');
   }
  }
+ assertPaperCheckpointContinuity(before,after);
  return true;
 }
