@@ -4,6 +4,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {assertNextCloudSnapshot} from './paper_ledger_guard.mjs';
+import {auditGeneratedPaperFills} from './paper_generated_fill_audit.mjs';
 import {diagnosePaperSource,unavailablePaperSource} from './paper_source_diagnostics.mjs';
 import {getChart} from '../frontend/api/market-history.js';
 import {getLiveFeed} from '../frontend/api/live-feed.js';
@@ -46,6 +47,12 @@ async function main(){
   if(diagnostic.status!=='PASS')
     throw Error('Source gate refused the observation: '+diagnostic.code);
   next=advanceCloud(previous,bars,quote,now);
+  // Reject any arithmetic, fill-ID or modeled fee mismatch BEFORE persistence.
+  // This independently checks the order/settlement model; no extra trades.
+  if(previous) {
+    const audit=auditGeneratedPaperFills(previous,next,quote,now);
+    console.log('Independent paper fill audit:',JSON.stringify(audit));
+  }
   // Even repeated failed first checks keep their real attempt counter.
   if(!previous&&next.sessions.length===5)next.runCount=old.runCount+1;
  }catch(e){
