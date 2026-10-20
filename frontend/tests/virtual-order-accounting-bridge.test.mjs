@@ -74,7 +74,7 @@ test('source timestamps, repeated candles and cash shortage reject synthetic set
  const before=seed();const {filled,quote,now}=modeledOrder();
  const poison=[
   [filled,{...quote,status:'unverified'},now],
-  [filled,{...quote,price:3900000},now],
+  [filled,{...quote,price:3500000},now],
   [filled,{...quote,sourceAt:str(now-5000)},now],
   [filled,quote,now+110000],
   [filled,quote,now+T],
@@ -103,8 +103,8 @@ test('no same-bar modeled entry can be inserted as replay on a restarted ledger'
  const next=buildVirtualSettlementCandidate(before,filled,quote,now).candidate;
  const mutated=structuredClone(next);
  mutated.runCount++;mutated.lastRunAt=str(now+1000);
- const another=modeledOrder({before:mutated,now:now+T,price:4200000,
-  fee:84,fillId:'fill:model:restart345'});
+ const another=modeledOrder({before:mutated,now:now+T,price:500000,
+  fee:10,fillId:'fill:model:restart345'});
  // A second entry is blocked while the same virtual holding remains open.
  assert.throws(()=>buildVirtualSettlementCandidate(mutated,another.filled,another.quote,now+T),
    /existing position/);
