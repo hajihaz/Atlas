@@ -15,6 +15,7 @@ test('published paper ledger accepts a genuinely recorded no-trade retry',()=>{
 test('a repeated completed candle cannot produce another synthetic BUY',()=>{
  const old=original(),at=Date.parse(old.lastRunAt)+20_000;
  const next=copy(old);next.runCount++;next.lastRunAt=new Date(at).toISOString();
+ next.status='RUNNING'; // Synthetic accepted-source context for replay test.
  next.sessions[0].events.push({side:'BUY',quoteAt:new Date(at).toISOString(),
   barClosedAt:old.lastBarClosedAt,modeledPriceINR:8e6,
   quantity:0.012,feeINR:100,realizedPnlINR:null,
