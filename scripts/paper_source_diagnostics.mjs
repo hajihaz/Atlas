@@ -4,7 +4,7 @@
 const HOUR=3600000;
 const TWO_HOURS=2*HOUR;
 const MAX_QUOTE_AGE=90000;
-const MAX_BAR_AGE=45*60000;
+const MAX_BAR_AGE=90*60000; // Delayed public-candle research only, no broker execution
 const supported=new Set(['BTCINR','ETHINR','SOLINR','XRPINR','DOGEINR']);
 const iso=v=>Number.isFinite(v)&&v>0?new Date(v).toISOString():null;
 
@@ -14,6 +14,9 @@ export function diagnosePaperSource({symbol='BTCINR',history,feed,bars,quote,now
   schema:1,status:code==='ELIGIBLE'?'PASS':'BLOCKED',code,
   checkedAt,latestBarClosedAt,providerQuoteAt,
   // These are observations, not permissions to execute a market order.
+  candleAgeMinutes:latestBarClosedAt===null?null:Math.floor((at-Date.parse(latestBarClosedAt))/60000),
+  latencyClass:code==='ELIGIBLE'&&latestBarClosedAt!==null&&at-Date.parse(latestBarClosedAt)>45*60000
+    ?'DELAYED_PAPER_ONLY':'RECENT_OR_UNVERIFIED',
   liveOrdersEnabled:false,paperOrdersExecuted:false,
  });
  if(!Number.isFinite(at)||at<=0||!supported.has(symbol))
