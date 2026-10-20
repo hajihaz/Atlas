@@ -37,6 +37,46 @@ export function buildCloudPaperSummary(report){
    report.runCount<1))
    throw new Error('Invalid cloud-paper run provenance');
  const isWithinRun=at=>at!==null && at>=startedAt-5000 && at<=observedAt+5000;
+ // This captures only *recorded* forward runner evidence. The source
+ // ledger enforces append-only continuity; do not infer missing past runs.
+ const checkpoints=report.recentCheckpoints??[];
+ if(!Array.isArray(checkpoints)||checkpoints.length>24)
+   throw new Error('Unsafe source checkpoint evidence window');
+ let previous=null;
+ for(const entry of checkpoints){
+   if(!entry||!Number.isSafeInteger(entry.runCount)||entry.runCount<1
+     ||!Number.isSafeInteger(entry.newModeledFills)||entry.newModeledFills<0
+     ||entry.newModeledFills>5||!Number.isSafeInteger(entry.haltedStrategies)
+     ||entry.haltedStrategies<0||entry.haltedStrategies>5
+     ||!Number.isSafeInteger(entry.skippedIntervals)||entry.skippedIntervals<0
+     ||entry.realOrdersEnabled!==false||entry.actualCapitalINR!==0
+     ||typeof entry.sourceAccepted!=='boolean'
+     ||!['RUNNING','GAP_SKIPPED','DEGRADED','AWAITING_VALID_SOURCE'].includes(entry.status)
+     ||typeof entry.sourceCode!=='string'||!/^[-A-Z0-9_]{3,64}$/.test(entry.sourceCode)
+     ||when(entry.at)===null)
+     throw new Error('Unsafe published checkpoint evidence entry');
+   if(previous&&(entry.runCount!==previous.runCount+1||
+     Date.parse(entry.at)<Date.parse(previous.at)))
+     throw new Error('Nonmonotonic published checkpoint evidence');
+   previous=entry;
+ }
+ if(checkpoints.length&&
+   (checkpoints.at(-1).runCount!==report.runCount||
+    checkpoints.at(-1).at!==report.lastRunAt))
+   throw new Error('Checkpoint evidence and paper ledger disagree');
+ const checkpointEvidence={
+   recordedAttempts:checkpoints.length,
+   acceptedSourceAttempts:checkpoints.filter(x=>x.sourceAccepted&&x.status==='RUNNING').length,
+   rejectedSourceAttempts:checkpoints.filter(x=>x.status==='DEGRADED').length,
+   newlyModeledFillsInWindow:checkpoints.reduce((n,x)=>n+x.newModeledFills,0),
+   olderAttemptsWithoutEvidence:Math.max(0,(report.runCount??0)-checkpoints.length),
+   lastFive:checkpoints.slice(-5).map(x=>({
+     runCount:x.runCount,at:x.at,sourceCode:x.sourceCode,
+     sourceAccepted:x.sourceAccepted,status:x.status,
+     newModeledFills:x.newModeledFills
+   })).reverse(),
+   disclaimer:'Only saved future runner attempts, not reconstructed history or certified returns.'
+ };
  const seen=new Set();
  const strategies=report.sessions.map(s=>{
    if(typeof s.strategyId!=='string'||seen.has(s.strategyId)||
@@ -132,7 +172,7 @@ export function buildCloudPaperSummary(report){
    lastAttemptAt:report.lastRunAt??null,status:report.status,
    virtualCapitalPerIndependentStrategyINR:INITIAL_CAPITAL,
    actualCapitalINR:0,realOrdersEnabled:false,
-   strategyAccountsAreIndependent:true,runCount:report.runCount,
+   strategyAccountsAreIndependent:true,checkpointEvidence,runCount:report.runCount,
    skippedIntervals:report.skippedIntervals??0,alert:report.alert??null,
    strategies,disclaimer:'Read-only hypothetical research, not actual holdings, fills, profit or investment advice. Day changes require consecutive checkpoints; unavailable days remain null. Retained event history is bounded.'};
 }
