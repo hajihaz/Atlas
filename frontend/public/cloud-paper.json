@@ -10,14 +10,14 @@
   "virtualCapitalPerStrategyINR": 100000,
   "realOrdersEnabled": false,
   "createdAt": "2026-10-19T22:37:32.197Z",
-  "lastRunAt": "2026-10-19T22:37:32.197Z",
+  "lastRunAt": "2026-10-20T01:05:59.117Z",
   "lastProviderAt": "2026-10-19T22:37:31.000Z",
   "lastBarClosedAt": "2026-10-19T22:00:00.000Z",
   "scheduledEveryMinutes": 120,
-  "runCount": 1,
+  "runCount": 2,
   "skippedIntervals": 0,
-  "status": "RUNNING",
-  "alert": null,
+  "status": "DEGRADED",
+  "alert": "Provider/candle freshness gate did not pass; no virtual fills processed.",
   "firstRunHasNoBackfilledTrades": true,
   "sessions": [
     {
