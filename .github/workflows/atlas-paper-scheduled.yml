@@ -1,8 +1,9 @@
 name: atlas-paper-scheduled
 on:
   schedule:
-    # Run every two hours; do not imply guaranteed exact start times.
-    - cron: '17 */2 * * *'
+    # Two best-effort attempts during the observed delayed source window.
+    # 05/17 min in odd UTC hours; no catch-up, no backfilled fills.
+    - cron: '5,17 1-23/2 * * *'
   workflow_dispatch:
 permissions:
   contents: write
