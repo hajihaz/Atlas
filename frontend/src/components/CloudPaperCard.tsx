@@ -10,6 +10,10 @@ type PaperRow={strategyId:string;strategyName:string;status:'RUNNING'|'HALTED';
  maxDrawdownPct:number;closedTrades:number;wins:number;realizedPnlINR:number;
  lastSignal:string;events:Event[];pausedReason:string|null;
  equityHistory?:{at:string;equityINR:number}[]};
+type CheckpointEvidence={runCount:number;at:string;status:string;classification:string;
+ sourceAccepted:boolean;sourceCode:string;completedBarAt:string|null;
+ candleAgeMinutes:number|null;newModeledFills:number;haltedStrategies:number;
+ skippedIntervals:number;realOrdersEnabled:false;actualCapitalINR:0};
 type Report={schema:number;mode:string;currency:'INR';status:string;symbol:string;
  actualCapitalINR:number;realOrdersEnabled:false;interval:string;runCount:number;
  createdAt:string|null;lastRunAt:string|null;lastProviderAt:string|null;
@@ -18,6 +22,7 @@ type Report={schema:number;mode:string;currency:'INR';status:string;symbol:strin
    checkedAt:string|null;latestBarClosedAt:string|null;providerQuoteAt:string|null;
    candleAgeMinutes?:number|null;latencyClass?:'DELAYED_PAPER_ONLY'|'RECENT_OR_UNVERIFIED';
    liveOrdersEnabled:false;paperOrdersExecuted:false};
+ recentCheckpoints?:CheckpointEvidence[];
  sessions:PaperRow[]};
 const money=(n:number)=>new Intl.NumberFormat('en-IN',{style:'currency',
  currency:'INR',maximumFractionDigits:2}).format(n);
@@ -44,6 +49,15 @@ export default function CloudPaperCard(){
         ||d.sessions.length>5||d.sessions.some(s=>!Number.isFinite(s.virtualEquityINR)
           ||!Array.isArray(s.events)||s.events.length>120))
         throw Error('Untrusted virtual paper report');
+       if(d.recentCheckpoints!==undefined&&(
+         !Array.isArray(d.recentCheckpoints)||d.recentCheckpoints.length>24||
+         (d.recentCheckpoints.length>0&&
+           (d.recentCheckpoints.at(-1)?.runCount!==d.runCount||
+            d.recentCheckpoints.at(-1)?.at!==d.lastRunAt))||
+         d.recentCheckpoints.some(x=>!Number.isSafeInteger(x.runCount)||
+           !Number.isSafeInteger(x.newModeledFills)||x.newModeledFills<0||
+           x.realOrdersEnabled!==false||x.actualCapitalINR!==0)))
+         throw Error('Published virtual checkpoint evidence is inconsistent');
        buildCloudPaperSummary(d); // full source-contract gate before use
        if(active){setReport(d);setProblem('');}
      }catch(e){if(active&&!controller.signal.aborted)
@@ -62,6 +76,10 @@ export default function CloudPaperCard(){
  const selectedSummary=daybook?.strategies.find(s=>s.strategyId===current?.strategyId);
  const dayRows=selectedSummary?.days??[];
  const activeDay=dayRows.find(d=>d.dayIST===selectedDay)??dayRows[0];
+ const proof=report?.recentCheckpoints??[];
+ const acceptedProof=proof.filter(x=>x.sourceAccepted&&x.status==='RUNNING').length;
+ const rejectedProof=proof.filter(x=>x.classification==='SOURCE_REJECTED').length;
+ const newModeledInWindow=proof.reduce((n,x)=>n+x.newModeledFills,0);
  const comparison=daybook?.strategies??[];
  const rankReady=report?.runCount!==undefined&&report.runCount>=5
    &&comparison.length===5&&comparison.every(s=>s.closedTrades>=3)
@@ -95,6 +113,31 @@ export default function CloudPaperCard(){
         {report.lastSourceCheck?.status==='PASS'?'Accepted':
          report.lastSourceCheck?.status==='BLOCKED'?'Blocked':'Not yet recorded'}
       </strong></div>
+    </div>
+    <div className="cloud-paper-comparison" aria-label="Verified recent paper-run evidence">
+      <div className="cloud-paper-comparison-heading">
+        <strong>Recent checkpoint evidence</strong>
+        <span>Only actual attempts since evidence tracking started · last 24 maximum</span>
+      </div>
+      {proof.length===0
+        ?<p className="cloud-paper-notice">No new recorded checkpoint evidence yet. Older runner attempts are not backfilled.</p>
+        :<>
+          <div className="cloud-paper-meta">
+            <div><small>Recorded attempts</small><strong>{proof.length}</strong></div>
+            <div><small>Accepted public source</small><strong>{acceptedProof}</strong></div>
+            <div><small>Rejected public source</small><strong>{rejectedProof}</strong></div>
+            <div><small>New hypothetical fills</small><strong>{newModeledInWindow}</strong></div>
+          </div>
+          <div className="cloud-paper-rank-scroll">
+            <table><thead><tr><th>Recorded IST</th><th>Check</th><th>Reason</th><th>New virtual fills</th></tr></thead>
+              <tbody>{proof.slice(-5).reverse().map(x=><tr key={x.runCount}>
+                <td>{ts(x.at)}</td><td>{x.sourceAccepted?'Verified':'Not accepted'}</td>
+                <td>{x.sourceCode}</td><td>{x.newModeledFills}</td>
+              </tr>)}</tbody>
+            </table>
+          </div>
+          {report.runCount>proof.length&&<small>The earlier {report.runCount-proof.length} attempts have no saved evidence history. No results were reconstructed.</small>}
+        </>}
     </div>
     {report.alert&&<p className="cloud-paper-notice">{report.alert}</p>}
     {report.lastSourceCheck?.status==='BLOCKED'&&
