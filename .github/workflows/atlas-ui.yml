@@ -5,11 +5,15 @@ on:
     paths:
       - 'frontend/**'
       - 'scripts/export_atlas_dashboard.py'
+      - 'scripts/paper_source_diagnostics.mjs'
+      - 'scripts/run_scheduled_paper.mjs'
       - '.github/workflows/atlas-ui.yml'
   pull_request:
     paths:
       - 'frontend/**'
       - 'scripts/export_atlas_dashboard.py'
+      - 'scripts/paper_source_diagnostics.mjs'
+      - 'scripts/run_scheduled_paper.mjs'
       - '.github/workflows/atlas-ui.yml'
 permissions:
   contents: read
@@ -41,6 +45,7 @@ jobs:
       - run: node --test frontend/tests/research-engine.test.mjs
       - run: node --test frontend/tests/paper-engine.test.mjs
       - run: node --test frontend/tests/cloud-paper.test.mjs
+      - run: node --test frontend/tests/paper-source-diagnostics.test.mjs
       - run: node --test frontend/tests/cloud-paper-daybook.test.mjs
       - run: node --test frontend/tests/workbench-ui.test.mjs
       - run: node --test frontend/tests/scalpstorm-allocation-ui.test.mjs
