@@ -17,6 +17,15 @@ export type CloudStrategyDaybook={
  marginBorrowedINR:0;leverageModel:'NONE';modeledUnrealizedResidualINR:number;
  modeledFillsInRetainedHistory:number;days:CloudDay[];
 };
+export type CloudRecentCheckpoint={
+ runCount:number;at:string;sourceCode:string;sourceAccepted:boolean;
+ status:string;newModeledFills:number;
+};
+export type CloudCheckpointEvidence={
+ recordedAttempts:number;acceptedSourceAttempts:number;rejectedSourceAttempts:number;
+ newlyModeledFillsInWindow:number;olderAttemptsWithoutEvidence:number;
+ lastFive:CloudRecentCheckpoint[];disclaimer:string;
+};
 export type CloudPaperSummary={
  schema:1;mode:'PUBLIC_READ_ONLY_PAPER_DAYBOOK';currency:'INR';
  generatedFrom:string;source:string|null;sourceSymbol:string;interval:string;
@@ -24,6 +33,7 @@ export type CloudPaperSummary={
  virtualCapitalPerIndependentStrategyINR:number;actualCapitalINR:0;
  realOrdersEnabled:false;strategyAccountsAreIndependent:true;
  runCount:number;skippedIntervals:number;alert:string|null;
+ checkpointEvidence:CloudCheckpointEvidence;
  strategies:CloudStrategyDaybook[];disclaimer:string;
 };
 export declare function istDay(iso:string):string;
