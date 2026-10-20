@@ -5,7 +5,8 @@ import {STRATEGIES,decision,validateResearchBars,MODELED_CAPITAL_INR}
   from '../frontend/lib/research-engine.js';
 const ONE_HOUR=3600000,TWO_HOUR=7200000;
 const FEE=0.001,SLIPPAGE=0.0005,MAX_VIRTUAL_LOSS=0.05;
-const NOW_STALE_MS=90000,MAX_AGE_BAR_MS=45*60000;
+// Delayed public candles: virtual research only; fill at a fresh public quote.
+const NOW_STALE_MS=90000,MAX_AGE_BAR_MS=90*60000;
 const SYMBOLS=['BTCINR','ETHINR','SOLINR','XRPINR','DOGEINR'];
 const money=v=>Number(v.toFixed(2));
 export const MODE='SCHEDULED_VIRTUAL_PAPER';
@@ -54,6 +55,8 @@ export function freshState(symbol,latestClose,now,quote){
     createdAt:new Date(now).toISOString(),lastRunAt:new Date(now).toISOString(),
     lastProviderAt:quote.sourceAt,lastBarClosedAt:new Date(latestClose).toISOString(),
     scheduledEveryMinutes:120,runCount:1,skippedIntervals:0,
+    lastCandleAgeMinutes:Math.floor((now-latestClose)/60000),
+    latencyPolicy:'DELAYED_PUBLIC_CANDLE_MODEL_ONLY_MAX_90_MIN',
     status:'RUNNING',alert:null,firstRunHasNoBackfilledTrades:true,
     sessions:STRATEGIES.map(s=>({strategyId:s.id,strategyName:s.name,
       cashINR:MODELED_CAPITAL_INR,quantity:0,costINR:0,virtualEquityINR:MODELED_CAPITAL_INR,
@@ -88,7 +91,9 @@ export function advanceCloud(state,bars,quote,now){
  const next={...state,runCount:state.runCount+1,lastRunAt:new Date(now).toISOString(),
    lastProviderAt:quote.sourceAt,lastBarClosedAt:new Date(closeAt).toISOString(),
    status:skip?'GAP_SKIPPED':'RUNNING',alert:skip?'Missing scheduled candle snapshots; no backfilled fills.':null,
-   skippedIntervals:state.skippedIntervals+(skip?Math.max(1,Math.floor(gap/TWO_HOUR)-1):0)};
+   skippedIntervals:state.skippedIntervals+(skip?Math.max(1,Math.floor(gap/TWO_HOUR)-1):0),
+   lastCandleAgeMinutes:Math.floor((now-closeAt)/60000),
+   latencyPolicy:'DELAYED_PUBLIC_CANDLE_MODEL_ONLY_MAX_90_MIN'};
  next.sessions=state.sessions.map(session=>{
    if(session.status==='HALTED')return session;
    let s=markSession(session,quote.price);
