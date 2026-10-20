@@ -230,3 +230,23 @@ html[data-theme] .cloud-daybook-date:focus-visible,
  html[data-theme] .cloud-daybook-date{min-width:155px;flex-shrink:0}
  .cloud-daybook-details{padding:10px}
 }
+
+/* Five-account cloud comparison: horizontal scrolling avoids mobile overflow. */
+.cloud-paper-comparison{border:1px solid var(--pm-border);background:var(--pm-raised);
+ border-radius:11px;padding:14px;margin:12px 0;min-width:0}
+.cloud-paper-comparison-heading{display:flex;flex-wrap:wrap;gap:6px 14px;
+ justify-content:space-between;align-items:center;margin-bottom:12px}
+.cloud-paper-comparison-heading strong{font-size:12px;color:var(--pm-ink)}
+.cloud-paper-comparison-heading span,.cloud-paper-comparison>small{font-size:10px;color:var(--pm-muted);line-height:1.65}
+.cloud-paper-rank-scroll{width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain}
+.cloud-paper-rank-scroll table{border-collapse:collapse;min-width:595px;width:100%}
+.cloud-paper-rank-scroll th,.cloud-paper-rank-scroll td{font-size:10px;line-height:1.6;
+ border-bottom:1px solid var(--pm-border);padding:10px 9px;text-align:left;white-space:nowrap}
+.cloud-paper-rank-scroll th{color:var(--pm-muted);font-weight:750}
+.cloud-paper-rank-scroll td{color:var(--pm-ink)}
+.cloud-paper-comparison>small{display:block;margin-top:10px}
+@media(max-width:640px){
+ .cloud-paper-comparison{padding:10px}
+ .cloud-paper-comparison-heading{align-items:flex-start}
+ .cloud-paper-rank-scroll{-webkit-overflow-scrolling:touch}
+}

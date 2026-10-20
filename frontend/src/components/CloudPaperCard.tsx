@@ -1,5 +1,6 @@
 import {useEffect,useState} from 'react';
 import {buildCloudPaperSummary} from '../lib/cloudPaperDaybook.js';
+import {assessPaperCadence} from '../lib/paperCadence.js';
 import {Activity,Clock3,Cloud,ShieldCheck,TrendingUp} from 'lucide-react';
 import {CartesianGrid,LineChart,Line,ResponsiveContainer,XAxis,YAxis,Tooltip} from 'recharts';
 type Event={side:'BUY'|'SELL';quoteAt:string;barClosedAt:string;
@@ -52,9 +53,18 @@ export default function CloudPaperCard(){
  const age=report?.lastRunAt?now-Date.parse(report.lastRunAt):null;
  const current=report?.sessions.find(s=>s.strategyId===selected)??report?.sessions[0];
  const stale=age===null||age>5*3600000||age<0;
+ const cadence=assessPaperCadence(report?.lastRunAt??null,now);
  const daybook=report?buildCloudPaperSummary(report):null;
- const dayRows=daybook?.strategies.find(s=>s.strategyId===current?.strategyId)?.days??[];
+ const selectedSummary=daybook?.strategies.find(s=>s.strategyId===current?.strategyId);
+ const dayRows=selectedSummary?.days??[];
  const activeDay=dayRows.find(d=>d.dayIST===selectedDay)??dayRows[0];
+ const comparison=daybook?.strategies??[];
+ const rankReady=report?.runCount!==undefined&&report.runCount>=5
+   &&comparison.length===5&&comparison.every(s=>s.closedTrades>=3)
+   &&(report?.skippedIntervals??0)===0;
+ const shown=rankReady?[...comparison].sort((a,b)=>
+   b.totalModeledPnlINR-a.totalModeledPnlINR||a.maxDrawdownPct-b.maxDrawdownPct)
+   :comparison;
  return <section className="panel cloud-paper-card" aria-label="Scheduled server-side virtual paper trading">
   <div className="research-detail-title">
    <div><div className="heading-kicker"><Cloud size={15}/> SCHEDULED GITHUB PAPER RUNNER</div>
@@ -72,13 +82,35 @@ export default function CloudPaperCard(){
       <div><small>Last runner attempt</small><strong>{ts(report.lastRunAt)}</strong></div>
       <div><small>Model</small><strong>{report.symbol.replace('INR',' / INR')} · {report.interval} candles</strong></div>
       <div><small>Skipped intervals</small><strong>{report.skippedIntervals}</strong></div>
+      <div><small>Next nominal runner slot</small><strong>{ts(cadence.nextDueAt)}</strong></div>
     </div>
     {report.alert&&<p className="cloud-paper-notice">{report.alert}</p>}
+    {cadence.overdue&&<p className="cloud-paper-notice">
+      The expected schedule window passed without a newer published ledger.
+      This does not prove the GitHub job failed. Check runner history before using stale figures.
+    </p>}
     {stale&&report.sessions.length>0&&<p className="cloud-paper-notice">
       No recent scheduled checkpoint. Numbers below are the LAST published observations, not live prices.</p>}
     {report.sessions.length===0?<div className="research-status">
       GitHub Actions has not published an accepted market observation yet. Attempts without eligible source data do not create simulated positions, trades or returns.
     </div>:<>
+    <div className="cloud-paper-comparison">
+      <div className="cloud-paper-comparison-heading">
+        <strong>Five-strategy virtual comparison</strong>
+        <span>{rankReady?'Provisional ordering from recorded modeled equity':
+          'Ranking withheld until five checkpoints and three closed exits per strategy'}</span>
+      </div>
+      <div className="cloud-paper-rank-scroll">
+        <table><thead><tr><th>Strategy</th><th>Virtual equity</th><th>Modeled net P/L</th><th>Max drawdown</th><th>Modeled exits</th></tr></thead>
+          <tbody>{shown.map(s=><tr key={s.strategyId}>
+            <td>{s.strategyName}</td><td>{money(s.virtualEquityINR)}</td>
+            <td>{money(s.totalModeledPnlINR)}</td><td>{s.maxDrawdownPct.toFixed(2)}%</td>
+            <td>{s.closedTrades}</td>
+          </tr>)}</tbody>
+        </table>
+      </div>
+      <small>Five independent ₹1,00,000 virtual accounts. Historical and forward simulated outcomes are not real profits; no statistical winner is certified.</small>
+    </div>
     <div className="cloud-paper-choices">
       {report.sessions.map(s=><button type="button" key={s.strategyId} aria-pressed={selected===s.strategyId}
        className={'cloud-strategy-button '+(selected===s.strategyId?'selected':'')}
@@ -97,6 +129,13 @@ export default function CloudPaperCard(){
       <div><small>Completed exits</small><strong>{current.closedTrades}</strong></div>
       <div><small>Model fees</small><strong>{money(current.feesINR)}</strong></div>
       <div><small>Open virtual coins</small><strong>{current.quantity.toFixed(8)}</strong></div>
+      <div><small>Virtual available cash</small><strong>{money(selectedSummary?.virtualCashINR??current.cashINR)}</strong></div>
+      <div><small>Marked virtual exposure</small><strong>{money(selectedSummary?.markedPositionValueINR??0)}</strong></div>
+      <div><small>Recorded exit win rate</small><strong>{selectedSummary?.observedWinRatePct===null?'—':
+       selectedSummary?.observedWinRatePct?.toFixed(2)+'%'}</strong></div>
+      <div><small>Modeled realized P/L</small><strong>{money(current.realizedPnlINR)}</strong></div>
+      <div><small>Borrowed margin / leverage</small><strong>₹0 · None modeled</strong></div>
+      <div><small>Unrealized residual estimate</small><strong>{money(selectedSummary?.modeledUnrealizedResidualINR??0)}</strong></div>
      </div>
      {(current.equityHistory?.length??0)>1&&<div className="cloud-equity-chart">
       <ResponsiveContainer width="100%" height="100%">

@@ -34,8 +34,16 @@ jobs:
             echo 'No new accepted market observations, no commit.'
             exit 0
           fi
+          # A source update racing this run must never be silently overwritten.
+          # Next scheduled run will retry against the newer GitHub ledger.
+          base_commit="$(git rev-parse HEAD)"
           git config user.name "atlas-paper-research[bot]"
           git config user.email "atlas-paper-research[bot]@users.noreply.github.com"
           git add -- frontend/public/cloud-paper.json
           git commit -m "data(atlas): scheduled virtual paper snapshot [skip ci]"
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          if [ "$(git rev-parse refs/remotes/origin/main)" != "$base_commit" ]; then
+            echo "::error::main advanced during the paper calculation; refusing stale snapshot push."
+            exit 1
+          fi
           git push origin HEAD:main

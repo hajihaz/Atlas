@@ -43,6 +43,9 @@ export function buildCloudPaperSummary(report){
      typeof s.strategyName!=='string'||!validMoney(s.virtualEquityINR)||
      !validMoney(s.realizedPnlINR)||!validMoney(s.feesINR)||
      !validMoney(s.maxDrawdownPct)||!Number.isInteger(s.closedTrades)||
+     s.closedTrades<0||!Number.isInteger(s.wins)||s.wins<0||
+     s.wins>s.closedTrades||!validMoney(s.cashINR)||s.cashINR<0||
+     !validMoney(s.quantity)||s.quantity<0||
      !Array.isArray(s.events)||s.events.length>120||
      !Array.isArray(s.equityHistory)||s.equityHistory.length>120)
      throw new Error('Unsafe strategy in virtual ledger');
@@ -110,6 +113,14 @@ export function buildCloudPaperSummary(report){
      totalModeledPnlINR:round(s.virtualEquityINR-INITIAL_CAPITAL),
      realizedExitPnlINR:round(s.realizedPnlINR),feesINR:round(s.feesINR),
      maxDrawdownPct:round(s.maxDrawdownPct),closedTrades:s.closedTrades,
+     winningModeledExits:s.wins,
+     observedWinRatePct:s.closedTrades>0?round(s.wins/s.closedTrades*100):null,
+     virtualCashINR:round(s.cashINR),
+     markedPositionValueINR:round(Math.max(0,s.virtualEquityINR-s.cashINR)),
+     openQuantity:s.quantity,
+     marginBorrowedINR:0,leverageModel:'NONE',
+     modeledUnrealizedResidualINR:round(
+       s.virtualEquityINR-INITIAL_CAPITAL-s.realizedPnlINR),
      modeledFillsInRetainedHistory:s.events.length,
      days:ordered.reverse().map(d=>({...d,events:d.events.sort((a,b)=>
        b.at.localeCompare(a.at))}))};

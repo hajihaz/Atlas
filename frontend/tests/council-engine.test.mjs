@@ -6,7 +6,7 @@ const now=Date.parse('2026-10-20T03:00:00Z');
 const fixture=()=>({
   schema:1,mode:'HISTORICAL_HYPOTHETICAL_REPLAY',
   currency:'INR',symbol:'BTCINR',source:'CoinDCX INR candles',
-  generatedAt:'2026-10-20T02:00:00Z',
+  generatedAt:'2026-10-20T02:59:00Z',
   latestClosedAt:'2026-10-20T01:00:00Z',
   barCount:150,liveOrdersEnabled:false,paperOrdersExecuted:false,
   paperLedgerStored:false,
@@ -40,6 +40,8 @@ test('missing, corrupt and forged market evidence fail closed',()=>{
    {...fixture(),paperOrdersExecuted:true},
    {...fixture(),liveOrdersEnabled:true},
    {...fixture(),generatedAt:'2030-01-01T00:00:00Z'},
+   {...fixture(),generatedAt:'2026-10-20T02:20:00Z'},
+   {...fixture(),latestClosedAt:'2026-10-20T03:01:00Z'},
    {...fixture(),latestClosedAt:null},
    {...fixture(),strategies:[{id:'sma_9_21',name:'bad',
      modeledReturnPct:Infinity,maxDrawdownPct:0,endingEquityINR:100000}]},
@@ -73,4 +75,12 @@ test('research screen appears only beside source-backed strategy data',()=>{
  assert.match(panel,/NOT CONNECTED|result\?\.status/);
  assert.match(panel,/No real or paper order/);
  assert.match(style,/@media\(max-width:640px\)/);
+});
+
+test('research age gate cannot be bypassed by an earlier finished candle',()=>{
+ const lab=fixture();
+ const expired=evaluateCouncil(lab,'sma_9_21',now+16*60*1000);
+ assert.equal(expired.outcome,'SKIP');
+ assert.equal(expired.agents[4].status,'VETO');
+ assert.equal(expired.realOrdersPlaced,0);
 });
