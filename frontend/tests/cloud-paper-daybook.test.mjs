@@ -168,3 +168,53 @@ test('modeled exposure and residual derive from virtual cash and equity only',()
  assert.equal(v.marginBorrowedINR,0);
  assert.equal(v.leverageModel,'NONE');
 });
+
+
+test('ChatGPT daybook never backfills earlier uncaptured cloud checks',()=>{
+ const r=cloned(),daybook=buildCloudPaperSummary(r);
+ assert.equal(daybook.checkpointEvidence.recordedAttempts,0);
+ assert.equal(daybook.checkpointEvidence.olderAttemptsWithoutEvidence,r.runCount);
+ assert.equal(daybook.checkpointEvidence.newlyModeledFillsInWindow,0);
+ assert.equal(daybook.checkpointEvidence.acceptedSourceAttempts,0);
+ assert.equal(daybook.actualCapitalINR,0);
+ assert.match(daybook.checkpointEvidence.disclaimer,/not reconstructed history/);
+});
+test('one source-backed published checkpoint appears identically in ChatGPT daybook',()=>{
+ const r=cloned();
+ const recorded={runCount:r.runCount,at:r.lastRunAt,
+  status:'DEGRADED',classification:'SOURCE_REJECTED',
+  sourceCode:'CLOSED_CANDLE_TOO_OLD',sourceAccepted:false,
+  completedBarAt:r.lastBarClosedAt,candleAgeMinutes:97,
+  newModeledFills:0,haltedStrategies:0,skippedIntervals:r.skippedIntervals,
+  actualCapitalINR:0,realOrdersEnabled:false};
+ r.recentCheckpoints=[recorded]; // Explicit hypothetical fixture, not production.
+ const d=buildCloudPaperSummary(r).checkpointEvidence;
+ assert.equal(d.recordedAttempts,1);
+ assert.equal(d.acceptedSourceAttempts,0);
+ assert.equal(d.rejectedSourceAttempts,1);
+ assert.equal(d.newlyModeledFillsInWindow,0);
+ assert.equal(d.olderAttemptsWithoutEvidence,r.runCount-1);
+ assert.deepEqual(d.lastFive,[{runCount:r.runCount,at:r.lastRunAt,
+  sourceCode:'CLOSED_CANDLE_TOO_OLD',sourceAccepted:false,
+  status:'DEGRADED',newModeledFills:0}]);
+});
+test('corrupted, missing or future paper evidence cannot be presented as certified results',()=>{
+ const r=cloned();
+ r.recentCheckpoints=[{runCount:r.runCount,at:r.lastRunAt,
+  sourceCode:'SOURCE_FETCH_FAILED',sourceAccepted:false,
+  status:'DEGRADED',newModeledFills:0,haltedStrategies:0,
+  skippedIntervals:0,realOrdersEnabled:false,actualCapitalINR:0}];
+ const poison=[
+  x=>{x.recentCheckpoints[0].realOrdersEnabled=true;},
+  x=>{x.recentCheckpoints[0].actualCapitalINR=20;},
+  x=>{x.recentCheckpoints[0].newModeledFills=-1;},
+  x=>{x.recentCheckpoints[0].newModeledFills=6;},
+  x=>{x.recentCheckpoints[0].sourceCode='BAD|FAKE';},
+  x=>{x.recentCheckpoints[0].runCount++;},
+  x=>{x.recentCheckpoints[0].at='2030-10-20T00:00:00.000Z';},
+ ];
+ for(const mutate of poison){
+  const f=structuredClone(r);mutate(f);
+  assert.throws(()=>buildCloudPaperSummary(f),/evidence/);
+ }
+});
