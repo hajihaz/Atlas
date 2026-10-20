@@ -49,9 +49,9 @@ test('duplicate fill ID is idempotent; changed amount or price is rejected',()=>
  const o=applyVirtualOrder(make(),{action:'SUBMIT',at:submittedAt},now);
  const first=applyVirtualOrder(o,ev('bar00_fill01'),now);
  assert.strictEqual(applyVirtualOrder(first,ev('bar00_fill01'),now),first);
- assert.throws(()=>applyVirtualOrder(first,ev('bar00_fill01',0.005)),/altered evidence/);
+ assert.throws(()=>applyVirtualOrder(first,ev('bar00_fill01',0.005),now),/altered evidence/);
  assert.throws(()=>applyVirtualOrder(first,ev('bar00_fill01',0.01,{
-   modeledPriceINR:5100000})),/altered evidence/);
+   modeledPriceINR:5100000}),now),/altered evidence/);
 });
 test('rejected, cancelled and expired statuses block new modeled fills',()=>{
  const o=applyVirtualOrder(make(),{action:'SUBMIT',at:submittedAt},now);
@@ -87,10 +87,10 @@ test('no virtual entry without a verifiable source observation',()=>{
 });
 test('exposure, ownership and overfill limits halt invalid modeled trades',()=>{
  const o=applyVirtualOrder(make(),{action:'SUBMIT',at:submittedAt},now);
- assert.throws(()=>applyVirtualOrder(o,ev('bar00_tooBig',0.03)),/outstanding/);
+ assert.throws(()=>applyVirtualOrder(o,ev('bar00_tooBig',0.03),now),/outstanding/);
  const lower=applyVirtualOrder(make({virtualCashLimitINR:200}),
    {action:'SUBMIT',at:submittedAt},now);
- assert.throws(()=>applyVirtualOrder(lower,ev('bar00_cash0')),/virtual cash/);
+ assert.throws(()=>applyVirtualOrder(lower,ev('bar00_cash0'),now),/virtual cash/);
  assert.throws(()=>make({side:'SELL',virtualOwnedQty:0.001}),/Invalid virtual-only/);
  const short=make({side:'SELL',virtualCashLimitINR:0,virtualOwnedQty:0.02});
  const p=applyVirtualOrder(short,{action:'SUBMIT',at:submittedAt},now);
