@@ -45,8 +45,8 @@ export function diagnosePaperSource({symbol='BTCINR',history,feed,bars,quote,now
  const qiso=iso(stamp);
  if(!qiso)return make('QUOTE_TIMESTAMP_INVALID',closedIso);
  if(stamp>at+5000)return make('QUOTE_FROM_FUTURE',closedIso,qiso);
- if(at-stamp>MAX_QUOTE_AGE)return make('QUOTE_TOO_OLD',closedIso,qiso);
  if(stamp<lastClosed)return make('QUOTE_BEFORE_BAR_CLOSE',closedIso,qiso);
+ if(at-stamp>MAX_QUOTE_AGE)return make('QUOTE_TOO_OLD',closedIso,qiso);
  return make('ELIGIBLE',closedIso,qiso);
 }
 export function unavailablePaperSource(now,code='SOURCE_FETCH_FAILED'){
