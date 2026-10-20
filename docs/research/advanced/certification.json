@@ -1,0 +1,260 @@
+{
+  "schema": "atlas.quant-engineering-certification.v1",
+  "checkedAt": "2026-10-20T05:15:55.522Z",
+  "scope": "OFFLINE_ENGINEERING_BEHAVIOR_ON_EXPLICIT_ARTIFICIAL_FIXTURES",
+  "nodeVersion": "v26.8.1",
+  "tests": {
+    "command": "node --test tests/research/*.test.mjs",
+    "passed": 101,
+    "failed": 0,
+    "skipped": 0
+  },
+  "sourceHashes": {
+    "calendar.mjs": "cfbfec641222515c75f791910a6a1f451332ee61ca44a622085b7c75e759d7ca",
+    "certify.mjs": "3f04e66f53f2e0737ab28c87f03843bced240cef5cf65c1f4db58e482bed4ede",
+    "cli.mjs": "78f7d85ac23287ad67fedcf22cd7c9557898ec0895fbe21f5aab8f26e378875b",
+    "contracts.mjs": "474d4d670f458d363f671994d77cfbe3513a7f8ec5b6a0e889a82a624d6f517e",
+    "core.mjs": "26598d493f7382937d87423445bdec8f6cd8e061f9e131da381c13c4cc71ad1c",
+    "council.mjs": "ff536334e35c66d2ef2fe4abe2f76b62c07cd800f6faffd351b3e05c157e4aea",
+    "data.mjs": "db99d6b1cb2afcdca8c1a70aa0c2f10100c3351cef06490ca3a99c089d3fb95d",
+    "evaluation.mjs": "259540b7253fad5d87cff19d3469b1e2df0e85a680fce6324aff98844259cdfc",
+    "execution.mjs": "cd4da8d5086ef5d54c97b4300f5aec3317cef81fb8c800cdc95755556e0f6f38",
+    "index.mjs": "4b780236b02cd5260f3e5376b5a11cf9ed072add737946a9c69212bcb4fbd5a6",
+    "isolated-upstream-check.py": "07f6c2b380f7ddade7b3e9ef6920044d8793abe491cf13a2dccfac6d1966c2d4",
+    "lean-isolated-check.py": "12677f8237d0324f78ce618faac482b91add6695d7e2dbb175e480298d22b869",
+    "pipeline.mjs": "56583b35adaaea6b720d08ec849090d3cc413ff84ced24372d244e08ccff2497",
+    "scalpstorm.mjs": "7483343840d2c72279c76a0d841342b2b7e4b5b59fe06a525a4c7d1532fe8a83",
+    "simulation.mjs": "2918607437e2759b991ca47046440947fad5fc70970ffa6b7f02214bca145d8f",
+    "strategies.mjs": "51748484da0cb3805a978a9f7b441a40812036ffb473f9f47adce71930d36a72",
+    "upstream-audit.mjs": "5f8822e59f08c4b35aca01fe21048f5355b095ce21620f943e3a0f300f335050"
+  },
+  "deterministicEvidence": {
+    "strategyResults": [
+      {
+        "id": "sma_9_21",
+        "resultHash": "d620b02b20c00b19650037b5e1787d6c56cd759072127a822aec0498ce5f7782",
+        "prefixInvariant": true,
+        "uncertainty": {
+          "status": "DESCRIPTIVE_ONLY",
+          "sampleBars": 239,
+          "meanBarReturnInterval": {
+            "lower": -0.000307664453,
+            "upper": 0.002274878484,
+            "level": 0.95,
+            "method": "SEEDED_CIRCULAR_MOVING_BLOCK_BOOTSTRAP",
+            "seed": 271828,
+            "samples": 400,
+            "blockSize": 5
+          },
+          "winRateInterval": {
+            "lower": 0.51010916,
+            "upper": 1,
+            "level": 0.95,
+            "count": 4
+          },
+          "profitabilityCertified": false,
+          "warnings": [
+            "Serial dependence, regime shifts and multiple testing limit interpretation.",
+            "SMALL_CLOSED_TRADE_SAMPLE"
+          ]
+        }
+      },
+      {
+        "id": "ema_12_26",
+        "resultHash": "57ebb93eeff67c900f2b5075b6992ab3c4b698d5b272e07d6f0972b99ba7eff6",
+        "prefixInvariant": true,
+        "uncertainty": {
+          "status": "DESCRIPTIVE_ONLY",
+          "sampleBars": 239,
+          "meanBarReturnInterval": {
+            "lower": -0.001171576978,
+            "upper": 0.000774422603,
+            "level": 0.95,
+            "method": "SEEDED_CIRCULAR_MOVING_BLOCK_BOOTSTRAP",
+            "seed": 271828,
+            "samples": 400,
+            "blockSize": 5
+          },
+          "winRateInterval": {
+            "lower": 0,
+            "upper": 0.65761977,
+            "level": 0.95,
+            "count": 2
+          },
+          "profitabilityCertified": false,
+          "warnings": [
+            "Serial dependence, regime shifts and multiple testing limit interpretation.",
+            "SMALL_CLOSED_TRADE_SAMPLE"
+          ]
+        }
+      },
+      {
+        "id": "rsi_14",
+        "resultHash": "8b9e3f8a0b4b73c39dc392494c386adfe1174dc858f5410adf04df656d5e7215",
+        "prefixInvariant": true,
+        "uncertainty": {
+          "status": "DESCRIPTIVE_ONLY",
+          "sampleBars": 239,
+          "meanBarReturnInterval": {
+            "lower": 0.000066477565,
+            "upper": 0.000627139432,
+            "level": 0.95,
+            "method": "SEEDED_CIRCULAR_MOVING_BLOCK_BOOTSTRAP",
+            "seed": 271828,
+            "samples": 400,
+            "blockSize": 5
+          },
+          "winRateInterval": {
+            "lower": 0.51010916,
+            "upper": 1,
+            "level": 0.95,
+            "count": 4
+          },
+          "profitabilityCertified": false,
+          "warnings": [
+            "Serial dependence, regime shifts and multiple testing limit interpretation.",
+            "SMALL_CLOSED_TRADE_SAMPLE"
+          ]
+        }
+      },
+      {
+        "id": "breakout_20",
+        "resultHash": "93265e7704ff09cb3ef3a71beb14f36d9ddcf6a7d5c0e5f556dacc89d0f8fdd4",
+        "prefixInvariant": true,
+        "uncertainty": {
+          "status": "DESCRIPTIVE_ONLY",
+          "sampleBars": 239,
+          "meanBarReturnInterval": {
+            "lower": 0.000550180387,
+            "upper": 0.00268943508,
+            "level": 0.95,
+            "method": "SEEDED_CIRCULAR_MOVING_BLOCK_BOOTSTRAP",
+            "seed": 271828,
+            "samples": 400,
+            "blockSize": 5
+          },
+          "winRateInterval": {
+            "lower": 0.51010916,
+            "upper": 1,
+            "level": 0.95,
+            "count": 4
+          },
+          "profitabilityCertified": false,
+          "warnings": [
+            "Serial dependence, regime shifts and multiple testing limit interpretation.",
+            "SMALL_CLOSED_TRADE_SAMPLE"
+          ]
+        }
+      },
+      {
+        "id": "sps_pullback",
+        "resultHash": "3802e7e377b0adeb28cd50e46ce6d2a24cd029eeccc113c8183d660bf49d09a2",
+        "prefixInvariant": true,
+        "uncertainty": {
+          "status": "DESCRIPTIVE_ONLY",
+          "sampleBars": 239,
+          "meanBarReturnInterval": {
+            "lower": 0,
+            "upper": 0,
+            "level": 0.95,
+            "method": "SEEDED_CIRCULAR_MOVING_BLOCK_BOOTSTRAP",
+            "seed": 271828,
+            "samples": 400,
+            "blockSize": 5
+          },
+          "winRateInterval": {
+            "lower": null,
+            "upper": null,
+            "level": 0.95,
+            "count": 0
+          },
+          "profitabilityCertified": false,
+          "warnings": [
+            "Serial dependence, regime shifts and multiple testing limit interpretation.",
+            "SMALL_CLOSED_TRADE_SAMPLE"
+          ]
+        }
+      }
+    ],
+    "walkForwardResultHash": "89c9800a45bbdcf9f11e1eaf26866a8a0a6e644ec604bda59706ae4ee8ac5f11",
+    "folds": 3,
+    "envelopeHash": "0e1732db846096a3b318a6284b0cd559d44ef221fee41418de55e26c0bb34e50",
+    "fixtureCampaignHash": "5ebc4fed6d526364b943f20260d5909a26f91b64db6c38c124ed1ff7297c4edf",
+    "missingAuthenticCampaign": {
+      "schema": "atlas.scalpstorm-campaign.v1",
+      "status": "BLOCKED_MISSING_AUTHENTIC_HISTORY",
+      "historicalBacktestStatus": "BLOCKED_PENDING_AUTHENTIC_DATA_AND_INDEPENDENT_SOURCE_REVIEW",
+      "historicalNetPnlINR": null,
+      "authenticPerformancePublished": false,
+      "calendar": {
+        "venue": "NSE",
+        "segment": "Equities",
+        "from": "2026-09-18",
+        "through": "2026-10-16",
+        "officialSource": "https://www.nseindia.com/resources/exchange-communication-holidays",
+        "checkedAt": "2026-10-20",
+        "fullDayHolidaysInWindow": [
+          "2026-10-02"
+        ],
+        "note": "Official scheduled cash sessions; not proof that historical minute data was obtained."
+      },
+      "expectedSessions": [
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-09-24",
+        "2026-09-25",
+        "2026-09-28",
+        "2026-09-29",
+        "2026-09-30",
+        "2026-10-01",
+        "2026-10-05",
+        "2026-10-06",
+        "2026-10-07",
+        "2026-10-08",
+        "2026-10-09",
+        "2026-10-12",
+        "2026-10-13",
+        "2026-10-14",
+        "2026-10-15",
+        "2026-10-16"
+      ],
+      "missingSessions": [
+        "2026-09-18",
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+        "2026-09-24",
+        "2026-09-25",
+        "2026-09-28",
+        "2026-09-29",
+        "2026-09-30",
+        "2026-10-01",
+        "2026-10-05",
+        "2026-10-06",
+        "2026-10-07",
+        "2026-10-08",
+        "2026-10-09",
+        "2026-10-12",
+        "2026-10-13",
+        "2026-10-14",
+        "2026-10-15",
+        "2026-10-16"
+      ],
+      "capitalPolicy": "100000_RESET_EACH_DAY_NO_COMPOUNDING",
+      "daily": [],
+      "days": [],
+      "fixtureSummary": null,
+      "recurringStocks": [],
+      "realOrdersEnabled": false,
+      "realOrdersPlaced": 0
+    }
+  },
+  "deterministicEvidenceHash": "18b622f61a42142df9cc892b2d16b7cb5c3926b9666096511bb18288a11940b5",
+  "historicalPerformanceCertified": false,
+  "strategyProfitabilityCertified": false,
+  "additionalPackagesInstalled": 0,
+  "realOrdersEnabled": false,
+  "productionDeploymentPerformed": false
+}
