@@ -4,6 +4,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {assertNextCloudSnapshot} from './paper_ledger_guard.mjs';
+import {diagnosePaperSource,unavailablePaperSource} from './paper_source_diagnostics.mjs';
 import {getChart} from '../frontend/api/market-history.js';
 import {getLiveFeed} from '../frontend/api/live-feed.js';
 import {advanceCloud,composeTwoHourCandles,failureState,recordUnverifiedFirstCheckpoint,MODE} from './scheduled_paper_engine.mjs';
@@ -23,6 +24,7 @@ async function main(){
    throw Error('Refusing to mutate unknown paper state');
  const previous=isSeed(old)?null:old;
  let next;
+ let diagnostic=unavailablePaperSource(now);
  try{
   const [history,feed]=await Promise.all([
     getChart({symbol:SYMBOL,range:'1W'},fetch,now),
@@ -31,16 +33,25 @@ async function main(){
   if(history?.source!=='CoinDCX public INR spot candles'
     ||history.symbol!==SYMBOL||history.currency!=='INR'
     ||history.realOrdersEnabled!==false||history.paperExecutionEnabled!==false
-    ||!Array.isArray(history.candles)||feed.currency!=='INR'||feed.realOrdersEnabled!==false)
+    ||!Array.isArray(history.candles)||feed?.currency!=='INR'
+    ||feed.realOrdersEnabled!==false||!Array.isArray(feed.quotes)){
+    diagnostic={...diagnostic,code:'SOURCE_CONTRACT_INVALID'};
     throw Error('Provider response contract failed');
+  }
+  diagnostic=unavailablePaperSource(now,'CANDLE_AGGREGATION_FAILED');
   const hourly=history.candles;
   const bars=composeTwoHourCandles(hourly,now);
   const quote=feed.quotes.find(q=>q.symbol===SYMBOL);
+  diagnostic=diagnosePaperSource({symbol:SYMBOL,history,feed,bars,quote,now});
+  if(diagnostic.status!=='PASS')
+    throw Error('Source gate refused the observation: '+diagnostic.code);
   next=advanceCloud(previous,bars,quote,now);
   // Even repeated failed first checks keep their real attempt counter.
   if(!previous&&next.sessions.length===5)next.runCount=old.runCount+1;
  }catch(e){
-  const reason='Provider/candle freshness gate did not pass; no virtual fills processed.';
+  if(diagnostic.status==='PASS')
+    diagnostic=unavailablePaperSource(now,'SIMULATION_VALIDATION_FAILED');
+  const reason='Source check '+diagnostic.code+'; no virtual fills processed.';
   if(!previous){
     console.log('First cloud paper source check unavailable:',String(e?.message??e).slice(0,140));
     next=recordUnverifiedFirstCheckpoint(old,now,reason);
@@ -49,6 +60,7 @@ async function main(){
     next=failureState(previous,reason,now);
   }
  }
+ next={...next,lastSourceCheck:diagnostic};
  const data=JSON.stringify(next,null,2)+'\n';
  if(Buffer.byteLength(data,'utf8')>LIMIT_BYTES)throw Error('State report exceeded bounded size');
  if(next.realOrdersEnabled!==false||next.actualCapitalINR!==0||next.mode!==MODE)
