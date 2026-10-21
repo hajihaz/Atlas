@@ -10,14 +10,14 @@
   "virtualCapitalPerStrategyINR": 100000,
   "realOrdersEnabled": false,
   "createdAt": "2026-10-19T22:37:32.197Z",
-  "lastRunAt": "2026-10-21T19:14:10.043Z",
-  "lastProviderAt": "2026-10-21T19:14:09.000Z",
-  "lastBarClosedAt": "2026-10-21T18:00:00.000Z",
+  "lastRunAt": "2026-10-21T22:26:00.642Z",
+  "lastProviderAt": "2026-10-21T22:26:00.000Z",
+  "lastBarClosedAt": "2026-10-21T22:00:00.000Z",
   "scheduledEveryMinutes": 120,
-  "runCount": 10,
-  "skippedIntervals": 20,
-  "status": "RUNNING",
-  "alert": null,
+  "runCount": 11,
+  "skippedIntervals": 21,
+  "status": "GAP_SKIPPED",
+  "alert": "Missing scheduled candle snapshots; no backfilled fills.",
   "firstRunHasNoBackfilledTrades": true,
   "sessions": [
     {
@@ -146,17 +146,17 @@
       ]
     }
   ],
-  "lastCandleAgeMinutes": 74,
+  "lastCandleAgeMinutes": 26,
   "latencyPolicy": "DELAYED_PUBLIC_CANDLE_MODEL_ONLY_MAX_90_MIN",
   "lastSourceCheck": {
     "schema": 1,
     "status": "PASS",
     "code": "ELIGIBLE",
-    "checkedAt": "2026-10-21T19:14:10.043Z",
-    "latestBarClosedAt": "2026-10-21T18:00:00.000Z",
-    "providerQuoteAt": "2026-10-21T19:14:09.000Z",
-    "candleAgeMinutes": 74,
-    "latencyClass": "DELAYED_PAPER_ONLY",
+    "checkedAt": "2026-10-21T22:26:00.642Z",
+    "latestBarClosedAt": "2026-10-21T22:00:00.000Z",
+    "providerQuoteAt": "2026-10-21T22:26:00.000Z",
+    "candleAgeMinutes": 26,
+    "latencyClass": "RECENT_OR_UNVERIFIED",
     "liveOrdersEnabled": false,
     "paperOrdersExecuted": false
   },
@@ -278,6 +278,21 @@
       "newModeledFills": 0,
       "haltedStrategies": 0,
       "skippedIntervals": 20,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 11,
+      "at": "2026-10-21T22:26:00.642Z",
+      "status": "GAP_SKIPPED",
+      "classification": "SKIPPED_SOURCE_INTERVALS",
+      "sourceAccepted": true,
+      "sourceCode": "ELIGIBLE",
+      "completedBarAt": "2026-10-21T22:00:00.000Z",
+      "candleAgeMinutes": 26,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 21,
       "realOrdersEnabled": false,
       "actualCapitalINR": 0
     }
