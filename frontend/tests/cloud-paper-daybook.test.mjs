@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {buildCloudPaperSummary,istDay} from '../src/lib/cloudPaperDaybook.js';
 
-const original=()=>JSON.parse(readFileSync(
- new URL('../public/cloud-paper.json',import.meta.url),'utf8'));
+import {legacyCloudPaperFixture} from './fixtures/legacy-cloud-paper.mjs';
+const original=legacyCloudPaperFixture;
 const cloned=()=>structuredClone(original());
 const pick=report=>buildCloudPaperSummary(report).strategies[0];
 
@@ -217,4 +217,15 @@ test('corrupted, missing or future paper evidence cannot be presented as certifi
   const f=structuredClone(r);mutate(f);
   assert.throws(()=>buildCloudPaperSummary(f),/evidence/);
  }
+});
+
+// The real report is validated separately, without changing it or assuming its
+// counter, event count, source status, or retained proof window stays fixed.
+test('current published ledger remains readable as genuine checkpoints accumulate',()=>{
+ const report=JSON.parse(readFileSync(new URL('../public/cloud-paper.json',import.meta.url),'utf8'));
+ const summary=buildCloudPaperSummary(report);
+ assert.equal(summary.runCount,report.runCount);
+ assert.equal(summary.checkpointEvidence.recordedAttempts,report.recentCheckpoints?.length??0);
+ assert.equal(summary.realOrdersEnabled,false);
+ assert.equal(summary.actualCapitalINR,0);
 });

@@ -2,6 +2,7 @@
 // scheduled runner, market provider, broker, or any real-money order route.
 // Every candidate must pass the existing persisted ledger replay guard.
 import {assertNextCloudSnapshot} from './paper_ledger_guard.mjs';
+import {preparePaperCheckpointEvidence} from './paper_checkpoint_evidence.mjs';
 const T=7200000,MAX_QUOTE_AGE=90000,MAX_BAR_AGE=90*60000;
 const round=n=>Number(n.toFixed(2));
 const valid=n=>typeof n==='number'&&Number.isFinite(n);
@@ -11,7 +12,7 @@ export function buildVirtualSettlementCandidate(before,order,quote,now){
  if(!before||before.schema!==1||before.mode!=='SCHEDULED_VIRTUAL_PAPER'
   ||before.realOrdersEnabled!==false||before.actualCapitalINR!==0
   ||before.symbol!=='BTCINR'||!Array.isArray(before.sessions)
-  ||before.sessions.length!==5||!['RUNNING','DEGRADED'].includes(before.status)
+  ||before.sessions.length!==5||!['RUNNING','DEGRADED','GAP_SKIPPED'].includes(before.status)
   ||!valid(now)||now<=0)fail('invalid paper-only ledger or clock');
  if(!order||order.schema!==1||order.mode!=='VIRTUAL_ORDER_INTENT_ONLY'
   ||order.realOrdersEnabled!==false||order.actualCapitalINR!==0
@@ -96,10 +97,20 @@ export function buildVirtualSettlementCandidate(before,order,quote,now){
   closedTrades,wins,lastFillAt:fill.sourceAt,
   events:[...session.events,event].slice(-120),
   equityHistory:[...session.equityHistory,{at:new Date(now).toISOString(),equityINR:equity}].slice(-120)};
- const after={...before,runCount:before.runCount+1,
+ let after={...before,runCount:before.runCount+1,
   status:'RUNNING',alert:null,lastRunAt:new Date(now).toISOString(),
   lastProviderAt:quote.sourceAt,lastBarClosedAt:fill.barClosedAt,
   sessions:before.sessions.map(s=>s.strategyId===updated.strategyId?updated:s)};
+ // This is an independent accounting reconstruction, not another market
+ // source certificate. Preserve retained evidence without inventing a PASS.
+ if(before.recentCheckpoints!==undefined){
+  after=preparePaperCheckpointEvidence(before,after,{
+   schema:1,status:'BLOCKED',code:'OFFLINE_ACCOUNTING_ONLY',
+   checkedAt:new Date(now).toISOString(),latestBarClosedAt:fill.barClosedAt,
+   providerQuoteAt:quote.sourceAt,candleAgeMinutes:Math.floor((now-newClose)/60000),
+   latencyClass:'UNVERIFIED',liveOrdersEnabled:false,paperOrdersExecuted:false
+  }).next;
+ }
  assertNextCloudSnapshot(before,after,now);
  return {schema:1,mode:'OFFLINE_HYPOTHETICAL_ACCOUNTING_CANDIDATE',
   realOrdersEnabled:false,actualCapitalINR:0,

@@ -67,6 +67,7 @@ jobs:
       - run: node --test frontend/tests/virtual-order-lifecycle.test.mjs
       - run: node --test frontend/tests/virtual-order-accounting-bridge.test.mjs
       - run: node --test frontend/tests/paper-generated-fill-audit.test.mjs
+      - run: node --test frontend/tests/scheduled-runner-forward.test.mjs
       - run: node --test frontend/tests/paper-run-health.test.mjs
       - run: node --test frontend/tests/paper-checkpoint-evidence.test.mjs
       - run: node --test frontend/tests/paper-cadence.test.mjs

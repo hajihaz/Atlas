@@ -6,7 +6,8 @@ import {describePaperRun} from '../../scripts/paper_run_health.mjs';
 import {assertNextCloudSnapshot} from '../../scripts/paper_ledger_guard.mjs';
 import {appendPaperCheckpointEvidence,assertPaperCheckpointContinuity,
  checkpointEvidenceSummary} from '../../scripts/paper_checkpoint_evidence.mjs';
-const published=()=>JSON.parse(readFileSync(new URL('../public/cloud-paper.json',import.meta.url),'utf8'));
+import {legacyCloudPaperFixture} from './fixtures/legacy-cloud-paper.mjs';
+const published=legacyCloudPaperFixture;
 const iso=x=>new Date(x).toISOString();
 function nextAttempt(old,n=1){
  const now=Date.parse(old.lastRunAt)+n*10000;

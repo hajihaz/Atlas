@@ -5,8 +5,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {assertNextCloudSnapshot} from './paper_ledger_guard.mjs';
 import {auditGeneratedPaperFills} from './paper_generated_fill_audit.mjs';
-import {describePaperRun,renderPaperRunHealthMarkdown} from './paper_run_health.mjs';
-import {appendPaperCheckpointEvidence} from './paper_checkpoint_evidence.mjs';
+import {renderPaperRunHealthMarkdown} from './paper_run_health.mjs';
+import {preparePaperCheckpointEvidence} from './paper_checkpoint_evidence.mjs';
 import {diagnosePaperSource,unavailablePaperSource} from './paper_source_diagnostics.mjs';
 import {getChart} from '../frontend/api/market-history.js';
 import {getLiveFeed} from '../frontend/api/live-feed.js';
@@ -49,14 +49,17 @@ async function main(){
   if(diagnostic.status!=='PASS')
     throw Error('Source gate refused the observation: '+diagnostic.code);
   next=advanceCloud(previous,bars,quote,now);
+  // Even repeated failed first checks keep their real attempt counter.
+  if(!previous&&next.sessions.length===5)next.runCount=old.runCount+1;
+  // A complete candidate needs its genuine new source/proof record BEFORE
+  // the independent auditor validates append-only checkpoint continuity.
+  next=preparePaperCheckpointEvidence(old,next,diagnostic).next;
   // Reject any arithmetic, fill-ID or modeled fee mismatch BEFORE persistence.
   // This independently checks the order/settlement model; no extra trades.
   if(previous) {
     const audit=auditGeneratedPaperFills(previous,next,quote,now);
     console.log('Independent paper fill audit:',JSON.stringify(audit));
   }
-  // Even repeated failed first checks keep their real attempt counter.
-  if(!previous&&next.sessions.length===5)next.runCount=old.runCount+1;
  }catch(e){
   if(diagnostic.status==='PASS')
     diagnostic=unavailablePaperSource(now,'SIMULATION_VALIDATION_FAILED');
@@ -69,11 +72,11 @@ async function main(){
     next=failureState(previous,reason,now);
   }
  }
- next={...next,lastSourceCheck:diagnostic};
- // Record only this genuine forward attempt. Older runCount values are not
- // retroactively fabricated; the retained evidence covers at most 24 runs.
- const health=describePaperRun(old,next);
- next.recentCheckpoints=appendPaperCheckpointEvidence(old,next,health);
+ // The helper is pure: recomputing a successful candidate produces the same
+ // single append from old; a rejected candidate gets only its failure proof.
+ const prepared=preparePaperCheckpointEvidence(old,next,diagnostic);
+ next=prepared.next;
+ const health=prepared.health;
  const data=JSON.stringify(next,null,2)+'\n';
  if(Buffer.byteLength(data,'utf8')>LIMIT_BYTES)throw Error('State report exceeded bounded size');
  if(next.realOrdersEnabled!==false||next.actualCapitalINR!==0||next.mode!==MODE)

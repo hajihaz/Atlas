@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {legacyCloudPaperFixture} from './fixtures/legacy-cloud-paper.mjs';
 import {assertNextCloudSnapshot} from '../../scripts/paper_ledger_guard.mjs';
 import {failureState,freshState} from '../../scripts/scheduled_paper_engine.mjs';
-const original=()=>JSON.parse(readFileSync(new URL('../public/cloud-paper.json',import.meta.url),'utf8'));
+const original=legacyCloudPaperFixture;
 const copy=x=>structuredClone(x);
 test('published paper ledger accepts a genuinely recorded no-trade retry',()=>{
  const from=original();assert.equal(from.sessions.length,5);

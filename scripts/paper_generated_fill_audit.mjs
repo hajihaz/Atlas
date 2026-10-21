@@ -22,7 +22,7 @@ function incoming(previous,current){
 export function auditGeneratedPaperFills(before,after,quote,now){
  assertNextCloudSnapshot(before,after,now);
  if(!before?.sessions?.length||!after?.sessions?.length)return {audited:0,mode:'PAPER_AUDIT_ONLY'};
- if(before.status!=='RUNNING'&&before.status!=='DEGRADED')
+ if(!['RUNNING','DEGRADED','GAP_SKIPPED'].includes(before.status))
   throw Error('Unrecognized source state before modeled fill audit');
  let audited=0;
  for(const afterSession of after.sessions){
