@@ -78,6 +78,15 @@ export function appendPaperCheckpointEvidence(before,after,health){
  }
  return [...prev,entry].slice(-MAX);
 }
+// Build the proof for THIS candidate before invoking any independent ledger
+// audit. The auditor checks the complete append-only snapshot, not a partial
+// candidate carrying the previous run's evidence.
+export function preparePaperCheckpointEvidence(before,candidate,sourceCheck){
+ const next={...candidate,lastSourceCheck:sourceCheck};
+ const health=describePaperRun(before,next);
+ return {next:{...next,recentCheckpoints:
+   appendPaperCheckpointEvidence(before,next,health)},health};
+}
 export function assertPaperCheckpointContinuity(before,after){
  // Backward compatibility: legacy state/checkpoint fixtures may not have
  // the feature until a new real run appends its first proof record.
