@@ -11,6 +11,7 @@ export type IpoIssue = {
   gmpHistory?:{observedAt:string;gmp:number;source:string}[];
   financials:null|{revenueGrowthPct:number|null;profitMarginPct:number|null;debtEquity:number|null;source:string;asOf:string};
   news:{title:string;source:string;url:string;publishedAt:string}[];
+  newsStatus?:string;
   source:string;detailSource:string;bidDeadline:string|null;mandateDeadline:string|null;
   registrar?:string|null;rhpUrl?:string|null;priceJustificationUrl?:string|null;
   sourceObservedAt?:string|null;sourceStale?:boolean;
@@ -65,9 +66,30 @@ export function recommendation(i:IpoIssue,stale:boolean):{label:string;reason:st
   const basic = (f.revenueGrowthPct>0?18:0)+(f.profitMarginPct>0?18:0)+(f.debtEquity<1?14:0)+(i.subscription.total>=1?10:0);
   return {label:basic<25?'HIGH CAUTION':'MANUAL REVIEW',reason:'A quantified preliminary screen only. Valuation, governance, RHP risks and loss tolerance must be checked before investing.',score:basic,tone:'neutral'};
 }
+export function applicationBudgetPlan(i:IpoIssue,budgetINR:number):{
+  lotValue:number;minimumLots:number;minimumCapital:number;affordableLots:number;
+  indicativeOutlay:number;fitsMinimum:boolean;quantity:number;
+}|null{
+  if(i.priceMax===null||i.lotSize===null||!Number.isSafeInteger(i.lotSize)||i.lotSize<1||
+     !Number.isFinite(i.priceMax)||i.priceMax<=0|| !Number.isFinite(budgetINR)||budgetINR<0||budgetINR>1000000000)return null;
+  const lotValue=i.priceMax*i.lotSize;
+  if(!Number.isFinite(lotValue)||lotValue<=0||lotValue>1000000000)return null;
+  // This calculator models Mainboard RETAIL (up to ₹2 lakh), not the NII/HNI category.
+  if(i.board==='MAINBOARD'&&lotValue>200000)return null;
+  // SME individual bids: two or more lots, with aggregate value exceeding ₹2,00,000.
+  // Exchange rules and issuer-defined lots must still be verified at bid time.
+  const minimumLots=i.board==='SME'?Math.max(2,Math.floor(200000/lotValue)+1):1;
+  const minimumCapital=minimumLots*lotValue;
+  if(minimumCapital>1000000000)return null;
+  const maxCategoryLots=i.board==='MAINBOARD'?Math.floor(200000/lotValue):Number.MAX_SAFE_INTEGER;
+  const affordableLots=Math.min(Math.floor(budgetINR/lotValue),maxCategoryLots);
+  const fitsMinimum=affordableLots>=minimumLots;
+  const quantity=fitsMinimum?affordableLots*i.lotSize:0;
+  return {lotValue,minimumLots,minimumCapital,affordableLots,
+    indicativeOutlay:fitsMinimum?affordableLots*lotValue:0,fitsMinimum,quantity};
+}
 export function minimumApplication(i:IpoIssue):number|null{
-  if(!i.priceMax||!i.lotSize||i.lotSize<1)return null;
-  return i.priceMax*i.lotSize*(i.board==='SME'?2:1);
+  return applicationBudgetPlan(i,0)?.minimumCapital??null;
 }
 export function formatInr(n:number|null):string{
   return n===null?'Not verified':'₹'+n.toLocaleString('en-IN',{maximumFractionDigits:2});
