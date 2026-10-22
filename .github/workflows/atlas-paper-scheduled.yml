@@ -28,24 +28,5 @@ jobs:
         run: |
           test "${ATLAS_EXECUTION_MODE}" = "PAPER_ONLY"
           test ! -f frontend/public/real-orders.json
-      - name: Source-matched scheduled virtual paper checkpoint
-        run: node scripts/run_scheduled_paper.mjs
-      - name: Commit bounded public research state
-        run: |
-          if git diff --quiet -- frontend/public/cloud-paper.json; then
-            echo 'No new accepted market observations, no commit.'
-            exit 0
-          fi
-          # A source update racing this run must never be silently overwritten.
-          # Next scheduled run will retry against the newer GitHub ledger.
-          base_commit="$(git rev-parse HEAD)"
-          git config user.name "atlas-paper-research[bot]"
-          git config user.email "atlas-paper-research[bot]@users.noreply.github.com"
-          git add -- frontend/public/cloud-paper.json
-          git commit -m "data(atlas): scheduled virtual paper snapshot [skip ci]"
-          git fetch --no-tags origin main:refs/remotes/origin/main
-          if [ "$(git rev-parse refs/remotes/origin/main)" != "$base_commit" ]; then
-            echo "::error::main advanced during the paper calculation; refusing stale snapshot push."
-            exit 1
-          fi
-          git push origin HEAD:main
+      - name: Source-revalidated forward checkpoint with bounded conflict recovery
+        run: bash scripts/publish_scheduled_paper.sh
