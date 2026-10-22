@@ -14,6 +14,69 @@ spec.loader.exec_module(ipo)
 
 
 class IpoFeedTests(unittest.TestCase):
+    def test_bse_outage_keeps_verified_sme_stale_not_live(self):
+        from datetime import datetime
+
+        current = datetime.now(UTC).isoformat(timespec="seconds")
+        previous = {
+            "schemaVersion": 1,
+            "generatedAt": current,
+            "issues": [
+                {
+                    "id": "BSESME-12",
+                    "company": "Example SME",
+                    "board": "SME",
+                    "source": ipo.BSE_SME_URL,
+                    "detailSource": "https://www.bseindia.com/markets/publicIssues/DisplayIPO.aspx?type=IPO&IPONo=12",
+                    "openDate": "2026-10-23",
+                    "closeDate": "2026-10-26",
+                    "status": "OPEN",
+                    "sourceObservedAt": current,
+                    "subscription": {"total": 8.0},
+                    "gmp": 44.0,
+                }
+            ],
+        }
+        with (
+            patch.object(ipo, "get_json", return_value=[]),
+            patch.object(ipo, "recent_bse_sme", side_effect=ValueError("blocked")),
+            patch.object(ipo, "add_unofficial_gmp"),
+        ):
+            result = ipo.build_snapshot(previous)
+        self.assertEqual(len(result["issues"]), 1)
+        self.assertEqual(result["issues"][0]["company"], "Example SME")
+        self.assertTrue(result["issues"][0]["sourceStale"])
+        self.assertIsNone(result["issues"][0]["subscription"]["total"])
+        self.assertIsNone(result["issues"][0]["gmp"])
+        self.assertIn("stale", result["coverage"]["sme"].lower())
+
+    def test_rejects_untrusted_sme_fallback_records(self):
+        previous = {
+            "schemaVersion": 1,
+            "generatedAt": "2026-10-23T00:00:00Z",
+            "issues": [
+                {
+                    "id": "<script>",
+                    "company": "Bad",
+                    "board": "SME",
+                    "source": ipo.BSE_SME_URL,
+                    "detailSource": "https://evil.example",
+                    "closeDate": "2026-10-27",
+                    "openDate": "2026-10-23",
+                },
+                {
+                    "id": "BSESME-78",
+                    "company": "Expired",
+                    "board": "SME",
+                    "source": ipo.BSE_SME_URL,
+                    "detailSource": "https://www.bseindia.com/markets/publicIssues/DisplayIPO.aspx?type=IPO&IPONo=78",
+                    "openDate": "2020-01-01",
+                    "closeDate": "2020-01-05",
+                },
+            ],
+        }
+        self.assertEqual(ipo.retained_sme(previous, today=date(2026, 10, 23)), [])
+
     def test_official_issuer_prospectus_links_and_registrar(self):
         issue = ipo.transform_issue(
             {
