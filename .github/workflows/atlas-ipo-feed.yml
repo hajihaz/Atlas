@@ -1,0 +1,54 @@
+name: atlas-ipo-feed
+on:
+  workflow_dispatch:
+  schedule:
+    # Best-effort exchange observation snapshots every 30 min, 09:00–17:30 IST on weekdays.
+    - cron: '30 3 * * 1-5'
+    - cron: '0,30 4-11 * * 1-5'
+    - cron: '21 6 * * 0,6'
+permissions:
+  contents: write
+concurrency:
+  group: atlas-ipo-feed
+  cancel-in-progress: false
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: IPO adapter unit tests
+        run: python -m unittest discover -s tests/unit -p 'test_ipo_feed.py'
+      - name: Refresh official-source read-only IPO observations
+        run: python scripts/update_ipo_feed.py
+      - name: Verify published feed structure and dates
+        run: |
+          python - <<'PY'
+          import json,datetime
+          d=json.load(open('frontend/public/ipo-feed.json'))
+          assert d['schemaVersion']==1 and d['generatedAt'] and isinstance(d['issues'],list)
+          assert all(i['board'] in ('MAINBOARD','SME') and i['openDate'] <= i['closeDate'] for i in d['issues'])
+          assert all(i['gmp'] is None for i in d['issues'])
+          PY
+      - name: Publish bounded snapshot if verified
+        run: |
+          set -e
+          git add frontend/public/ipo-feed.json
+          if git diff --staged --quiet; then exit 0; fi
+          git -c user.name='atlas-ipo-research-bot' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'data(atlas): verified read-only IPO snapshot [skip ci]'
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then exit 0; fi
+            sleep $((attempt * 2))
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort
+              echo 'Concurrent snapshot conflict, leave previous verified feed unchanged'
+              exit 1
+            fi
+          done
+          exit 1
