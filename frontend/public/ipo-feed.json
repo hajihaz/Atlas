@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-22T23:35:50Z",
+  "generatedAt": "2026-10-22T23:53:58Z",
   "sourceName": "National Stock Exchange of India",
   "sourceURL": "https://www.nseindia.com/api/all-upcoming-issues?category=ipo",
   "sourcePolicy": "Public exchange website observations; timestamps indicate snapshot time, not guaranteed real-time licensed market data.",
   "coverage": {
     "mainboard": "NSE observed",
-    "sme": "BSE SME website observed; 24 recent issues"
+    "sme": "BSE unavailable; 23 prior issues retained, explicitly stale"
   },
   "issues": [
     {
@@ -90,13 +90,45 @@
       "rhpUrl": "https://nsearchives.nseindia.com/content/ipo/RHP_PARASHLTH.zip",
       "priceJustificationUrl": "https://nsearchives.nseindia.com/content/ipo/RATIOS_PARASHLTH.zip",
       "financials": null,
-      "news": [],
+      "news": [
+        {
+          "title": "Paras Healthcare IPO Day 2: GMP at 4%; check subscription status and key details - The Economic Times",
+          "source": "The Economic Times",
+          "url": "https://news.google.com/rss/articles/CBMi4wFBVV95cUxNT1BNbEtma3RQZ1V6cExid3NzQ00wVzlIUEk1OXZVeXQyVVJpMUZnQ2VIYXRqS195Rm45RGpVOFIwTHZURFpJbmI5MkVMMFFSaHcwcDhrT2x0Ml83SUN2R1RkaDFVZW95MlNzZDB2YnV1UHh0NHhKU0g2VVoxV1l0X3hEM1FfRUx0cGh4a0JqYi0wZFI5YkVmTzFkZFlTTWRwWW54TjZoMFRISE9uNEs0TU8yU2NJUXhfXzFPR1g5b0sybXA5RVRwMU1LdUlybG55Y1JVa3FfMUdoMHhaRHdYZzktTdIB6AFBVV95cUxPbnFYWnpsRUl1YTJWb0VOb3E4RGNCSnBaUTJGcnpIelE4aFBWUHZPTy1GQU9Ub0NaMDNFeXFKY3lRNy1jUG9IR0l0LXZCSW90UDh0RXB0WlhSYWU5bVNSUDIwc1ppV1luZEtldWZKbmRJUEdpaHh2Qld4WUdZMlNEX2E3c3ItcGNCVFBOQjB4QlBZbGw5bTJyLVU2U2c0M1hJbldlZXFGci1Da1N5Zkh2ZXNucFhNaUpFVnYycm5yY1JKSXlKdDhISHJxNmx6X2xrTjlnSm5oYlVDSzdjemRKZjNrN3p5UEtr?oc=5",
+          "publishedAt": "2026-10-22T05:16:11Z"
+        },
+        {
+          "title": "Paras Healthcare IPO subscribed 19% so far on Day 2; retail investors lead demand - Moneycontrol.com",
+          "source": "Moneycontrol.com",
+          "url": "https://news.google.com/rss/articles/CBMi7AFBVV95cUxNaG1Wb0J2Y0FSMFJJc0M4a2l1Z3djeUEyRVpoUnlfUms2dE9qNEZXLU5FRHZBekY4UGxjSWgwMGpyT3JpM2FrdzVqVzFmMVJXZm5aS2V4UE9rYTJEbHNqdE5DSzF2dDdJWFdUbVhmWGwxNGR1aWlKSmllSy04Q056b3RubDNndkhiOHl2YUtPdUc1TThaUWNXV2RRa3BrUnZKZnJ3Y3VndWo5WkFFSTVYOFpmZDhPUXhodEcwUDU3WC03TnNhaEh5dnU4QW9BY1FfWGc5OWJkZlhtQ2lwQjZ5WkdrQUVqeEE4Tm1Xd9IB8gFBVV95cUxOQndvMDh6YVdhc0JkVUFoSmRCRllyZmdSZEZnVnBkVkhiMnJETXQta1YtT2hSR2xBbXRwbjBlbnBJZE5IVW9pdlluSHo0QWFMR2g1RkhpSmw4UzE2dWViYmoyWFBTSVhiY1F4ZjlJUmQtbC1xOGg1UjhBazg3elZNVUotY0Nkb3NHbWZoLU1jUEJFQ0dEUnNfcTRXN0Jlb2VUOWFiUHB5dS1NdmNQOWZLbF9Qb1AxWmwwZGVNT2o0b2J1blJNT2t2Rk5MeXpLYURjeHFqZFd0QTc0MWNYelIzaHFBRkxZU0pUTE5QT05ld0dndw?oc=5",
+          "publishedAt": "2026-10-22T05:11:29Z"
+        },
+        {
+          "title": "IPO GMP comparison: Reliance Jio Platforms IPO vs Paras Healthcare | Subscription status Day 1, listing price prediction - Livemint",
+          "source": "Livemint",
+          "url": "https://news.google.com/rss/articles/CBMi-gFBVV95cUxPelNuZTdGby1NY0hFbV9oWndYOUVnVFlNdTJxYV9sVXRqQzhTb1N4bllKMTRTc3FFWVljdUVNaHFBSlR1S1VackJyZEcwVGJob01HVU14UVlRcEF1RUxsRnNPUjh1NmZVdHo2RVQ2QmxZbEtHOV9wVkxkR1VRVnM3Z2tNYUtjUkNzdFE0LU50WUoxRjFOazdsVnU2SkdFWWNUMDEzVXROUFJJd2ZzcTJNVC14VFN0Rmx0UFVCcFZWVXp0N2dmZDh0bVF3SnYxVkdqQmF6RWN5T2EycWs1NjRCQ1phNXRLbWNQaTFIckVyUmREZGZadnBnUlZR0gH_AUFVX3lxTE9EWnRaT3RkTDBvaVlNMXJFd0FheEhxRHJSU0pyZk5NUDFkcFJDS08wUFFtN0I5Wjl1UE82VGo1ZUJRTTNyRVdaU2s3WE1VQzdxTkNiamc0SEp3aGVTWWVZbG1oaEpsdmpkWHFjSENiTnBUN19vZWJyR0gzSXl3TVltUWtLZzhlMFpoZHhRY2dpZG0xMUhrRUZGMGJHOWFBMDNudDRwOExPMTh0TzNuMzlsMGowdm9NN2g4b2dZNFhkcUdiektiSTdoUXhPZjkxTWRSYUJYVDBwcWg1RmhCTWplM05GWFhGZHBqbHo4MVF5Q29mVGFNVHR1Tmx4TUFNaw?oc=5",
+          "publishedAt": "2026-10-22T02:35:05Z"
+        },
+        {
+          "title": "IPO GMP race: Reliance Jio Platforms IPO vs Paras Healthcare IPO - Check grey market winner - Livemint",
+          "source": "Livemint",
+          "url": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxQaE90VmNOSUpUMkIwd0Z4TUJodldUNWxRUXQwX0NUczRXQjh0ZnBNdUszbXRJUTFaM1ptbXZvaFFwMkxxOVlnY0s2MGNpcG9Cd2xLa010dDRZNWVnTDUzTXJWN0d1R25VNXhrNngzczNkeGxJRng1d2JGVk5SaGN6WWh6T2w2OEFwSWhLMG9HOUpyLWpVSmF1bldhcXM1WWJXajk5LVFKaWZORWFyU1hzLUNHWkQzUzVwRDdiTGZ0eWtXX1RLOHJSSThXemxmSGRzcVZlMVNSVmp4UVNRWnp0bDZpZkw1WUVEN1NPMmlaZ9IB9AFBVV95cUxPM1RYZFFiQXo4c1EyT1JqX1pwdW1COXZzVlpxRmxMWDdwMXA1UW1kMklYOW9BWG5oS0FnZnA0SFdKczVWMzh4NU9SWUNncG5HbVA2ZUl2NkFXamJLMVpOVTdQUC1zQkxvVUZwaGR4bms0eDE4a2JsOVE4X3dyR0hBZUJ4WG5xaWlCSmZaMFRiQUFVcnJDV3AtY1A3WGJrckVuM0F3NnpwX2dyNjRPWEFJcVo1dmNxWWlMbm1zLUNTcG5jVEdNWUdBR3NqTFIyTWgzd0dvWV9MV05RMHpnVU1Qd1cyZURvVmdvb29haXVzQkF2ejAx?oc=5",
+          "publishedAt": "2026-10-21T16:02:16Z"
+        },
+        {
+          "title": "Subscribe for Paras Healthcare Ltd IPO; Deven Choksey - Moneycontrol.com",
+          "source": "Moneycontrol.com",
+          "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxONXJ5NlZCUnQwcDhrRi1UWUtaQ3o3RFdvd1FMaFgxMFdkc0tDMENrbTFaWUFlYml4WWx4Q0pnS2V5WndVNjBWa21UYnloUnpqWnh0NFZPV2pHLUd5eW5YT0Fud2JidjgyeVgyUmpXOU1ack1fZ1IxQnhSWVFzVEJuRnU3Z1FoNFMwYVh0ZEUtU3BQb3I2aHIzM1ZBNFFQaGR5TlFMTWJsMzdkYjNpR0otU1VTY9IBuAFBVV95cUxPT29GRkhfeDRkWm5rX1FPaGZRT2RJRGF1c1JjSV9HaUNEU1BRc2JYTGdEX0JtWUlydVl2dFRHTENsWjRoNFhwSmsxajVoNEpuNGhvTnh2bU95VC1vbTFiNWhFbmMwMS1FazhKbUFxTUo3dGpiQUgtT18yRVB6SU9xd2dVRkx3ZjdCdWNlbndYVlNGUjNjWTJrbVdiT0wtZXRmOXRNMVRmR0hsVThuT2hIb3dFWlhhZmVE?oc=5",
+          "publishedAt": "2026-10-21T09:03:08Z"
+        }
+      ],
       "detailSource": "https://www.nseindia.com/market-data/issue-information?symbol=PARASHLTH",
       "source": "https://www.nseindia.com/api/all-upcoming-issues?category=ipo",
       "mandateDeadline": "2026-10-23T17:00:00+05:30",
       "bidDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:53:58Z",
+      "sourceStale": false,
+      "newsStatus": "Google News RSS · selected sources · verify originals"
     },
     {
       "id": "JPL",
@@ -247,7 +279,7 @@
       "source": "https://www.nseindia.com/api/all-upcoming-issues?category=ipo",
       "mandateDeadline": "2026-10-23T19:00:00+05:30",
       "bidDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
+      "sourceObservedAt": "2026-10-22T23:53:58Z",
       "sourceStale": false
     },
     {
@@ -293,13 +325,33 @@
       "rhpUrl": null,
       "priceJustificationUrl": null,
       "financials": null,
-      "news": [],
+      "news": [
+        {
+          "title": "BLS Polymers Ltd IPO Date: Check Issue Date, Price, Lot size, Subscription, News and Details - Moneycontrol - Moneycontrol.com",
+          "source": "Moneycontrol.com",
+          "url": "https://news.google.com/rss/articles/CBMic0FVX3lxTFB1bnE1Wk12T2U0czNwQ3MxbEx1enpwMEViRDJOUXdxXzctMUVyc2dIamVvRkdNOHdNeG5zUXFXSDVucVZ0X1hhNTZ5R0QxNGViWXBGMDFEcVV1Tlo5RXlGaDFjeW1IUUEycEl6NUFDU0FNQU0?oc=5",
+          "publishedAt": "2026-10-19T22:13:19Z"
+        },
+        {
+          "title": "BLS Polymers IPO: Firm Expected To Raise Rs 255 Crore; Price Band Of Rs 142—Rs 150 - NDTV Profit",
+          "source": "NDTV Profit",
+          "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOd0lCQkI5T01FdHVDNU9FRXZQbEwydjdCdGtWV2dHanp2dXFwMnNRTHhSY3pYcDhiUE1FdnlnWHRXLTZNTy1JYW12V050Rjl2SUVtWG0xWm5OVFYteTRLbXd6NmZsWkI4LVRRVjlBTGlsZTRLaWdFbVhuR3doaEt2UktwNjlZMU1HQUxTanQzZkJNZkJwdTJueWF5RzhReFQ1SjJHbzFhSm54RTEzYzkyMVF1c1hZZ0NiNVZJeUMwZ0dtUdIBygFBVV95cUxNaEphSzRITE5zQVBVSmxWTGJDZ2ZKOG8xUW1lVXFxNF9MWmJNWWJfZ2gwX25XYTJKN0FEYWFRSzVJdXpuZUxVcU5UdXJacDR2MGVyZHFsX3Axbm5SQXh5bkhBZXpzeDFhQXNVUTVEa3FEQnMycW5pZmhCT0F5dnNNaEpWOUVMa3pUNDN3VFVyWDFlV1pfM1RKS3hMaFBhbXV3TFFTNmRzZkQ5a1hfYXRMTkhmNlpyX2N5YVZlNlVXRXRsY21TQjBzQlpB?oc=5",
+          "publishedAt": "2026-10-19T13:42:01Z"
+        },
+        {
+          "title": "BLS Polymers to launch Rs 255-crore IPO on October 27; sets price band at Rs 142–150 per share - Moneycontrol.com",
+          "source": "Moneycontrol.com",
+          "url": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxNc1BUSkZiY0x0c196VDdTRFRLQks3UDFsOFVjbVo4RnJ0TjV6YnE1bnVRYVJaa05DWnNPbmxhZXVVQ1JBbjdKOWtDZkdVazNvQ2RVWW5ySzhQYWlUZjlxWFd2cDRuOXpZMTBTcEpZOURvY1FXSUpxZWdXTlVaSDhWVzdpUnVKREdQbU1sQ19iajdzeFBBYkJ3c29fYXpkTm5KZkZnbERIMzVOb2czbXczRS10TmJVX25VYnJicjF2ZHRxcHJnY2N4bktfbTBETDNXRC1CRVJtMDZ3LVY4ZDBpcHFGR3VxM3IwLXfSAe8BQVVfeXFMTlpBQ2tfS0V2RnZteU14Tk0wcW51YllmZ0c4ajBxb2JGRHhReDB2NmlULVpHODMzd1ZjalBLSm9BU0d3RGpDZUVrWWNEd01mbjdpdnlpNXBaUWw2bS0yVmFlRmY3bjA1a3VVZzMtSGdaSnE0enBfTHZLbWJJR2xnaW5yd2ktek52bnd1UHVmVnVxaEdRNlh0UWxBVDAtdkxGQU12bjF6Zml5bGZvNmRGd1RJREdLQUgzS0otUS01cHZwa1VQOFAyUVQ2Y05IT3A5X2VBSHZUWlREZG5BVUJuOExjcWpqemNjUHdHczJ0d3M?oc=5",
+          "publishedAt": "2026-10-19T10:51:34Z"
+        }
+      ],
       "detailSource": "https://www.nseindia.com/market-data/issue-information?symbol=BLSPOLY",
       "source": "https://www.nseindia.com/api/all-upcoming-issues?category=ipo",
       "mandateDeadline": null,
       "bidDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:53:58Z",
+      "sourceStale": false,
+      "newsStatus": "Google News RSS · selected sources · verify originals"
     },
     {
       "id": "SFCTECH",
@@ -344,13 +396,45 @@
       "rhpUrl": null,
       "priceJustificationUrl": null,
       "financials": null,
-      "news": [],
+      "news": [
+        {
+          "title": "SFC Environmental Technologies Ltd IPO - Moneycontrol.com",
+          "source": "Moneycontrol.com",
+          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNT2pRa2VUam9KcENIRS1uaFJ2aURFZGlGc0ZsUVY2WUJTZ0lqTGFrbjBuM0U1UmN4eEJ1T0pkaGJoSGk2R2lEUGJ5dTY0RmJBWGdGNm9YWUFqQlVYNnI3Z3FKUTJuWVNCcE9jOW9tc1lSV19ULWdzZUxfUHREWUE1Vi1id0RqU1I2VTB3Wm1QdnpNc24xNG4xUGV6N2dETWdsVXlFYU96THE1R1lPNnZ0Y0pMZHA4T3Ez?oc=5",
+          "publishedAt": "2026-10-22T00:31:57Z"
+        },
+        {
+          "title": "SFC Environmental Technologies IPO opens Oct 27, price band at ₹313-330 - Business Standard",
+          "source": "Business Standard",
+          "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxQc0VlWDdkZVRDSm10UHVWc2ZNLU83cHpqcGp2d1ZnRktoUVNyYnlwVWFIYjdEYTVOWWZhbE1PWExNX1J1SFJ6TkR2RF9FaC1MUzZZTXA4ODdoUnZyQ3lQSXhQa2lGT3ZKVDVRVlk1VTFYMld5QmpMVTIwQ2Y0WndQeE9NVTFIV05uU3BDb085bnhzbnhkYXhGdTVKMlRYUjJDNjh5MUVYRWxhSG5RSlc4T1dfQXhZRHF2WnhKa3NqYTNyOTB6ZEE5akNUUHQ3amJmYW9HZEZHUdIB1wFBVV95cUxQc0VlWDdkZVRDSm10UHVWc2ZNLU83cHpqcGp2d1ZnRktoUVNyYnlwVWFIYjdEYTVOWWZhbE1PWExNX1J1SFJ6TkR2RF9FaC1MUzZZTXA4ODdoUnZyQ3lQSXhQa2lGT3ZKVDVRVlk1VTFYMld5QmpMVTIwQ2Y0WndQeE9NVTFIV05uU3BDb085bnhzbnhkYXhGdTVKMlRYUjJDNjh5MUVYRWxhSG5RSlc4T1dfQXhZRHF2WnhKa3NqYTNyOTB6ZEE5akNUUHQ3amJmYW9HZEZHUQ?oc=5",
+          "publishedAt": "2026-10-21T12:26:09Z"
+        },
+        {
+          "title": "SFC Environmental Technologies IPO opens on October 26; check all key details - Business Today",
+          "source": "Business Today",
+          "url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxQNk43ZVlXV3VhSnRlSlY4REhlZ0NSWlNwQWkwS0NLWlBvVEFmVzYzc1lOUlpsc3NoRGJ0ZGcyVU54UFVJY1FWVkhuRDJqQUxsODFCWTlHOTZuN0QxLVpYc3dOU2xSN3lGSlBZcWdoZjNWWTZkVVpEWjhsUTQ4TDNWWURLOXoyeXZIeHNrQXBHQmtoZXBxNGNRNXk5UDltZ3NTM0lCeFNiTHR4NTFYUlNuRFVvZmQyVGJ6WW0zRWhLQ1V6el9CcG1rVlZRWm45eG9GVU5DeUFiQTk2VmJX0gHiAUFVX3lxTE1OTFhlWXhYY2xIQjV6V2V3S3NtQk42dFp3Q0tWQ1N5WXB4eEp5eTRjZVZQb0hSNW1aSjhSSmJZMEdoM1U4NndENi0zbTFJZ09wazhtamhFS3pzT1BFNk4wZFpiSVBELS1nbmwxWGpoZndaRkxsTzJwd3NTekVNd2duN1llcVNDNWs0bTNGLUh6WmFmZ2Uxa3RlSGRuRko1d1lTUEY1MHJ1LWFJd3gyc0ZPdjBLUm45cW9Ob05HYzBfX2EtNWpDZ2RhajloN3ktZk5aTFpaVnRZN1N5Yk9kT0hIOGc?oc=5",
+          "publishedAt": "2026-10-21T07:09:53Z"
+        },
+        {
+          "title": "SFC Environmental Technologies sets price band at Rs 313-330, Rs 667.5-crore IPO to open on Oct 27 - Moneycontrol.com",
+          "source": "Moneycontrol.com",
+          "url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxPTkRjTk9mRHFfMy1ObEt2YTdCRnI0LUVlQzBRajc3RzhYMEdQcTJ1ZHNhcVduWkl5UTBvVTlEd29CQWMzWWVWMzlPaTVVTWl5Nnp0ZU9LYjBjQlk1anZvbVVIeG9sYVM4RmxHeHBGZTZiaS01YjlZd2sxUTRHd0theDZwRmd4Qi02bndSMkQ2bEcyblhqdmw4ajkyNFY4NDFaVmM0eXNzYld5elVJb1pkVW1uSVZtbjc2Ti1UWlBjWDZ6SUZFQW1vLVpIbWRQVEZRelh4ZC1uT0RfVllzVzY4LWZlTFFDWkFPbUNQa0hhYWNJTkN20gH0AUFVX3lxTE9ORGNOT2ZEcV8zLU5sS3ZhN0JGcjQtRWVDMFFqNzdHOFgwR1BxMnVkc2FxV25aSXlRMG9VOUR3b0JBYzNZZVYzOU9pNVVNaXk2enRlT0tiMGNCWTVqdm9tVUh4b2xhUzhGbEd4cEZlNmJpLTViOVl3azFRNEd3S2F4NnBGZ3hCLTZud1IyRDZsRzJuWGp2bDhqOTI0Vjg0MVpWYzR5c3NiV3l6VUlvWmRVbW5JVm1uNzZOLVRaUGNYNnpJRkVBbW8tWkhtZFBURlF6WHhkLW5PRF9WWXNXNjgtZmVMUUNaQU9tQ1BrSGFhY0lOQ3Y?oc=5",
+          "publishedAt": "2026-10-21T03:31:46Z"
+        },
+        {
+          "title": "SFC Environmental Technologies Ltd. IPO - The Economic Times",
+          "source": "The Economic Times",
+          "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxQXzVaRkZwU21kZHltdXExOTBwTlQ1cndzWVZId2dvX1JtcXNXeHhJUGF2Ul9UV2pzTHNjSlBqNjVGSlI5QVFLUEh5alFmd2M4MVIwUHB5UVkzX1pFN2ZJTFVfdWRyMEd1cHVhSDFGa3dzMjlidWowLU9LVnBvZ2lvV2VDSXgybWFiMEVxSlU3WWJWNG1TbURUa1dZdnBaRm8?oc=5",
+          "publishedAt": "2026-10-21T00:35:00Z"
+        }
+      ],
       "detailSource": "https://www.nseindia.com/market-data/issue-information?symbol=SFCTECH",
       "source": "https://www.nseindia.com/api/all-upcoming-issues?category=ipo",
       "mandateDeadline": null,
       "bidDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:53:58Z",
+      "sourceStale": false,
+      "newsStatus": "Google News RSS · selected sources · verify originals"
     },
     {
       "id": "EDELALTS",
@@ -381,13 +465,45 @@
       "rhpUrl": null,
       "priceJustificationUrl": null,
       "financials": null,
-      "news": [],
+      "news": [
+        {
+          "title": "EAAA India Alternatives Ltd IPO Date: Check Issue Date, Price, Lot size, Subscription, News and Details - Moneycontrol - Moneycontrol.com",
+          "source": "Moneycontrol.com",
+          "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE5VNmF2Si0zZWtNLUdVd0FVVHkxa2Q1UnhzNG1yTkRmeDl2Zlc4S1dUWHJIYjZlbnc5VEhVeUM1OGVUVXNLWUhCcDlZaHNOZURLYngxb2RiVlMtazlMLWFVUzNTVllVMXZCLWpGajhIMXhZdDZWRncyZ1Z2dU9GZWM?oc=5",
+          "publishedAt": "2026-10-21T16:38:46Z"
+        },
+        {
+          "title": "Upcoming IPO: Edelweiss unit EAAA India Alternatives' ₹1,200 cr public issue to open on Oct 26 - Top things to know - Livemint",
+          "source": "Livemint",
+          "url": "https://news.google.com/rss/articles/CBMi_gFBVV95cUxNcEZLcVo4U3NVNjRLTXFxbkRYNGRRV2p3cXFFaGRlZUpzemZUa1VQVjd1M0NjZzBocjFYZnlvTk5UYWxROVJHR2N5RWQ3bHctQ19HdFhNRm1vT0JTZVp3WXZGUklRMTZQa0pSV0NuMk5ZQXhiejJKNWJSMnR3OE1xZnlmTWJ0S1J1bEN5T3JLZGFNN0tlWDJPT25HaFI2bEJhRFBxSXV0TUZqdHVLbkF3VjJjMnhJMUVOa1hmT3NXZjk4NTJycUlCTVlVaGRyaWliSEgzUjBBMnlPSVJXbnVDT21ibEY0VjJWc2t0c3BscTFGOGdSbTRyWmVldHJ1QQ?oc=5",
+          "publishedAt": "2026-10-21T16:23:50Z"
+        },
+        {
+          "title": "EAAA India Alternatives IPO opens on October 26; check price band, issue size & key details - Business Today",
+          "source": "Business Today",
+          "url": "https://news.google.com/rss/articles/CBMi8AFBVV95cUxPX2ZXbGtGRXFMczJnbTlFVHZNeGwyRm1fUHdpWFNSX05CbXU2akl4TlRQNVF4VlJFTXhocWs5QW40OVhhaVYwWWh4NDNReWViNnFnVnpRckYzNmk1YWlzSVItUFFMOE9NLVJuTFdlZDRkekRTZkFVcVBtNENMd29IYW0tS1FUZ2xNbVRDSE5tOUFNMUVISkVEcExFZUExa0Y1N3J4elFlbEN2ZUJSQmdRdFAzZXNjNkpuTHB2WHNQamlFOERTa3o5VHhuQUlUNVJibFZaMnphRDRlR1ZWamVSa05yTjZfYTVxTGp1ZERoVjDSAfYBQVVfeXFMTl96TEc1VG1WRVNEejJ4Q296MTZuc0VmUi03TlFjUjJETXd0M0cwdFRYTjYwTzVRaFRmZXVDampLc2lmcm5NWXBCSzYxTmU5X1F4dFVWRDlRMUJVV0RJeWYzcUtJTTRnNEU3QnZyYndUcTRHUlFaZGRoamdIVXEyRGprcnpYNTZzSl9MNnF3RDVpQ2Z2TVU4VEE4NEdvdHdWazFQeG5wY0pnelZUZldJVFUxaDNTWUlsOTRCM2tyLWt6aXZkVmlqTWVSdUN0M3BodWpSbTNTRzJlakNXb0NJRm4zZXB3dXlRdUlXbFJLUXo3cTFvX2pR?oc=5",
+          "publishedAt": "2026-10-21T06:55:35Z"
+        },
+        {
+          "title": "EAAA India Alternatives fixes price band for Rs 1,200 IPO; issue opens on October 26 - The Economic Times",
+          "source": "The Economic Times",
+          "url": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxPSkJHbjFSV2RJNGh0WHRLckZhRDZ1d09FN2xzR3RaV0hmbG8xNWpUTDRxbDhqLUpVOUktUnpzOWlnSGFKZnBiZzVWMkNhQnpTMlRtWEE5V1B3dnNnVVRfb0pEZDB1a3ZBalZLaFhsTXlsQ3lUU3ZMMVVJOXBNOXhZT3ljWVczbF9OTnVHMUg5TUpqdmc5aHJxTnpjYWtiWl9JcTVBTUZOZ25aMUdWWHk3TzZfV1lPbVNROHhuVzdBMmxoM3BBcVI2bWJJd3pfVE1mQnBXR1pvNGRuNmQ1WHBxVTl5S0QtSURISkHSAe8BQVVfeXFMTUNEOGY2V1lmeXNTdXVyY1Jld1NoeEl1b0Vld3pXeVUyMFRHSXFrcnBxT2xUeXRyZC1zQjBqNFRlZmpienVTdjdpR0N3bTllY2N5REFxMDRPM0NyeG5QQVNZVTZVUXdROEVoRm9Eb2J4WmhMdWZqTm5GRFVyem5JVTdJTjZWRy1XaFpCaURMWnlFYjZHYVNSSklnaV9pZVFES0pDX2ZjYWl4cGhtOS1HdTdfUWg3TXpfanRuZUdPQW1pOU52c21DVmx1Y09fX3FxSThNWGNuM0tqQ3ZuNnZYa3NzMXNrSEl5VUxXM2VwZ00?oc=5",
+          "publishedAt": "2026-10-21T06:28:53Z"
+        },
+        {
+          "title": "EAAA India Alternatives fixes price band at Rs 1,585-1,665 per share for Rs 1,200-crore IPO - Moneycontrol.com",
+          "source": "Moneycontrol.com",
+          "url": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxQQ1N6OGQxbFEyYVd2SHE1aGw5WEx4SE1HVEpTSkV2ci00NWlIMURvTWJJT19jYTF3b0tMZEljbUF4cThSUEwtZ1ZPOVpQY1lKN19rMzFRLVRFSHh6ZFNzMHBSLUk0MnJmVFB0Y1BfaGVrWHh5RmNVWk9ndDVSVkJTSDZVWWwtQ1NwcUk3MExVTWI4NTJBOVcwdDRUODVZdXRZalZqMXpWVEVEYjhOU1N0bkQyV2thZjJ4NFV5SXJrRjJ0dFVrZ2RzZXdIdkdJX2xWcEI0TDZHNG12Y2hiRGNONkdUSkY3TTjSAewBQVVfeXFMTWgyVlAzU0tGQVJkVWF5UmsxdENRRDZONEpOd1dZRzJsTVZSYnAydFVDN1VhcG1uOXB2a0FGNHBHWTZFWml6dVBrX0ZkcHNQRmtiRE9YQTViaEdJanZXaDM2bFQtQjg5cEVfZG9mQ0NZRXU4cHZyd2JfTWVfamlwZFFJUjBadGlNbDJINmNCM21DRVZKR2lEczZoRlljdHR1Ull6ZTl3OUdad0EyYWZvdE1NM1U4VXlZZ3hMdkJFU0RxWVFnZklYa3NxWjNwYThic2t0NThRSXhlN2ROUHFkMGVnUkJjTzdQeHg4YTQ?oc=5",
+          "publishedAt": "2026-10-21T04:16:54Z"
+        }
+      ],
       "detailSource": "https://www.nseindia.com/market-data/issue-information?symbol=EDELALTS",
       "source": "https://www.nseindia.com/api/all-upcoming-issues?category=ipo",
       "mandateDeadline": null,
       "bidDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:53:58Z",
+      "sourceStale": false,
+      "newsStatus": "Google News RSS · selected sources · verify originals"
     },
     {
       "id": "BSESME-8045",
@@ -423,8 +539,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-8021",
@@ -460,8 +576,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-8018",
@@ -497,8 +613,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-8023",
@@ -534,8 +650,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-8015",
@@ -571,8 +687,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-8007",
@@ -608,8 +724,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-8016",
@@ -645,8 +761,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-8004",
@@ -682,8 +798,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-8017",
@@ -719,8 +835,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-8019",
@@ -756,8 +872,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-8013",
@@ -793,8 +909,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-8012",
@@ -830,8 +946,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-8008",
@@ -867,8 +983,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-7996",
@@ -904,8 +1020,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-8000",
@@ -941,8 +1057,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-7997",
@@ -978,8 +1094,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-7989",
@@ -1015,8 +1131,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-7984",
@@ -1052,8 +1168,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-7988",
@@ -1089,8 +1205,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-7983",
@@ -1126,8 +1242,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-7980",
@@ -1163,8 +1279,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-7982",
@@ -1200,8 +1316,8 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     },
     {
       "id": "BSESME-7981",
@@ -1237,9 +1353,12 @@
       "source": "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2",
       "bidDeadline": null,
       "mandateDeadline": null,
-      "sourceObservedAt": "2026-10-22T23:35:50Z",
-      "sourceStale": false
+      "sourceObservedAt": "2026-10-22T23:35:50+00:00",
+      "sourceStale": true
     }
   ],
-  "warnings": []
+  "warnings": [
+    "BSE SME: URLError",
+    "JPL news: ParseError"
+  ]
 }
