@@ -9,6 +9,9 @@ type PaperRow={strategyId:string;strategyName:string;status:'RUNNING'|'HALTED';
  cashINR:number;quantity:number;virtualEquityINR:number;feesINR:number;
  maxDrawdownPct:number;closedTrades:number;wins:number;realizedPnlINR:number;
  lastSignal:string;events:Event[];pausedReason:string|null;
+ lastDecisionEvidence?:{schema:1;mode:'SOURCE_VERIFIED_PAPER_DECISION_ONLY';
+   code:string;signal:'BUY'|'SELL'|'HOLD'|'NOT_EVALUATED';modeledFills:number;
+   checkedAt:string;completedBarAt:string;realOrdersEnabled:false;actualCapitalINR:0};
  equityHistory?:{at:string;equityINR:number}[]};
 type CheckpointEvidence={runCount:number;at:string;status:string;classification:string;
  sourceAccepted:boolean;sourceCode:string;completedBarAt:string|null;
@@ -24,6 +27,19 @@ type Report={schema:number;mode:string;currency:'INR';status:string;symbol:strin
    liveOrdersEnabled:false;paperOrdersExecuted:false};
  recentCheckpoints?:CheckpointEvidence[];
  sessions:PaperRow[]};
+const decisionExplanation:Record<string,string>={
+ SEED_ONLY_NO_BACKFILL:'Portfolio initialized without historical entries.',
+ SAME_BAR_REPLAY_BLOCKED:'No new completed candle; repeated observations cannot create another fill.',
+ MISSED_BARS_NO_BACKFILL:'One or more market intervals were missed; no historic trade was backfilled.',
+ RISK_HALTED:'Virtual risk limit has stopped new modeled trading.',
+ NO_ELIGIBLE_SIGNAL:'No qualifying entry or exit signal on the newly completed candle.',
+ SELL_SIGNAL_WITHOUT_HOLDINGS:'SELL signal observed, but this virtual account owns no coins to sell.',
+ BUY_SIGNAL_ALREADY_HOLDING:'BUY signal observed, but this virtual account already holds a position.',
+ MODELED_BUY_RECORDED:'A hypothetical BUY fill was recorded against a separately observed quote.',
+ MODELED_SELL_RECORDED:'A hypothetical SELL fill was recorded against a separately observed quote.',
+ BUY_SIGNAL_NO_AFFORDABLE_FILL:'BUY signal observed, but the existing model did not create an affordable fill.',
+ SELL_SIGNAL_NO_VALID_FILL:'SELL signal observed, but the existing model did not create a valid fill.'
+};
 const money=(n:number)=>new Intl.NumberFormat('en-IN',{style:'currency',
  currency:'INR',maximumFractionDigits:2}).format(n);
 const ts=(iso:string|null)=>iso?new Intl.DateTimeFormat('en-US',{
@@ -206,6 +222,17 @@ export default function CloudPaperCard(){
       <div><small>Borrowed margin / leverage</small><strong>₹0 · None modeled</strong></div>
       <div><small>Unrealized residual estimate</small><strong>{money(selectedSummary?.modeledUnrealizedResidualINR??0)}</strong></div>
      </div>
+     {current.lastDecisionEvidence&&
+       <p className="cloud-paper-notice" aria-label="Explanation for latest modeled trading decision">
+        <strong>Last eligible paper decision:</strong> {
+          decisionExplanation[current.lastDecisionEvidence.code]??'Model decision could not be classified.'
+        } <span>Source candle: {ts(current.lastDecisionEvidence.completedBarAt)}.
+          {current.lastDecisionEvidence.checkedAt!==report.lastRunAt
+           ?' This explanation is from the last accepted observation, not the current checkpoint.'
+           :' Current published checkpoint.'}
+          {' '}New hypothetical fills for this strategy: {current.lastDecisionEvidence.modeledFills}.
+        </span>
+       </p>}
      {(current.equityHistory?.length??0)>1&&<div className="cloud-equity-chart">
       <ResponsiveContainer width="100%" height="100%">
        <LineChart data={current.equityHistory}>
