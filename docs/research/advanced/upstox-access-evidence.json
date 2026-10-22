@@ -1,0 +1,12 @@
+{
+  "provider": "Upstox",
+  "request": "Official historical V3 example instrument, requested one session",
+  "authenticationSupplied": false,
+  "url": "https://api.upstox.com/v3/historical-candle/NSE_EQ%7CINE848E01016/minutes/1/2026-09-18/2026-09-18",
+  "httpStatus": 200,
+  "bytes": 22879,
+  "rawSha256": "e31d731cd9cd7cb8d24081771cd737f6f66cf351ac86d187c14107a7410fa480",
+  "candleCount": 375,
+  "checkedAt": "2026-10-20",
+  "scope": "One public unauthenticated read; no market prices stored in this receipt; not a full history or license certification"
+}

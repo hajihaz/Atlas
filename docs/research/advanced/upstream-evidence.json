@@ -1,0 +1,684 @@
+{
+  "schema": "atlas.upstream-source-audit.v1",
+  "checkedAt": "2026-10-20T04:44:31.824Z",
+  "scope": "Public source, revisions, licenses, manifests and published repository advisories; no dependency certification",
+  "authenticatedRequests": 0,
+  "packagesInstalled": 0,
+  "repositories": [
+    {
+      "id": "tradingagents",
+      "repository": "TauricResearch/TradingAgents",
+      "url": "https://github.com/TauricResearch/TradingAgents",
+      "pinnedCommit": "e8f5503e9b86d5c2710b0c76b1f686703968c9df",
+      "priorPinnedCommit": "e8f5503e9b86d5c2710b0c76b1f686703968c9df",
+      "revisionChanged": false,
+      "commitAt": "2026-10-16T21:38:41Z",
+      "archived": false,
+      "disabled": false,
+      "repositoryLicenseSPDX": "Apache-2.0",
+      "priorLicenseFinding": "Apache-2.0",
+      "licenseEvidence": {
+        "url": "https://raw.githubusercontent.com/TauricResearch/TradingAgents/e8f5503e9b86d5c2710b0c76b1f686703968c9df/LICENSE",
+        "httpStatus": 200,
+        "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+        "bytes": 11357
+      },
+      "files": [
+        {
+          "path": "tradingagents/graph/trading_graph.py",
+          "url": "https://raw.githubusercontent.com/TauricResearch/TradingAgents/e8f5503e9b86d5c2710b0c76b1f686703968c9df/tradingagents/graph/trading_graph.py",
+          "httpStatus": 200,
+          "sha256": "7cbd1602cd30026b7ced30fcd1478fbaef274466cf710b248f1f2cd701eca020",
+          "bytes": 23956
+        },
+        {
+          "path": "pyproject.toml",
+          "url": "https://raw.githubusercontent.com/TauricResearch/TradingAgents/e8f5503e9b86d5c2710b0c76b1f686703968c9df/pyproject.toml",
+          "httpStatus": 200,
+          "sha256": "670cd3552c10b5dbb2ea4c420336c7b58af455c27b1a65599727ecbefb4f375c",
+          "bytes": 2477
+        },
+        {
+          "path": "requirements.txt",
+          "url": "https://raw.githubusercontent.com/TauricResearch/TradingAgents/e8f5503e9b86d5c2710b0c76b1f686703968c9df/requirements.txt",
+          "httpStatus": 200,
+          "sha256": "6ac3f12df423958e453e64fd9d335482017394e0036dddf08b5e3c93683c04a0",
+          "bytes": 147
+        },
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/TauricResearch/TradingAgents/e8f5503e9b86d5c2710b0c76b1f686703968c9df/README.md",
+          "httpStatus": 200,
+          "sha256": "fa3c3b517208e804b880c447f72a9f4730d856bc2f414d4618cf41e8c44d0cd7",
+          "bytes": 27258
+        }
+      ],
+      "dependencyIndicators": [
+        "anthropic",
+        "langchain",
+        "langgraph",
+        "openai",
+        "pandas"
+      ],
+      "advisoryCheck": {
+        "url": "https://api.github.com/repos/TauricResearch/TradingAgents/security-advisories?per_page=100",
+        "httpStatus": 200,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "bytes": 2,
+        "publishedRepositoryAdvisories": [],
+        "dependencyCveAuditCompleted": false
+      },
+      "evaluation": "STATIC_SOURCE_AND_MANIFEST_INSPECTION_NOT_FULL_FRAMEWORK_EXECUTION",
+      "packagesInstalled": false,
+      "upstreamCodeVendored": false,
+      "modelWeightsDownloaded": false,
+      "deploymentCostGuaranteedFree": false,
+      "realOrdersEnabled": false
+    },
+    {
+      "id": "finrlx",
+      "repository": "AI4Finance-Foundation/FinRL-Trading",
+      "url": "https://github.com/AI4Finance-Foundation/FinRL-Trading",
+      "pinnedCommit": "4409abe925c904e570be78ebfb5e77ac3491dff8",
+      "priorPinnedCommit": "4409abe925c904e570be78ebfb5e77ac3491dff8",
+      "revisionChanged": false,
+      "commitAt": "2026-09-18T01:13:20Z",
+      "archived": false,
+      "disabled": false,
+      "repositoryLicenseSPDX": "Apache-2.0",
+      "priorLicenseFinding": "Apache-2.0",
+      "licenseEvidence": {
+        "url": "https://raw.githubusercontent.com/AI4Finance-Foundation/FinRL-Trading/4409abe925c904e570be78ebfb5e77ac3491dff8/LICENSE",
+        "httpStatus": 200,
+        "sha256": "ef3d97b5113a0f224425680aceb7a9ed3baaa4fd9aa21e8ff445cb963fddcbf5",
+        "bytes": 11352
+      },
+      "files": [
+        {
+          "path": "src/strategies/base_strategy.py",
+          "url": "https://raw.githubusercontent.com/AI4Finance-Foundation/FinRL-Trading/4409abe925c904e570be78ebfb5e77ac3491dff8/src/strategies/base_strategy.py",
+          "httpStatus": 200,
+          "sha256": "9eef583bf44256391f3c4097e986a0e82da411c22de03fa594bfe8605803e314",
+          "bytes": 1588
+        },
+        {
+          "path": "pyproject.toml",
+          "url": "https://raw.githubusercontent.com/AI4Finance-Foundation/FinRL-Trading/4409abe925c904e570be78ebfb5e77ac3491dff8/pyproject.toml",
+          "httpStatus": 404
+        },
+        {
+          "path": "requirements.txt",
+          "url": "https://raw.githubusercontent.com/AI4Finance-Foundation/FinRL-Trading/4409abe925c904e570be78ebfb5e77ac3491dff8/requirements.txt",
+          "httpStatus": 200,
+          "sha256": "bafd6710592e640315b1e2ff2f6dc6e79e1b40dd40658776ee84ef146217a7f3",
+          "bytes": 1022
+        },
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/AI4Finance-Foundation/FinRL-Trading/4409abe925c904e570be78ebfb5e77ac3491dff8/README.md",
+          "httpStatus": 200,
+          "sha256": "87b6d384f7b9f98ab2d091cf52391c5a0246a342c61213bf5cf7eec1c366d6d2",
+          "bytes": 16808
+        }
+      ],
+      "dependencyIndicators": [
+        "alpaca",
+        "numpy",
+        "openai",
+        "pandas",
+        "torch"
+      ],
+      "advisoryCheck": {
+        "url": "https://api.github.com/repos/AI4Finance-Foundation/FinRL-Trading/security-advisories?per_page=100",
+        "httpStatus": 200,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "bytes": 2,
+        "publishedRepositoryAdvisories": [],
+        "dependencyCveAuditCompleted": false
+      },
+      "evaluation": "STATIC_SOURCE_AND_MANIFEST_INSPECTION_NOT_FULL_FRAMEWORK_EXECUTION",
+      "packagesInstalled": false,
+      "upstreamCodeVendored": false,
+      "modelWeightsDownloaded": false,
+      "deploymentCostGuaranteedFree": false,
+      "realOrdersEnabled": false
+    },
+    {
+      "id": "nautilus",
+      "repository": "nautechsystems/nautilus_trader",
+      "url": "https://github.com/nautechsystems/nautilus_trader",
+      "pinnedCommit": "c6cada8ac8a82b305aa0fbd7948afa504eb40f46",
+      "priorPinnedCommit": "16b8286e7c3d34f87147bf30a9c5486fb0899ea3",
+      "revisionChanged": true,
+      "commitAt": "2026-10-20T03:47:32Z",
+      "archived": false,
+      "disabled": false,
+      "repositoryLicenseSPDX": "LGPL-3.0",
+      "priorLicenseFinding": "LGPL-3.0",
+      "licenseEvidence": {
+        "url": "https://raw.githubusercontent.com/nautechsystems/nautilus_trader/c6cada8ac8a82b305aa0fbd7948afa504eb40f46/LICENSE",
+        "httpStatus": 200,
+        "sha256": "ee907919ec88c9c017b1f8b608db20960b6598aefcc4fe58820bde955d65ed3c",
+        "bytes": 7651
+      },
+      "files": [
+        {
+          "path": "python/nautilus_trader/backtest/__init__.pyi",
+          "url": "https://raw.githubusercontent.com/nautechsystems/nautilus_trader/c6cada8ac8a82b305aa0fbd7948afa504eb40f46/python/nautilus_trader/backtest/__init__.pyi",
+          "httpStatus": 200,
+          "sha256": "63dcd6f5272cf64a7f3cb95c6542654ac4b7219b2fe4bed33192b4608560033f",
+          "bytes": 21044
+        },
+        {
+          "path": "pyproject.toml",
+          "url": "https://raw.githubusercontent.com/nautechsystems/nautilus_trader/c6cada8ac8a82b305aa0fbd7948afa504eb40f46/pyproject.toml",
+          "httpStatus": 404
+        },
+        {
+          "path": "requirements.txt",
+          "url": "https://raw.githubusercontent.com/nautechsystems/nautilus_trader/c6cada8ac8a82b305aa0fbd7948afa504eb40f46/requirements.txt",
+          "httpStatus": 404
+        },
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/nautechsystems/nautilus_trader/c6cada8ac8a82b305aa0fbd7948afa504eb40f46/README.md",
+          "httpStatus": 200,
+          "sha256": "fb59fc43d9c585018b6e1ea77504d28111be7d30dc6e08a1da1eb4ad78ad39aa",
+          "bytes": 40010
+        }
+      ],
+      "dependencyIndicators": [
+        "pandas"
+      ],
+      "advisoryCheck": {
+        "url": "https://api.github.com/repos/nautechsystems/nautilus_trader/security-advisories?per_page=100",
+        "httpStatus": 200,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "bytes": 2,
+        "publishedRepositoryAdvisories": [],
+        "dependencyCveAuditCompleted": false
+      },
+      "evaluation": "STATIC_SOURCE_AND_MANIFEST_INSPECTION_NOT_FULL_FRAMEWORK_EXECUTION",
+      "packagesInstalled": false,
+      "upstreamCodeVendored": false,
+      "modelWeightsDownloaded": false,
+      "deploymentCostGuaranteedFree": false,
+      "realOrdersEnabled": false,
+      "licenseMarkers": {
+        "commonsClause": false,
+        "lesserGPL": true,
+        "generalGPL": false
+      }
+    },
+    {
+      "id": "freqtrade",
+      "repository": "freqtrade/freqtrade",
+      "url": "https://github.com/freqtrade/freqtrade",
+      "pinnedCommit": "cfbcfade0c93784d8e90d8d6fe1560c809aa772d",
+      "priorPinnedCommit": "3fca49d0fd124dee2d4872100dc1178df0ff9673",
+      "revisionChanged": true,
+      "commitAt": "2026-10-20T04:15:52Z",
+      "archived": false,
+      "disabled": false,
+      "repositoryLicenseSPDX": "GPL-3.0",
+      "priorLicenseFinding": "GPL-3.0",
+      "licenseEvidence": {
+        "url": "https://raw.githubusercontent.com/freqtrade/freqtrade/cfbcfade0c93784d8e90d8d6fe1560c809aa772d/LICENSE",
+        "httpStatus": 200,
+        "sha256": "589ed823e9a84c56feb95ac58e7cf384626b9cbf4fda2a907bc36e103de1bad2",
+        "bytes": 35141
+      },
+      "files": [
+        {
+          "path": "freqtrade/optimize/backtesting.py",
+          "url": "https://raw.githubusercontent.com/freqtrade/freqtrade/cfbcfade0c93784d8e90d8d6fe1560c809aa772d/freqtrade/optimize/backtesting.py",
+          "httpStatus": 200,
+          "sha256": "1b185dfe44e5b0cbab0f2e35fae8c6f545c9aa987d556cd019bea1bd8880bfd1",
+          "bytes": 82552
+        },
+        {
+          "path": "pyproject.toml",
+          "url": "https://raw.githubusercontent.com/freqtrade/freqtrade/cfbcfade0c93784d8e90d8d6fe1560c809aa772d/pyproject.toml",
+          "httpStatus": 200,
+          "sha256": "f66a2fdb1c33e938b81a489085e59d1f7717b3871e55512d37e1ae524a940b9e",
+          "bytes": 8524
+        },
+        {
+          "path": "requirements.txt",
+          "url": "https://raw.githubusercontent.com/freqtrade/freqtrade/cfbcfade0c93784d8e90d8d6fe1560c809aa772d/requirements.txt",
+          "httpStatus": 200,
+          "sha256": "496c48ec0a9b56d04376495274f2378807b443140fb61598ab9815c378e73893",
+          "bytes": 1078
+        },
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/freqtrade/freqtrade/cfbcfade0c93784d8e90d8d6fe1560c809aa772d/README.md",
+          "httpStatus": 200,
+          "sha256": "119d586166ae397b05f9763caf7f90e2d27792f90c8455c04ac3455e14a40d89",
+          "bytes": 12770
+        }
+      ],
+      "dependencyIndicators": [
+        "ccxt",
+        "joblib",
+        "numpy",
+        "pandas",
+        "pickle",
+        "torch"
+      ],
+      "advisoryCheck": {
+        "url": "https://api.github.com/repos/freqtrade/freqtrade/security-advisories?per_page=100",
+        "httpStatus": 200,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "bytes": 2,
+        "publishedRepositoryAdvisories": [],
+        "dependencyCveAuditCompleted": false
+      },
+      "evaluation": "STATIC_SOURCE_AND_MANIFEST_INSPECTION_NOT_FULL_FRAMEWORK_EXECUTION",
+      "packagesInstalled": false,
+      "upstreamCodeVendored": false,
+      "modelWeightsDownloaded": false,
+      "deploymentCostGuaranteedFree": false,
+      "realOrdersEnabled": false,
+      "licenseMarkers": {
+        "commonsClause": false,
+        "lesserGPL": false,
+        "generalGPL": true
+      }
+    },
+    {
+      "id": "qlib",
+      "repository": "microsoft/qlib",
+      "url": "https://github.com/microsoft/qlib",
+      "pinnedCommit": "54355232463878d2eebb91fe0ee5fa7fa1f5976c",
+      "priorPinnedCommit": "54355232463878d2eebb91fe0ee5fa7fa1f5976c",
+      "revisionChanged": false,
+      "commitAt": "2026-10-08T10:15:27Z",
+      "archived": false,
+      "disabled": false,
+      "repositoryLicenseSPDX": "MIT",
+      "priorLicenseFinding": "MIT",
+      "licenseEvidence": {
+        "url": "https://raw.githubusercontent.com/microsoft/qlib/54355232463878d2eebb91fe0ee5fa7fa1f5976c/LICENSE",
+        "httpStatus": 200,
+        "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+        "bytes": 1141
+      },
+      "files": [
+        {
+          "path": "qlib/backtest/backtest.py",
+          "url": "https://raw.githubusercontent.com/microsoft/qlib/54355232463878d2eebb91fe0ee5fa7fa1f5976c/qlib/backtest/backtest.py",
+          "httpStatus": 200,
+          "sha256": "f792772f81f3c8973f1a91351cda4a8c43fd5bafc791c2b04eabd9e4663cf961",
+          "bytes": 4038
+        },
+        {
+          "path": "pyproject.toml",
+          "url": "https://raw.githubusercontent.com/microsoft/qlib/54355232463878d2eebb91fe0ee5fa7fa1f5976c/pyproject.toml",
+          "httpStatus": 200,
+          "sha256": "c47849f143278fef2c114513ca123c6100f007947cdf051928e734985f35a4e9",
+          "bytes": 3861
+        },
+        {
+          "path": "requirements.txt",
+          "url": "https://raw.githubusercontent.com/microsoft/qlib/54355232463878d2eebb91fe0ee5fa7fa1f5976c/requirements.txt",
+          "httpStatus": 404
+        },
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/microsoft/qlib/54355232463878d2eebb91fe0ee5fa7fa1f5976c/README.md",
+          "httpStatus": 200,
+          "sha256": "e9f7cc8eeb60e3fe3784ec496e350ecb584157c3240cda0651c20acb26fd9037",
+          "bytes": 44277
+        }
+      ],
+      "dependencyIndicators": [
+        "cython",
+        "joblib",
+        "numpy",
+        "pandas",
+        "tensorflow",
+        "torch"
+      ],
+      "advisoryCheck": {
+        "url": "https://api.github.com/repos/microsoft/qlib/security-advisories?per_page=100",
+        "httpStatus": 200,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "bytes": 2,
+        "publishedRepositoryAdvisories": [],
+        "dependencyCveAuditCompleted": false
+      },
+      "evaluation": "STATIC_SOURCE_AND_MANIFEST_INSPECTION_NOT_FULL_FRAMEWORK_EXECUTION",
+      "packagesInstalled": false,
+      "upstreamCodeVendored": false,
+      "modelWeightsDownloaded": false,
+      "deploymentCostGuaranteedFree": false,
+      "realOrdersEnabled": false
+    },
+    {
+      "id": "finrobot",
+      "repository": "AI4Finance-Foundation/FinRobot",
+      "url": "https://github.com/AI4Finance-Foundation/FinRobot",
+      "pinnedCommit": "2717499b8e30f242640af08c4ad9afd1113c2d45",
+      "priorPinnedCommit": "2717499b8e30f242640af08c4ad9afd1113c2d45",
+      "revisionChanged": false,
+      "commitAt": "2026-09-28T11:24:51Z",
+      "archived": false,
+      "disabled": false,
+      "repositoryLicenseSPDX": "Apache-2.0",
+      "priorLicenseFinding": "Apache-2.0",
+      "licenseEvidence": {
+        "url": "https://raw.githubusercontent.com/AI4Finance-Foundation/FinRobot/2717499b8e30f242640af08c4ad9afd1113c2d45/LICENSE",
+        "httpStatus": 200,
+        "sha256": "bbcb4226500b503737713f0c9a9da17efce56fa6989b9f0538071dcb60826af5",
+        "bytes": 11552
+      },
+      "files": [
+        {
+          "path": "finrobot_equity/README.md",
+          "url": "https://raw.githubusercontent.com/AI4Finance-Foundation/FinRobot/2717499b8e30f242640af08c4ad9afd1113c2d45/finrobot_equity/README.md",
+          "httpStatus": 200,
+          "sha256": "77961b4a3323fae48feb31b2b9aebdbe1e03fd78ca7701376d7cfeaa165869bf",
+          "bytes": 12767
+        },
+        {
+          "path": "pyproject.toml",
+          "url": "https://raw.githubusercontent.com/AI4Finance-Foundation/FinRobot/2717499b8e30f242640af08c4ad9afd1113c2d45/pyproject.toml",
+          "httpStatus": 404
+        },
+        {
+          "path": "requirements.txt",
+          "url": "https://raw.githubusercontent.com/AI4Finance-Foundation/FinRobot/2717499b8e30f242640af08c4ad9afd1113c2d45/requirements.txt",
+          "httpStatus": 404
+        },
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/AI4Finance-Foundation/FinRobot/2717499b8e30f242640af08c4ad9afd1113c2d45/README.md",
+          "httpStatus": 200,
+          "sha256": "a18b26396e0ca785364e0379dc9c40d2efa988d1b591d5199e357478f1f911eb",
+          "bytes": 24585
+        }
+      ],
+      "dependencyIndicators": [
+        "langchain",
+        "openai"
+      ],
+      "advisoryCheck": {
+        "url": "https://api.github.com/repos/AI4Finance-Foundation/FinRobot/security-advisories?per_page=100",
+        "httpStatus": 200,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "bytes": 2,
+        "publishedRepositoryAdvisories": [],
+        "dependencyCveAuditCompleted": false
+      },
+      "evaluation": "STATIC_SOURCE_AND_MANIFEST_INSPECTION_NOT_FULL_FRAMEWORK_EXECUTION",
+      "packagesInstalled": false,
+      "upstreamCodeVendored": false,
+      "modelWeightsDownloaded": false,
+      "deploymentCostGuaranteedFree": false,
+      "realOrdersEnabled": false
+    },
+    {
+      "id": "lean",
+      "repository": "QuantConnect/Lean",
+      "url": "https://github.com/QuantConnect/Lean",
+      "pinnedCommit": "61c598b66ed8051d156bba10001eab4f3e86bcb9",
+      "priorPinnedCommit": "8fdd89fb7d1b4f04ab0f1035adef9e9497e9bf31",
+      "revisionChanged": true,
+      "commitAt": "2026-10-19T21:49:47Z",
+      "archived": false,
+      "disabled": false,
+      "repositoryLicenseSPDX": "Apache-2.0",
+      "priorLicenseFinding": "Apache-2.0",
+      "licenseEvidence": {
+        "url": "https://raw.githubusercontent.com/QuantConnect/Lean/61c598b66ed8051d156bba10001eab4f3e86bcb9/LICENSE",
+        "httpStatus": 200,
+        "sha256": "522cf0a716ce03f67d46f8fceb5bf78c5b84400ec5cd8d14bf9f02cddc1cb6ba",
+        "bytes": 10737
+      },
+      "files": [
+        {
+          "path": "Engine/Engine.cs",
+          "url": "https://raw.githubusercontent.com/QuantConnect/Lean/61c598b66ed8051d156bba10001eab4f3e86bcb9/Engine/Engine.cs",
+          "httpStatus": 200,
+          "sha256": "408483f32a11543820067835fc8d44db9722f8ee2cb4b74f6491e0377b1a2ae8",
+          "bytes": 32971
+        },
+        {
+          "path": "pyproject.toml",
+          "url": "https://raw.githubusercontent.com/QuantConnect/Lean/61c598b66ed8051d156bba10001eab4f3e86bcb9/pyproject.toml",
+          "httpStatus": 404
+        },
+        {
+          "path": "requirements.txt",
+          "url": "https://raw.githubusercontent.com/QuantConnect/Lean/61c598b66ed8051d156bba10001eab4f3e86bcb9/requirements.txt",
+          "httpStatus": 404
+        },
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/QuantConnect/Lean/61c598b66ed8051d156bba10001eab4f3e86bcb9/README.md",
+          "httpStatus": 404
+        }
+      ],
+      "dependencyIndicators": [
+        "pythonnet"
+      ],
+      "advisoryCheck": {
+        "url": "https://api.github.com/repos/QuantConnect/Lean/security-advisories?per_page=100",
+        "httpStatus": 200,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "bytes": 2,
+        "publishedRepositoryAdvisories": [],
+        "dependencyCveAuditCompleted": false
+      },
+      "evaluation": "STATIC_SOURCE_AND_MANIFEST_INSPECTION_NOT_FULL_FRAMEWORK_EXECUTION",
+      "packagesInstalled": false,
+      "upstreamCodeVendored": false,
+      "modelWeightsDownloaded": false,
+      "deploymentCostGuaranteedFree": false,
+      "realOrdersEnabled": false
+    },
+    {
+      "id": "hummingbot",
+      "repository": "hummingbot/hummingbot",
+      "url": "https://github.com/hummingbot/hummingbot",
+      "pinnedCommit": "9af100d6822da7d2d0291a906c730ef172284ee2",
+      "priorPinnedCommit": "9af100d6822da7d2d0291a906c730ef172284ee2",
+      "revisionChanged": false,
+      "commitAt": "2026-09-22T08:53:54Z",
+      "archived": false,
+      "disabled": false,
+      "repositoryLicenseSPDX": "Apache-2.0",
+      "priorLicenseFinding": "Apache-2.0",
+      "licenseEvidence": {
+        "url": "https://raw.githubusercontent.com/hummingbot/hummingbot/9af100d6822da7d2d0291a906c730ef172284ee2/LICENSE",
+        "httpStatus": 200,
+        "sha256": "f0dd03c14db3dfbce03c166645f88fda96599ad1a5d217fddb49134de8c72a29",
+        "bytes": 11352
+      },
+      "files": [
+        {
+          "path": "hummingbot/strategy/strategy_base.pyx",
+          "url": "https://raw.githubusercontent.com/hummingbot/hummingbot/9af100d6822da7d2d0291a906c730ef172284ee2/hummingbot/strategy/strategy_base.pyx",
+          "httpStatus": 200,
+          "sha256": "f4e7fdbbd478502196e4055fa8dbb8f9820cd70a8e1d2d3a357d91883ed37d1e",
+          "bytes": 31257
+        },
+        {
+          "path": "pyproject.toml",
+          "url": "https://raw.githubusercontent.com/hummingbot/hummingbot/9af100d6822da7d2d0291a906c730ef172284ee2/pyproject.toml",
+          "httpStatus": 200,
+          "sha256": "e85650c33216ef0ebc8b04108b5602ef098ee4eef08d75cf74851328e78d4109",
+          "bytes": 894
+        },
+        {
+          "path": "requirements.txt",
+          "url": "https://raw.githubusercontent.com/hummingbot/hummingbot/9af100d6822da7d2d0291a906c730ef172284ee2/requirements.txt",
+          "httpStatus": 404
+        },
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/hummingbot/hummingbot/9af100d6822da7d2d0291a906c730ef172284ee2/README.md",
+          "httpStatus": 200,
+          "sha256": "179e404ee85129a0b714d234246b0b9c13345f1ce19f50dd065e8c83af28c1c7",
+          "bytes": 16992
+        }
+      ],
+      "dependencyIndicators": [
+        "cython",
+        "numpy",
+        "pandas"
+      ],
+      "advisoryCheck": {
+        "url": "https://api.github.com/repos/hummingbot/hummingbot/security-advisories?per_page=100",
+        "httpStatus": 200,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "bytes": 2,
+        "publishedRepositoryAdvisories": [],
+        "dependencyCveAuditCompleted": false
+      },
+      "evaluation": "STATIC_SOURCE_AND_MANIFEST_INSPECTION_NOT_FULL_FRAMEWORK_EXECUTION",
+      "packagesInstalled": false,
+      "upstreamCodeVendored": false,
+      "modelWeightsDownloaded": false,
+      "deploymentCostGuaranteedFree": false,
+      "realOrdersEnabled": false
+    },
+    {
+      "id": "vectorbt",
+      "repository": "polakowo/vectorbt",
+      "url": "https://github.com/polakowo/vectorbt",
+      "pinnedCommit": "dd8eb3a3fe9ed918b1cdaf177455759ae4ac68cb",
+      "priorPinnedCommit": "dd8eb3a3fe9ed918b1cdaf177455759ae4ac68cb",
+      "revisionChanged": false,
+      "commitAt": "2026-10-19T21:31:04Z",
+      "archived": false,
+      "disabled": false,
+      "repositoryLicenseSPDX": "NOASSERTION",
+      "priorLicenseFinding": "Commons Clause + underlying license",
+      "licenseEvidence": {
+        "url": "https://raw.githubusercontent.com/polakowo/vectorbt/dd8eb3a3fe9ed918b1cdaf177455759ae4ac68cb/LICENSE.md",
+        "httpStatus": 200,
+        "sha256": "a914859a115b70e80956a3cbd613139ad74c04e5d1bd38da8bcc16725822ec84",
+        "bytes": 12321
+      },
+      "files": [
+        {
+          "path": "vectorbt/portfolio/base.py",
+          "url": "https://raw.githubusercontent.com/polakowo/vectorbt/dd8eb3a3fe9ed918b1cdaf177455759ae4ac68cb/vectorbt/portfolio/base.py",
+          "httpStatus": 200,
+          "sha256": "1762c6597013ff2084316b15ece1d3ad3110230ead03f98a195024c348c2ca4e",
+          "bytes": 248264
+        },
+        {
+          "path": "pyproject.toml",
+          "url": "https://raw.githubusercontent.com/polakowo/vectorbt/dd8eb3a3fe9ed918b1cdaf177455759ae4ac68cb/pyproject.toml",
+          "httpStatus": 200,
+          "sha256": "bc7835b5cdcee90e18344ddb77106e039e6e2f46ce4185286b1f15f669be8ebc",
+          "bytes": 2236
+        },
+        {
+          "path": "requirements.txt",
+          "url": "https://raw.githubusercontent.com/polakowo/vectorbt/dd8eb3a3fe9ed918b1cdaf177455759ae4ac68cb/requirements.txt",
+          "httpStatus": 404
+        },
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/polakowo/vectorbt/dd8eb3a3fe9ed918b1cdaf177455759ae4ac68cb/README.md",
+          "httpStatus": 200,
+          "sha256": "5d8313002bc7e0decfa49cd4aa7314a287f887222bb2e7df9d26e10abb54d244",
+          "bytes": 17459
+        }
+      ],
+      "dependencyIndicators": [
+        "alpaca",
+        "ccxt",
+        "numba",
+        "numpy",
+        "pandas",
+        "pickle"
+      ],
+      "advisoryCheck": {
+        "url": "https://api.github.com/repos/polakowo/vectorbt/security-advisories?per_page=100",
+        "httpStatus": 200,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "bytes": 2,
+        "publishedRepositoryAdvisories": [],
+        "dependencyCveAuditCompleted": false
+      },
+      "evaluation": "STATIC_SOURCE_AND_MANIFEST_INSPECTION_NOT_FULL_FRAMEWORK_EXECUTION",
+      "packagesInstalled": false,
+      "upstreamCodeVendored": false,
+      "modelWeightsDownloaded": false,
+      "deploymentCostGuaranteedFree": false,
+      "realOrdersEnabled": false,
+      "licenseMarkers": {
+        "commonsClause": true,
+        "lesserGPL": false,
+        "generalGPL": false
+      }
+    },
+    {
+      "id": "finbert",
+      "repository": "ProsusAI/finBERT",
+      "url": "https://github.com/ProsusAI/finBERT",
+      "pinnedCommit": "3b4bfed383a8bb6b013db2f1ce9c766ff5100d24",
+      "priorPinnedCommit": "3b4bfed383a8bb6b013db2f1ce9c766ff5100d24",
+      "revisionChanged": false,
+      "commitAt": "2026-10-12T08:18:25Z",
+      "archived": false,
+      "disabled": false,
+      "repositoryLicenseSPDX": "Apache-2.0",
+      "priorLicenseFinding": "Apache-2.0 (repository code only)",
+      "licenseEvidence": {
+        "url": "https://raw.githubusercontent.com/ProsusAI/finBERT/3b4bfed383a8bb6b013db2f1ce9c766ff5100d24/LICENSE",
+        "httpStatus": 200,
+        "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+        "bytes": 11357
+      },
+      "files": [
+        {
+          "path": "scripts/predict.py",
+          "url": "https://raw.githubusercontent.com/ProsusAI/finBERT/3b4bfed383a8bb6b013db2f1ce9c766ff5100d24/scripts/predict.py",
+          "httpStatus": 200,
+          "sha256": "86b839265acaca18be3760085bb72bc67ee59be96d002680fd295a24e88b9c6f",
+          "bytes": 1077
+        },
+        {
+          "path": "pyproject.toml",
+          "url": "https://raw.githubusercontent.com/ProsusAI/finBERT/3b4bfed383a8bb6b013db2f1ce9c766ff5100d24/pyproject.toml",
+          "httpStatus": 404
+        },
+        {
+          "path": "requirements.txt",
+          "url": "https://raw.githubusercontent.com/ProsusAI/finBERT/3b4bfed383a8bb6b013db2f1ce9c766ff5100d24/requirements.txt",
+          "httpStatus": 404
+        },
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/ProsusAI/finBERT/3b4bfed383a8bb6b013db2f1ce9c766ff5100d24/README.md",
+          "httpStatus": 200,
+          "sha256": "00ede8d3f15bbf93bc72a866bc1ec0036e1a954ae256701a326b4d13e22774e2",
+          "bytes": 6224
+        }
+      ],
+      "dependencyIndicators": [
+        "transformers"
+      ],
+      "advisoryCheck": {
+        "url": "https://api.github.com/repos/ProsusAI/finBERT/security-advisories?per_page=100",
+        "httpStatus": 200,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "bytes": 2,
+        "publishedRepositoryAdvisories": [],
+        "dependencyCveAuditCompleted": false
+      },
+      "evaluation": "STATIC_SOURCE_AND_MANIFEST_INSPECTION_NOT_FULL_FRAMEWORK_EXECUTION",
+      "packagesInstalled": false,
+      "upstreamCodeVendored": false,
+      "modelWeightsDownloaded": false,
+      "deploymentCostGuaranteedFree": false,
+      "realOrdersEnabled": false
+    }
+  ]
+}

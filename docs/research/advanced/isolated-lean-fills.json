@@ -1,0 +1,101 @@
+{
+  "schema": "atlas.isolated-lean-fill-check.v1",
+  "localLeanCommit": "f24fc0d3df03d6bdbe0e6fc7b8522445f1d900d2",
+  "existingCheckoutHadChanges": true,
+  "existingCheckoutModifiedByThisMission": false,
+  "launcherSha256": "819d605ae8bdb777e1c40ed8f5412a500f5347ab55023e57a7dc0dc76aa2750b",
+  "algorithmAssemblySha256": "16cab148f0ca2ab3ff3dc42f3ed64f0794c593dcde2435cbf1a1214e030893b9",
+  "scope": "Existing LEAN cash-rejection and capped partial-fill fixtures on local bundled sample data",
+  "casesPassed": 2,
+  "networkDeniedByMacOSSandbox": true,
+  "newPackagesInstalled": 0,
+  "liveMode": false,
+  "realOrdersEnabled": false,
+  "marketStrategyProfitabilityCertified": false,
+  "cases": [
+    {
+      "fixture": "AtlasCashLimitFixtureAlgorithm",
+      "status": "PASS",
+      "orderStatuses": [
+        "invalid"
+      ],
+      "fillQuantities": [
+        0.0
+      ],
+      "statistics": {
+        "Total Orders": "1",
+        "Average Win": "0%",
+        "Average Loss": "0%",
+        "Compounding Annual Return": "0%",
+        "Drawdown": "0%",
+        "Expectancy": "0",
+        "Start Equity": "1000",
+        "End Equity": "1000",
+        "Net Profit": "0%",
+        "Sharpe Ratio": "0",
+        "Sortino Ratio": "0",
+        "Probabilistic Sharpe Ratio": "0%",
+        "Loss Rate": "0%",
+        "Win Rate": "0%",
+        "Profit-Loss Ratio": "0",
+        "Alpha": "0",
+        "Beta": "0",
+        "Annual Standard Deviation": "0",
+        "Annual Variance": "0",
+        "Information Ratio": "-66.775",
+        "Tracking Error": "0.243",
+        "Treynor Ratio": "0",
+        "Total Fees": "$0.00",
+        "Estimated Strategy Capacity": "$0",
+        "Lowest Capacity Asset": "",
+        "Portfolio Turnover": "0%",
+        "Drawdown Recovery": "0"
+      }
+    },
+    {
+      "fixture": "AtlasPartialFillFixtureAlgorithm",
+      "status": "PASS",
+      "orderStatuses": [
+        "submitted",
+        "partiallyFilled",
+        "partiallyFilled",
+        "filled"
+      ],
+      "fillQuantities": [
+        0.0,
+        4.0,
+        4.0,
+        4.0
+      ],
+      "statistics": {
+        "Total Orders": "1",
+        "Average Win": "0%",
+        "Average Loss": "0%",
+        "Compounding Annual Return": "3.042%",
+        "Drawdown": "0.000%",
+        "Expectancy": "0",
+        "Start Equity": "100000",
+        "End Equity": "100087.61",
+        "Net Profit": "0.088%",
+        "Sharpe Ratio": "6.624",
+        "Sortino Ratio": "11.036",
+        "Probabilistic Sharpe Ratio": "88.269%",
+        "Loss Rate": "0%",
+        "Win Rate": "0%",
+        "Profit-Loss Ratio": "0",
+        "Alpha": "-0.032",
+        "Beta": "0.017",
+        "Annual Standard Deviation": "0.002",
+        "Annual Variance": "0",
+        "Information Ratio": "-21.327",
+        "Tracking Error": "0.128",
+        "Treynor Ratio": "0.868",
+        "Total Fees": "$1.00",
+        "Estimated Strategy Capacity": "$2400000000.00",
+        "Lowest Capacity Asset": "SPY R735QTJ8XC9X",
+        "Portfolio Turnover": "0.16%",
+        "Drawdown Recovery": "1"
+      }
+    }
+  ]
+}

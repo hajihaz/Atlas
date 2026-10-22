@@ -1,0 +1,13 @@
+{
+  "schema": "atlas.isolated-lean-runtime-check.v1",
+  "result": "PASS",
+  "casesPassed": 1,
+  "scope": "Existing isolated LEAN Compression ZIP payload round trip, NOT an order/fill or strategy-performance benchmark",
+  "localLeanCommit": "f24fc0d3df03d6bdbe0e6fc7b8522445f1d900d2",
+  "existingCheckoutHadChanges": true,
+  "existingCheckoutModifiedByThisMission": false,
+  "assemblySha256": "467d9699884eb51b2aeaf9c8d9d32b0fdaf08ca6fff2064658e50755d4f69ddc",
+  "newPackagesInstalled": 0,
+  "realOrdersEnabled": false,
+  "stdout": "LEAN INDEPENDENT COMPRESSION: PASS (ZIP payload bytes round-trip)"
+}
