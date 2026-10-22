@@ -75,6 +75,7 @@ jobs:
       - run: node --test frontend/tests/paper-decision-evidence.test.mjs
       - run: node --test frontend/tests/paper-cadence.test.mjs
       - run: node --test frontend/tests/cloud-paper-daybook.test.mjs
+      - run: node --test frontend/tests/ipo-intelligence.test.mjs
       - run: node --test frontend/tests/workbench-ui.test.mjs
       - run: node --test frontend/tests/scalpstorm-allocation-ui.test.mjs
       - run: node --test frontend/tests/agent-council.test.mjs
