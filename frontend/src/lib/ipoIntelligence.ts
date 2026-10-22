@@ -40,8 +40,11 @@ export function feedAgeMinutes(feed:IpoFeed,now=new Date()):number{
   return Math.max(0,(now.getTime()-Date.parse(feed.generatedAt))/60000);
 }
 export function recommendation(i:IpoIssue,stale:boolean):{label:string;reason:string;score:number|null;tone:'warning'|'good'|'neutral'}{
+  const stage=effectiveStatus(i);
+  if(stage==='CLOSED')return {label:'APPLICATION CLOSED',reason:'The bidding period has ended. Allotment and actual listing performance still require registrar/exchange confirmation.',score:null,tone:'neutral'};
+  if(stage==='UPCOMING')return {label:'PRE-OPEN WATCH',reason:'The issue is not open for bidding. Read the prospectus and check the final price, valuation and offer risks before applying.',score:null,tone:'neutral'};
   if(stale)return {label:'SOURCE STALE',reason:'Latest verified exchange snapshot is too old to assess current demand.',score:null,tone:'warning'};
-  if(i.financials===null)return {label:'RESEARCH REQUIRED',reason:'Prospectus-based financials, independent valuation and issuer risk review are missing. Subscription alone cannot justify an Apply recommendation.',score:null,tone:'warning'};
+  if(i.financials===null)return {label:'HOLD — DO NOT APPLY YET',reason:'Verified issuer financials, valuation and prospectus risk review are missing. Subscription multiples alone cannot support a reliable Apply decision. Wait for a complete risk assessment.',score:null,tone:'warning'};
   const f=i.financials;
   if(!f.source||!f.asOf||f.revenueGrowthPct===null||f.profitMarginPct===null||f.debtEquity===null||i.subscription.total===null){
     return {label:'INSUFFICIENT EVIDENCE',reason:'Reliable fundamentals or exchange subscription observations are incomplete.',score:null,tone:'warning'};
