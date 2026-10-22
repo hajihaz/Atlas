@@ -67,7 +67,7 @@ test('degraded source keeps last accepted decision immutable',()=>{
 test('forged modeled event during gap skip cannot be presented as a trade',()=>{
  const start=attachPaperDecisionEvidence(null,advanceCloud(null,firstBars,firstQuote,firstNow),firstBars);
  const bars=barsAt(154),q=quoteAt(154,bars),at=nowAt(154);
- const bad=advanceCloud(start,bars,q,at);
+ const bad=structuredClone(advanceCloud(start,bars,q,at));
  bad.sessions[0].events.push({side:'BUY',quoteAt:q.sourceAt,barClosedAt:bad.lastBarClosedAt,
   modeledPriceINR:q.price,quantity:0.01,feeINR:5,realizedPnlINR:null,
   mode:'HYPOTHETICAL_AFTER_OBSERVED_SIGNAL'});
