@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import sys
 import urllib.error
@@ -34,12 +35,16 @@ def get_json(url: str, timeout: int = 9):
     parts = urllib.parse.urlsplit(url)
     if (
         parts.scheme != "https"
-        or parts.hostname != "www.nseindia.com"
+        or parts.hostname not in ("www.nseindia.com", "www.xflot.com", "gmptoday.in")
         or not parts.path.startswith("/api/")
+        or (
+            parts.hostname == "www.xflot.com"
+            and not parts.path.startswith("/api/public/market/ipos")
+        )
     ):
         raise ValueError("Untrusted IPO provider URL")
-    request = urllib.request.Request(url, headers=HEADERS)  # noqa: S310 - validated HTTPS NSE endpoint
-    with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310 - validated HTTPS NSE endpoint
+    request = urllib.request.Request(url, headers=HEADERS)  # noqa: S310 - validated HTTPS IPO provider endpoint
+    with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310 - validated HTTPS IPO provider endpoint
         if response.status != 200 or "json" not in response.headers.get("content-type", "").lower():
             raise ValueError("Unexpected NSE response type")
         return json.load(response)
@@ -140,6 +145,15 @@ def transform_issue(item):
         },
         "gmp": None,
         "gmpAsOf": None,
+        "gmpProvider": None,
+        "gmpReadings": [],
+        "gmpDisputed": False,
+        "gmpSources": None,
+        "gmpEstimatedGainPct": None,
+        "gmpHistory": [],
+        "registrar": None,
+        "rhpUrl": None,
+        "priceJustificationUrl": None,
         "financials": None,
         "news": [],
         "detailSource": BASE
@@ -181,6 +195,16 @@ def enrich_detail(issue):
             continue
         title = str(x.get("title") or "").strip().lower()
         value = str(x.get("value") or "")
+        if title == "name of the registrar":
+            issue["registrar"] = value[:180] if value.strip() else None
+        if title == "red herring prospectus" and value.startswith(
+            "https://nsearchives.nseindia.com/content/ipo/"
+        ):
+            issue["rhpUrl"] = value.strip()
+        if title == "ratios / basis of issue price" and value.startswith(
+            "https://nsearchives.nseindia.com/content/ipo/"
+        ):
+            issue["priceJustificationUrl"] = value.strip()
         if "cut-off time for upi mandate" in title:
             issue["mandateDeadline"] = parse_mandate_deadline(value)
         if title in ("bid lot", "market lot", "bid lot size"):
@@ -192,6 +216,9 @@ def enrich_detail(issue):
 
 
 BSE_SME_URL = "https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2"
+GMP_TODAY_URL = "https://gmptoday.in/api/gmp.json"
+XFLOT_URL = "https://www.xflot.com/api/public/market/ipos?limit=200"
+ACCURACY_URL = "https://gmptoday.in/api/accuracy.json"
 
 
 class BseSmeTable(HTMLParser):
@@ -289,6 +316,15 @@ def recent_bse_sme(now=None, html_text=None):
             },
             "gmp": None,
             "gmpAsOf": None,
+            "gmpProvider": None,
+            "gmpReadings": [],
+            "gmpDisputed": False,
+            "gmpSources": None,
+            "gmpEstimatedGainPct": None,
+            "gmpHistory": [],
+            "registrar": None,
+            "rhpUrl": None,
+            "priceJustificationUrl": None,
             "financials": None,
             "news": [],
             "detailSource": url,
@@ -298,6 +334,257 @@ def recent_bse_sme(now=None, html_text=None):
         }
         results.append(item)
     return results[:75]
+
+
+def company_key(value):
+    text = re.sub(r"[^a-z0-9 ]", " ", str(value).lower())
+    words = [w for w in text.split() if w not in ("limited", "ltd", "ipo", "public", "issue")]
+    return "".join(words)
+
+
+def valid_quote(value):
+    try:
+        result = float(value)
+        return round(result, 2) if math.isfinite(result) and abs(result) <= 100000 else None
+    except (ValueError, TypeError):
+        return None
+
+
+def fresh_timestamp(raw, now=None, max_hours=36):
+    if not isinstance(raw, str) or not raw.strip():
+        return None
+    try:
+        observed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        if observed.tzinfo is None:
+            return None
+        current = now or datetime.now(UTC)
+        age = (current - observed.astimezone(UTC)).total_seconds() / 3600
+        return observed.isoformat() if -0.25 <= age <= max_hours else None
+    except ValueError:
+        return None
+
+
+def match_issue(issue, record, source):
+    if not isinstance(record, dict):
+        return False
+    board = str(record.get("board") if source == "Xflot" else record.get("type", "")).upper()
+    if board not in ("MAINBOARD", "SME") or issue["board"] != board:
+        return False
+    closing = record.get("closeDate") if source == "Xflot" else record.get("close_date")
+    if isinstance(closing, str) and closing[:10] != issue["closeDate"]:
+        return False
+    symbol = str(record.get("symbol") or "").upper().strip()
+    if source == "Xflot" and symbol and issue["id"] == symbol:
+        return True
+    target = company_key(record.get("name"))
+    return bool(target) and target == company_key(issue["company"])
+
+
+def parse_xflot(data, now=None):
+    if (
+        not isinstance(data, dict)
+        or data.get("ok") is not True
+        or not isinstance(data.get("ipos"), list)
+    ):
+        raise ValueError("Xflot schema changed")
+    result = []
+    for item in data["ipos"][:200]:
+        if not isinstance(item, dict):
+            continue
+        gmp = valid_quote(item.get("lastGmp"))
+        asof = fresh_timestamp(item.get("updatedAt"), now)
+        if gmp is None or not asof:
+            continue
+        result.append(
+            {
+                "record": item,
+                "provider": "Xflot",
+                "gmp": gmp,
+                "asOf": asof,
+                "url": "https://www.xflot.com/api-docs",
+                "sources": int(item.get("gmpSources") or 0),
+                "disputed": bool(item.get("gmpDisputed")),
+                "range": None,
+                "attribution": "Xflot · XDQ Labs; unofficial reported GMP",
+            }
+        )
+    return result
+
+
+def parse_gmptoday(data, now=None):
+    if (
+        not isinstance(data, dict)
+        or data.get("license") != "CC-BY-4.0"
+        or not isinstance(data.get("ipos"), list)
+    ):
+        raise ValueError("GMP Today schema/license changed")
+    asof = fresh_timestamp(data.get("updated_at") or data.get("generated_at"), now)
+    if not asof:
+        return []
+    result = []
+    for item in data["ipos"][:10]:
+        if not isinstance(item, dict):
+            continue
+        gmp = valid_quote(item.get("gmp_median"))
+        if gmp is None:
+            continue
+        low, high = valid_quote(item.get("gmp_min")), valid_quote(item.get("gmp_max"))
+        result.append(
+            {
+                "record": item,
+                "provider": "GMP Today",
+                "gmp": gmp,
+                "asOf": asof,
+                "url": "https://gmptoday.in",
+                "sources": int(item.get("gmp_sources") or 0),
+                "disputed": bool(
+                    low is not None and high is not None and (high - low) > max(abs(gmp) * 0.5, 10)
+                ),
+                "range": [low, high] if low is not None and high is not None else None,
+                "attribution": "Data: gmptoday.in · CC BY 4.0; unofficial aggregated GMP",
+            }
+        )
+    return result
+
+
+def add_unofficial_gmp(issues, errors):
+    readings = []
+    for provider, url, parser in [
+        ("GMP Today", GMP_TODAY_URL, parse_gmptoday),
+        ("Xflot", XFLOT_URL, parse_xflot),
+    ]:
+        try:
+            readings.extend(parser(get_json(url, timeout=11)))
+        except (urllib.error.URLError, ValueError, TimeoutError, json.JSONDecodeError) as error:
+            errors.append(provider + " GMP: " + type(error).__name__)
+    for issue in issues:
+        matches = [r for r in readings if match_issue(issue, r["record"], r["provider"])]
+        # Match only the official issue, board and date; never add unsourced IPOs.
+        if not matches:
+            continue
+        chosen = next((r for r in matches if r["provider"] == "GMP Today"), matches[0])
+        values = [r["gmp"] for r in matches]
+        disagreements = (
+            (max(values) - min(values)) > max(max(abs(x) for x in values) * 0.5, 10)
+            if len(values) > 1
+            else False
+        )
+        issue["gmp"] = chosen["gmp"]
+        issue["gmpProvider"] = chosen["provider"]
+        issue["gmpAsOf"] = chosen["asOf"]
+        issue["gmpDisputed"] = disagreements or any(r["disputed"] for r in matches)
+        issue["gmpSources"] = chosen["sources"]
+        issue["gmpEstimatedGainPct"] = (
+            round(100 * chosen["gmp"] / issue["priceMax"], 2) if issue["priceMax"] else None
+        )
+        issue["gmpReadings"] = [
+            {
+                k: r[k]
+                for k in (
+                    "provider",
+                    "gmp",
+                    "asOf",
+                    "url",
+                    "sources",
+                    "disputed",
+                    "range",
+                    "attribution",
+                )
+            }
+            for r in matches
+        ]
+        # An aggregate contributor may have a historical series; it is never official exchange data.
+        xf = next(
+            (r for r in matches if r["provider"] == "Xflot" and r["record"].get("slug")), None
+        )
+        if xf and issue["status"] in ("OPEN", "UPCOMING"):
+            slug = str(xf["record"]["slug"])
+            if re.fullmatch(r"[a-z0-9-]{2,120}", slug):
+                try:
+                    detail = get_json(
+                        "https://www.xflot.com/api/public/market/ipos/" + slug, timeout=9
+                    )
+                    if (
+                        detail.get("ok") is True
+                        and isinstance(detail.get("ipo"), dict)
+                        and match_issue(issue, detail["ipo"], "Xflot")
+                    ):
+                        points = []
+                        for line in (detail["ipo"].get("gmp") or [])[:100]:
+                            if not isinstance(line, dict):
+                                continue
+                            observed = fresh_timestamp(line.get("observedAt"), max_hours=2000)
+                            price = valid_quote(line.get("gmp"))
+                            if observed and price is not None:
+                                points.append(
+                                    {
+                                        "observedAt": observed,
+                                        "gmp": price,
+                                        "source": "Xflot, reported "
+                                        + str(line.get("source") or "third-party")[:40],
+                                    }
+                                )
+                        issue["gmpHistory"] = sorted(points, key=lambda x: x["observedAt"])[-60:]
+                except (
+                    ValueError,
+                    urllib.error.URLError,
+                    TimeoutError,
+                    json.JSONDecodeError,
+                ) as error:
+                    errors.append(issue["id"] + " GMP history: " + type(error).__name__)
+    return len(readings)
+
+
+def build_gmp_accuracy(data):
+    if (
+        not isinstance(data, dict)
+        or not str(data.get("licence", "")).startswith("CC BY 4.0")
+        or not isinstance(data.get("rows"), list)
+    ):
+        raise ValueError("Accuracy audit schema/license changed")
+    summary = data.get("summary") or {}
+    records = []
+    for item in data["rows"][:500]:
+        if not isinstance(item, dict):
+            continue
+        actual = valid_quote(item.get("actual_pct"))
+        predicted = valid_quote(item.get("predicted_pct"))
+        if actual is None or predicted is None:
+            continue
+        name = str(item.get("name") or "").strip()
+        if not name:
+            continue
+        records.append(
+            {
+                "company": name[:150],
+                "board": str(item.get("type") or "UNKNOWN").upper(),
+                "listedOn": str(item.get("listed_date") or ""),
+                "predictedPct": predicted,
+                "actualPct": actual,
+                "gmpAtClose": valid_quote(item.get("final_gmp")),
+                "priceIssue": valid_quote(item.get("issue_price")),
+                "priceListing": valid_quote(item.get("listing_price")),
+            }
+        )
+    count = summary.get("n")
+    if not isinstance(count, int) or count < 0:
+        raise ValueError("Accuracy count missing")
+    return {
+        "schemaVersion": 1,
+        "source": "https://gmptoday.in/accuracy/",
+        "sourceAPI": ACCURACY_URL,
+        "license": "CC BY 4.0",
+        "attribution": "Historical IPO GMP audit compiled by gmptoday.in",
+        "generatedAt": data.get("generated_at"),
+        "totalPublished": count,
+        "sourceDirectionAccuracyPct": valid_quote(summary.get("direction_strict_pct")),
+        "sourceAverageAbsoluteErrorPctPoints": valid_quote(summary.get("avg_error")),
+        "scopeWarning": (
+            "Self-published third-party audit; not independently validated. "
+            "Small SME sample limits conclusions."
+        ),
+        "rows": records[:60],
+    }
 
 
 def build_snapshot():
@@ -331,6 +618,7 @@ def build_snapshot():
             enrich_detail(issue)
         except (ValueError, urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
             errors.append(issue["id"] + ": " + type(error).__name__)
+    add_unofficial_gmp(issues, errors)
     return {
         "schemaVersion": 1,
         "generatedAt": datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"),
@@ -349,6 +637,9 @@ def build_snapshot():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument(
+        "--accuracy-output", type=Path, default=DEFAULT_OUTPUT.with_name("ipo-accuracy.json")
+    )
     args = parser.parse_args()
     try:
         snapshot = build_snapshot()
@@ -359,6 +650,19 @@ def main():
     tmp = args.output.with_suffix(".tmp")
     tmp.write_text(json.dumps(snapshot, indent=2, ensure_ascii=False) + "\n", encoding="utf8")
     tmp.replace(args.output)
+    try:
+        accuracy = build_gmp_accuracy(get_json(ACCURACY_URL, timeout=11))
+        acc_tmp = args.accuracy_output.with_suffix(".tmp")
+        acc_tmp.write_text(
+            json.dumps(accuracy, indent=2, ensure_ascii=False) + "\n", encoding="utf8"
+        )
+        acc_tmp.replace(args.accuracy_output)
+    except (ValueError, urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
+        print(
+            "IPO historical audit unavailable; existing verified copy preserved:",
+            type(error).__name__,
+            file=sys.stderr,
+        )
     print(
         "Verified IPO snapshot:",
         len(snapshot["issues"]),

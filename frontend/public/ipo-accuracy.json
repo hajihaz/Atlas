@@ -1,0 +1,614 @@
+{
+  "schemaVersion": 1,
+  "source": "https://gmptoday.in/accuracy/",
+  "sourceAPI": "https://gmptoday.in/api/accuracy.json",
+  "license": "CC BY 4.0",
+  "attribution": "Historical IPO GMP audit compiled by gmptoday.in",
+  "generatedAt": "2026-10-23T03:25:42+05:30",
+  "totalPublished": 282,
+  "sourceDirectionAccuracyPct": 82.3,
+  "sourceAverageAbsoluteErrorPctPoints": 9.8,
+  "scopeWarning": "Self-published third-party data; methodology and sampling not independently validated. SME sample can be very small; never extrapolate.",
+  "rows": [
+    {
+      "company": "Fusion CX",
+      "board": "MAINBOARD",
+      "listedOn": "22 Oct 2026",
+      "predictedPct": 3.46,
+      "actualPct": 5.54,
+      "gmpAtClose": 10.0,
+      "priceIssue": 289.0,
+      "priceListing": 305.0
+    },
+    {
+      "company": "Ravita Engineering Services",
+      "board": "UNKNOWN",
+      "listedOn": "22 Oct 2026",
+      "predictedPct": 1.79,
+      "actualPct": 0.0,
+      "gmpAtClose": 2.0,
+      "priceIssue": 112.0,
+      "priceListing": 112.0
+    },
+    {
+      "company": "Vaibhav Vyapaar",
+      "board": "SME",
+      "listedOn": "21 Oct 2026",
+      "predictedPct": 3.7,
+      "actualPct": -1.85,
+      "gmpAtClose": 2.0,
+      "priceIssue": 54.0,
+      "priceListing": 53.0
+    },
+    {
+      "company": "HD Fire Protect",
+      "board": "MAINBOARD",
+      "listedOn": "21 Oct 2026",
+      "predictedPct": 30.26,
+      "actualPct": 23.62,
+      "gmpAtClose": 82.0,
+      "priceIssue": 271.0,
+      "priceListing": 335.0
+    },
+    {
+      "company": "R.K.Fashion Accessories",
+      "board": "SME",
+      "listedOn": "12 Oct 2026",
+      "predictedPct": 1.83,
+      "actualPct": -2.44,
+      "gmpAtClose": 1.5,
+      "priceIssue": 82.0,
+      "priceListing": 80.0
+    },
+    {
+      "company": "Acme India Industries",
+      "board": "SME",
+      "listedOn": "09 Oct 2026",
+      "predictedPct": 33.16,
+      "actualPct": 12.76,
+      "gmpAtClose": 64.99,
+      "priceIssue": 196.0,
+      "priceListing": 221.0
+    },
+    {
+      "company": "TNA Solutions",
+      "board": "SME",
+      "listedOn": "09 Oct 2026",
+      "predictedPct": 4.29,
+      "actualPct": -20.0,
+      "gmpAtClose": 3.0,
+      "priceIssue": 70.0,
+      "priceListing": 56.0
+    },
+    {
+      "company": "Nityas Gems",
+      "board": "MAINBOARD",
+      "listedOn": "08 Oct 2026",
+      "predictedPct": 1.33,
+      "actualPct": 6.67,
+      "gmpAtClose": 1.0,
+      "priceIssue": 75.0,
+      "priceListing": 80.0
+    },
+    {
+      "company": "Manika Plastech",
+      "board": "MAINBOARD",
+      "listedOn": "21 Sep 2026",
+      "predictedPct": 2.33,
+      "actualPct": 0.0,
+      "gmpAtClose": 1.0,
+      "priceIssue": 43.0,
+      "priceListing": 43.0
+    },
+    {
+      "company": "Veegaland Developers",
+      "board": "MAINBOARD",
+      "listedOn": "18 Sep 2026",
+      "predictedPct": 6.43,
+      "actualPct": 10.0,
+      "gmpAtClose": 9.0,
+      "priceIssue": 140.0,
+      "priceListing": 154.0
+    },
+    {
+      "company": "Steamhouse India",
+      "board": "MAINBOARD",
+      "listedOn": "17 Sep 2026",
+      "predictedPct": 19.75,
+      "actualPct": 16.67,
+      "gmpAtClose": 16.0,
+      "priceIssue": 81.0,
+      "priceListing": 94.5
+    },
+    {
+      "company": "Rentomojo",
+      "board": "MAINBOARD",
+      "listedOn": "17 Sep 2026",
+      "predictedPct": 21.29,
+      "actualPct": 19.37,
+      "gmpAtClose": 86.0,
+      "priceIssue": 404.0,
+      "priceListing": 482.25
+    },
+    {
+      "company": "Asset Reconstruction",
+      "board": "MAINBOARD",
+      "listedOn": "17 Sep 2026",
+      "predictedPct": 8.63,
+      "actualPct": 0.0,
+      "gmpAtClose": 12.0,
+      "priceIssue": 139.0,
+      "priceListing": 139.0
+    },
+    {
+      "company": "Glass Wall Systems (India)",
+      "board": "MAINBOARD",
+      "listedOn": "16 Sep 2026",
+      "predictedPct": 22.53,
+      "actualPct": 6.59,
+      "gmpAtClose": 41.0,
+      "priceIssue": 182.0,
+      "priceListing": 194.0
+    },
+    {
+      "company": "Pranav Constructions",
+      "board": "MAINBOARD",
+      "listedOn": "15 Sep 2026",
+      "predictedPct": 40.32,
+      "actualPct": 33.06,
+      "gmpAtClose": 50.0,
+      "priceIssue": 124.0,
+      "priceListing": 165.0
+    },
+    {
+      "company": "Rays of Belief",
+      "board": "MAINBOARD",
+      "listedOn": "08 Sep 2026",
+      "predictedPct": 6.28,
+      "actualPct": 0.0,
+      "gmpAtClose": 15.0,
+      "priceIssue": 239.0,
+      "priceListing": 239.0
+    },
+    {
+      "company": "Deepa Jewellers",
+      "board": "MAINBOARD",
+      "listedOn": "08 Sep 2026",
+      "predictedPct": 13.56,
+      "actualPct": 24.86,
+      "gmpAtClose": 24.0,
+      "priceIssue": 177.0,
+      "priceListing": 221.0
+    },
+    {
+      "company": "Priority Jewels",
+      "board": "MAINBOARD",
+      "listedOn": "04 Sep 2026",
+      "predictedPct": 14.0,
+      "actualPct": 15.0,
+      "gmpAtClose": 28.0,
+      "priceIssue": 200.0,
+      "priceListing": 230.0
+    },
+    {
+      "company": "ESDS Software Solution",
+      "board": "MAINBOARD",
+      "listedOn": "04 Sep 2026",
+      "predictedPct": 57.58,
+      "actualPct": 76.46,
+      "gmpAtClose": 247.0,
+      "priceIssue": 429.0,
+      "priceListing": 757.0
+    },
+    {
+      "company": "Lumino Industries",
+      "board": "MAINBOARD",
+      "listedOn": "03 Sep 2026",
+      "predictedPct": 48.78,
+      "actualPct": 34.15,
+      "gmpAtClose": 40.0,
+      "priceIssue": 82.0,
+      "priceListing": 110.0
+    },
+    {
+      "company": "Skyways Air Services",
+      "board": "MAINBOARD",
+      "listedOn": "01 Sep 2026",
+      "predictedPct": 23.19,
+      "actualPct": -9.43,
+      "gmpAtClose": 32.0,
+      "priceIssue": 138.0,
+      "priceListing": 124.99
+    },
+    {
+      "company": "Hy-Tech Engineers",
+      "board": "MAINBOARD",
+      "listedOn": "01 Sep 2026",
+      "predictedPct": 66.04,
+      "actualPct": 41.51,
+      "gmpAtClose": 35.0,
+      "priceIssue": 53.0,
+      "priceListing": 75.0
+    },
+    {
+      "company": "Symbiotec Pharmalab",
+      "board": "MAINBOARD",
+      "listedOn": "01 Sep 2026",
+      "predictedPct": 18.72,
+      "actualPct": 0.0,
+      "gmpAtClose": 185.0,
+      "priceIssue": 988.0,
+      "priceListing": 988.0
+    },
+    {
+      "company": "Augmont Enterprises",
+      "board": "MAINBOARD",
+      "listedOn": "31 Aug 2026",
+      "predictedPct": 36.8,
+      "actualPct": 21.95,
+      "gmpAtClose": 290.0,
+      "priceIssue": 788.0,
+      "priceListing": 961.0
+    },
+    {
+      "company": "Tempsens Instruments (India)",
+      "board": "MAINBOARD",
+      "listedOn": "28 Aug 2026",
+      "predictedPct": 110.0,
+      "actualPct": 111.33,
+      "gmpAtClose": 330.0,
+      "priceIssue": 300.0,
+      "priceListing": 634.0
+    },
+    {
+      "company": "Gaja Alternative Asset Management",
+      "board": "MAINBOARD",
+      "listedOn": "26 Aug 2026",
+      "predictedPct": 11.88,
+      "actualPct": 15.62,
+      "gmpAtClose": 18.0,
+      "priceIssue": 160.0,
+      "priceListing": 185.0
+    },
+    {
+      "company": "Sunshine Pictures",
+      "board": "MAINBOARD",
+      "listedOn": "25 Aug 2026",
+      "predictedPct": 13.89,
+      "actualPct": 9.97,
+      "gmpAtClose": 50.0,
+      "priceIssue": 360.0,
+      "priceListing": 395.9
+    },
+    {
+      "company": "Shankesh Jewellers",
+      "board": "MAINBOARD",
+      "listedOn": "25 Aug 2026",
+      "predictedPct": 2.15,
+      "actualPct": 11.08,
+      "gmpAtClose": 2.0,
+      "priceIssue": 93.0,
+      "priceListing": 103.3
+    },
+    {
+      "company": "Horizon Industrial Parks",
+      "board": "MAINBOARD",
+      "listedOn": "24 Aug 2026",
+      "predictedPct": 3.33,
+      "actualPct": 0.42,
+      "gmpAtClose": 2.0,
+      "priceIssue": 60.0,
+      "priceListing": 60.25
+    },
+    {
+      "company": "Lalithaa Jewellery Mart",
+      "board": "MAINBOARD",
+      "listedOn": "24 Aug 2026",
+      "predictedPct": 36.82,
+      "actualPct": 31.84,
+      "gmpAtClose": 74.0,
+      "priceIssue": 201.0,
+      "priceListing": 265.0
+    },
+    {
+      "company": "Ardee Industries",
+      "board": "MAINBOARD",
+      "listedOn": "12 Aug 2026",
+      "predictedPct": 32.08,
+      "actualPct": 35.85,
+      "gmpAtClose": 17.0,
+      "priceIssue": 53.0,
+      "priceListing": 72.0
+    },
+    {
+      "company": "MV Electrosystems",
+      "board": "MAINBOARD",
+      "listedOn": "6 Aug 2026",
+      "predictedPct": 25.65,
+      "actualPct": 22.35,
+      "gmpAtClose": 109.0,
+      "priceIssue": 425.0,
+      "priceListing": 520.0
+    },
+    {
+      "company": "Juniper Green Energy",
+      "board": "MAINBOARD",
+      "listedOn": "6 Aug 2026",
+      "predictedPct": 9.78,
+      "actualPct": 8.89,
+      "gmpAtClose": 22.0,
+      "priceIssue": 225.0,
+      "priceListing": 245.0
+    },
+    {
+      "company": "Manipal Health",
+      "board": "MAINBOARD",
+      "listedOn": "5 Aug 2026",
+      "predictedPct": 0.51,
+      "actualPct": 10.51,
+      "gmpAtClose": 3.0,
+      "priceIssue": 590.0,
+      "priceListing": 652.0
+    },
+    {
+      "company": "Northern Arc Capital",
+      "board": "UNKNOWN",
+      "listedOn": "5 Aug 2026",
+      "predictedPct": 57.03,
+      "actualPct": 33.46,
+      "gmpAtClose": 150.0,
+      "priceIssue": 263.0,
+      "priceListing": 351.0
+    },
+    {
+      "company": "Indo-MIM",
+      "board": "MAINBOARD",
+      "listedOn": "30 Jul 2026",
+      "predictedPct": 38.76,
+      "actualPct": 44.33,
+      "gmpAtClose": 188.0,
+      "priceIssue": 485.0,
+      "priceListing": 700.0
+    },
+    {
+      "company": "Xtranet Technologies",
+      "board": "MAINBOARD",
+      "listedOn": "30 Jul 2026",
+      "predictedPct": 11.02,
+      "actualPct": 7.09,
+      "gmpAtClose": 14.0,
+      "priceIssue": 127.0,
+      "priceListing": 136.0
+    },
+    {
+      "company": "Lohia Corp",
+      "board": "MAINBOARD",
+      "listedOn": "30 Jul 2026",
+      "predictedPct": 4.0,
+      "actualPct": 8.47,
+      "gmpAtClose": 17.0,
+      "priceIssue": 425.0,
+      "priceListing": 461.0
+    },
+    {
+      "company": "SBI Funds Management",
+      "board": "MAINBOARD",
+      "listedOn": "21 Jul 2026",
+      "predictedPct": 16.72,
+      "actualPct": 6.85,
+      "gmpAtClose": 96.0,
+      "priceIssue": 574.0,
+      "priceListing": 613.3
+    },
+    {
+      "company": "Akme Fintrade",
+      "board": "UNKNOWN",
+      "listedOn": "17 Jul 2026",
+      "predictedPct": 15.0,
+      "actualPct": 4.17,
+      "gmpAtClose": 18.0,
+      "priceIssue": 120.0,
+      "priceListing": 125.0
+    },
+    {
+      "company": "Laser Power & Infra",
+      "board": "MAINBOARD",
+      "listedOn": "16 Jul 2026",
+      "predictedPct": 20.09,
+      "actualPct": 16.82,
+      "gmpAtClose": 43.0,
+      "priceIssue": 214.0,
+      "priceListing": 250.0
+    },
+    {
+      "company": "Kusumgar",
+      "board": "MAINBOARD",
+      "listedOn": "15 Jul 2026",
+      "predictedPct": 38.42,
+      "actualPct": 35.8,
+      "gmpAtClose": 161.0,
+      "priceIssue": 419.0,
+      "priceListing": 569.0
+    },
+    {
+      "company": "Tata Capital",
+      "board": "UNKNOWN",
+      "listedOn": "9 Jul 2026",
+      "predictedPct": 0.31,
+      "actualPct": 1.23,
+      "gmpAtClose": 1.0,
+      "priceIssue": 326.0,
+      "priceListing": 330.0
+    },
+    {
+      "company": "Knack Packaging",
+      "board": "MAINBOARD",
+      "listedOn": "8 Jul 2026",
+      "predictedPct": 5.29,
+      "actualPct": 10.59,
+      "gmpAtClose": 9.0,
+      "priceIssue": 170.0,
+      "priceListing": 188.0
+    },
+    {
+      "company": "Aastha Spintex",
+      "board": "MAINBOARD",
+      "listedOn": "6 Jul 2026",
+      "predictedPct": 3.68,
+      "actualPct": -4.41,
+      "gmpAtClose": 5.0,
+      "priceIssue": 136.0,
+      "priceListing": 130.0
+    },
+    {
+      "company": "Advit Jewels",
+      "board": "MAINBOARD",
+      "listedOn": "1 Jul 2026",
+      "predictedPct": 36.23,
+      "actualPct": 36.88,
+      "gmpAtClose": 50.0,
+      "priceIssue": 138.0,
+      "priceListing": 188.9
+    },
+    {
+      "company": "ESAF Small Finance Bank",
+      "board": "UNKNOWN",
+      "listedOn": "30 Jun 2026",
+      "predictedPct": 33.33,
+      "actualPct": 18.33,
+      "gmpAtClose": 20.0,
+      "priceIssue": 60.0,
+      "priceListing": 71.0
+    },
+    {
+      "company": "Hexagon Nutrition",
+      "board": "MAINBOARD",
+      "listedOn": "12 Jun 2026",
+      "predictedPct": 8.89,
+      "actualPct": 7.22,
+      "gmpAtClose": 4.0,
+      "priceIssue": 45.0,
+      "priceListing": 48.25
+    },
+    {
+      "company": "CMR Green Technologies",
+      "board": "MAINBOARD",
+      "listedOn": "10 Jun 2026",
+      "predictedPct": 34.9,
+      "actualPct": 43.44,
+      "gmpAtClose": 67.0,
+      "priceIssue": 192.0,
+      "priceListing": 275.4
+    },
+    {
+      "company": "Om Power Transmission",
+      "board": "MAINBOARD",
+      "listedOn": "17 Apr 2026",
+      "predictedPct": 1.14,
+      "actualPct": 6.29,
+      "gmpAtClose": 2.0,
+      "priceIssue": 175.0,
+      "priceListing": 186.0
+    },
+    {
+      "company": "Powerica",
+      "board": "MAINBOARD",
+      "listedOn": "2 Apr 2026",
+      "predictedPct": 2.53,
+      "actualPct": -7.34,
+      "gmpAtClose": 10.0,
+      "priceIssue": 395.0,
+      "priceListing": 366.0
+    },
+    {
+      "company": "GSP Crop Science",
+      "board": "MAINBOARD",
+      "listedOn": "24 Mar 2026",
+      "predictedPct": 0.62,
+      "actualPct": 3.84,
+      "gmpAtClose": 2.0,
+      "priceIssue": 320.0,
+      "priceListing": 332.3
+    },
+    {
+      "company": "Rajputana Stainless",
+      "board": "MAINBOARD",
+      "listedOn": "19 Mar 2026",
+      "predictedPct": 2.46,
+      "actualPct": 1.6,
+      "gmpAtClose": 3.0,
+      "priceIssue": 122.0,
+      "priceListing": 123.95
+    },
+    {
+      "company": "SEDEMAC Mechatronics",
+      "board": "MAINBOARD",
+      "listedOn": "11 Mar 2026",
+      "predictedPct": 1.33,
+      "actualPct": 13.54,
+      "gmpAtClose": 18.0,
+      "priceIssue": 1352.0,
+      "priceListing": 1535.0
+    },
+    {
+      "company": "Shree Ram Twistex",
+      "board": "MAINBOARD",
+      "listedOn": "2 Mar 2026",
+      "predictedPct": -19.23,
+      "actualPct": -34.62,
+      "gmpAtClose": -20.0,
+      "priceIssue": 104.0,
+      "priceListing": 68.0
+    },
+    {
+      "company": "Amagi Media Labs",
+      "board": "MAINBOARD",
+      "listedOn": "21 Jan 2026",
+      "predictedPct": -0.28,
+      "actualPct": -11.91,
+      "gmpAtClose": -1.0,
+      "priceIssue": 361.0,
+      "priceListing": 318.0
+    },
+    {
+      "company": "Nephrocare Health",
+      "board": "MAINBOARD",
+      "listedOn": "17 Dec 2025",
+      "predictedPct": 8.7,
+      "actualPct": 6.52,
+      "gmpAtClose": 40.0,
+      "priceIssue": 460.0,
+      "priceListing": 490.0
+    },
+    {
+      "company": "Park Medi World",
+      "board": "MAINBOARD",
+      "listedOn": "17 Dec 2025",
+      "predictedPct": 3.09,
+      "actualPct": -1.98,
+      "gmpAtClose": 5.0,
+      "priceIssue": 162.0,
+      "priceListing": 158.8
+    },
+    {
+      "company": "Corona Remedies",
+      "board": "MAINBOARD",
+      "listedOn": "15 Dec 2025",
+      "predictedPct": 32.02,
+      "actualPct": 38.42,
+      "gmpAtClose": 340.0,
+      "priceIssue": 1062.0,
+      "priceListing": 1470.0
+    },
+    {
+      "company": "Wakefit Innovations",
+      "board": "MAINBOARD",
+      "listedOn": "15 Dec 2025",
+      "predictedPct": 2.05,
+      "actualPct": 0.0,
+      "gmpAtClose": 4.0,
+      "priceIssue": 195.0,
+      "priceListing": 195.0
+    }
+  ]
+}

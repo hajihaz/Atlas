@@ -33,12 +33,14 @@ jobs:
           d=json.load(open('frontend/public/ipo-feed.json'))
           assert d['schemaVersion']==1 and d['generatedAt'] and isinstance(d['issues'],list)
           assert all(i['board'] in ('MAINBOARD','SME') and i['openDate'] <= i['closeDate'] for i in d['issues'])
-          assert all(i['gmp'] is None for i in d['issues'])
+          assert all(i['gmp'] is None or isinstance(i['gmp'],(int,float)) and i.get('gmpProvider') in ('Xflot','GMP Today') for i in d['issues'])
+          a=json.load(open('frontend/public/ipo-accuracy.json'))
+          assert a['schemaVersion']==1 and a['license']=='CC BY 4.0' and a['source'].startswith('https://gmptoday.in/')
           PY
       - name: Publish bounded snapshot if verified
         run: |
           set -e
-          git add frontend/public/ipo-feed.json
+          git add frontend/public/ipo-feed.json frontend/public/ipo-accuracy.json
           if git diff --staged --quiet; then exit 0; fi
           git -c user.name='atlas-ipo-research-bot' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'data(atlas): verified read-only IPO snapshot [skip ci]'
           for attempt in 1 2 3; do

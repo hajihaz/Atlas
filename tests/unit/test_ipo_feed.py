@@ -3,7 +3,7 @@
 import importlib.util
 import tempfile
 import unittest
-from datetime import date
+from datetime import UTC, date
 from pathlib import Path
 from unittest.mock import patch
 
@@ -14,6 +14,81 @@ spec.loader.exec_module(ipo)
 
 
 class IpoFeedTests(unittest.TestCase):
+    def test_official_issuer_prospectus_links_and_registrar(self):
+        issue = ipo.transform_issue(
+            {
+                "symbol": "TEST",
+                "companyName": "Test India Ltd",
+                "series": "EQ",
+                "issueStartDate": "21-Oct-2026",
+                "issueEndDate": "23-Oct-2026",
+                "issuePrice": "Rs.100",
+                "status": "Active",
+            }
+        )
+        with patch.object(
+            ipo,
+            "get_json",
+            return_value={
+                "bidDetails": [],
+                "issueInfo": {
+                    "dataList": [
+                        {
+                            "title": "Red Herring Prospectus",
+                            "value": "https://nsearchives.nseindia.com/content/ipo/RHP_TEST.zip",
+                        },
+                        {
+                            "title": "Ratios / Basis of Issue Price",
+                            "value": "https://nsearchives.nseindia.com/content/ipo/RATIOS_TEST.zip",
+                        },
+                        {"title": "Name of the Registrar", "value": "Example Registrar"},
+                    ]
+                },
+            },
+        ):
+            ipo.enrich_detail(issue)
+        self.assertTrue(issue["rhpUrl"].endswith("RHP_TEST.zip"))
+        self.assertEqual(issue["registrar"], "Example Registrar")
+
+    def test_gmp_match_rejects_wrong_issue_and_board(self):
+        issue = {
+            "id": "TEST",
+            "company": "Example Industries Limited",
+            "board": "MAINBOARD",
+            "closeDate": "2026-10-23",
+        }
+        item = {
+            "name": "Example Industries",
+            "symbol": "TEST",
+            "board": "SME",
+            "closeDate": "2026-10-23",
+        }
+        self.assertFalse(ipo.match_issue(issue, item, "Xflot"))
+        item["board"] = "MAINBOARD"
+        item["closeDate"] = "2026-10-25"
+        self.assertFalse(ipo.match_issue(issue, item, "Xflot"))
+        item["closeDate"] = "2026-10-23"
+        self.assertTrue(ipo.match_issue(issue, item, "Xflot"))
+
+    def test_stale_gmp_refused_and_signed_discount(self):
+        from datetime import datetime
+
+        self.assertEqual(ipo.valid_quote(-15.3), -15.3)
+        self.assertIsNone(ipo.valid_quote(float("inf")))
+        self.assertIsNone(
+            ipo.fresh_timestamp("2026-10-10T01:00:00Z", now=datetime(2026, 10, 23, tzinfo=UTC))
+        )
+
+    def test_accuracy_license_required(self):
+        with self.assertRaises(ValueError):
+            ipo.build_gmp_accuracy({"licence": "other", "rows": []})
+        item = {
+            "licence": "CC BY 4.0",
+            "summary": {"n": 1},
+            "rows": [{"name": "Issuer", "actual_pct": -2.5, "predicted_pct": 10.0}],
+        }
+        self.assertEqual(ipo.build_gmp_accuracy(item)["rows"][0]["actualPct"], -2.5)
+
     def test_mandate_time_is_source_derived(self):
         self.assertEqual(
             ipo.parse_mandate_deadline("23-Oct-2026 (upto 5:00 PM)"), "2026-10-23T17:00:00+05:30"

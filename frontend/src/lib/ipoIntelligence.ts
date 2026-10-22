@@ -6,10 +6,15 @@ export type IpoIssue = {
   priceMin:number|null;priceMax:number|null;lotSize:number|null;
   subscription:{qib:number|null;nii:number|null;retail:number|null;individual:number|null;total:number|null};
   gmp:number|null;gmpAsOf:string|null;
+  gmpProvider?:string|null;gmpSources?:number|null;gmpDisputed?:boolean;gmpEstimatedGainPct?:number|null;
+  gmpReadings?:{provider:string;gmp:number;asOf:string;url:string;sources:number;disputed:boolean;range:number[]|null;attribution:string}[];
+  gmpHistory?:{observedAt:string;gmp:number;source:string}[];
   financials:null|{revenueGrowthPct:number|null;profitMarginPct:number|null;debtEquity:number|null;source:string;asOf:string};
   news:{title:string;source:string;url:string;publishedAt:string}[];
   source:string;detailSource:string;bidDeadline:string|null;mandateDeadline:string|null;
+  registrar?:string|null;rhpUrl?:string|null;priceJustificationUrl?:string|null;
 };
+export type IpoAccuracy = {schemaVersion:1;source:string;license:string;generatedAt:string;totalPublished:number;sourceDirectionAccuracyPct:number|null;sourceAverageAbsoluteErrorPctPoints:number|null;scopeWarning:string;rows:{company:string;board:string;listedOn:string;predictedPct:number;actualPct:number;priceIssue:number|null;priceListing:number|null}[]};
 export type IpoFeed={schemaVersion:1;generatedAt:string|null;sourceName:string;sourceURL:string;coverage:{mainboard:string;sme:string};issues:IpoIssue[];warnings:string[]};
 export const EMPTY_FEED:IpoFeed={schemaVersion:1,generatedAt:null,sourceName:'NSE',sourceURL:'https://www.nseindia.com/market-data/all-upcoming-issues-ipo',coverage:{mainboard:'Not verified',sme:'Not verified'},issues:[],warnings:[]};
 export function validFeed(value:unknown): value is IpoFeed {
