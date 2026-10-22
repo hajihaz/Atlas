@@ -14,6 +14,38 @@ spec.loader.exec_module(ipo)
 
 
 class IpoFeedTests(unittest.TestCase):
+    def test_google_news_requires_fresh_issuer_specific_trusted_headlines(self):
+        from datetime import datetime, timedelta
+        from email.utils import format_datetime
+
+        stamp = format_datetime(datetime.now(UTC) - timedelta(hours=1))
+
+        def item(title, publisher):
+            return (
+                "<item><title>" + title + "</title><link>"
+                "https://news.google.com/rss/articles/id?oc=5</link><pubDate>"
+                + stamp
+                + "</pubDate><source>"
+                + publisher
+                + "</source></item>"
+            )
+
+        xml = (
+            "<rss><channel>"
+            + item("Paras Healthcare IPO: valuation review", "Livemint")
+            + item("Other Healthcare IPO unrelated", "Livemint")
+            + item("Paras Healthcare IPO pump to the moon", "RandomShill")
+            + "</channel></rss>"
+        ).encode()
+        result = ipo.recent_ipo_news({"company": "Paras Healthcare Limited"}, rss_data=xml)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["source"], "Livemint")
+        self.assertTrue(result[0]["url"].startswith("https://news.google.com/"))
+        with self.assertRaises(ValueError):
+            ipo.recent_ipo_news(
+                {"company": "Paras Healthcare Limited"}, rss_data=b"<!DOCTYPE rss><rss/>"
+            )
+
     def test_bse_outage_keeps_verified_sme_stale_not_live(self):
         from datetime import datetime
 

@@ -16,8 +16,10 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import UTC, datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from pathlib import Path
+from xml.etree import ElementTree
 
 BASE = "https://www.nseindia.com"
 LIST_URL = BASE + "/api/all-upcoming-issues?category=ipo"
@@ -662,6 +664,98 @@ def retained_sme(previous, today=None, max_age_days=7):
     return retained[:75]
 
 
+NEWS_RSS_BASE = "https://news.google.com/rss/search"
+NEWS_SOURCES = {
+    "reuters",
+    "livemint",
+    "mint",
+    "economic times",
+    "the economic times",
+    "moneycontrol.com",
+    "moneycontrol",
+    "business standard",
+    "financial express",
+    "cnbc tv18",
+    "cnbc-tv18",
+    "ndtv profit",
+    "business today",
+    "value research",
+}
+
+
+def recent_ipo_news(issue, now=None, rss_data=None):
+    """Verified issuer-name matching of public RSS *headlines*, never news article bodies.
+
+    This is a curated reference list, not an Atlas validation of the articles' claims.
+    It must not be treated as proof of profits, financials or issuer disclosures.
+    """
+    now = now or datetime.now(UTC)
+    if rss_data is None:
+        query = urllib.parse.urlencode(
+            {
+                "q": issue["company"][:110] + " IPO when:14d",
+                "hl": "en-IN",
+                "gl": "IN",
+                "ceid": "IN:en",
+            }
+        )
+        req = urllib.request.Request(  # noqa: S310 - hardcoded HTTPS Google News origin, query url-encoded
+            NEWS_RSS_BASE + "?" + query,
+            headers={"User-Agent": "Atlas IPO Research (read-only)"},
+        )
+        with urllib.request.urlopen(req, timeout=7) as response:  # noqa: S310 - fixed Google News RSS origin
+            if response.status != 200:
+                raise ValueError("News RSS provider returned an error")
+            rss_data = response.read(180_000)
+    if b"<!DOCTYPE" in rss_data.upper() or b"<!ENTITY" in rss_data.upper():
+        raise ValueError("Unsafe XML declarations are forbidden")
+    root = ElementTree.fromstring(rss_data)  # noqa: S314 - bounded RSS, explicit DTD/entity rejection
+    if root.tag != "rss":
+        raise ValueError("Unexpected Google News RSS response")
+    name_tokens = [
+        t.lower()
+        for t in re.findall(r"[A-Za-z0-9]+", issue["company"])
+        if t.lower() not in ("limited", "ltd", "india", "private", "pvt")
+    ]
+    if not name_tokens:
+        return []
+    # Require at least two meaningful issuer tokens where possible, not IPO-only headlines.
+    keys = name_tokens[:2]
+    kept = []
+    seen = set()
+    for element in root.findall("./channel/item")[:35]:
+        title = " ".join((element.findtext("title") or "").split())[:220]
+        source = " ".join((element.findtext("source") or "").split())[:70]
+        canonical = re.sub(r"[^a-z0-9]", " ", title.lower()).split()
+        canonical_text = " ".join(canonical)
+        if "ipo" not in canonical or not all(t in canonical_text for t in keys):
+            continue
+        if source.lower() not in NEWS_SOURCES or title.lower() in seen:
+            continue
+        url = (element.findtext("link") or "").strip()
+        if not url.startswith("https://news.google.com/rss/articles/") or len(url) > 2048:
+            continue
+        try:
+            publish = parsedate_to_datetime(element.findtext("pubDate") or "")
+            if publish.tzinfo is None:
+                continue
+            publish = publish.astimezone(UTC)
+            if publish > now + timedelta(minutes=5) or now - publish > timedelta(days=14):
+                continue
+        except (TypeError, ValueError):
+            continue
+        seen.add(title.lower())
+        kept.append(
+            {
+                "title": title,
+                "source": source,
+                "url": url,
+                "publishedAt": publish.isoformat(timespec="seconds").replace("+00:00", "Z"),
+            }
+        )
+    return sorted(kept, key=lambda row: row["publishedAt"], reverse=True)[:5]
+
+
 def build_snapshot(previous_snapshot=None):
     raw = get_json(LIST_URL)
     if not isinstance(raw, list):
@@ -717,6 +811,14 @@ def build_snapshot(previous_snapshot=None):
         except (ValueError, urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
             errors.append(issue["id"] + ": " + type(error).__name__)
     add_unofficial_gmp(issues, errors)
+    for issue in issues:
+        if issue.get("sourceStale") or issue["status"] not in ("OPEN", "UPCOMING"):
+            continue
+        try:
+            issue["news"] = recent_ipo_news(issue)
+            issue["newsStatus"] = "Google News RSS · selected sources · verify originals"
+        except (ValueError, urllib.error.URLError, TimeoutError, ElementTree.ParseError) as error:
+            errors.append(issue["id"] + " news: " + type(error).__name__)
     return {
         "schemaVersion": 1,
         "generatedAt": now_time,
