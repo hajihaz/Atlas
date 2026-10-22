@@ -8,7 +8,7 @@
   "totalPublished": 282,
   "sourceDirectionAccuracyPct": 82.3,
   "sourceAverageAbsoluteErrorPctPoints": 9.8,
-  "scopeWarning": "Self-published third-party data; methodology and sampling not independently validated. SME sample can be very small; never extrapolate.",
+  "scopeWarning": "Self-published third-party audit; not independently validated. Small SME sample limits conclusions.",
   "rows": [
     {
       "company": "Fusion CX",
