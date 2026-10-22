@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:advanced-research:contracts:v1",
+  "title": "Atlas advanced offline research contracts",
+  "oneOf": [
+    { "$ref": "#/$defs/market" },
+    { "$ref": "#/$defs/universe" },
+    { "$ref": "#/$defs/envelope" },
+    { "$ref": "#/$defs/campaign" },
+    { "$ref": "#/$defs/council" }
+  ],
+  "$defs": {
+    "time": {
+      "oneOf": [
+        { "type": "integer", "minimum": 1 },
+        { "type": "string", "format": "date-time" }
+      ]
+    },
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "provenance": {
+      "type": "object",
+      "required": ["kind", "provider", "sourceUrl", "retrievedAt", "rawSha256", "researchUseAllowed", "displayToThirdPartiesAllowed", "licenseRef"],
+      "properties": {
+        "kind": { "enum": ["HISTORICAL_MARKET", "SYNTHETIC_FIXTURE"] },
+        "provider": { "type": "string", "minLength": 1 },
+        "sourceUrl": { "type": "string", "format": "uri" },
+        "retrievedAt": { "$ref": "#/$defs/time" },
+        "rawSha256": { "$ref": "#/$defs/hash" },
+        "researchUseAllowed": { "const": true },
+        "displayToThirdPartiesAllowed": { "type": "boolean" },
+        "licenseRef": { "type": "string", "minLength": 1 },
+        "availabilityMode": { "enum": ["RECORDED_PUBLICATION", "ASSUMED_BAR_CLOSE"] }
+      }
+    },
+    "instrument": {
+      "type": "object",
+      "required": ["id", "assetClass", "venue", "currency", "lotSize", "priceTick"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_&.:-]{1,80}$" },
+        "assetClass": { "enum": ["CRYPTO", "NSE_EQUITY", "NSE_INDEX"] },
+        "venue": { "type": "string", "minLength": 1 },
+        "currency": { "const": "INR" },
+        "lotSize": { "type": "number", "exclusiveMinimum": 0 },
+        "priceTick": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "candle": {
+      "type": "object",
+      "required": ["time", "availableAt", "open", "high", "low", "close", "volume"],
+      "properties": {
+        "time": { "$ref": "#/$defs/time" },
+        "availableAt": { "$ref": "#/$defs/time" },
+        "open": { "type": "number", "exclusiveMinimum": 0 },
+        "high": { "type": "number", "exclusiveMinimum": 0 },
+        "low": { "type": "number", "exclusiveMinimum": 0 },
+        "close": { "type": "number", "exclusiveMinimum": 0 },
+        "volume": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "market": {
+      "type": "object",
+      "required": ["schema", "instrument", "provenance", "intervalMs", "candles"],
+      "properties": {
+        "schema": { "const": "atlas.market.v1" },
+        "instrument": { "$ref": "#/$defs/instrument" },
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "intervalMs": { "type": "integer", "minimum": 1000, "maximum": 86400000 },
+        "candles": { "type": "array", "minItems": 1, "maxItems": 50000, "items": { "$ref": "#/$defs/candle" } },
+        "expectedTimes": { "type": ["array", "null"], "items": { "$ref": "#/$defs/time" } },
+        "corporateActions": { "type": ["object", "null"] }
+      },
+      "$comment": "Runtime adds ordering, interval/grid, publication, raw hash and corporate-action semantics."
+    },
+    "universe": {
+      "type": "object",
+      "required": ["schema", "knownAt", "completeEligibleUniverse", "provenance", "instruments"],
+      "properties": {
+        "schema": { "const": "atlas.universe.v1" },
+        "knownAt": { "$ref": "#/$defs/time" },
+        "completeEligibleUniverse": { "const": true },
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "instruments": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object", "required": ["id", "availableAt", "effectiveFrom"],
+            "properties": {
+              "id": { "type": "string" },
+              "availableAt": { "$ref": "#/$defs/time" },
+              "effectiveFrom": { "$ref": "#/$defs/time" },
+              "effectiveTo": { "oneOf": [{ "$ref": "#/$defs/time" }, { "type": "null" }] },
+              "shortEligible": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    },
+    "campaign": {
+      "type": "object",
+      "required": ["schema", "historicalNetPnlINR", "authenticPerformancePublished", "expectedSessions", "missingSessions", "daily", "days", "realOrdersEnabled", "realOrdersPlaced"],
+      "properties": {
+        "schema": { "const": "atlas.scalpstorm-campaign.v1" },
+        "historicalNetPnlINR": { "type": "null" },
+        "authenticPerformancePublished": { "const": false },
+        "expectedSessions": { "type": "array", "minItems": 20, "maxItems": 20, "items": { "type": "string", "format": "date" } },
+        "missingSessions": { "type": "array", "items": { "type": "string", "format": "date" } },
+        "daily": { "type": "array" },
+        "days": { "type": "array" },
+        "realOrdersEnabled": { "const": false },
+        "realOrdersPlaced": { "const": 0 }
+      }
+    },
+    "council": {
+      "type": "object",
+      "required": ["schema", "outcome", "roles", "vetoes", "independentAIModels", "deterministicRoles", "realOrdersEnabled", "paperOrdersEnabled", "traceHash"],
+      "properties": {
+        "schema": { "const": "atlas.council.v1" },
+        "outcome": { "enum": ["WAIT", "SKIP"] },
+        "roles": { "type": "array", "minItems": 6, "maxItems": 6 },
+        "vetoes": { "type": "array", "items": { "type": "string" } },
+        "independentAIModels": { "const": 0 },
+        "deterministicRoles": { "const": 6 },
+        "realOrdersEnabled": { "const": false },
+        "paperOrdersEnabled": { "const": false },
+        "traceHash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "envelope": {
+      "type": "object",
+      "required": ["schema", "mode", "fixtureOnly", "source", "dataHash", "strategies", "paperLedgerImportAllowed", "paperOrdersExecuted", "paperLedgerStored", "liveOrdersEnabled", "realOrdersPlaced", "envelopeHash"],
+      "properties": {
+        "schema": { "const": "atlas.advanced-research.v1" },
+        "mode": { "enum": ["SYNTHETIC_FIXTURE_REPLAY", "HISTORICAL_HYPOTHETICAL_REPLAY"] },
+        "fixtureOnly": { "type": "boolean" },
+        "source": { "$ref": "#/$defs/provenance" },
+        "dataHash": { "$ref": "#/$defs/hash" },
+        "strategies": { "type": "array", "minItems": 1, "maxItems": 5 },
+        "paperLedgerImportAllowed": { "const": false },
+        "paperOrdersExecuted": { "const": false },
+        "paperLedgerStored": { "const": false },
+        "liveOrdersEnabled": { "const": false },
+        "realOrdersPlaced": { "const": 0 },
+        "envelopeHash": { "$ref": "#/$defs/hash" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "fixtureOnly": { "const": true } } },
+          "then": { "properties": { "mode": { "const": "SYNTHETIC_FIXTURE_REPLAY" }, "source": { "properties": { "kind": { "const": "SYNTHETIC_FIXTURE" } } } } },
+          "else": { "properties": { "mode": { "const": "HISTORICAL_HYPOTHETICAL_REPLAY" }, "source": { "properties": { "kind": { "const": "HISTORICAL_MARKET" } } } } }
+        }
+      ]
+    }
+  }
+}

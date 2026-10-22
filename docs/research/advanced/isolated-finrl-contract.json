@@ -1,0 +1,40 @@
+{
+  "schema": "atlas.isolated-upstream-check.v1",
+  "repository": "AI4Finance-Foundation/FinRL-Trading",
+  "revision": "4409abe925c904e570be78ebfb5e77ac3491dff8",
+  "sourceSha256": "9eef583bf44256391f3c4097e986a0e82da411c22de03fa594bfe8605803e314",
+  "method": "ISOLATED_UPSTREAM_EQUAL_WEIGHT_METHOD_WITH_MINIMAL_DATAFRAME_SHIM",
+  "fullFrameworkExecuted": false,
+  "pandasInstalled": false,
+  "casesPassed": 4,
+  "normalTenStockWeights": [
+    0.1,
+    0.1,
+    0.1,
+    0.1,
+    0.1,
+    0.1,
+    0.1,
+    0.1,
+    0.1,
+    0.1
+  ],
+  "allocationFor100000INR": [
+    10000.0,
+    10000.0,
+    10000.0,
+    10000.0,
+    10000.0,
+    10000.0,
+    10000.0,
+    10000.0,
+    10000.0,
+    10000.0
+  ],
+  "duplicateTickers": "DEDUPLICATED",
+  "emptyUniverse": "ZERO_DIVISION_ERROR_ATLAS_MUST_REJECT_EMPTY_UNIVERSE",
+  "unknownStrategy": "REJECTED",
+  "marketPerformanceMeasured": false,
+  "packagesInstalled": 0,
+  "realOrdersEnabled": false
+}

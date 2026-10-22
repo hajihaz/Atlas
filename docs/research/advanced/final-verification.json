@@ -1,0 +1,42 @@
+{
+  "schema": "atlas.advanced-final-local-verification.v1",
+  "checkedAt": "2026-10-20T05:18:18.803675+00:00",
+  "branch": "astra/atlas-advanced-research-engine",
+  "baseCommit": "c3c0dd287c68ae6faf4471edda1321b0a7c05df3",
+  "researchTests": {
+    "passed": 101,
+    "failed": 0,
+    "skipped": 0,
+    "runtimes": [
+      "Node 24.19.0",
+      "Node 26.8.1"
+    ]
+  },
+  "existingNodeTests": {
+    "passed": 124,
+    "failed": 0
+  },
+  "existingPythonTests": {
+    "passed": 533,
+    "skipped": 7,
+    "failed": 0
+  },
+  "ruff": "PASS",
+  "mypySourceFiles": 128,
+  "mypy": "PASS",
+  "javascriptSyntax": "PASS",
+  "secretScan": "PASS_ZERO_FINDINGS_PUBLIC_PINS_DOCUMENTED",
+  "jsonArtifacts": "PARSE_PASS",
+  "deterministicEvidenceHash": "18b622f61a42142df9cc892b2d16b7cb5c3926b9666096511bb18288a11940b5",
+  "isolatedFinRLMethodCases": 4,
+  "isolatedLeanBacktestCases": 2,
+  "isolatedLeanCompressionCases": 1,
+  "newPackagesInstalled": 0,
+  "upstreamRevisionsVerified": 10,
+  "engineeringAcceptancePassed": true,
+  "publishedPrAcceptance": "VERIFY_ON_GITHUB_AND_FINAL_OBJECTIVE_STATE",
+  "historicalMarketPerformanceCertified": false,
+  "productionDeploymentPerformed": false,
+  "realOrdersEnabled": false,
+  "protectedProductionFilesChanged": []
+}
