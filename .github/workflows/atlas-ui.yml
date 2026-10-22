@@ -14,6 +14,7 @@ on:
       - 'scripts/paper_generated_fill_audit.mjs'
       - 'scripts/paper_run_health.mjs'
       - 'scripts/paper_checkpoint_evidence.mjs'
+      - 'scripts/paper_decision_evidence.mjs'
       - '.github/workflows/atlas-paper-scheduled.yml'
       - '.github/workflows/atlas-ui.yml'
   pull_request:
@@ -29,6 +30,7 @@ on:
       - 'scripts/paper_generated_fill_audit.mjs'
       - 'scripts/paper_run_health.mjs'
       - 'scripts/paper_checkpoint_evidence.mjs'
+      - 'scripts/paper_decision_evidence.mjs'
       - '.github/workflows/atlas-paper-scheduled.yml'
       - '.github/workflows/atlas-ui.yml'
 permissions:
@@ -70,6 +72,7 @@ jobs:
       - run: node --test frontend/tests/scheduled-runner-forward.test.mjs
       - run: node --test frontend/tests/paper-run-health.test.mjs
       - run: node --test frontend/tests/paper-checkpoint-evidence.test.mjs
+      - run: node --test frontend/tests/paper-decision-evidence.test.mjs
       - run: node --test frontend/tests/paper-cadence.test.mjs
       - run: node --test frontend/tests/cloud-paper-daybook.test.mjs
       - run: node --test frontend/tests/workbench-ui.test.mjs
