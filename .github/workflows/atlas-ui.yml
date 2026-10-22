@@ -18,6 +18,8 @@ on:
       - 'scripts/paper_run_health.mjs'
       - 'scripts/paper_checkpoint_evidence.mjs'
       - 'scripts/paper_decision_evidence.mjs'
+      - 'scripts/publish_scheduled_paper.sh'
+      - 'scripts/tests/paper-publish-race.test.mjs'
       - '.github/workflows/atlas-paper-scheduled.yml'
       - '.github/workflows/atlas-ui.yml'
   pull_request:
@@ -37,6 +39,8 @@ on:
       - 'scripts/paper_run_health.mjs'
       - 'scripts/paper_checkpoint_evidence.mjs'
       - 'scripts/paper_decision_evidence.mjs'
+      - 'scripts/publish_scheduled_paper.sh'
+      - 'scripts/tests/paper-publish-race.test.mjs'
       - '.github/workflows/atlas-paper-scheduled.yml'
       - '.github/workflows/atlas-ui.yml'
 permissions:
@@ -55,6 +59,7 @@ jobs:
       - run: npm run check --prefix frontend
       - run: node --test scripts/tests/upstream-intake.test.mjs
       - run: node --test scripts/tests/scalpstorm_equal_weight.test.mjs
+      - run: node --test scripts/tests/paper-publish-race.test.mjs
       - run: node scripts/check_upstream_intake.mjs
       - run: node --test frontend/tests/market-quotes.test.mjs
       - run: node --test frontend/tests/closed-candles.test.mjs
