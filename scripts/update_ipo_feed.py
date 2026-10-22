@@ -458,6 +458,9 @@ def add_unofficial_gmp(issues, errors):
         except (urllib.error.URLError, ValueError, TimeoutError, json.JSONDecodeError) as error:
             errors.append(provider + " GMP: " + type(error).__name__)
     for issue in issues:
+        if issue.get("sourceStale"):
+            # Unofficial premiums never renew an issue whose exchange listing is stale.
+            continue
         matches = [r for r in readings if match_issue(issue, r["record"], r["provider"])]
         # Match only the official issue, board and date; never add unsourced IPOs.
         if not matches:
@@ -587,7 +590,79 @@ def build_gmp_accuracy(data):
     }
 
 
-def build_snapshot():
+def retained_sme(previous, today=None, max_age_days=7):
+    """Keep previously observed BSE issues with explicit staleness when BSE fails.
+
+    Never present an old quotation or subscription as current. Bound retention to
+    prevent permanent phantom active issues and avoid importing arbitrary schemas.
+    """
+    if not isinstance(previous, dict) or previous.get("schemaVersion") != 1:
+        return []
+    today = today or datetime.now(IST).date()
+    observed = previous.get("generatedAt")
+    try:
+        snapshot_time = datetime.fromisoformat(str(observed).replace("Z", "+00:00"))
+        if snapshot_time.tzinfo is None or snapshot_time > datetime.now(UTC):
+            return []
+    except (TypeError, ValueError):
+        return []
+    retained = []
+    for item in previous.get("issues") if isinstance(previous.get("issues"), list) else []:
+        if (
+            not isinstance(item, dict)
+            or item.get("board") != "SME"
+            or item.get("source") != BSE_SME_URL
+        ):
+            continue
+        if not re.fullmatch(r"BSESME-\d{1,12}", str(item.get("id", ""))) or not str(
+            item.get("detailSource", "")
+        ).startswith("https://www.bseindia.com/markets/publicIssues/DisplayIPO.aspx?"):
+            continue
+        try:
+            last_seen = datetime.fromisoformat(
+                str(item.get("sourceObservedAt") or observed).replace("Z", "+00:00")
+            )
+            if (
+                last_seen.tzinfo is None
+                or last_seen > datetime.now(UTC)
+                or (datetime.now(UTC) - last_seen).days >= max_age_days
+            ):
+                continue
+            closes = datetime.strptime(item["closeDate"], "%Y-%m-%d").replace(tzinfo=IST).date()
+            opens = datetime.strptime(item["openDate"], "%Y-%m-%d").replace(tzinfo=IST).date()
+            if (
+                closes < today - timedelta(days=35)
+                or opens > today + timedelta(days=360)
+                or closes < opens
+            ):
+                continue
+        except (TypeError, ValueError, KeyError):
+            continue
+        safe = {
+            **item,
+            "sourceObservedAt": last_seen.isoformat(),
+            "sourceStale": True,
+            "subscription": {
+                "qib": None,
+                "nii": None,
+                "retail": None,
+                "individual": None,
+                "total": None,
+            },
+            "gmp": None,
+            "gmpAsOf": None,
+            "gmpReadings": [],
+            "gmpHistory": [],
+            "gmpEstimatedGainPct": None,
+            "gmpProvider": None,
+            "gmpSources": None,
+            "gmpDisputed": False,
+        }
+        retained.append(safe)
+    return retained[:75]
+
+
+def build_snapshot(previous_snapshot=None):
     raw = get_json(LIST_URL)
     if not isinstance(raw, list):
         raise ValueError("NSE listing schema changed")
@@ -599,9 +674,18 @@ def build_snapshot():
     if raw and not issues:
         raise ValueError("NSE data present but none validates")
     errors = []
+    now_time = datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
+    for issue in issues:
+        issue["sourceObservedAt"] = now_time
+        issue["sourceStale"] = False
     bse_coverage = "Unavailable: source did not respond"
     try:
         bse = recent_bse_sme()
+        if not bse:
+            raise ValueError("BSE SME table yielded no verifiable issues")
+        for row in bse:
+            row["sourceObservedAt"] = now_time
+            row["sourceStale"] = False
         normalized = {re.sub(r"[^a-z0-9]", "", i["company"].lower()) for i in issues}
         for issue in bse:
             name = re.sub(r"[^a-z0-9]", "", issue["company"].lower())
@@ -611,6 +695,20 @@ def build_snapshot():
         bse_coverage = "BSE SME website observed; " + str(len(bse)) + " recent issues"
     except (ValueError, urllib.error.URLError, TimeoutError) as error:
         errors.append("BSE SME: " + type(error).__name__)
+        fallback = retained_sme(previous_snapshot)
+        normalized = {re.sub(r"[^a-z0-9]", "", i["company"].lower()) for i in issues}
+        for row in fallback:
+            key = re.sub(r"[^a-z0-9]", "", row["company"].lower())
+            if key not in normalized:
+                issues.append(row)
+                normalized.add(key)
+        if fallback:
+            bse_coverage = (
+                "BSE unavailable; "
+                + str(len(fallback))
+                + " prior issues retained, explicitly stale"
+            )
+
     for issue in issues:
         if issue["status"] != "OPEN" or issue["source"] != LIST_URL:
             continue
@@ -621,7 +719,7 @@ def build_snapshot():
     add_unofficial_gmp(issues, errors)
     return {
         "schemaVersion": 1,
-        "generatedAt": datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"),
+        "generatedAt": now_time,
         "sourceName": "National Stock Exchange of India",
         "sourceURL": LIST_URL,
         "sourcePolicy": (
@@ -642,7 +740,11 @@ def main():
     )
     args = parser.parse_args()
     try:
-        snapshot = build_snapshot()
+        try:
+            previous = json.loads(args.output.read_text(encoding="utf8"))
+        except (OSError, ValueError):
+            previous = None
+        snapshot = build_snapshot(previous_snapshot=previous)
     except Exception as error:
         print("IPO feed NOT updated:", type(error).__name__, str(error)[:200], file=sys.stderr)
         return 1

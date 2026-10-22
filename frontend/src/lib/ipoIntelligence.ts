@@ -13,6 +13,7 @@ export type IpoIssue = {
   news:{title:string;source:string;url:string;publishedAt:string}[];
   source:string;detailSource:string;bidDeadline:string|null;mandateDeadline:string|null;
   registrar?:string|null;rhpUrl?:string|null;priceJustificationUrl?:string|null;
+  sourceObservedAt?:string|null;sourceStale?:boolean;
 };
 export type IpoAccuracy = {schemaVersion:1;source:string;license:string;generatedAt:string;totalPublished:number;sourceDirectionAccuracyPct:number|null;sourceAverageAbsoluteErrorPctPoints:number|null;scopeWarning:string;rows:{company:string;board:string;listedOn:string;predictedPct:number;actualPct:number;priceIssue:number|null;priceListing:number|null}[]};
 export type IpoFeed={schemaVersion:1;generatedAt:string|null;sourceName:string;sourceURL:string;coverage:{mainboard:string;sme:string};issues:IpoIssue[];warnings:string[]};
@@ -40,6 +41,12 @@ export function effectiveStatus(i:IpoIssue,now=new Date()):IpoState{
   if(i.mandateDeadline&&Number.isFinite(Date.parse(i.mandateDeadline))&&now.getTime()>=Date.parse(i.mandateDeadline))return 'CLOSED';
   return 'OPEN';
 }
+export function issueSourceStale(issue:IpoIssue,now=new Date()):boolean {
+  if(issue.sourceStale)return true;
+  if(!issue.sourceObservedAt)return false;
+  const time=Date.parse(issue.sourceObservedAt);
+  return !Number.isFinite(time)|| now.getTime()-time > 180*60000 || time>now.getTime()+60000;
+}
 export function feedAgeMinutes(feed:IpoFeed,now=new Date()):number{
   if(!feed.generatedAt)return Infinity;
   return Math.max(0,(now.getTime()-Date.parse(feed.generatedAt))/60000);
@@ -48,7 +55,7 @@ export function recommendation(i:IpoIssue,stale:boolean):{label:string;reason:st
   const stage=effectiveStatus(i);
   if(stage==='CLOSED')return {label:'APPLICATION CLOSED',reason:'The bidding period has ended. Allotment and actual listing performance still require registrar/exchange confirmation.',score:null,tone:'neutral'};
   if(stage==='UPCOMING')return {label:'PRE-OPEN WATCH',reason:'The issue is not open for bidding. Read the prospectus and check the final price, valuation and offer risks before applying.',score:null,tone:'neutral'};
-  if(stale)return {label:'SOURCE STALE',reason:'Latest verified exchange snapshot is too old to assess current demand.',score:null,tone:'warning'};
+  if(stale||issueSourceStale(i))return {label:'SOURCE STALE',reason:'Latest verified exchange snapshot is too old to assess current demand.',score:null,tone:'warning'};
   if(i.financials===null)return {label:'HOLD — DO NOT APPLY YET',reason:'Verified issuer financials, valuation and prospectus risk review are missing. Subscription multiples alone cannot support a reliable Apply decision. Wait for a complete risk assessment.',score:null,tone:'warning'};
   const f=i.financials;
   if(!f.source||!f.asOf||f.revenueGrowthPct===null||f.profitMarginPct===null||f.debtEquity===null||i.subscription.total===null){

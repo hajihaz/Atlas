@@ -4,6 +4,7 @@
 
 - **No application submission, broker connection, or funds movement.** Public frontend is read-only market research. Application status is manual, device-local and may be inaccurate; registrar/broker verification is required.
 - Two official discovery surfaces: NSE public IPO listings/detail responses (Mainboard, plus SME when emitted) and the BSE SME Public Issues page (recent SME offerings). Never infer that lack of NSE SME records means no SME offerings exist.
+- **Partial BSE outage recovery:** The collector retains recent previously verified SME rows (up to 7 days old), records their original `sourceObservedAt`, marks `sourceStale=true`, clears cached subscription/GMP and labels coverage as stale. Recovery does not imply the issue remains open or that old demand is current. The original source must be rechecked before action. Source references older than the retention window expire.
 - Market data is an **observed snapshot**, not second-level live exchange data. `generatedAt` provides provenance. The frontend labels observations older than three hours **STALE** and refuses current-data recommendations.
 - GMP readings now come from the explicitly reusable **GMP Today (CC BY 4.0)** sample and **Xflot** attribution-required API, matched strictly to exchange issues and date, with provenance, cross-provider dispute flag and freshness. GMP remains unregulated/unverified by exchanges. Valuation, audited issuer risk scoring, allotment status and issuer news remain **unverified/unconnected** until properly sourced. Missing values are null rather than zero. No positive Apply score is emitted without independent fundamentals and a defensible valuation/RHP risk review.
 - Scheduled source fetch and GitHub deployment are **best effort**, subject to uptime, public data access and exchange data licensing/terms. The scraper does not bypass bans, throttles, cookies or paywalls. Verify data-reuse permission before scaling public distribution.
@@ -32,7 +33,7 @@ cd frontend && npm ci && npm run build
 
 ## Pending acceptance gates
 
-1. Verify GitHub Actions scheduled job run + successful new production Vercel deployment and browser smoke test on live domain.
+1. Verify the updated fallback coverage GitHub Actions run, Git-triggered Vercel deployment and browser smoke test on live domain.
 2. SME live subscription/lot-size enrichment beyond currently visible BSE issues.
 3. Additional independent news and issuer-specific primary disclosures with freshness, archive, discrepancies and scam filters. GMP is integrated as unofficial research, not an exchange-verified signal.
 4. Prospectus/P&L/peer valuation ingestion, source-backed audit, score calibration, governance red flags and Apply/Watch/Avoid decision verification.
