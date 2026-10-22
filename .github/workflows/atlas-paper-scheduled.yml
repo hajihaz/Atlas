@@ -1,9 +1,10 @@
 name: atlas-paper-scheduled
 on:
   schedule:
-    # Two best-effort attempts during the observed delayed source window.
-    # 05/17 min in odd UTC hours; no catch-up, no backfilled fills.
-    - cron: '5,17 1-23/2 * * *'
+    # Two attempts per completed even-UTC two-hour bar: +35 and +80m.
+    # Same 24/day budget; hedge both early and delayed source publication.
+    - cron: '35 0-22/2 * * *'
+    - cron: '20 1-23/2 * * *'
   workflow_dispatch:
 permissions:
   contents: write
