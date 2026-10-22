@@ -5,6 +5,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {assertNextCloudSnapshot} from './paper_ledger_guard.mjs';
 import {auditGeneratedPaperFills} from './paper_generated_fill_audit.mjs';
+import {attachPaperDecisionEvidence,countPaperDecisionEvidence} from './paper_decision_evidence.mjs';
 import {renderPaperRunHealthMarkdown} from './paper_run_health.mjs';
 import {preparePaperCheckpointEvidence} from './paper_checkpoint_evidence.mjs';
 import {diagnosePaperSource,unavailablePaperSource} from './paper_source_diagnostics.mjs';
@@ -49,6 +50,9 @@ async function main(){
   if(diagnostic.status!=='PASS')
     throw Error('Source gate refused the observation: '+diagnostic.code);
   next=advanceCloud(previous,bars,quote,now);
+  // Source-only explanation; never initiates modeled orders or changes cash.
+  next=attachPaperDecisionEvidence(previous,next,bars);
+  console.log('Atlas paper decision evidence:',JSON.stringify(countPaperDecisionEvidence(next)));
   // Even repeated failed first checks keep their real attempt counter.
   if(!previous&&next.sessions.length===5)next.runCount=old.runCount+1;
   // A complete candidate needs its genuine new source/proof record BEFORE
