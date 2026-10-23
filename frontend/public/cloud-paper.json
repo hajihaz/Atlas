@@ -10,14 +10,14 @@
   "virtualCapitalPerStrategyINR": 100000,
   "realOrdersEnabled": false,
   "createdAt": "2026-10-19T22:37:32.197Z",
-  "lastRunAt": "2026-10-22T22:22:01.310Z",
-  "lastProviderAt": "2026-10-22T22:22:01.000Z",
-  "lastBarClosedAt": "2026-10-22T22:00:00.000Z",
+  "lastRunAt": "2026-10-23T00:29:15.005Z",
+  "lastProviderAt": "2026-10-23T00:29:14.000Z",
+  "lastBarClosedAt": "2026-10-23T00:00:00.000Z",
   "scheduledEveryMinutes": 120,
-  "runCount": 16,
+  "runCount": 17,
   "skippedIntervals": 28,
-  "status": "GAP_SKIPPED",
-  "alert": "Missing scheduled candle snapshots; no backfilled fills.",
+  "status": "RUNNING",
+  "alert": null,
   "firstRunHasNoBackfilledTrades": true,
   "sessions": [
     {
@@ -46,8 +46,23 @@
         {
           "at": "2026-10-22T01:26:17.304Z",
           "equityINR": 100000
+        },
+        {
+          "at": "2026-10-23T00:29:15.005Z",
+          "equityINR": 100000
         }
-      ]
+      ],
+      "lastDecisionEvidence": {
+        "schema": 1,
+        "mode": "SOURCE_VERIFIED_PAPER_DECISION_ONLY",
+        "code": "NO_ELIGIBLE_SIGNAL",
+        "signal": "HOLD",
+        "modeledFills": 0,
+        "checkedAt": "2026-10-23T00:29:15.005Z",
+        "completedBarAt": "2026-10-23T00:00:00.000Z",
+        "realOrdersEnabled": false,
+        "actualCapitalINR": 0
+      }
     },
     {
       "strategyId": "ema_12_26",
@@ -75,8 +90,23 @@
         {
           "at": "2026-10-22T01:26:17.304Z",
           "equityINR": 100000
+        },
+        {
+          "at": "2026-10-23T00:29:15.005Z",
+          "equityINR": 100000
         }
-      ]
+      ],
+      "lastDecisionEvidence": {
+        "schema": 1,
+        "mode": "SOURCE_VERIFIED_PAPER_DECISION_ONLY",
+        "code": "NO_ELIGIBLE_SIGNAL",
+        "signal": "HOLD",
+        "modeledFills": 0,
+        "checkedAt": "2026-10-23T00:29:15.005Z",
+        "completedBarAt": "2026-10-23T00:00:00.000Z",
+        "realOrdersEnabled": false,
+        "actualCapitalINR": 0
+      }
     },
     {
       "strategyId": "rsi_14",
@@ -89,7 +119,7 @@
       "highestEquityINR": 100000,
       "maxDrawdownPct": 0,
       "status": "RUNNING",
-      "lastSignal": "SELL",
+      "lastSignal": "HOLD",
       "pausedReason": null,
       "closedTrades": 0,
       "wins": 0,
@@ -104,8 +134,23 @@
         {
           "at": "2026-10-22T01:26:17.304Z",
           "equityINR": 100000
+        },
+        {
+          "at": "2026-10-23T00:29:15.005Z",
+          "equityINR": 100000
         }
-      ]
+      ],
+      "lastDecisionEvidence": {
+        "schema": 1,
+        "mode": "SOURCE_VERIFIED_PAPER_DECISION_ONLY",
+        "code": "NO_ELIGIBLE_SIGNAL",
+        "signal": "HOLD",
+        "modeledFills": 0,
+        "checkedAt": "2026-10-23T00:29:15.005Z",
+        "completedBarAt": "2026-10-23T00:00:00.000Z",
+        "realOrdersEnabled": false,
+        "actualCapitalINR": 0
+      }
     },
     {
       "strategyId": "breakout_20",
@@ -133,8 +178,23 @@
         {
           "at": "2026-10-22T01:26:17.304Z",
           "equityINR": 100000
+        },
+        {
+          "at": "2026-10-23T00:29:15.005Z",
+          "equityINR": 100000
         }
-      ]
+      ],
+      "lastDecisionEvidence": {
+        "schema": 1,
+        "mode": "SOURCE_VERIFIED_PAPER_DECISION_ONLY",
+        "code": "NO_ELIGIBLE_SIGNAL",
+        "signal": "HOLD",
+        "modeledFills": 0,
+        "checkedAt": "2026-10-23T00:29:15.005Z",
+        "completedBarAt": "2026-10-23T00:00:00.000Z",
+        "realOrdersEnabled": false,
+        "actualCapitalINR": 0
+      }
     },
     {
       "strategyId": "sps_pullback",
@@ -147,7 +207,7 @@
       "highestEquityINR": 100000,
       "maxDrawdownPct": 0,
       "status": "RUNNING",
-      "lastSignal": "HOLD",
+      "lastSignal": "SELL",
       "pausedReason": null,
       "closedTrades": 0,
       "wins": 0,
@@ -162,20 +222,35 @@
         {
           "at": "2026-10-22T01:26:17.304Z",
           "equityINR": 100000
+        },
+        {
+          "at": "2026-10-23T00:29:15.005Z",
+          "equityINR": 100000
         }
-      ]
+      ],
+      "lastDecisionEvidence": {
+        "schema": 1,
+        "mode": "SOURCE_VERIFIED_PAPER_DECISION_ONLY",
+        "code": "SELL_SIGNAL_WITHOUT_HOLDINGS",
+        "signal": "SELL",
+        "modeledFills": 0,
+        "checkedAt": "2026-10-23T00:29:15.005Z",
+        "completedBarAt": "2026-10-23T00:00:00.000Z",
+        "realOrdersEnabled": false,
+        "actualCapitalINR": 0
+      }
     }
   ],
-  "lastCandleAgeMinutes": 22,
+  "lastCandleAgeMinutes": 29,
   "latencyPolicy": "DELAYED_PUBLIC_CANDLE_MODEL_ONLY_MAX_90_MIN",
   "lastSourceCheck": {
     "schema": 1,
     "status": "PASS",
     "code": "ELIGIBLE",
-    "checkedAt": "2026-10-22T22:22:01.310Z",
-    "latestBarClosedAt": "2026-10-22T22:00:00.000Z",
-    "providerQuoteAt": "2026-10-22T22:22:01.000Z",
-    "candleAgeMinutes": 22,
+    "checkedAt": "2026-10-23T00:29:15.005Z",
+    "latestBarClosedAt": "2026-10-23T00:00:00.000Z",
+    "providerQuoteAt": "2026-10-23T00:29:14.000Z",
+    "candleAgeMinutes": 29,
     "latencyClass": "RECENT_OR_UNVERIFIED",
     "liveOrdersEnabled": false,
     "paperOrdersExecuted": false
@@ -385,6 +460,21 @@
       "sourceCode": "ELIGIBLE",
       "completedBarAt": "2026-10-22T22:00:00.000Z",
       "candleAgeMinutes": 22,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 28,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 17,
+      "at": "2026-10-23T00:29:15.005Z",
+      "status": "RUNNING",
+      "classification": "SOURCE_VERIFIED_PAPER_ONLY",
+      "sourceAccepted": true,
+      "sourceCode": "ELIGIBLE",
+      "completedBarAt": "2026-10-23T00:00:00.000Z",
+      "candleAgeMinutes": 29,
       "newModeledFills": 0,
       "haltedStrategies": 0,
       "skippedIntervals": 28,
