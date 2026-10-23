@@ -9,13 +9,53 @@ export type IpoIssue = {
   gmpProvider?:string|null;gmpSources?:number|null;gmpDisputed?:boolean;gmpEstimatedGainPct?:number|null;
   gmpReadings?:{provider:string;gmp:number;asOf:string;url:string;sources:number;disputed:boolean;range:number[]|null;attribution:string}[];
   gmpHistory?:{observedAt:string;gmp:number;source:string}[];
-  financials:null|{revenueGrowthPct:number|null;profitMarginPct:number|null;debtEquity:number|null;source:string;asOf:string};
+  financials:null|IpoFinancials;
   news:{title:string;source:string;url:string;publishedAt:string}[];
   newsStatus?:string;
   source:string;detailSource:string;bidDeadline:string|null;mandateDeadline:string|null;
   registrar?:string|null;rhpUrl?:string|null;priceJustificationUrl?:string|null;
   sourceObservedAt?:string|null;sourceStale?:boolean;
 };
+export type IpoFinancials={
+  revenueGrowthPct:number|null;profitMarginPct:number|null;debtEquity:number|null;source:string;asOf:string;
+  fiscalLabel?:string;sourcePages?:number[];units?:string;
+  revenueFY26Cr?:number;revenueFY25Cr?:number;profitFY26Cr?:number;profitFY25Cr?:number;
+  borrowingsFY26Cr?:number;operatingCashflowFY26Cr?:number;riskFlags?:string[];
+  valuationVerified?:boolean;peerComparisonVerified?:boolean;
+  investmentDecision?:'HOLD_FOR_VALUATION_REVIEW';
+};
+export type IpoPrimaryResearchFile={schemaVersion:1;methodology:string;records:{id:string;company:string;board:Board;financials:IpoFinancials}[]};
+
+/** Join only matching, read-only official-issuer disclosures; never attach by fuzzy title. */
+export function mergePrimaryResearch(issues:IpoIssue[], input:unknown):IpoIssue[]{
+  if(!input||typeof input!=='object')return issues;
+  const file=input as Partial<IpoPrimaryResearchFile>;
+  if(file.schemaVersion!==1||!Array.isArray(file.records)||file.records.length>100)return issues;
+  const catalog=new Map<string,IpoFinancials>();
+  const seen=new Set<string>();
+  for(const row of file.records){
+    if(!row||typeof row!=='object'||typeof row.id!=='string'||!row.financials||seen.has(row.id))continue;
+    seen.add(row.id);
+    const f=row.financials;
+    if(!/^https:\/\/www\.sebi\.gov\.in\/sebi_data\/commondocs\/[a-z0-9/%._-]+\.pdf$/i.test(f.source)||
+       !/^20\d{2}-\d{2}-\d{2}$/.test(f.asOf)||!Array.isArray(f.sourcePages)||
+       !f.sourcePages.every(n=>Number.isSafeInteger(n)&&n>0&&n<=1500)||
+       !Array.isArray(f.riskFlags)||f.riskFlags.length<1||f.riskFlags.length>20||
+       !f.riskFlags.every(n=>typeof n==='string'&&n.length>5&&n.length<350)||
+       f.valuationVerified!==false||f.peerComparisonVerified!==false||
+       f.investmentDecision!=='HOLD_FOR_VALUATION_REVIEW')continue;
+    const nums=[f.revenueGrowthPct,f.profitMarginPct,f.debtEquity,f.revenueFY26Cr,f.revenueFY25Cr,
+      f.profitFY26Cr,f.profitFY25Cr,f.borrowingsFY26Cr,f.operatingCashflowFY26Cr];
+    if(!nums.every(n=>typeof n==='number'&&Number.isFinite(n))||
+       typeof row.company!=='string'||!['SME','MAINBOARD'].includes(row.board))continue;
+    catalog.set(`${row.id}::${row.company}::${row.board}`,f);
+  }
+  return issues.map(issue=>{
+    const record=catalog.get(`${issue.id}::${issue.company}::${issue.board}`);
+    // Never replace a source-observed current feed record or make stale source records current.
+    return record&&issue.financials===null?{...issue,financials:record}:issue;
+  });
+}
 export type IpoAccuracy = {schemaVersion:1;source:string;license:string;generatedAt:string;totalPublished:number;sourceDirectionAccuracyPct:number|null;sourceAverageAbsoluteErrorPctPoints:number|null;scopeWarning:string;rows:{company:string;board:string;listedOn:string;predictedPct:number;actualPct:number;priceIssue:number|null;priceListing:number|null}[]};
 export type IpoFeed={schemaVersion:1;generatedAt:string|null;sourceName:string;sourceURL:string;coverage:{mainboard:string;sme:string};issues:IpoIssue[];warnings:string[]};
 export const EMPTY_FEED:IpoFeed={schemaVersion:1,generatedAt:null,sourceName:'NSE',sourceURL:'https://www.nseindia.com/market-data/all-upcoming-issues-ipo',coverage:{mainboard:'Not verified',sme:'Not verified'},issues:[],warnings:[]};
@@ -59,6 +99,9 @@ export function recommendation(i:IpoIssue,stale:boolean):{label:string;reason:st
   if(stale||issueSourceStale(i))return {label:'SOURCE STALE',reason:'Latest verified exchange snapshot is too old to assess current demand.',score:null,tone:'warning'};
   if(i.financials===null)return {label:'HOLD — DO NOT APPLY YET',reason:'Verified issuer financials, valuation and prospectus risk review are missing. Subscription multiples alone cannot support a reliable Apply decision. Wait for a complete risk assessment.',score:null,tone:'warning'};
   const f=i.financials;
+  if(f.investmentDecision==='HOLD_FOR_VALUATION_REVIEW' || f.valuationVerified===false || f.peerComparisonVerified===false){
+    return {label:'HOLD — VALUATION REVIEW',reason:'SEBI-filed issuer figures and risk factors are available, but fair valuation and comparable listed peers are not independently verified. Financial growth is not an Apply signal.',score:null,tone:'warning'};
+  }
   if(!f.source||!f.asOf||f.revenueGrowthPct===null||f.profitMarginPct===null||f.debtEquity===null||i.subscription.total===null){
     return {label:'INSUFFICIENT EVIDENCE',reason:'Reliable fundamentals or exchange subscription observations are incomplete.',score:null,tone:'warning'};
   }

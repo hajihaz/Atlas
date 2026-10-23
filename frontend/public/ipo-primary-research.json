@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "methodology": "Hand-reviewed numerical transcription from SEBI-hosted issuer abridged RHP. Issuer-published restated consolidated information, not independently audited by Atlas; do not infer fair value or bidding recommendation.",
+  "records": [
+    {
+      "id": "PARASHLTH",
+      "company": "Paras Healthcare Limited",
+      "board": "MAINBOARD",
+      "financials": {
+        "asOf": "2026-03-31",
+        "fiscalLabel": "FY 2025–26 (restated consolidated)",
+        "source": "https://www.sebi.gov.in/sebi_data/commondocs/oct-2026/Paras%20Healthcare%20Limited_p.pdf",
+        "sourcePages": [8, 9, 10, 14],
+        "units": "crore INR except percentage/ratio",
+        "revenueFY26Cr": 1605.952,
+        "revenueFY25Cr": 1294.063,
+        "revenueGrowthPct": 24.1,
+        "profitFY26Cr": 43.834,
+        "profitFY25Cr": -57.983,
+        "profitMarginPct": 2.69,
+        "borrowingsFY26Cr": 854.101,
+        "operatingCashflowFY26Cr": 163.512,
+        "debtEquity": 3.53,
+        "riskFlags": [
+          "The company reported losses in FY2024 and FY2025 before its FY2026 profit; sustained profitability is not assured.",
+          "Debt-to-equity ratio was 3.53 in FY2026 on the issuer's disclosed definition, including lease liabilities.",
+          "Five of eight North India hospitals contributed 66.07% of FY2026 revenue from operations, creating geographic concentration.",
+          "The prospectus discloses a promoter-group member appearing in a CIBIL wilful-defaulter database; refer to the official risk factors for context."
+        ],
+        "valuationVerified": false,
+        "peerComparisonVerified": false,
+        "investmentDecision": "HOLD_FOR_VALUATION_REVIEW"
+      }
+    }
+  ]
+}
