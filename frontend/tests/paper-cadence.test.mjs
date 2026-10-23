@@ -35,3 +35,30 @@ test('UTC midnight and year boundary remain correct and future clock fails close
  const bad=assessPaperCadence('2026-10-20T04:00:00Z',at('2026-10-20T02:10:00Z'));
  assert.equal(bad.state,'INVALID_FUTURE_SNAPSHOT');
 });
+
+test('overdue publication windows count ONLY saved-checkpoint gaps, not failed jobs',()=>{
+ const at=x=>Date.parse(x);
+ const one=assessPaperCadence('2026-10-20T00:35:58Z',at('2026-10-20T02:10:00Z'));
+ assert.equal(one.unpublishedNominalSlots48h,1); // 01:20 completed grace at 02:05
+ const beforeGrace=assessPaperCadence('2026-10-20T00:35:58Z',at('2026-10-20T02:04:59Z'));
+ assert.equal(beforeGrace.unpublishedNominalSlots48h,0);
+ const afterNew=assessPaperCadence('2026-10-20T01:21:00Z',at('2026-10-20T02:10:00Z'));
+ assert.equal(afterNew.unpublishedNominalSlots48h,0);
+ const weekOld=assessPaperCadence('2026-10-12T22:30:00Z',at('2026-10-20T02:10:00Z'));
+ assert.equal(weekOld.unpublishedNominalSlots48h,48); // only recent 48h, not retroactive week
+ assert.equal(assessPaperCadence(null,at('2026-10-20T02:10:00Z')).unpublishedNominalSlots48h,null);
+ assert.equal(assessPaperCadence('2026-10-20T04:00:00Z',at('2026-10-20T02:10:00Z')).unpublishedNominalSlots48h,null);
+});
+test('browser only links to actual GitHub workflow; no mutable paper recovery action',()=>{
+ const file=readFileSync(new URL('../src/components/CloudPaperCard.tsx',import.meta.url),'utf8');
+ assert.match(file,/Unpublished scheduled slots \(48h\)/);
+ assert.match(file,/https:\/\/github.com\/hajihaz\/Atlas\/actions\/workflows\/atlas-paper-scheduled.yml/);
+ assert.match(file,/not<\/strong> a count of confirmed/);
+});
+
+test('a later paper refresh failure remains visible beside retained prior evidence',()=>{
+ const file=readFileSync(new URL('../src/components/CloudPaperCard.tsx',import.meta.url),'utf8');
+ assert.match(file,/problem&&<div className="cloud-paper-notice" role="alert">/);
+ assert.match(file,/last successfully\s+validated checkpoint/);
+ assert.match(file,/No new virtual trades can be inferred/);
+});

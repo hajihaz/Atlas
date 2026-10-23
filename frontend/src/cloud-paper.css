@@ -26,3 +26,7 @@ html[data-theme] .cloud-paper-card{padding:24px;min-width:0}
 .cloud-paper-choices{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:500px){.cloud-paper-choices{grid-template-columns:1fr}
 html[data-theme] .cloud-paper-card{padding:17px}}
+
+.cloud-paper-runner-link{display:inline-flex;align-items:center;margin-inline-start:8px;
+ color:var(--pm-accent);text-decoration:underline;text-underline-offset:2px;font-weight:700}
+.cloud-paper-runner-link:focus-visible{outline:2px solid var(--pm-accent);outline-offset:3px}

@@ -2,6 +2,7 @@
 // This endpoint is inert until a read-only Contents token is installed server-side.
 // It is a fixed-path GET-only mirror of already-public virtual research ledger data,
 // not an order / trading endpoint. Never include source, auth, or upstream errors in responses.
+import {buildCloudPaperSummary} from '../src/lib/cloudPaperDaybook.js';
 const URL='https://api.github.com/repos/hajihaz/Atlas/contents/frontend/public/cloud-paper.json?ref=main';
 const MAX_BYTES=140_000;
 export function validatePrivateCloudSnapshot(x,now=Date.now()){
@@ -31,6 +32,9 @@ export function validatePrivateCloudSnapshot(x,now=Date.now()){
     (points.at(-1).runCount!==x.runCount||points.at(-1).at!==x.lastRunAt))
    throw Error('invalid_paper_snapshot');
  }
+ // Match the browser's full source/ledger provenance and accounting guard.
+ // Syntactically valid JSON with inconsistent modeled evidence is not trusted.
+ try{buildCloudPaperSummary(x)}catch{throw Error('invalid_paper_snapshot')}
  return x;
 }
 export async function getPrivateCloudSnapshot({

@@ -14,7 +14,7 @@ type S={
  assumptions?:{feePctPerSide:number;slippagePctPerSide:number;nextBarOpenFill:boolean;disclaimer:string};
 };
 type Lab={schema:number;mode:string;currency:'INR';symbol:string;range:string;
- generatedAt:string;source:string;barCount:number;historyCoverage:string;earliestBarAt:string|null;
+ generatedAt:string;source:string;barCount:number;historyCoverage:string;dataCompleteVerified:boolean;earliestBarAt:string|null;
  latestClosedAt:string|null;providerWarning:string;strategies:S[];
  simulatedCapitalINR:number;liveOrdersEnabled:false;paperOrdersExecuted:false;paperLedgerStored:false;warning:string};
 const symbolOptions=['BTCINR','ETHINR','SOLINR','XRPINR','DOGEINR'];
@@ -81,6 +81,15 @@ export default function StrategyLabPage({mode='strategies',goRisk}:{
     <span>{lab.barCount} completed bars · {lab.historyCoverage.replaceAll('_',' ')} ·
     {lab.earliestBarAt?' Since '+date(Date.parse(lab.earliestBarAt)):''}</span>
     <span>Updated {date(Date.parse(lab.generatedAt))}</span></div>}
+  {lab&&<div className="research-topnote" role="note" aria-label="Research history coverage disclaimer">
+    <ShieldCheck size={18}/><span>
+      <strong>{lab.dataCompleteVerified?'Source history contract verified':'Full requested history NOT verified'}.</strong>
+      {' '}{lab.providerWarning}
+      {' '}These figures use {lab.barCount} returned closed candles only; missing dates,
+      source publication timing and execution-quality fills are not inferred.
+      {lab.latestClosedAt?' Last closed provider bar: '+date(Date.parse(lab.latestClosedAt))+'.':''}
+    </span>
+  </div>}
   {lab&&<AgentCouncilPanel lab={lab} strategyId={item?.id??selected}/>}
   {lab&&<div className="research-layout">
     <div className="research-strategy-list">

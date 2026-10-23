@@ -86,3 +86,19 @@ test('private upstream failure, oversize and malformed JSON never become public 
   await assert.rejects(getPrivateCloudSnapshot({token,now:now(),fetcher:async()=>response}));
  }
 });
+
+test('server mirror shares strict daybook proof and rejects inconsistent accounting evidence',()=>{
+ const invalid=[
+  x=>{x.sessions[0].events=[{side:'BUY',mode:'HYPOTHETICAL_AFTER_OBSERVED_SIGNAL',
+     quoteAt:'2039-01-01T00:00:00Z',barClosedAt:'2026-10-22T00:00:00Z',
+     modeledPriceINR:1000,feeINR:1,quantity:1,realizedPnlINR:null}]},
+  x=>{x.sessions[0].equityHistory[0].equityINR=-1},
+  x=>{x.sessions[0].wins=x.sessions[0].closedTrades+1},
+  x=>{x.recentCheckpoints[0].sourceCode='BAD\nINVALID'},
+  x=>{x.sessions[2].strategyId=x.sessions[0].strategyId},
+ ];
+ for(const mutation of invalid){
+  const data=fixture();mutation(data);
+  assert.throws(()=>validatePrivateCloudSnapshot(data,now()),/invalid_paper_snapshot/);
+ }
+});
