@@ -32,7 +32,7 @@ Vercel production and any live-money trading API are **not touched**.
 
 ## Independent local acceptance — integrated branch
 
-- Node: **391 passed, 0 failed** across `frontend/tests`,
+- Node: **392 passed, 0 failed** across `frontend/tests`,
   `scripts/tests`, `tests/research` and `tests/nse-certification`.
 - Python with **fresh throwaway PostgreSQL 17** on localhost port 55439
   and separate DB `atlas_release_haor`: **578 passed, 1 skipped**,
@@ -50,7 +50,7 @@ Vercel production and any live-money trading API are **not touched**.
 - PR #45's source-evidence replay reproduced all four null-preserving
   report files byte-for-byte in a separate independent review.
 
-The 391 Node and 578 Python counts already include the focused checks.
+The 392 Node and 578 Python counts already include the focused checks.
 Do not add them together with the other PRs' individual totals.
 
 ## Data / money boundaries
@@ -93,3 +93,7 @@ Do not add them together with the other PRs' individual totals.
 
 The combined candidate reduces merge-conflict/integration and preview churn,
 but **is not Atlas 100% or a green hosted-CI deployment**.
+
+## Extra deployment safety regression discovered during consolidation
+
+The first exact-head release preview was **CANCELED** after the original Vercel ignore-command considered only a final documentation commit, despite earlier unbuilt runtime commits. Vercel logs confirmed `only_nonruntime_documentation; skip`; this must **not** be described as a READY preview. The guard is now fixed in PR #46 and merged back here: all PR previews build, production `main` compares **all changes since `VERCEL_GIT_PREVIOUS_SHA`** (the SHA of the last successful deployment for the project and branch) and builds if the baseline is absent or unreachable. New adversarial tests verify the multi-commit undeployed-code scenario. Integrated Node suite now **392/392 passed**. The next exact-head preview must be newly verified READY before release.
