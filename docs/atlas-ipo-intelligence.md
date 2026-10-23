@@ -19,6 +19,7 @@
 - `.github/workflows/atlas-ipo-feed.yml` tests, updates and publishes snapshots at best-effort scheduled intervals. Conflicting pushes abort rather than overwrite other work.
 - `frontend/src/components/IPOIntelligencePage.tsx`, `frontend/src/lib/ipoIntelligence.ts` implement filters, research details, math for indicative minimum bids, conservative guidance and local application tracking.
 - `tests/unit/test_ipo_feed.py` covers parsing, source accuracy, unexpected schema and no-fabrication scenarios.
+- `scripts/ipo_chat_report.py` creates an auditable Markdown or JSON briefing from the verified local NSE/BSE snapshot, exact-matched SEBI primary research and stamped unofficial GMP observations; for ChatGPT-facing analysis run `python3 scripts/ipo_chat_report.py` or pass `--json`. Missing/stale data triggers HOLD rather than an Apply signal. No broker/order path. `tests/unit/test_ipo_chat_report.py` covers source freshness, issuer matching, bid status, and stale GMP. The script is not a separately authenticated ChatGPT app plugin; ChatGPT can inspect its output using HHC. 
 
 ## Alerts
 
