@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
-import {browserDeadlineCandidates,effectiveStatus,feedAgeMinutes,issueDataFresh,recentGmp,recommendation} from '../src/lib/ipoIntelligence.ts';
+import {browserDeadlineCandidates,effectiveStatus,feedAgeMinutes,issueDataFresh,officialAllotmentLinks,recentGmp,recommendation} from '../src/lib/ipoIntelligence.ts';
 const now=new Date('2026-10-23T05:00:00.000Z'); // 10:30 IST
 const base={
   id:'TEST',company:'Sample IPO Limited',board:'MAINBOARD',openDate:'2026-10-21',closeDate:'2026-10-23',status:'OPEN',
@@ -58,4 +58,15 @@ test('malformed and future-dated global snapshots must never be classified as fr
   assert.equal(feedAgeMinutes(stamped('2026-10-24T01:00:00Z'),now),Infinity);
   assert.equal(feedAgeMinutes(stamped(null),now),Infinity);
   assert.equal(feedAgeMinutes(stamped('2026-10-23T04:58:00Z'),now),2);
+});
+
+test('allotment links use only official exchange and source-identified registrars',()=>{
+  const kfin=officialAllotmentLinks({...base,registrar:'Kfin Technologies Limited'});
+  const mufg=officialAllotmentLinks({...base,registrar:'MUFG Intime India Private Limited'});
+  const unknown=officialAllotmentLinks({...base,registrar:'Unknown Registrar'});
+  assert.match(kfin[0].url,/^https:\/\/ipostatus\.kfintech\.com\//);
+  assert.match(mufg[0].url,/^https:\/\/in\.mpms\.mufg\.com\//);
+  assert.equal(unknown.length,1);
+  assert.match(unknown[0].url,/^https:\/\/www\.bseindia\.com\//);
+  assert.ok([...kfin,...mufg,...unknown].every(link=>!link.url.includes('PAN=')&&!link.url.includes('applicationNo=')));
 });

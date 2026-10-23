@@ -105,6 +105,19 @@ export function recentGmp(issue:IpoIssue,feedStale:boolean,now=new Date()):{
   if(!Number.isFinite(when)||now.getTime()-when>36*3600000||when>now.getTime()+60000)return null;
   return {gmp:issue.gmp,provider:issue.gmpProvider||null,asOf:issue.gmpAsOf,disputed:issue.gmpDisputed===true};
 }
+export function officialAllotmentLinks(issue:IpoIssue):{label:string;url:string}[]{
+  const registrar=(issue.registrar||'').trim();
+  const links:{label:string;url:string}[]=[];
+  // Link only to the registrar explicitly observed in the exchange issue details.
+  if(/\b(?:mufg intime|link intime)\b/i.test(registrar)){
+    links.push({label:'MUFG Intime · official allotment portal',url:'https://in.mpms.mufg.com/Initial_Offer/public-issues.html'});
+  }else if(/\b(?:kfin technologies|kfintech|kfin technologies limited)\b/i.test(registrar)){
+    links.push({label:'KFintech · official allotment portal',url:'https://ipostatus.kfintech.com/ipostatus'});
+  }
+  // BSE itself offers a read-only public application-status lookup.
+  links.push({label:'BSE · application status',url:'https://www.bseindia.com/investors/appli_check.aspx'});
+  return links;
+}
 export function browserDeadlineCandidates(issues:IpoIssue[],feedStale:boolean,now=new Date()):IpoIssue[]{
   if(feedStale)return [];
   const today=indiaToday(now);
