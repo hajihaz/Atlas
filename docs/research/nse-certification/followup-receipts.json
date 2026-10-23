@@ -1,0 +1,295 @@
+{
+  "schema": "atlas.nse-source-receipts.v1",
+  "receipts": [
+    {
+      "id": "upstox-private-permission",
+      "url": "https://community.upstox.com/t/clarification-on-upstox-historical-candle-v3-data-usage-for-personal-backtesting-and-ml-research/18061.json",
+      "requested_at": "2026-10-23T00:07:59.082517+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://community.upstox.com/t/clarification-on-upstox-historical-candle-v3-data-usage-for-personal-backtesting-and-ml-research/18061.json",
+      "bytes": 18519,
+      "sha256": "5bcb30754b74d3c7526fcc0d198ade8e9d0f2801074235c8dc6a7dacd085f573",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:08:00 GMT",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "retrieved_at": "2026-10-23T00:08:00.053983+00:00"
+    },
+    {
+      "id": "upstox-account-permission",
+      "url": "https://community.upstox.com/t/clarification-on-storing-upstox-nse-market-data-locally-for-private-research-backtesting/18112.json",
+      "requested_at": "2026-10-23T00:08:01.059347+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://community.upstox.com/t/clarification-on-storing-upstox-nse-market-data-locally-for-private-research-backtesting/18112.json",
+      "bytes": 15051,
+      "sha256": "0ec9518256189469c80ee7167effb253ab9fa64fa06ce7d8e152cc7f5bd2ee5e",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:08:01 GMT",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "retrieved_at": "2026-10-23T00:08:01.836217+00:00"
+    },
+    {
+      "id": "upstox-support-profile",
+      "url": "https://community.upstox.com/u/ketan.json",
+      "requested_at": "2026-10-23T00:08:02.861601+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://community.upstox.com/u/ketan.json",
+      "bytes": 3845,
+      "sha256": "01aa064822ca59827025eeb298fc261c0d3c2222e98cb8b9c1f86eaca4ab8597",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:08:03 GMT",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "retrieved_at": "2026-10-23T00:08:03.677808+00:00"
+    },
+    {
+      "id": "fyers-plan-2026",
+      "url": "https://fyers.in/api-docs/v3/getting-started/plans-and-limits/",
+      "requested_at": "2026-10-23T00:08:04.682541+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://fyers.in/api-docs/v3/getting-started/plans-and-limits/",
+      "bytes": 289104,
+      "sha256": "ff0af4456bd99eaf5050dd87b7ed527d2a3db428079def012ffb01ab5aecab4f",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:08:05 GMT",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "retrieved_at": "2026-10-23T00:08:04.935946+00:00"
+    },
+    {
+      "id": "fyers-auth",
+      "url": "https://fyers.in/api-docs/v3/api/authentication/",
+      "requested_at": "2026-10-23T00:08:05.938938+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://fyers.in/api-docs/v3/api/authentication/",
+      "bytes": 273365,
+      "sha256": "932764c2d87e52bab6d0c48195f00cf3eef0f396c16439d53bb9248dde37ccf1",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:08:06 GMT",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "retrieved_at": "2026-10-23T00:08:06.145019+00:00"
+    },
+    {
+      "id": "shoonya-home",
+      "url": "https://shoonya.com/api",
+      "requested_at": "2026-10-23T00:08:07.147780+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 308,
+      "final_url": "https://shoonya.com/api",
+      "bytes": 5,
+      "sha256": "58c9a61d1d428918087a15a4be4f2a291f6963abd43ffb99026d761f421894bd",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:08:07 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:08:07.480233+00:00"
+    },
+    {
+      "id": "flattrade-api",
+      "url": "https://flattrade.in/ftapi/",
+      "requested_at": "2026-10-23T00:08:08.486195+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 404,
+      "final_url": "https://flattrade.in/ftapi/",
+      "bytes": 5147,
+      "sha256": "e078201deb94f0192542ac507dd1a51b27cb5610d71c3226a6aa22fcfa098df7",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:08:08 GMT",
+        "content-type": "text/html"
+      },
+      "retrieved_at": "2026-10-23T00:08:08.637806+00:00"
+    },
+    {
+      "id": "nse-terms",
+      "url": "https://www.nseindia.com/nse-terms-of-use",
+      "requested_at": "2026-10-23T00:08:09.644077+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://www.nseindia.com/static/nse-terms-of-use",
+      "bytes": 327507,
+      "sha256": "8c24bab7c16337a6426b9a42fe232315a5dca5707d1c123e3220fa07f7c6732a",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Fri, 23 Oct 2026 00:08:10 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:08:10.140554+00:00"
+    },
+    {
+      "id": "nse-name-changes",
+      "url": "https://nsearchives.nseindia.com/content/equities/namechange.csv",
+      "requested_at": "2026-10-23T00:08:11.145165+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://nsearchives.nseindia.com/content/equities/namechange.csv",
+      "bytes": 240588,
+      "sha256": "e793ea1fe0c815d5dad1efd95c6ccd6aa1d54a9923cd15b1d2918b3435a100b0",
+      "headers": {
+        "etag": "W/\"240588-1792704607199\"",
+        "last-modified": "Thu, 22 Oct 2026 21:30:07 GMT",
+        "content-type": "text/csv",
+        "date": "Fri, 23 Oct 2026 00:08:11 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:08:11.383191+00:00"
+    },
+    {
+      "id": "nse-symbol-changes",
+      "url": "https://nsearchives.nseindia.com/content/equities/symbolchange.csv",
+      "requested_at": "2026-10-23T00:08:12.392000+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://nsearchives.nseindia.com/content/equities/symbolchange.csv",
+      "bytes": 69403,
+      "sha256": "b080e538a5c3c8b5cc1fd048768b2b660c880cc38b3c2bafc7c0f1b2f983566e",
+      "headers": {
+        "etag": "W/\"69403-1792704610050\"",
+        "last-modified": "Thu, 22 Oct 2026 21:30:10 GMT",
+        "content-type": "text/csv",
+        "date": "Fri, 23 Oct 2026 00:08:12 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:08:12.578772+00:00"
+    },
+    {
+      "id": "gh-olo-minute-tree",
+      "url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse-min-candle/git/trees/main?recursive=1",
+      "requested_at": "2026-10-23T00:08:13.584118+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse-min-candle/git/trees/main?recursive=1",
+      "bytes": 240064,
+      "sha256": "fafb05a8a772b45c820cb79791d794135756ee4c82a39320e37b76e1b27ae1b7",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:08:17 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "etag": "W/\"67869de34dde1b329558dcb08322bfc701549f2380d2e8bf8dae6ae6bfe4ceda\"",
+        "last-modified": "Wed, 14 Oct 2026 19:19:06 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:08:17.134948+00:00"
+    },
+    {
+      "id": "gh-olo-minute-head",
+      "url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse-min-candle/commits/main",
+      "requested_at": "2026-10-23T00:08:18.136008+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse-min-candle/commits/main",
+      "bytes": 11213,
+      "sha256": "21435bfc8aa8b79a98e6ec57955ebeece98c9b774e79742c3de52c6dcb546173",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:08:18 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "etag": "W/\"cc525305d97d98b731f6132297e74da41c93ac297b8a12d2f60e51f2561f5952\"",
+        "last-modified": "Wed, 14 Oct 2026 19:19:00 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:08:18.780791+00:00"
+    },
+    {
+      "id": "gh-gsidhu-head",
+      "url": "https://api.github.com/repos/gsidhu/nse-intraday-data/commits/main",
+      "requested_at": "2026-10-23T00:08:19.799429+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://api.github.com/repos/gsidhu/nse-intraday-data/commits/main",
+      "bytes": 1298974,
+      "sha256": "eb2b198677ab20cb05fda8768ba8b4384afcf9fe9b1ff5deb28ecd7378c3a325",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:08:21 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "etag": "W/\"fe614c5ef3c7f2c73d13420a7acaa5f677fe8524a320df1e20b4d6cb9830c833\"",
+        "last-modified": "Sun, 28 Sep 2025 06:17:18 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:08:22.210353+00:00"
+    },
+    {
+      "id": "gh-voletiramu-release",
+      "url": "https://api.github.com/repos/voletiramu/nse-fno-1min-data/releases/latest",
+      "requested_at": "2026-10-23T00:08:23.213696+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://api.github.com/repos/voletiramu/nse-fno-1min-data/releases/latest",
+      "bytes": 3753,
+      "sha256": "c016858eafd7344433cae4773b553e0ffa1fbc29338d81fada823fd7172ed272",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:08:23 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "etag": "W/\"dbe33a72f4c4258786ce215a93264316388d8f05172633b220d7f0e8d3b3a2c1\"",
+        "last-modified": "Sat, 02 May 2026 18:39:35 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:08:23.700914+00:00"
+    },
+    {
+      "id": "gh-voletiramu-head",
+      "url": "https://api.github.com/repos/voletiramu/nse-fno-1min-data/commits/main",
+      "requested_at": "2026-10-23T00:08:24.705832+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://api.github.com/repos/voletiramu/nse-fno-1min-data/commits/main",
+      "bytes": 7725,
+      "sha256": "24b59228d9ad6b914bf258540df35fc1226f99a8c99e99b1b9f538e7569162bd",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:08:25 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "etag": "W/\"c900963543a3fac0c7d46900c93074b8f4b56d3f06780e01ce64953a066fafc9\"",
+        "last-modified": "Sat, 02 May 2026 18:36:53 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:08:25.401838+00:00"
+    },
+    {
+      "id": "gh-djjain-readme",
+      "url": "https://raw.githubusercontent.com/djjain21/NSE-Futures-Options-F-O-Historical-Dataset-1minute-from-2015-2026/main/README.md",
+      "requested_at": "2026-10-23T00:08:26.406590+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://raw.githubusercontent.com/djjain21/NSE-Futures-Options-F-O-Historical-Dataset-1minute-from-2015-2026/main/README.md",
+      "bytes": 2011,
+      "sha256": "06dfe23b33017c4043a7ad277e0758e849f90feceef25362aff57f60774bc478",
+      "headers": {
+        "content-type": "text/plain; charset=utf-8",
+        "etag": "\"87e9a07f3d63fed7fd07738e3bf17aac7e5a2e4bf3d047a34650173b7a93c818\"",
+        "date": "Fri, 23 Oct 2026 00:08:27 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:08:26.850050+00:00"
+    },
+    {
+      "id": "gh-djjain-head",
+      "url": "https://api.github.com/repos/djjain21/NSE-Futures-Options-F-O-Historical-Dataset-1minute-from-2015-2026/commits/main",
+      "requested_at": "2026-10-23T00:08:27.855754+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://api.github.com/repos/djjain21/NSE-Futures-Options-F-O-Historical-Dataset-1minute-from-2015-2026/commits/main",
+      "bytes": 5702,
+      "sha256": "1d545bb0c08456684c4311844f8859e379c083bb946efe68c78f642ef3d3bcd9",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:08:28 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "etag": "W/\"6fab696f2008b88828e5d6f6a42042cbc835346b0defba68a2e3d5144e044cd0\"",
+        "last-modified": "Wed, 14 Oct 2026 04:45:13 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:08:28.385892+00:00"
+    }
+  ],
+  "requested": 17,
+  "completed": 17
+}

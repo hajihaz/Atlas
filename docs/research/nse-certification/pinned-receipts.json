@@ -1,0 +1,181 @@
+{
+  "schema": "atlas.nse-source-receipts.v1",
+  "receipts": [
+    {
+      "id": "gh-olo-immutable-tree",
+      "url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse-min-candle/git/trees/fe5592007a4b9b7df35480feeba9456af4690d52?recursive=1",
+      "requested_at": "2026-10-23T00:23:22.867087+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse-min-candle/git/trees/fe5592007a4b9b7df35480feeba9456af4690d52?recursive=1",
+      "bytes": 240064,
+      "sha256": "22846683bb0f3dbb05dec4c0d7e0641798de3ad2c049450202d880a349d9f3a4",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:23:24 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "etag": "W/\"19d0df1508930357b4b15aae1d8eb54c4d67468f0be3c10c7508384194e7a0bd\"",
+        "last-modified": "Wed, 14 Oct 2026 19:19:06 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:23:25.022466+00:00"
+    },
+    {
+      "id": "gh-olo-pinned-stock-directory",
+      "url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse-min-candle/contents/Minute/NSE?ref=0570761182b96724da3c43fdef547c139a3e93e8",
+      "requested_at": "2026-10-23T00:23:26.031453+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse-min-candle/contents/Minute/NSE?ref=0570761182b96724da3c43fdef547c139a3e93e8",
+      "bytes": 541729,
+      "sha256": "a2be5fc763bfbcaf6219f7978140e53adff3a9891e3d87cbd2483e4b73c36c0a",
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "date": "Fri, 23 Oct 2026 00:23:26 GMT",
+        "etag": "\"fe5592007a4b9b7df35480feeba9456af4690d52\"",
+        "last-modified": "Wed, 14 Oct 2026 19:19:06 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:23:26.694851+00:00"
+    },
+    {
+      "id": "gh-olo-git-commit",
+      "url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse-min-candle/git/commits/0570761182b96724da3c43fdef547c139a3e93e8",
+      "requested_at": "2026-10-23T00:23:27.704135+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse-min-candle/git/commits/0570761182b96724da3c43fdef547c139a3e93e8",
+      "bytes": 2885,
+      "sha256": "b0a40f86aa8a4fe6885ff5a18f1c4947b59d5053fec55394e1ea0dc6f26e7539",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:23:28 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "etag": "W/\"86922615d6eb81c7673abb4e41c420ca010b1828a8e77f89a0a5a2ef1c440bb8\"",
+        "last-modified": "Wed, 14 Oct 2026 19:19:00 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:23:28.554200+00:00"
+    },
+    {
+      "id": "gh-olo-pinned-license",
+      "url": "https://raw.githubusercontent.com/olo-labs/olo-ai-training-data-nse-min-candle/0570761182b96724da3c43fdef547c139a3e93e8/LICENSE",
+      "requested_at": "2026-10-23T00:23:29.563062+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://raw.githubusercontent.com/olo-labs/olo-ai-training-data-nse-min-candle/0570761182b96724da3c43fdef547c139a3e93e8/LICENSE",
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "headers": {
+        "content-type": "text/plain; charset=utf-8",
+        "etag": "\"0f7ad233313d00f59c4f65f8c224ab2bfe14a8608ea59dc12ae4d7f13ba699e9\"",
+        "date": "Fri, 23 Oct 2026 00:23:30 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:23:29.973784+00:00"
+    },
+    {
+      "id": "gh-olo-pinned-faq",
+      "url": "https://raw.githubusercontent.com/olo-labs/olo-ai-training-data-nse-min-candle/0570761182b96724da3c43fdef547c139a3e93e8/docs/FAQ.md",
+      "requested_at": "2026-10-23T00:23:30.975434+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://raw.githubusercontent.com/olo-labs/olo-ai-training-data-nse-min-candle/0570761182b96724da3c43fdef547c139a3e93e8/docs/FAQ.md",
+      "bytes": 2294,
+      "sha256": "e5bd27841c48e2dd4a7b47d7036a30aa84d6c5db14830f4972d5d60c11bce8cf",
+      "headers": {
+        "content-type": "text/plain; charset=utf-8",
+        "etag": "\"188780a04bf965877e2c0300e7564e213f0e1f012e04f689a14811d556a5d8b3\"",
+        "date": "Fri, 23 Oct 2026 00:23:31 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:23:31.493582+00:00"
+    },
+    {
+      "id": "upstox-feed-current",
+      "url": "https://upstox.com/developer/api-documentation/v3/get-market-data-feed/",
+      "requested_at": "2026-10-23T00:23:32.505554+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://upstox.com/developer/api-documentation/v3/get-market-data-feed/",
+      "bytes": 234772,
+      "sha256": "44e216890418918d7340f9c2dfc2ff141ba8b8a8d5ba17444f136eb728d01534",
+      "headers": {
+        "content-type": "text/html",
+        "date": "Thu, 22 Oct 2026 12:17:04 GMT",
+        "last-modified": "Wed, 16 Sep 2026 16:06:39 GMT",
+        "etag": "\"6aaabe8f-39514\""
+      },
+      "retrieved_at": "2026-10-23T00:23:32.736487+00:00"
+    },
+    {
+      "id": "shoonya-rate-current",
+      "url": "https://shoonya.com/api-documentation/rate-limits",
+      "requested_at": "2026-10-23T00:23:33.755804+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://shoonya.com/api-documentation/rate-limits",
+      "bytes": 310352,
+      "sha256": "b928c36366b5f661a532728041627485cea9e1538c69623ca93ad589c999cad3",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:23:34 GMT",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "retrieved_at": "2026-10-23T00:23:34.417112+00:00"
+    },
+    {
+      "id": "flattrade-docs-current",
+      "url": "https://pi.flattrade.in/docs",
+      "requested_at": "2026-10-23T00:23:35.421937+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://pi.flattrade.in/docs",
+      "bytes": 2602,
+      "sha256": "07eae77cf97a00f4088d984b23647c637af9582150b70871488c30b9aeafe8b6",
+      "headers": {
+        "date": "Fri, 23 Oct 2026 00:23:35 GMT",
+        "content-type": "text/html",
+        "last-modified": "Sat, 03 Oct 2026 09:45:05 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:23:35.635031+00:00"
+    },
+    {
+      "id": "gh-gsidhu-pinned-root",
+      "url": "https://api.github.com/repos/gsidhu/nse-intraday-data/contents?ref=c95d7f187c2a317ca6a2287148cf10c50a80e928",
+      "requested_at": "2026-10-23T00:23:36.658804+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://api.github.com/repos/gsidhu/nse-intraday-data/contents?ref=c95d7f187c2a317ca6a2287148cf10c50a80e928",
+      "bytes": 16848,
+      "sha256": "55799bd6cda8a8bf3e7d87dcc746713d9f3f0b3540c73cd123b112be69e4548d",
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "date": "Fri, 23 Oct 2026 00:23:37 GMT",
+        "etag": "\"aba80cbd9f78664bc7ea2d57660c0d90f3a586d6\"",
+        "last-modified": "Thu, 20 Aug 2026 12:15:38 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:23:37.466319+00:00"
+    },
+    {
+      "id": "nse-master-data",
+      "url": "https://www.nseindia.com/static/market-data/paid-master-data",
+      "requested_at": "2026-10-23T00:23:38.480128+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://www.nseindia.com/static/market-data/paid-master-data",
+      "bytes": 306298,
+      "sha256": "268a724b29d2d352e45961ac7d4ea8f5bd067a19323bc92e2895f966811daa9a",
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Fri, 23 Oct 2026 00:23:39 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:23:39.652046+00:00"
+    }
+  ],
+  "requested": 10,
+  "completed": 10,
+  "captureScriptSha256": "6afc90706d6221f23a5b52a10096f9ec2aff25c64ad5e93dc8f6d078fe581d7e"
+}
