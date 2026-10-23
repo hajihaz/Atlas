@@ -16,6 +16,10 @@ unverified. The other fifteen requested stock archive names are absent from
 that pinned listing. See [sources.md](sources.md) and
 [source-findings-pinned.json](source-findings-pinned.json).
 
+Hosted GitHub CI is blocked before runner startup by an account billing/limit
+condition. Local verification passed; see `ci-startup-evidence.json`. No spending
+or account settings were changed.
+
 The acceptance exports are inspectable:
 
 - [results/report.json](results/report.json): all twenty dates, blockers and null financial fields.

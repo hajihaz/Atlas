@@ -128,8 +128,12 @@ are unverified. See [contracts.md](contracts.md); no owner approval step is adde
 The main verification used HHC Node 26.8.1 and Python 3.11.16. The same 57 new
 Node cases also passed on Node 24 in the local runtime. The new CI workflow uses
 Node 24/Python 3.11, runs the new and existing advanced tests offline, and compares
-every acceptance export byte-for-byte. CI state is visible on the separate PR;
-no deployment is part of this workflow. [verification.json](verification.json)
+every acceptance export byte-for-byte. Hosted CI did not execute: both first-attempt jobs were blocked before a
+runner started by GitHub's account payment/spending-limit restriction. No
+hosted test pass is claimed, no rerun was requested and no billing setting was
+changed. See [ci-startup-evidence.json](ci-startup-evidence.json) and the PR's
+current checks. All workflow commands have local verification; no deployment
+is part of this workflow. [verification.json](verification.json)
 records commands, exit codes, source-file hashes and private log locations.
 The schema envelopes are parsed by tests; cross-file certification uses the
 tested runtime validators.
@@ -175,7 +179,7 @@ applicable permission evidence**, covering:
 An existing permitted export or a fee-waived exchange/provider arrangement could
 supply this; neither is guaranteed to exist. A token alone does not supply the
 missing historical records. This objective does not require the owner to log in,
-pay, share credentials or authorize orders. Once documentary evidence and files
+pay, share credentials or authorize orders. For the supported export formats, once documentary evidence and files
 are available, ingestion and certification can proceed without another software
 implementation phase. Conditional prospective alternatives and their actual
 quota/socket constraints are documented in [future-data.md](future-data.md).
@@ -183,3 +187,8 @@ quota/socket constraints are documented in [future-data.md](future-data.md).
 The finite objective ends with the isolated PR and verified null-preserving
 research deliverable. Historical performance certification remains blocked on
 external source evidence; it is not represented as completed trading research.
+
+The separate hosted-CI gate is GitHub account/allowance access. Resolving it must
+stay within the zero-additional-spend rule; an upgrade or higher budget is not
+requested. This gate does not invalidate the recorded local test results, and
+it does not make historical market results verified.

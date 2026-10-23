@@ -1,0 +1,82 @@
+{
+  "schema": "atlas.nse-ci-startup-evidence.v1",
+  "observedAt": "2026-10-23T01:01:20.514872+00:00",
+  "testedCodeCommit": "44d1aa6d62682f9c8772ab3ccc39cff8f636e386",
+  "pr": "https://github.com/hajihaz/Atlas/pull/45",
+  "workflowRuns": [
+    {
+      "id": 39881081732,
+      "name": "NSE data certification",
+      "jobId": 120178342493,
+      "stepsExecuted": 0,
+      "conclusion": "failure"
+    },
+    {
+      "id": 39881081768,
+      "name": "atlas-python-ci",
+      "jobId": 120178344643,
+      "stepsExecuted": 0,
+      "conclusion": "failure"
+    }
+  ],
+  "status": "BLOCKED_BEFORE_RUNNER_START",
+  "reason": "GitHub account payment/spending-limit restriction",
+  "annotations": [
+    {
+      "job": "120178342493",
+      "exit": 0,
+      "annotations": [
+        {
+          "annotation_level": "failure",
+          "end_line": 1,
+          "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings",
+          "path": ".github",
+          "start_line": 1
+        },
+        {
+          "annotation_level": "notice",
+          "end_line": 1,
+          "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\"",
+          "path": ".github",
+          "start_line": 1
+        }
+      ],
+      "error": ""
+    },
+    {
+      "job": "120178344643",
+      "exit": 0,
+      "annotations": [
+        {
+          "annotation_level": "failure",
+          "end_line": 1,
+          "message": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings",
+          "path": ".github",
+          "start_line": 1
+        },
+        {
+          "annotation_level": "notice",
+          "end_line": 1,
+          "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\"",
+          "path": ".github",
+          "start_line": 1
+        }
+      ],
+      "error": ""
+    }
+  ],
+  "hostedTestsExecuted": 0,
+  "hostedCIPassed": false,
+  "automaticRerunRequested": false,
+  "billingOrSpendingLimitChanged": false,
+  "localDistinctTestsPassed": 194,
+  "repositorySourceSecretScan": "PASS",
+  "sourceFilesMatchTestedHashes": true,
+  "dataCertification": {
+    "realSessionsCertified": 0,
+    "expectedSessions": 20,
+    "historicalNetPnlINR": null
+  },
+  "ownerIndependentDisposition": "Complete; retain hosted gate, no paid recovery",
+  "externalRequirement": "If hosted checks are desired, restore an eligible included GitHub Actions allowance/account state without additional spend; otherwise retain local verification. No upgrade or increased budget is requested."
+}

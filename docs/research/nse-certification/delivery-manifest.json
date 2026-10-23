@@ -78,13 +78,13 @@
     },
     {
       "path": "docs/research/nse-certification/README.md",
-      "bytes": 5905,
-      "sha256": "98ebc00c465b1e9bf25ceb4396a93bec56e1eb3f24ea6d6179d8a5a140fa2477"
+      "bytes": 6100,
+      "sha256": "7c5e891da95f0fba4c3fca21f007eaeed662a03a15c7da0b4e506416ffc1db94"
     },
     {
       "path": "docs/research/nse-certification/acceptance.md",
-      "bytes": 10255,
-      "sha256": "34fc463dfb9d93b300f6e9df4ba71ac9f3ec435dc17166a5e41f410ca865e83d"
+      "bytes": 10910,
+      "sha256": "910f4236c2a620c44d80b984798f66c67ef92f2c8c087da898692b137e4e9336"
     },
     {
       "path": "docs/research/nse-certification/calendar-plan.json",
@@ -95,6 +95,11 @@
       "path": "docs/research/nse-certification/calendar-receipts.json",
       "bytes": 939,
       "sha256": "2221c09ab08af88d56615730e791ea6c5638a14b3ff9e32d483cf5dbfc3b1970"
+    },
+    {
+      "path": "docs/research/nse-certification/ci-startup-evidence.json",
+      "bytes": 2932,
+      "sha256": "d3c82080e67e1269a2bdd1ab9258b3eaa9c468ce1e9524c4adaea56f3ac4dd55"
     },
     {
       "path": "docs/research/nse-certification/contracts.md",
