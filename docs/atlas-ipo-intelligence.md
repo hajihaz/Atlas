@@ -23,7 +23,8 @@
 
 ## Alerts
 
-- Browser alerts are **permission-based** and only evaluated while Atlas is open; they do not guarantee background delivery.
+- Browser alerts are **permission-based** and only evaluated while Atlas is open; they do not guarantee background delivery. Alerts are suppressed for globally stale feeds, individually stale issues, concluded bids, and unknown exchange statuses. Bid/UPI exact cutoff times override closing dates only when explicitly source-published. There is no promise of an exact broker cutoff.
+- Unofficial GMP is never displayed as current if the snapshot is stale, the specific issue is stale, or the last quote was observed more than 36 hours ago. Historical GMP charts remain explicitly historical; missing readings are not zero. Open/closing statistics count only fresh issue records.
 - A separate ChatGPT condition-watch automation checks official NSE/BSE closing dates twice daily for the owner. It is not a generic multi-user notification service.
 - A true multi-device background push/email implementation requires subscriber identity, secure opt-in data storage, a compliant delivery transport and integration tests.
 

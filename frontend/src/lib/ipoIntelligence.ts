@@ -79,7 +79,11 @@ export function effectiveStatus(i:IpoIssue,now=new Date()):IpoState{
   if(today<i.openDate)return 'UPCOMING';
   if(today>i.closeDate)return 'CLOSED';
   if(i.status==='CLOSED')return 'CLOSED';
-  if(i.mandateDeadline&&Number.isFinite(Date.parse(i.mandateDeadline))&&now.getTime()>=Date.parse(i.mandateDeadline))return 'CLOSED';
+  if(i.status==='UNKNOWN')return 'UNKNOWN';
+  // An issuer-specific exchange bid cutoff can be earlier than its UPI mandate cutoff.
+  for(const deadline of [i.bidDeadline,i.mandateDeadline]){
+    if(deadline&&Number.isFinite(Date.parse(deadline))&&now.getTime()>=Date.parse(deadline))return 'CLOSED';
+  }
   return 'OPEN';
 }
 export function issueSourceStale(issue:IpoIssue,now=new Date()):boolean {
@@ -87,6 +91,26 @@ export function issueSourceStale(issue:IpoIssue,now=new Date()):boolean {
   if(!issue.sourceObservedAt)return false;
   const time=Date.parse(issue.sourceObservedAt);
   return !Number.isFinite(time)|| now.getTime()-time > 180*60000 || time>now.getTime()+60000;
+}
+/** Exchange observations and unofficial GMP must expire independently. */
+export function issueDataFresh(issue:IpoIssue,feedStale:boolean,now=new Date()):boolean{
+  return !feedStale&&!issueSourceStale(issue,now);
+}
+export function recentGmp(issue:IpoIssue,feedStale:boolean,now=new Date()):{
+  gmp:number;provider:string|null;asOf:string;disputed:boolean
+}|null{
+  if(!issueDataFresh(issue,feedStale,now)||
+    typeof issue.gmp!=='number'||!Number.isFinite(issue.gmp)||!issue.gmpAsOf)return null;
+  const when=Date.parse(issue.gmpAsOf);
+  if(!Number.isFinite(when)||now.getTime()-when>36*3600000||when>now.getTime()+60000)return null;
+  return {gmp:issue.gmp,provider:issue.gmpProvider||null,asOf:issue.gmpAsOf,disputed:issue.gmpDisputed===true};
+}
+export function browserDeadlineCandidates(issues:IpoIssue[],feedStale:boolean,now=new Date()):IpoIssue[]{
+  if(feedStale)return [];
+  const today=indiaToday(now);
+  const tomorrow=indiaToday(new Date(now.getTime()+86400000));
+  return issues.filter(i=>issueDataFresh(i,false,now)&&effectiveStatus(i,now)==='OPEN'&&
+    (i.closeDate===today||i.closeDate===tomorrow));
 }
 export function feedAgeMinutes(feed:IpoFeed,now=new Date()):number{
   if(!feed.generatedAt)return Infinity;
