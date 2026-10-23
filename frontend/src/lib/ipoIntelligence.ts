@@ -79,7 +79,11 @@ export function effectiveStatus(i:IpoIssue,now=new Date()):IpoState{
   if(today<i.openDate)return 'UPCOMING';
   if(today>i.closeDate)return 'CLOSED';
   if(i.status==='CLOSED')return 'CLOSED';
-  if(i.mandateDeadline&&Number.isFinite(Date.parse(i.mandateDeadline))&&now.getTime()>=Date.parse(i.mandateDeadline))return 'CLOSED';
+  if(i.status==='UNKNOWN')return 'UNKNOWN';
+  // An issuer-specific exchange bid cutoff can be earlier than its UPI mandate cutoff.
+  for(const deadline of [i.bidDeadline,i.mandateDeadline]){
+    if(deadline&&Number.isFinite(Date.parse(deadline))&&now.getTime()>=Date.parse(deadline))return 'CLOSED';
+  }
   return 'OPEN';
 }
 export function issueSourceStale(issue:IpoIssue,now=new Date()):boolean {
@@ -88,9 +92,45 @@ export function issueSourceStale(issue:IpoIssue,now=new Date()):boolean {
   const time=Date.parse(issue.sourceObservedAt);
   return !Number.isFinite(time)|| now.getTime()-time > 180*60000 || time>now.getTime()+60000;
 }
+/** Exchange observations and unofficial GMP must expire independently. */
+export function issueDataFresh(issue:IpoIssue,feedStale:boolean,now=new Date()):boolean{
+  return !feedStale&&!issueSourceStale(issue,now);
+}
+export function recentGmp(issue:IpoIssue,feedStale:boolean,now=new Date()):{
+  gmp:number;provider:string|null;asOf:string;disputed:boolean
+}|null{
+  if(!issueDataFresh(issue,feedStale,now)||
+    typeof issue.gmp!=='number'||!Number.isFinite(issue.gmp)||!issue.gmpAsOf)return null;
+  const when=Date.parse(issue.gmpAsOf);
+  if(!Number.isFinite(when)||now.getTime()-when>36*3600000||when>now.getTime()+60000)return null;
+  return {gmp:issue.gmp,provider:issue.gmpProvider||null,asOf:issue.gmpAsOf,disputed:issue.gmpDisputed===true};
+}
+export function officialAllotmentLinks(issue:IpoIssue):{label:string;url:string}[]{
+  const registrar=(issue.registrar||'').trim();
+  const links:{label:string;url:string}[]=[];
+  // Link only to the registrar explicitly observed in the exchange issue details.
+  if(/\b(?:mufg intime|link intime)\b/i.test(registrar)){
+    links.push({label:'MUFG Intime · official allotment portal',url:'https://in.mpms.mufg.com/Initial_Offer/public-issues.html'});
+  }else if(/\b(?:kfin technologies|kfintech|kfin technologies limited)\b/i.test(registrar)){
+    links.push({label:'KFintech · official allotment portal',url:'https://ipostatus.kfintech.com/ipostatus'});
+  }
+  // BSE itself offers a read-only public application-status lookup.
+  links.push({label:'BSE · application status',url:'https://www.bseindia.com/investors/appli_check.aspx'});
+  return links;
+}
+export function browserDeadlineCandidates(issues:IpoIssue[],feedStale:boolean,now=new Date()):IpoIssue[]{
+  if(feedStale)return [];
+  const today=indiaToday(now);
+  const tomorrow=indiaToday(new Date(now.getTime()+86400000));
+  return issues.filter(i=>issueDataFresh(i,false,now)&&effectiveStatus(i,now)==='OPEN'&&
+    (i.closeDate===today||i.closeDate===tomorrow));
+}
 export function feedAgeMinutes(feed:IpoFeed,now=new Date()):number{
   if(!feed.generatedAt)return Infinity;
-  return Math.max(0,(now.getTime()-Date.parse(feed.generatedAt))/60000);
+  const observed=Date.parse(feed.generatedAt);
+  // Invalid and future snapshots must never be treated as current observations.
+  if(!Number.isFinite(observed)||observed>now.getTime()+60000)return Infinity;
+  return Math.max(0,(now.getTime()-observed)/60000);
 }
 export function recommendation(i:IpoIssue,stale:boolean):{label:string;reason:string;score:number|null;tone:'warning'|'good'|'neutral'}{
   const stage=effectiveStatus(i);
