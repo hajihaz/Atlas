@@ -114,7 +114,10 @@ export function browserDeadlineCandidates(issues:IpoIssue[],feedStale:boolean,no
 }
 export function feedAgeMinutes(feed:IpoFeed,now=new Date()):number{
   if(!feed.generatedAt)return Infinity;
-  return Math.max(0,(now.getTime()-Date.parse(feed.generatedAt))/60000);
+  const observed=Date.parse(feed.generatedAt);
+  // Invalid and future snapshots must never be treated as current observations.
+  if(!Number.isFinite(observed)||observed>now.getTime()+60000)return Infinity;
+  return Math.max(0,(now.getTime()-observed)/60000);
 }
 export function recommendation(i:IpoIssue,stale:boolean):{label:string;reason:string;score:number|null;tone:'warning'|'good'|'neutral'}{
   const stage=effectiveStatus(i);

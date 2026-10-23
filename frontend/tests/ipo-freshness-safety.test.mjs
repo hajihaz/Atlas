@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
-import {browserDeadlineCandidates,effectiveStatus,issueDataFresh,recentGmp,recommendation} from '../src/lib/ipoIntelligence.ts';
+import {browserDeadlineCandidates,effectiveStatus,feedAgeMinutes,issueDataFresh,recentGmp,recommendation} from '../src/lib/ipoIntelligence.ts';
 const now=new Date('2026-10-23T05:00:00.000Z'); // 10:30 IST
 const base={
   id:'TEST',company:'Sample IPO Limited',board:'MAINBOARD',openDate:'2026-10-21',closeDate:'2026-10-23',status:'OPEN',
@@ -50,4 +50,12 @@ test('the frontend shows stale instead of displaying expired GMP and alerting re
  assert.match(ui,/browserDeadlineCandidates\(issues,stale,now\)/);
  assert.match(ui,/currentDemand\?multiple\(issue\.subscription\.total\):'Stale/);
  assert.doesNotMatch(ui,/for\(const i of feed\.issues\).*new Notification/);
+});
+
+test('malformed and future-dated global snapshots must never be classified as fresh',()=>{
+  const stamped=(generatedAt)=>({generatedAt});
+  assert.equal(feedAgeMinutes(stamped('invalid-snapshot'),now),Infinity);
+  assert.equal(feedAgeMinutes(stamped('2026-10-24T01:00:00Z'),now),Infinity);
+  assert.equal(feedAgeMinutes(stamped(null),now),Infinity);
+  assert.equal(feedAgeMinutes(stamped('2026-10-23T04:58:00Z'),now),2);
 });
