@@ -1,6 +1,6 @@
 import {useCallback,useEffect,useMemo,useState} from 'react';
 import {ArrowUpRight,BellRing,CalendarDays,CheckCircle2,Clock3,ExternalLink,Info,Search,ShieldAlert,TrendingUp,Wallet,X} from 'lucide-react';
-import {ApplicationState,Board,EMPTY_FEED,effectiveStatus,feedAgeMinutes,formatInr,indiaToday,issueSourceStale,IpoFeed,IpoIssue,IpoAccuracy,minimumApplication,applicationBudgetPlan,recommendation,validFeed} from '../lib/ipoIntelligence';
+import {ApplicationState,Board,EMPTY_FEED,effectiveStatus,feedAgeMinutes,formatInr,indiaToday,issueSourceStale,IpoFeed,IpoIssue,IpoAccuracy,minimumApplication,applicationBudgetPlan,mergePrimaryResearch,recommendation,validFeed} from '../lib/ipoIntelligence';
 import '../ipo.css';
 const TRACK_KEY='atlas.ipo.watch.v1';
 const STATES:ApplicationState[]=['WATCHING','PLANNED','APPLIED','MANDATE_ACCEPTED','ALLOTTED','NOT_ALLOTTED'];
@@ -36,6 +36,21 @@ function Detail({issue,stale,tracking,setTracking,onClose}:{issue:IpoIssue;stale
     <div><span>GMP timestamp</span><strong>{issue.gmpAsOf?new Date(issue.gmpAsOf).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',dateStyle:'short',timeStyle:'short'}):'Unavailable'}</strong></div>
     <div><span>GMP source disagreement</span><strong>{issue.gmpReadings?.length?issue.gmpDisputed?'DISPUTED ⚠':'No wide divergence flagged':'No valid reading'}</strong></div>
     <div><span>Implied premium / issue price</span><strong>{issue.gmpEstimatedGainPct===null||issue.gmpEstimatedGainPct===undefined?'—':issue.gmpEstimatedGainPct.toFixed(2)+'% (not a forecast)'}</strong></div><div><span>Company financials</span><strong>{issue.financials?'Source supplied':'Not verified'}</strong></div><div><span>Valuation and RHP review</span><strong>Required</strong></div><div><span>News verification</span><strong>{issue.news.length?issue.news.length+' entries':'Not connected'}</strong></div></div></div>
+    {issue.financials?.sourcePages?.length&&<section className="ipo-financial-panel">
+      <div className="ipo-primary-label"><div><div className="ipo-eyebrow">SEBI-FILED ISSUER DISCLOSURES</div><h3>Financials &amp; disclosed risks</h3><p>{issue.financials.fiscalLabel||'Issuer-reported results'} · {issue.financials.units||'See official source'} · not independent valuation research</p></div><a href={issue.financials.source} className="ipo-source-link" target="_blank" rel="noopener noreferrer">Official SEBI PDF · pp. {issue.financials.sourcePages.join(', ')} <ExternalLink size={14}/></a></div>
+      <div className="ipo-financial-grid">{([
+        ['Revenue FY26',issue.financials.revenueFY26Cr,'₹ crore'],
+        ['Revenue growth FY26',issue.financials.revenueGrowthPct,'%'],
+        ['Net profit FY26',issue.financials.profitFY26Cr,'₹ crore'],
+        ['Net profit FY25',issue.financials.profitFY25Cr,'₹ crore'],
+        ['Net profit margin',issue.financials.profitMarginPct,'%'],
+        ['Debt/equity (issuer definition)',issue.financials.debtEquity,'times'],
+        ['Total borrowings FY26',issue.financials.borrowingsFY26Cr,'₹ crore'],
+        ['Operating cash flow FY26',issue.financials.operatingCashflowFY26Cr,'₹ crore']
+      ] as const).map(([key,value,units])=><div key={key}><small>{key}</small><strong>{typeof value==='number'?value.toLocaleString('en-IN',{maximumFractionDigits:3})+' '+units:'Unavailable'}</strong></div>)}</div>
+      <h4>Material risks declared by the issuer</h4><ul>{(issue.financials.riskFlags||[]).map((risk,index)=><li key={index}>{risk}</li>)}</ul>
+      <p className="ipo-financial-disclaimer">The figures are transcribed from the SEBI-hosted abridged prospectus for the stated fiscal period. They do not establish a fair IPO valuation. Peer multiples, promoter assessment and qualitative due diligence remain incomplete; Atlas withholds a positive Apply recommendation.</p>
+    </section>}
     {issue.registrar&&<div className='ipo-small-notice'>IPO registrar: <strong>{issue.registrar}</strong> · Check allotment status directly with the issuer's official registrar; Atlas cannot verify personal applications.</div>}
     <div className='ipo-actions-row'>{issue.rhpUrl&&<a href={issue.rhpUrl} target='_blank' rel='noopener noreferrer' className='ipo-source-link'>Official NSE red herring prospectus <ExternalLink size={15}/></a>}{issue.priceJustificationUrl&&<a href={issue.priceJustificationUrl} target='_blank' rel='noopener noreferrer' className='ipo-source-link'>Official price justification <ExternalLink size={15}/></a>}</div>
     <section className="ipo-plan"><div><div className="ipo-eyebrow">APPLICATION PLANNER · NOT AN ORDER</div><h3>Check lot size and capital</h3><p>Models Mainboard retail or SME individual applications only. Verify lot sizes, category limits, cut-off price and current exchange rules before bidding.</p></div><div className="ipo-plan-input"><label htmlFor={'ipo-budget-'+issue.id}>Available budget (₹)</label><input id={'ipo-budget-'+issue.id} type="number" min="0" max="1000000000" step="1000" value={budget} onChange={e=>setBudget(e.target.value)}/></div>
@@ -56,6 +71,7 @@ export default function IPOIntelligencePage(){
   const [selected,setSelected]=useState<string|null>(null),[board,setBoard]=useState<Board|'ALL'>('ALL'),[status,setStatus]=useState<'ALL'|'OPEN'|'UPCOMING'|'CLOSED'>('ALL'),[term,setTerm]=useState('');
   const [tracking,setTrackingState]=useState<Record<string,ApplicationState>>(readTracking);
   const [accuracy,setAccuracy]=useState<IpoAccuracy|null>(null);
+  const [primaryResearch,setPrimaryResearch]=useState<unknown>(null);
   const [notifications,setNotifications]=useState(typeof Notification==='undefined'?'unsupported':Notification.permission);
   const load=useCallback(async()=>{
     setLoading(true);
@@ -65,9 +81,11 @@ export default function IPOIntelligencePage(){
   },[]);
   useEffect(()=>{void load();const id=window.setInterval(()=>void load(),10*60*1000);return()=>window.clearInterval(id);},[load]);
   useEffect(()=>{let canceled=false;(async()=>{try{const r=await fetch('/ipo-accuracy.json',{cache:'no-store'});if(!r.ok)return;const d:unknown=await r.json();if(!d||typeof d!=='object')return;const v=d as IpoAccuracy;if(v.schemaVersion!==1||v.license!=='CC BY 4.0'||!Array.isArray(v.rows)||!v.source.startsWith('https://gmptoday.in/'))return;if(!canceled)setAccuracy(v);}catch{/* optional third-party audit */}})();return()=>{canceled=true;};},[]);
+  useEffect(()=>{let canceled=false;(async()=>{try{const r=await fetch('/ipo-primary-research.json',{cache:'no-store'});if(!r.ok)return;const data:unknown=await r.json();if(!canceled)setPrimaryResearch(data);}catch{/* issuer disclosure research optional */}})();return()=>{canceled=true;};},[]);
+  const issues=useMemo(()=>mergePrimaryResearch(feed.issues,primaryResearch),[feed,primaryResearch]);
   const stale=feedAgeMinutes(feed)>180;
-  const rows=useMemo(()=>feed.issues.filter(i=>board==='ALL'||i.board===board).filter(i=>status==='ALL'||effectiveStatus(i)===status).filter(i=>(i.company+' '+i.id).toLowerCase().includes(term.trim().toLowerCase())).sort((a,b)=>a.closeDate.localeCompare(b.closeDate)),[feed,board,status,term]);
-  const counts=useMemo(()=>({open:feed.issues.filter(i=>effectiveStatus(i)==='OPEN').length,upcoming:feed.issues.filter(i=>effectiveStatus(i)==='UPCOMING').length,sme:feed.issues.filter(i=>i.board==='SME').length,closing:feed.issues.filter(i=>effectiveStatus(i)==='OPEN'&&i.closeDate===indiaToday()).length}),[feed]);
+  const rows=useMemo(()=>issues.filter(i=>board==='ALL'||i.board===board).filter(i=>status==='ALL'||effectiveStatus(i)===status).filter(i=>(i.company+' '+i.id).toLowerCase().includes(term.trim().toLowerCase())).sort((a,b)=>a.closeDate.localeCompare(b.closeDate)),[issues,board,status,term]);
+  const counts=useMemo(()=>({open:issues.filter(i=>effectiveStatus(i)==='OPEN').length,upcoming:issues.filter(i=>effectiveStatus(i)==='UPCOMING').length,sme:issues.filter(i=>i.board==='SME').length,closing:issues.filter(i=>effectiveStatus(i)==='OPEN'&&i.closeDate===indiaToday()).length}),[issues]);
   function setTracking(id:string,v:ApplicationState){setTrackingState(s=>{const next={...s,[id]:v};try{localStorage.setItem(TRACK_KEY,JSON.stringify(next));}catch{/* no storage */}return next;});}
   async function enableReminders(){if(typeof Notification==='undefined')return;const permission=await Notification.requestPermission();setNotifications(permission);}
   useEffect(()=>{
@@ -78,7 +96,7 @@ export default function IPOIntelligencePage(){
       try{localStorage.setItem(key,JSON.stringify(seen));}catch{/* storage restricted */}
     };remind();const timer=window.setInterval(remind,30*60*1000);return()=>window.clearInterval(timer);
   },[feed,notifications,stale]);
-  const current=feed.issues.find(i=>i.id===selected)||null;
+  const current=issues.find(i=>i.id===selected)||null;
   const statItems=[{count:counts.open,label:'Open for bidding',Icon:CalendarDays},{count:counts.upcoming,label:'Upcoming issues',Icon:Clock3},{count:counts.sme,label:'SME coverage',Icon:Wallet},{count:counts.closing,label:'Closing today',Icon:BellRing}];
   return <section className="ipo-page"><div className="ipo-hero"><div><div className="ipo-eyebrow"><TrendingUp size={15}/> ATLAS • PRIMARY MARKET INTELLIGENCE</div><h1>IPO Intelligence<span className="ipo-accent">.</span></h1><p>Track Mainboard and SME offers. See exchange demand, verified pricing, research gaps and application deadlines in one place.</p></div><div className="ipo-hero-tools"><button onClick={()=>void load()} type="button" className="ipo-source-link">{loading?'Refreshing…':'Refresh snapshot'} <ArrowUpRight size={15}/></button><button type="button" onClick={()=>void enableReminders()} disabled={notifications==='granted'||notifications==='unsupported'} className="ipo-alert-button"><BellRing size={16}/>{notifications==='granted'?'Browser alerts enabled':notifications==='unsupported'?'Browser alerts unavailable':'Enable browser reminders'}</button></div></div>
     <div className="ipo-freshness"><span className={stale?'ipo-stale':'ipo-current'}>{stale?'STALE / UNVERIFIED NOW':'EXCHANGE SNAPSHOT'}</span><span>{feed.generatedAt?new Date(feed.generatedAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',dateStyle:'medium',timeStyle:'short'})+' IST':'No verified snapshot available'}</span><span>Source: {feed.sourceName}</span><span>Browser reminders work only when Atlas is open; background delivery is not configured here.</span></div>
