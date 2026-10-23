@@ -1,5 +1,6 @@
 import {useEffect,useState} from 'react';
 import AgentCouncilPanel from './AgentCouncilPanel';
+import AdvancedResearchImport from './AdvancedResearchImport';
 import ScalpStormAllocationPlan from './ScalpStormAllocationPlan';
 import {Activity,ArrowRight,BookOpenText,Clock3,ShieldCheck,TrendingUp,TrendingDown,FlaskConical,Layers3} from 'lucide-react';
 import {LineChart,Line,ResponsiveContainer,CartesianGrid,XAxis,YAxis,Tooltip} from 'recharts';
@@ -142,6 +143,7 @@ export default function StrategyLabPage({mode='strategies',goRisk}:{
       </div></>}
     </div>
   </div>}
+  {mode==='research'&&<AdvancedResearchImport/>}
   <div className="panel research-bottom">
     <ShieldCheck size={19}/>
     <div><strong>Free research now; forward paper and NSE feeds remain separate.</strong>

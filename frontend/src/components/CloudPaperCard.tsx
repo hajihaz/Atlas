@@ -47,7 +47,8 @@ const ts=(iso:string|null)=>iso?new Intl.DateTimeFormat('en-US',{
  hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true,
 }).format(new Date(iso))+' IST':'Awaiting first scheduled run';
 export default function CloudPaperCard(){
- const [report,setReport]=useState<Report|null>(null);
+ const [snapshot,setSnapshot]=useState<{report:Report;origin:'repository'|'deployment'}|null>(null);
+ const report=snapshot?.report??null;
  const [loading,setLoading]=useState(true);
  const [problem,setProblem]=useState('');
  const [selected,setSelected]=useState('sma_9_21');
@@ -57,8 +58,18 @@ export default function CloudPaperCard(){
    let active=true;const controller=new AbortController();
    const refresh=async()=>{
      try{
-       const r=await fetch('/cloud-paper.json',{cache:'no-store',credentials:'omit',signal:controller.signal});
-       if(!r.ok)throw Error('Published cloud report unavailable');
+       // A privately authenticated SERVER route can serve the newest genuine
+       // GitHub ledger without triggering Vercel deploys. Never send auth from
+       // a browser. A 503 falls back to the older Vercel-embedded read-only copy.
+       let r:Response|undefined;
+       try{r=await fetch('/api/cloud-paper',{
+         cache:'no-store',credentials:'omit',signal:controller.signal,
+       });}catch{/* Private source unavailable; try a deployed snapshot. */}
+       const origin:'repository'|'deployment'=r?.ok&&
+         r.headers.get('content-type')?.includes('application/json')?'repository':'deployment';
+       if(origin==='deployment')
+         r=await fetch('/cloud-paper.json',{cache:'no-store',credentials:'omit',signal:controller.signal});
+       if(!r?.ok)throw Error('Published cloud report unavailable');
        const d=await r.json() as Report;
        if(d.schema!==1||d.mode!=='SCHEDULED_VIRTUAL_PAPER'||d.currency!=='INR'
         ||d.realOrdersEnabled!==false||d.actualCapitalINR!==0||!Array.isArray(d.sessions)
@@ -75,7 +86,18 @@ export default function CloudPaperCard(){
            x.realOrdersEnabled!==false||x.actualCapitalINR!==0)))
          throw Error('Published virtual checkpoint evidence is inconsistent');
        buildCloudPaperSummary(d); // full source-contract gate before use
-       if(active){setReport(d);setProblem('');}
+       if(active){
+         setSnapshot(previous=>{
+           // A transient upstream outage may return an older static deployment.
+           // Never visually roll a verified forward ledger back to an older run.
+           if(previous&&(d.runCount<previous.report.runCount||
+             (d.runCount===previous.report.runCount&&
+               Date.parse(d.lastRunAt??'')<Date.parse(previous.report.lastRunAt??''))))
+             return previous;
+           return {report:d,origin};
+         });
+         setProblem('');
+       }
      }catch(e){if(active&&!controller.signal.aborted)
        setProblem(e instanceof Error?e.message:'Unavailable');}
      finally{if(active)setLoading(false);}
@@ -114,7 +136,13 @@ export default function CloudPaperCard(){
   {loading?<div className="research-status">Checking published paper state…</div>:
    !report?<div className="research-status">{problem||'No scheduled report published.'}</div>:
    <>
+    {snapshot?.origin==='deployment'&&<div className="cloud-paper-notice" role="note">
+      This is the last Vercel-deployed research snapshot, not guaranteed to match
+      the newest GitHub runner ledger. Private read-only synchronization is not configured
+      or temporarily unavailable. Check the saved runner time below.
+    </div>}
     <div className="cloud-paper-meta">
+      <div><small>Data delivery</small><strong>{snapshot?.origin==='repository'?'Read-only GitHub source':'Last deployed snapshot'}</strong></div>
       <div><small>Runtime</small><strong>{report.sessions.length===0?(report.runCount>0?'First source check unsuccessful':'Awaiting first scheduled run'):
         stale?'Last snapshot old':report.status==='DEGRADED'?'Source check paused':'Scheduled checkpoints'}</strong></div>
       <div><small>Last runner attempt</small><strong>{ts(report.lastRunAt)}</strong></div>
