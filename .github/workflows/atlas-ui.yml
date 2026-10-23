@@ -74,6 +74,7 @@ jobs:
       - run: node --test frontend/tests/market-news.test.mjs
       - run: node --test frontend/tests/research-engine.test.mjs
       - run: node --test frontend/tests/advanced-research-import.test.mjs
+      - run: node --test frontend/tests/vercel-ignore-build.test.mjs
       - run: node --test frontend/tests/paper-engine.test.mjs
       - run: node --test frontend/tests/cloud-paper.test.mjs
       - run: node --test frontend/tests/cloud-paper-private-endpoint.test.mjs
