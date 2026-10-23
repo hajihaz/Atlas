@@ -1,4 +1,4 @@
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useState} from 'react';
 import {Activity,ArrowUpRight,BookOpenText,ChartNoAxesCombined,Clock3,ShieldCheck} from 'lucide-react';
 type Asset={key:string,label:string};
 const BSE:Asset[]=[
@@ -15,27 +15,26 @@ type Spot={symbol:string;price:number|null;sourceAt:string|null;currency:'INR';s
 const money=(x:number|null)=>x===null?'Awaiting quote':new Intl.NumberFormat('en-IN',
  {style:'currency',currency:'INR',maximumFractionDigits:2}).format(x);
 function TradingViewChart({symbol,theme}:{symbol:string;theme:'light'|'dark'}){
- const container=useRef<HTMLDivElement>(null);
- useEffect(()=>{
-  const target=container.current;if(!target)return;
-  const inner=document.createElement('div');
-  inner.className='tradingview-widget-container__widget';
-  inner.style.height='calc(100% - 24px)';inner.style.width='100%';
-  target.replaceChildren(inner);
-  const script=document.createElement('script');
-  script.src='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-  script.async=true;script.type='text/javascript';
-  script.textContent=JSON.stringify({
-    autosize:true,symbol,interval:'D',timezone:'Asia/Kolkata',
-    theme,style:'1',locale:'en',allow_symbol_change:true,
-    hide_side_toolbar:true,save_image:false,calendar:false,
-    support_host:'https://www.tradingview.com',
-  });
-  target.appendChild(script);
-  return ()=>target.replaceChildren();
- },[symbol,theme]);
- return <div className="stock-tv-frame" ref={container}
-   aria-label={'TradingView chart for '+symbol}/>;
+ // The official TradingView async iframe widget references its parent on load.
+ // It threw in Atlas when navigation unmounted that parent mid-load.
+ // Isolate the unchanged official script inside a sandboxed document instead.
+ // Without allow-same-origin the widget cannot read Atlas localStorage.
+ const config=JSON.stringify({
+  autosize:true,symbol,interval:'D',timezone:'Asia/Kolkata',
+  theme,style:'1',locale:'en',allow_symbol_change:true,
+  hide_side_toolbar:true,save_image:false,calendar:false,
+  support_host:'https://www.tradingview.com',
+ });
+ const documentHTML='<!doctype html><html lang="en"><head><meta charset="utf-8"/>'+
+  '<style>html,body{margin:0;height:100%;width:100%;overflow:hidden}'+
+  '.tradingview-widget-container{height:100%;width:100%}'+
+  '.tradingview-widget-container__widget{height:100%;width:100%}</style></head><body>'+
+  '<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>'+
+  '<script type="text/javascript" async src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js">'+
+  config.replaceAll('<','\\u003c')+'</scr'+'ipt></div></body></html>';
+ return <iframe className="stock-tv-frame" title={'TradingView chart for '+symbol}
+  key={symbol+'-'+theme} srcDoc={documentHTML} loading="lazy"
+  sandbox="allow-scripts allow-popups" referrerPolicy="no-referrer"/>;
 }
 export default function StockWatchPage({theme,goResearch}:{
  theme:'light'|'dark';goResearch:()=>void;

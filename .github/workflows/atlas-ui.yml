@@ -69,6 +69,7 @@ jobs:
       - run: node --test frontend/tests/ist-12-hour.test.mjs
       - run: node --test frontend/tests/market-history.test.mjs
       - run: node --test frontend/tests/market-stream.test.mjs
+      - run: node --test frontend/tests/tradingview-sandbox.test.mjs
       - run: node --test frontend/tests/live-feed.test.mjs
       - run: node --test frontend/tests/market-news.test.mjs
       - run: node --test frontend/tests/research-engine.test.mjs
