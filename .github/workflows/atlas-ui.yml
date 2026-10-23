@@ -72,6 +72,7 @@ jobs:
       - run: node --test frontend/tests/live-feed.test.mjs
       - run: node --test frontend/tests/market-news.test.mjs
       - run: node --test frontend/tests/research-engine.test.mjs
+      - run: node --test frontend/tests/advanced-research-import.test.mjs
       - run: node --test frontend/tests/paper-engine.test.mjs
       - run: node --test frontend/tests/cloud-paper.test.mjs
       - run: node --test frontend/tests/cloud-paper-integrity.test.mjs
