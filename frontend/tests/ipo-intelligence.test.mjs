@@ -16,7 +16,7 @@ test('partial-source observations are explicitly marked stale',()=>{
   assert.match(logic,/if\(issue\.sourceStale\)return true/);
   assert.match(page,/issueSourceStale\(issue\)/);
   assert.match(page,/issueSourceStale\(i\)/);
-  assert.match(page,/BSE data could not be refreshed/);
+  assert.match(page,/Its source is stale or unavailable/);
 });
 test('GMP and financial data retain nonzero uncertainty',()=>{
   assert.match(logic,/financials===null/);
