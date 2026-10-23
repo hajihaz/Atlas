@@ -1,0 +1,87 @@
+[
+  {
+    "id": "upstox-private-permission",
+    "url": "https://community.upstox.com/t/clarification-on-upstox-historical-candle-v3-data-usage-for-personal-backtesting-and-ml-research/18061.json",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  },
+  {
+    "id": "upstox-account-permission",
+    "url": "https://community.upstox.com/t/clarification-on-storing-upstox-nse-market-data-locally-for-private-research-backtesting/18112.json",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  },
+  {
+    "id": "upstox-support-profile",
+    "url": "https://community.upstox.com/u/ketan.json",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  },
+  {
+    "id": "fyers-plan-2026",
+    "url": "https://fyers.in/api-docs/v3/getting-started/plans-and-limits/",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  },
+  {
+    "id": "fyers-auth",
+    "url": "https://fyers.in/api-docs/v3/api/authentication/",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  },
+  {
+    "id": "shoonya-home",
+    "url": "https://shoonya.com/api",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  },
+  {
+    "id": "flattrade-api",
+    "url": "https://flattrade.in/ftapi/",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  },
+  {
+    "id": "nse-terms",
+    "url": "https://www.nseindia.com/nse-terms-of-use",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  },
+  {
+    "id": "nse-name-changes",
+    "url": "https://nsearchives.nseindia.com/content/equities/namechange.csv",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  },
+  {
+    "id": "nse-symbol-changes",
+    "url": "https://nsearchives.nseindia.com/content/equities/symbolchange.csv",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  },
+  {
+    "id": "gh-olo-minute-tree",
+    "url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse-min-candle/git/trees/main?recursive=1",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  },
+  {
+    "id": "gh-olo-minute-head",
+    "url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse-min-candle/commits/main",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  },
+  {
+    "id": "gh-gsidhu-head",
+    "url": "https://api.github.com/repos/gsidhu/nse-intraday-data/commits/main",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  },
+  {
+    "id": "gh-voletiramu-release",
+    "url": "https://api.github.com/repos/voletiramu/nse-fno-1min-data/releases/latest",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  },
+  {
+    "id": "gh-voletiramu-head",
+    "url": "https://api.github.com/repos/voletiramu/nse-fno-1min-data/commits/main",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  },
+  {
+    "id": "gh-djjain-readme",
+    "url": "https://raw.githubusercontent.com/djjain21/NSE-Futures-Options-F-O-Historical-Dataset-1minute-from-2015-2026/main/README.md",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  },
+  {
+    "id": "gh-djjain-head",
+    "url": "https://api.github.com/repos/djjain21/NSE-Futures-Options-F-O-Historical-Dataset-1minute-from-2015-2026/commits/main",
+    "purpose": "PUBLIC_DOCUMENT_OR_REFERENCE_METADATA_ONLY"
+  }
+]
