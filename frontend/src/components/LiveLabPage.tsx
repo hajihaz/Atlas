@@ -3,7 +3,8 @@ import {
   Activity, ArrowRight, CircleAlert, Clock3, LockKeyhole,
   ShieldCheck, Wifi, WifiOff,
 } from 'lucide-react';
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import FinancialChart from './FinancialChart';
+import MacPaperPanel from './MacPaperPanel';
 import { startPublicStream } from '../lib/publicStream.js';
 import { isRecentQuote, connectionDescription } from '../lib/quoteFreshness.js';
 
@@ -243,22 +244,7 @@ export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props)
          {stock?'NSE stock data not connected. Licensed market-data access is required.':
            historyError||'No verified INR candle history returned for this asset and range.'}
        </div>:<div className="live-chart-graphic live-history-chart">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={bars}>
-              <CartesianGrid stroke="currentColor" strokeOpacity={0.08} vertical={false}/>
-              <XAxis dataKey="label" tick={{fill:'#8ca1af',fontSize:10}} minTickGap={48}/>
-              <YAxis domain={['auto','auto']} tick={{fill:'#8ca1af',fontSize:10}} width={100}
-                tickFormatter={(v:number)=>'₹'+Math.round(v).toLocaleString('en-IN')}/>
-              <Tooltip formatter={v=>INR(typeof v==='number'?v:null)}
-                labelFormatter={(_,payload)=>{
-                  const time=payload?.[0]?.payload?.time;
-                  return typeof time==='number'
-                    ?new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',dateStyle:'medium',timeStyle:'medium'}).format(time)+' IST':'';
-                }}/>
-              <Line type="linear" dataKey="close" stroke="#40b78c" dot={false}
-                connectNulls={false} isAnimationActive={false} strokeWidth={2}/>
-            </LineChart>
-          </ResponsiveContainer>
+          <FinancialChart symbol={selection} candles={history?.candles??[]} observations={streamPoints[selection]??[]}/>
         </div>}
       <div className="live-chart-evidence" aria-live="polite">
         <span>{history?.candles.length??0} provider-returned completed candles ·
@@ -271,9 +257,10 @@ export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props)
       </p>
     </section>
 
+    <MacPaperPanel/>
     <section className="panel live-system">
       <div className="panel-heading"><div><div className="heading-kicker">STRATEGY CONTROL</div>
-        <h2>Continuous paper-trading lab</h2>
+        <h2>Hosted paper research</h2>
         <p>Live market observations do not establish authenticated broker execution or a reconciled paper ledger.</p>
       </div><span className="tag tag-gold">PAPER SYNC NOT CONNECTED</span></div>
       <div className="live-progress-grid">
