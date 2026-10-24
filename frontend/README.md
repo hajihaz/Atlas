@@ -19,6 +19,11 @@ npm run build
 npm run dev
 ```
 
+For live read-only `/api/*` responses in local development, also start
+`npm run dev:api` in a second terminal. This adapter binds to `127.0.0.1`
+only, uses a fixed list of public GET handlers, and never places orders.
+Without it, the Vite UI still loads but API requests fail closed.
+
 The export script deliberately allowlists aggregate results, timestamps and source hashes; private artifact logs and raw vendor/account data remain outside the frontend.
 
 Vercel project configuration: framework Vite, root directory `frontend`, output `dist`. The release does not need backend credentials.
