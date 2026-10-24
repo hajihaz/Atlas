@@ -1,0 +1,156 @@
+{
+  "checkedAt": "2026-10-23T00:49:23.371513+00:00",
+  "baseCommit": "2527ec364be6ab80eaeb11e16103eee03281db31",
+  "branch": "astra/atlas-nse-data-certification-20261023",
+  "checks": [
+    {
+      "name": "final-acceptance-output",
+      "exit": 3,
+      "expectedExit": 3,
+      "passed": true,
+      "log": ".ai/raw/nse-certification/final-acceptance-output.log"
+    },
+    {
+      "name": "final-output-repro",
+      "exit": 3,
+      "expectedExit": 3,
+      "passed": true,
+      "log": ".ai/raw/nse-certification/final-output-repro.log"
+    },
+    {
+      "name": "final-report-byte-reproducibility",
+      "passed": true,
+      "sha256": {
+        "report.json": "ab9bc6169ef3288f7506c5cd3b4c8fbab09035b12a8c8b6aed3352f6371f7b14",
+        "daily.csv": "9ae1c4c79a213eac8659b373d2110c74b335d24f5811b7210b90baf89ca5d295",
+        "trades.csv": "b98a66689e3e895a1d069a141ca41ddf5b6f48954b8ea6e45d39a615bb85c012",
+        "monthly.csv": "006f874e7b28039e4684fb3357503a9e65d351e4cf890fc8c5a6164f3633fe56"
+      }
+    },
+    {
+      "name": "final-node-nse",
+      "exit": 0,
+      "expectedExit": 0,
+      "passed": true,
+      "log": ".ai/raw/nse-certification/final-node-nse.log"
+    },
+    {
+      "name": "final-python-nse",
+      "exit": 0,
+      "expectedExit": 0,
+      "passed": true,
+      "log": ".ai/raw/nse-certification/final-python-nse.log"
+    },
+    {
+      "name": "final-ruff",
+      "exit": 0,
+      "expectedExit": 0,
+      "passed": true,
+      "log": ".ai/raw/nse-certification/final-ruff.log"
+    },
+    {
+      "name": "final-ruff-format",
+      "exit": 0,
+      "expectedExit": 0,
+      "passed": true,
+      "log": ".ai/raw/nse-certification/final-ruff-format.log"
+    },
+    {
+      "name": "final-source-repro",
+      "exit": 0,
+      "expectedExit": 0,
+      "passed": true,
+      "log": ".ai/raw/nse-certification/final-source-repro.log"
+    },
+    {
+      "name": "final-source-byte-reproducibility",
+      "passed": true
+    },
+    {
+      "name": "node-advanced",
+      "exit": 0,
+      "expectedExit": 0,
+      "passed": true,
+      "log": ".ai/raw/nse-certification/node-advanced.log"
+    },
+    {
+      "name": "python-scalpstorm",
+      "exit": 0,
+      "expectedExit": 0,
+      "passed": true,
+      "log": ".ai/raw/nse-certification/python-scalpstorm.log"
+    }
+  ],
+  "allPassed": true,
+  "testCounts": {
+    "final-node-nse": 57,
+    "final-python-nse": 16,
+    "node-advanced": 101,
+    "python-scalpstorm": 20
+  },
+  "nodeVersion": "v26.8.1",
+  "pythonVersion": "Python 3.11.16",
+  "testedSourceFiles": [
+    {
+      "path": "research/nse-certification/audit_sources.py",
+      "sha256": "a2924a88f55471b173c4afd07f8a5bbb778fea295f82a38ca4f7ddc79a3b02f9"
+    },
+    {
+      "path": "research/nse-certification/capture.py",
+      "sha256": "8365f145ef5dd9a3f96ec6d6150147e341baeda89f5261db5fc672a2d7c4d9ba"
+    },
+    {
+      "path": "research/nse-certification/certify.mjs",
+      "sha256": "08bdf9412b13157b57010b4874de7ef110ed0baae686b994aede23d3795ddd16"
+    },
+    {
+      "path": "research/nse-certification/cli.mjs",
+      "sha256": "4f6627a596b559d75695a5efda6e6f2b537540ba97cc8a6b492ca170280da391"
+    },
+    {
+      "path": "research/nse-certification/inspect_archive.py",
+      "sha256": "1d792d88b2b232450e0544129a980802d051c59ca3f8b39b99acc205d84e2c49"
+    },
+    {
+      "path": "research/nse-certification/normalize.mjs",
+      "sha256": "d55f37c097c2212be9a0589d6e5f0909e30b3aa976bf65003f7513049cbd53ea"
+    },
+    {
+      "path": "research/nse-certification/planner.mjs",
+      "sha256": "0dd85bc7a58c433597da79424ccc0a31e758158206e8f65fcf9f7a122f4d27b0"
+    },
+    {
+      "path": "research/nse-certification/replay.mjs",
+      "sha256": "3d6748c44a22816b498035048ca939f48842ce9d08886e6eadc87ed56c421a7a"
+    },
+    {
+      "path": "tests/nse-certification/certify.test.mjs",
+      "sha256": "7a06843aa9c16ded0d853783a6dfa2b768a421d2fa9dda381aa506af8ecdc8a3"
+    },
+    {
+      "path": "tests/nse-certification/cli-planner.test.mjs",
+      "sha256": "56c33c9ee6c48581b1a66e74080cb48845c6c4d943ef31600a452037e6785c75"
+    },
+    {
+      "path": "tests/nse-certification/evidence.test.mjs",
+      "sha256": "9734b5e65ab3762309a5ba00ce0ee9e093646a84fe69dccea81436efa4ff20de"
+    },
+    {
+      "path": "tests/nse-certification/fixtures.mjs",
+      "sha256": "d5f49f138e8d2c546ebd7a200c00d474a039cfeea59e5f657ad85b75184bfe24"
+    },
+    {
+      "path": "tests/nse-certification/normalize.test.mjs",
+      "sha256": "8e73aa706b256839c0be47b29d731ce27067254af1ba18dd6e3a5b3b0ce6bf65"
+    },
+    {
+      "path": "tests/nse-certification/test_source_tools.py",
+      "sha256": "beb6b607e4c5f55704a63192b0def513e90da1649385fdd83d20faa0403a7d83"
+    }
+  ],
+  "realSessionsCertified": 0,
+  "historicalNetPnlINR": null,
+  "additionalSpendINR": 0,
+  "realOrdersPlaced": 0,
+  "nseWebsiteMarketDataAcquisition": "BLOCKED_BY_TERMS_AND_COLLECTOR"
+}

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "gh-olo-immutable-tree",
+    "url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse-min-candle/git/trees/fe5592007a4b9b7df35480feeba9456af4690d52?recursive=1",
+    "purpose": "PINNED_PUBLIC_REFERENCE_OR_DOCUMENT_ONLY"
+  },
+  {
+    "id": "gh-olo-pinned-stock-directory",
+    "url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse-min-candle/contents/Minute/NSE?ref=0570761182b96724da3c43fdef547c139a3e93e8",
+    "purpose": "PINNED_PUBLIC_REFERENCE_OR_DOCUMENT_ONLY"
+  },
+  {
+    "id": "gh-olo-git-commit",
+    "url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse-min-candle/git/commits/0570761182b96724da3c43fdef547c139a3e93e8",
+    "purpose": "PINNED_PUBLIC_REFERENCE_OR_DOCUMENT_ONLY"
+  },
+  {
+    "id": "gh-olo-pinned-license",
+    "url": "https://raw.githubusercontent.com/olo-labs/olo-ai-training-data-nse-min-candle/0570761182b96724da3c43fdef547c139a3e93e8/LICENSE",
+    "purpose": "PINNED_PUBLIC_REFERENCE_OR_DOCUMENT_ONLY"
+  },
+  {
+    "id": "gh-olo-pinned-faq",
+    "url": "https://raw.githubusercontent.com/olo-labs/olo-ai-training-data-nse-min-candle/0570761182b96724da3c43fdef547c139a3e93e8/docs/FAQ.md",
+    "purpose": "PINNED_PUBLIC_REFERENCE_OR_DOCUMENT_ONLY"
+  },
+  {
+    "id": "upstox-feed-current",
+    "url": "https://upstox.com/developer/api-documentation/v3/get-market-data-feed/",
+    "purpose": "PINNED_PUBLIC_REFERENCE_OR_DOCUMENT_ONLY"
+  },
+  {
+    "id": "shoonya-rate-current",
+    "url": "https://shoonya.com/api-documentation/rate-limits",
+    "purpose": "PINNED_PUBLIC_REFERENCE_OR_DOCUMENT_ONLY"
+  },
+  {
+    "id": "flattrade-docs-current",
+    "url": "https://pi.flattrade.in/docs",
+    "purpose": "PINNED_PUBLIC_REFERENCE_OR_DOCUMENT_ONLY"
+  },
+  {
+    "id": "gh-gsidhu-pinned-root",
+    "url": "https://api.github.com/repos/gsidhu/nse-intraday-data/contents?ref=c95d7f187c2a317ca6a2287148cf10c50a80e928",
+    "purpose": "PINNED_PUBLIC_REFERENCE_OR_DOCUMENT_ONLY"
+  },
+  {
+    "id": "nse-master-data",
+    "url": "https://www.nseindia.com/static/market-data/paid-master-data",
+    "purpose": "PINNED_PUBLIC_REFERENCE_OR_DOCUMENT_ONLY"
+  }
+]

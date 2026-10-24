@@ -50,3 +50,55 @@ test('socket handshake joins only public 1-second spot channel and closes cleanl
  stop();
  assert.equal(ws.readyState,3);
 });
+test('non-target provider deltas do not force a false disconnect before an INR update',()=>{
+ const updates=[],statuses=[],timers=[];
+ class MockSocket{
+  constructor(){this.readyState=1;this.sent=[];MockSocket.last=this;}
+  send(v){this.sent.push(v)}
+  close(){this.readyState=3;this.onclose?.()}
+  trigger(data){this.onmessage?.({data})}
+ }
+ const stop=startPublicStream({onQuote:q=>updates.push(q),onStatus:s=>statuses.push(s),
+  WebSocketType:MockSocket,now:()=>now,
+  after:(cb,ms)=>{const timer={cb,ms,cancelled:false};timers.push(timer);return timer},
+  cancel:timer=>{timer.cancelled=true}});
+ const ws=MockSocket.last;
+ ws.trigger('0'+JSON.stringify({sid:'public',pingInterval:45000}));
+ ws.trigger('40');
+ const openTimeout=timers.find(t=>t.ms===12000);
+ ws.trigger(frame({BTCUSDT:80000}));
+ assert.equal(openTimeout.cancelled,true);
+ assert.equal(ws.readyState,1);
+ assert.equal(updates.length,0);
+ assert.ok(statuses.includes('SUBSCRIBED_WAITING'));
+ ws.trigger(frame({BTCINR:8000000}));
+ assert.equal(updates.length,1);
+ assert.equal(updates[0].symbol,'BTCINR');
+ assert.ok(statuses.includes('STREAMING'));
+ stop();
+ assert.equal(ws.readyState,3);
+});
+test('a later subscription without provider deltas times out even after an earlier successful stream',()=>{
+ const timers=[],sockets=[];
+ class MockSocket{
+  constructor(){this.readyState=1;this.sent=[];sockets.push(this)}
+  send(v){this.sent.push(v)}
+  close(){this.readyState=3;this.onclose?.()}
+  trigger(data){this.onmessage?.({data})}
+ }
+ const stop=startPublicStream({onQuote:()=>{},onStatus:()=>{},WebSocketType:MockSocket,
+  now:()=>now,
+  after:(cb,ms)=>{const timer={cb,ms,cancelled:false};timers.push(timer);return timer},
+  cancel:timer=>{timer.cancelled=true}});
+ sockets[0].trigger(frame({BTCINR:8000000}));
+ sockets[0].close();
+ const retry=timers.find(t=>t.ms===1000&&!t.cancelled);
+ assert.ok(retry);
+ retry.cb();
+ assert.equal(sockets.length,2);
+ const openTimeout=timers.filter(t=>t.ms===12000).at(-1);
+ assert.ok(openTimeout);
+ openTimeout.cb();
+ assert.equal(sockets[1].readyState,3);
+ stop();
+});

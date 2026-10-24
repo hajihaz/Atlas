@@ -26,7 +26,7 @@ test('retained BSE record must never send a deadline alert or current GMP',()=>{
  assert.equal(issueDataFresh(prior,false,now),false);
  assert.equal(recentGmp(prior,false,now),null);
  assert.deepEqual(browserDeadlineCandidates([prior],false,now),[]);
- assert.match(recommendation(prior,false).label,/SOURCE STALE/);
+ assert.match(recommendation(prior,false,now).label,/SOURCE STALE/);
 });
 test('GMP expires independently after 36 hours or when timestamp is invalid',()=>{
  assert.equal(recentGmp({...base,gmpAsOf:'2026-10-21T00:00:00Z'},false,now),null);
@@ -49,6 +49,8 @@ test('the frontend shows stale instead of displaying expired GMP and alerting re
  assert.match(ui,/const currentGmp=recentGmp\(issue,stale\)/);
  assert.match(ui,/browserDeadlineCandidates\(issues,stale,now\)/);
  assert.match(ui,/currentDemand\?multiple\(issue\.subscription\.total\):'Stale/);
+ assert.match(ui,/stale\?'stored NSE snapshot; current feed unverified':'NSE snapshot current'/);
+ assert.doesNotMatch(ui,/Mainboard: NSE feed connected/);
  assert.doesNotMatch(ui,/for\(const i of feed\.issues\).*new Notification/);
 });
 

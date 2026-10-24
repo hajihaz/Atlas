@@ -47,7 +47,8 @@ const ts=(iso:string|null)=>iso?new Intl.DateTimeFormat('en-US',{
  hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true,
 }).format(new Date(iso))+' IST':'Awaiting first scheduled run';
 export default function CloudPaperCard(){
- const [report,setReport]=useState<Report|null>(null);
+ const [snapshot,setSnapshot]=useState<{report:Report;origin:'repository'|'deployment'}|null>(null);
+ const report=snapshot?.report??null;
  const [loading,setLoading]=useState(true);
  const [problem,setProblem]=useState('');
  const [selected,setSelected]=useState('sma_9_21');
@@ -57,8 +58,18 @@ export default function CloudPaperCard(){
    let active=true;const controller=new AbortController();
    const refresh=async()=>{
      try{
-       const r=await fetch('/cloud-paper.json',{cache:'no-store',credentials:'omit',signal:controller.signal});
-       if(!r.ok)throw Error('Published cloud report unavailable');
+       // A privately authenticated SERVER route can serve the newest genuine
+       // GitHub ledger without triggering Vercel deploys. Never send auth from
+       // a browser. A 503 falls back to the older Vercel-embedded read-only copy.
+       let r:Response|undefined;
+       try{r=await fetch('/api/cloud-paper',{
+         cache:'no-store',credentials:'omit',signal:controller.signal,
+       });}catch{/* Private source unavailable; try a deployed snapshot. */}
+       const origin:'repository'|'deployment'=r?.ok&&
+         r.headers.get('content-type')?.includes('application/json')?'repository':'deployment';
+       if(origin==='deployment')
+         r=await fetch('/cloud-paper.json',{cache:'no-store',credentials:'omit',signal:controller.signal});
+       if(!r?.ok)throw Error('Published cloud report unavailable');
        const d=await r.json() as Report;
        if(d.schema!==1||d.mode!=='SCHEDULED_VIRTUAL_PAPER'||d.currency!=='INR'
         ||d.realOrdersEnabled!==false||d.actualCapitalINR!==0||!Array.isArray(d.sessions)
@@ -75,7 +86,18 @@ export default function CloudPaperCard(){
            x.realOrdersEnabled!==false||x.actualCapitalINR!==0)))
          throw Error('Published virtual checkpoint evidence is inconsistent');
        buildCloudPaperSummary(d); // full source-contract gate before use
-       if(active){setReport(d);setProblem('');}
+       if(active){
+         setSnapshot(previous=>{
+           // A transient upstream outage may return an older static deployment.
+           // Never visually roll a verified forward ledger back to an older run.
+           if(previous&&(d.runCount<previous.report.runCount||
+             (d.runCount===previous.report.runCount&&
+               Date.parse(d.lastRunAt??'')<Date.parse(previous.report.lastRunAt??''))))
+             return previous;
+           return {report:d,origin};
+         });
+         setProblem('');
+       }
      }catch(e){if(active&&!controller.signal.aborted)
        setProblem(e instanceof Error?e.message:'Unavailable');}
      finally{if(active)setLoading(false);}
@@ -114,13 +136,26 @@ export default function CloudPaperCard(){
   {loading?<div className="research-status">Checking published paper state…</div>:
    !report?<div className="research-status">{problem||'No scheduled report published.'}</div>:
    <>
+    {problem&&<div className="cloud-paper-notice" role="alert">
+      The latest paper snapshot refresh failed. Showing the last successfully
+      validated checkpoint, which may now be stale. {problem}.
+      No new virtual trades can be inferred from a failed data refresh.
+    </div>}
+    {snapshot?.origin==='deployment'&&<div className="cloud-paper-notice" role="note">
+      This is the last Vercel-deployed research snapshot, not guaranteed to match
+      the newest GitHub runner ledger. Private read-only synchronization is not configured
+      or temporarily unavailable. Check the saved runner time below.
+    </div>}
     <div className="cloud-paper-meta">
+      <div><small>Data delivery</small><strong>{snapshot?.origin==='repository'?'Read-only GitHub source':'Last deployed snapshot'}</strong></div>
       <div><small>Runtime</small><strong>{report.sessions.length===0?(report.runCount>0?'First source check unsuccessful':'Awaiting first scheduled run'):
-        stale?'Last snapshot old':report.status==='DEGRADED'?'Source check paused':'Scheduled checkpoints'}</strong></div>
+        cadence.overdue?'Publication overdue':stale?'Last snapshot old':report.status==='DEGRADED'?'Source check paused':'Last published checkpoint saved'}</strong></div>
       <div><small>Last runner attempt</small><strong>{ts(report.lastRunAt)}</strong></div>
       <div><small>Model</small><strong>{report.symbol.replace('INR',' / INR')} · {report.interval} candles</strong></div>
       <div><small>Skipped intervals</small><strong>{report.skippedIntervals}</strong></div>
       <div><small>Next nominal runner slot</small><strong>{ts(cadence.nextDueAt)}</strong></div>
+      <div><small>Unpublished scheduled slots (48h)</small><strong>{cadence.unpublishedNominalSlots48h===null?'Not verifiable':
+        cadence.unpublishedNominalSlots48h}</strong></div>
       <div><small>Completed bar age at attempt</small><strong>
         {report.lastSourceCheck?.candleAgeMinutes!=null
           ?report.lastSourceCheck.candleAgeMinutes+' min':'Not recorded'}
@@ -170,10 +205,14 @@ export default function CloudPaperCard(){
         Hypothetical entries, if any, use a fresh observed quote, never a historic close.
         This is not second-by-second trading.
       </p>}
-    {cadence.overdue&&<p className="cloud-paper-notice">
-      The expected schedule window passed without a newer published ledger.
-      This does not prove the GitHub job failed. Check runner history before using stale figures.
-    </p>}
+    {cadence.overdue&&<div className="cloud-paper-notice" role="status">
+      <strong>Scheduled publication overdue.</strong> The last 48 hours contain {' '}
+      {cadence.unpublishedNominalSlots48h??'an unverified number of'} nominal publication
+      windows without a newer saved ledger. This is <strong>not</strong> a count of confirmed
+      failed GitHub jobs, missed source candles or real trades.
+      <a className="cloud-paper-runner-link" href="https://github.com/hajihaz/Atlas/actions/workflows/atlas-paper-scheduled.yml"
+       target="_blank" rel="noopener noreferrer">Inspect GitHub runner history ↗</a>
+    </div>}
     {stale&&report.sessions.length>0&&<p className="cloud-paper-notice">
       No recent scheduled checkpoint. Numbers below are the LAST published observations, not live prices.</p>}
     {report.sessions.length===0?<div className="research-status">

@@ -1,0 +1,147 @@
+[
+  {
+    "id": "nse-policy",
+    "url": "https://www.nseindia.com/static/market-data/nse-data-policy",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "nse-history",
+    "url": "https://www.nseindia.com/static/market-data/eod-historical-data-subscription",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "nse-holidays",
+    "url": "https://www.nseindia.com/resources/exchange-communication-holidays",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "nse-securities",
+    "url": "https://www.nseindia.com/static/market-data/securities-available-for-trading",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "nse-reports",
+    "url": "https://www.nseindia.com/all-reports",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "upstox-history",
+    "url": "https://upstox.com/developer/api-documentation/v3/get-historical-candle-data/",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "upstox-instruments",
+    "url": "https://upstox.com/developer/api-documentation/instruments/",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "upstox-terms",
+    "url": "https://upstox.com/terms-of-use-and-privacy-policy/",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "upstox-free",
+    "url": "https://upstox.com/trading-api/",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "upstox-rate",
+    "url": "https://upstox.com/developer/api-documentation/rate-limiting/",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "upstox-feed",
+    "url": "https://upstox.com/developer/api-documentation/v3/market-data-feed/",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "fyers-free",
+    "url": "https://support.fyers.in/portal/en/kb/articles/does-fyers-charge-any-subscription-fees-for-trading-api",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "fyers-history",
+    "url": "https://fyers.in/api-docs/v3/api/market-data/historical-data",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "shoonya-history",
+    "url": "https://shoonya.com/api-documentation/historical-data",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "groww-pricing",
+    "url": "https://groww.in/trade-api",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "dhan-pricing",
+    "url": "https://dhanhq.co/trading-apis/individuals-geeks",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "kite-pricing",
+    "url": "https://zerodha.com/products/api/",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "sebi-education-2026",
+    "url": "https://www.sebi.gov.in/sebi_data/attachdocs/may-2026/1778242522289.pdf",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "hf-dataset-metadata",
+    "url": "https://huggingface.co/api/datasets/Hitjob-Done/indian-stock-market-minute-data",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "hf-dataset-readme",
+    "url": "https://huggingface.co/datasets/Hitjob-Done/indian-stock-market-minute-data/raw/main/README.md",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "gh-gsidhu-metadata",
+    "url": "https://api.github.com/repos/gsidhu/nse-intraday-data",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "gh-gsidhu-tree",
+    "url": "https://api.github.com/repos/gsidhu/nse-intraday-data/contents",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "gh-voletiramu-metadata",
+    "url": "https://api.github.com/repos/voletiramu/nse-fno-1min-data",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "gh-voletiramu-readme",
+    "url": "https://raw.githubusercontent.com/voletiramu/nse-fno-1min-data/main/README.md",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "gh-olo-metadata",
+    "url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "gh-olo-readme",
+    "url": "https://raw.githubusercontent.com/olo-labs/olo-ai-training-data-nse/main/README.md",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "gh-olo-minute-metadata",
+    "url": "https://api.github.com/repos/olo-labs/olo-ai-training-data-nse-min-candle",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "gh-olo-minute-readme",
+    "url": "https://raw.githubusercontent.com/olo-labs/olo-ai-training-data-nse-min-candle/main/README.md",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  },
+  {
+    "id": "gh-tej-readme",
+    "url": "https://raw.githubusercontent.com/tejhq/tej-bazaar/master/README.md",
+    "purpose": "PUBLIC_DOCUMENT_OR_METADATA_ONLY"
+  }
+]

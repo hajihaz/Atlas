@@ -8,6 +8,7 @@ import {auditGeneratedPaperFills} from './paper_generated_fill_audit.mjs';
 import {attachPaperDecisionEvidence,countPaperDecisionEvidence} from './paper_decision_evidence.mjs';
 import {renderPaperRunHealthMarkdown} from './paper_run_health.mjs';
 import {preparePaperCheckpointEvidence} from './paper_checkpoint_evidence.mjs';
+import {writePaperSnapshotAtomic} from './paper_atomic_store.mjs';
 import {diagnosePaperSource,unavailablePaperSource} from './paper_source_diagnostics.mjs';
 import {getChart} from '../frontend/api/market-history.js';
 import {getLiveFeed} from '../frontend/api/live-feed.js';
@@ -87,7 +88,7 @@ async function main(){
    throw Error('Unsafe paper output');
  assertNextCloudSnapshot(old,next,now);
  const markdown=renderPaperRunHealthMarkdown(health);
- await fs.writeFile(OUTPUT,data,'utf8');
+ await writePaperSnapshotAtomic(OUTPUT,data);
  // GitHub's job may succeed while the provider is safely DEGRADED; surface
  // this distinction without converting an unverified observation into a fill.
  console.log('ATLAS_MODEL_ONLY_HEALTH',JSON.stringify(health));

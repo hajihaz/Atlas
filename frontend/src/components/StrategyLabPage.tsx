@@ -1,6 +1,7 @@
 import {useEffect,useState} from 'react';
 import AgentCouncilPanel from './AgentCouncilPanel';
-import ScalpStormAllocationPlan from './ScalpStormAllocationPlan';
+import AdvancedResearchImport from './AdvancedResearchImport';
+import ScalpStormDetailed from './ScalpStormDetailed';
 import {Activity,ArrowRight,BookOpenText,Clock3,ShieldCheck,TrendingUp,TrendingDown,FlaskConical,Layers3} from 'lucide-react';
 import {LineChart,Line,ResponsiveContainer,CartesianGrid,XAxis,YAxis,Tooltip} from 'recharts';
 type T={side:string;barTime:number;signalBarTime:number;price:number;quantity:number;feeINR:number;positionPnlINR:number|null};
@@ -13,7 +14,7 @@ type S={
  assumptions?:{feePctPerSide:number;slippagePctPerSide:number;nextBarOpenFill:boolean;disclaimer:string};
 };
 type Lab={schema:number;mode:string;currency:'INR';symbol:string;range:string;
- generatedAt:string;source:string;barCount:number;historyCoverage:string;earliestBarAt:string|null;
+ generatedAt:string;source:string;barCount:number;historyCoverage:string;dataCompleteVerified:boolean;earliestBarAt:string|null;
  latestClosedAt:string|null;providerWarning:string;strategies:S[];
  simulatedCapitalINR:number;liveOrdersEnabled:false;paperOrdersExecuted:false;paperLedgerStored:false;warning:string};
 const symbolOptions=['BTCINR','ETHINR','SOLINR','XRPINR','DOGEINR'];
@@ -32,6 +33,7 @@ export default function StrategyLabPage({mode='strategies',goRisk}:{
  const [busy,setBusy]=useState(true);
  const [error,setError]=useState('');
  useEffect(()=>{
+   if(mode==='scalpstorm')return;
    const controller=new AbortController();
    setBusy(true);setError('');setLab(null);
    fetch('/api/strategy-lab?'+new URLSearchParams({symbol,range}),
@@ -45,16 +47,14 @@ export default function StrategyLabPage({mode='strategies',goRisk}:{
      }).catch(e=>{if(!controller.signal.aborted)setError(e instanceof Error?e.message:'Unavailable')})
      .finally(()=>{if(!controller.signal.aborted)setBusy(false)});
    return ()=>controller.abort();
- },[symbol,range]);
+ },[symbol,range,mode]);
+ if(mode==='scalpstorm')return <ScalpStormDetailed/>;
  const item=lab?.strategies.find(x=>x.id===selected)??lab?.strategies[0]??null;
- const heading=mode==='scalpstorm'?'ScalpStorm X / Research':mode==='research'?'Research Lab':'Strategy Library';
- const desc=mode==='scalpstorm'
-   ?'ScalpStorm NSE intraday validation is a separate workstream. This research workbench uses real INR crypto data while authorized NSE execution-quality data is pending.'
-   :'Compare five documented strategies on provider-returned historical INR candles. Click any strategy to inspect its hypothetical output and audited trades.';
+ const heading=mode==='research'?'Research Lab':'Strategy Library';
+ const desc='Compare five documented strategies on provider-returned historical INR candles. Click any strategy to inspect its hypothetical output and audited trades.';
  return <section className="research-workbench">
   <div className="sub-page-header"><div className="breadcrumb">ATLAS / {heading.toUpperCase()}</div>
     <h1>{heading}<span className="period">.</span></h1><p>{desc}</p></div>
-  {mode==='scalpstorm'&&<ScalpStormAllocationPlan/>}
   <div className="research-topnote" role="note"><FlaskConical size={20}/>
     <span><strong>Real historical prices · simulated results.</strong> ₹1,00,000 is explicitly virtual starting capital, not a real portfolio. Results model fees/slippage and are not earnings or forward paper fills.</span>
   </div>
@@ -80,6 +80,15 @@ export default function StrategyLabPage({mode='strategies',goRisk}:{
     <span>{lab.barCount} completed bars · {lab.historyCoverage.replaceAll('_',' ')} ·
     {lab.earliestBarAt?' Since '+date(Date.parse(lab.earliestBarAt)):''}</span>
     <span>Updated {date(Date.parse(lab.generatedAt))}</span></div>}
+  {lab&&<div className="research-topnote" role="note" aria-label="Research history coverage disclaimer">
+    <ShieldCheck size={18}/><span>
+      <strong>{lab.dataCompleteVerified?'Source history contract verified':'Full requested history NOT verified'}.</strong>
+      {' '}{lab.providerWarning}
+      {' '}These figures use {lab.barCount} returned closed candles only; missing dates,
+      source publication timing and execution-quality fills are not inferred.
+      {lab.latestClosedAt?' Last closed provider bar: '+date(Date.parse(lab.latestClosedAt))+'.':''}
+    </span>
+  </div>}
   {lab&&<AgentCouncilPanel lab={lab} strategyId={item?.id??selected}/>}
   {lab&&<div className="research-layout">
     <div className="research-strategy-list">
@@ -142,6 +151,7 @@ export default function StrategyLabPage({mode='strategies',goRisk}:{
       </div></>}
     </div>
   </div>}
+  {mode==='research'&&<AdvancedResearchImport/>}
   <div className="panel research-bottom">
     <ShieldCheck size={19}/>
     <div><strong>Free research now; forward paper and NSE feeds remain separate.</strong>

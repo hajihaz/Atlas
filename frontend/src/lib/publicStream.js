@@ -6,17 +6,24 @@ const ENDPOINT='wss://stream-spot.coindcx.com/socket.io/?transport=websocket&EIO
 const CHANNEL='currentPrices@spot@1s';
 export const STREAM_ASSETS=Object.freeze(['BTCINR','ETHINR','SOLINR','XRPINR','DOGEINR']);
 
-export function parseMarketFrame(frame, now=Date.now()){
-  if(typeof frame!=='string'||frame.length>220000||!frame.startsWith('42'))return [];
+function parseProviderFrame(frame, now){
+  if(typeof frame!=='string'||frame.length>220000||!frame.startsWith('42'))return null;
   let event;
-  try{event=JSON.parse(frame.slice(2));}catch{return [];}
-  if(!Array.isArray(event)||event[0]!=='currentPrices@spot#update')return [];
+  try{event=JSON.parse(frame.slice(2));}catch{return null;}
+  if(!Array.isArray(event)||event[0]!=='currentPrices@spot#update')return null;
   const raw=event[1]?.data??event[1];
   const payload=typeof raw==='string'?(()=>{try{return JSON.parse(raw);}catch{return null;}})():raw;
   const prices=payload?.prices;
   const ts=payload?.ts;
-  if(!prices||typeof prices!=='object'||!Number.isSafeInteger(ts)
-     ||ts>now+5000||now-ts>90000)return [];
+  if(!prices||typeof prices!=='object'||Array.isArray(prices)||!Number.isSafeInteger(ts)
+     ||ts>now+5000||now-ts>90000)return null;
+  return {prices,ts};
+}
+
+export function parseMarketFrame(frame, now=Date.now()){
+  const payload=parseProviderFrame(frame,now);
+  if(!payload)return [];
+  const {prices,ts}=payload;
   const updates=[];
   for(const symbol of STREAM_ASSETS){
     if(!Object.hasOwn(prices,symbol))continue;
@@ -36,7 +43,7 @@ export function startPublicStream({
   after=setTimeout, cancel=clearTimeout,
 }){
   let stopped=false,ws=null,retryTimer=null,version=4,attempts=0,received=false;
-  let openTimer=null;
+  let openTimer=null,healthTimer=null;
   let pingTimer=null;
   function status(value){if(!stopped)onStatus?.(value);}
   function safeSend(message){
@@ -51,12 +58,11 @@ export function startPublicStream({
     if(stopped)return;
     attempts++;
     status('CONNECTING');
-    let opened=false,joined=false;
+    let joined=false,providerFrames=false;
     try{ws=new WebSocketType(ENDPOINT+version);}
     catch{reconnect();return;}
     const active=ws;
-    openTimer=after(()=>{if(!stopped&&ws===active&&!received){try{active.close();}catch{}}},12000);
-    active.onopen=()=>{opened=true;};
+    openTimer=after(()=>{if(!stopped&&ws===active&&!providerFrames){try{active.close();}catch{}}},12000);
     active.onmessage=(message)=>{
       if(stopped||ws!==active||typeof message.data!=='string')return;
       const frame=message.data;
@@ -71,11 +77,20 @@ export function startPublicStream({
         status('SUBSCRIBED_WAITING');
         return;
       }
-      const updates=parseMarketFrame(frame,now());
+      const observedAt=now();
+      // The provider sends deltas for many pairs. An absence of our five INR
+      // symbols is not a dead socket: keep REST fallback active while waiting.
+      const providerFrame=parseProviderFrame(frame,observedAt);
+      if(providerFrame){
+        providerFrames=true;
+        if(openTimer!==null){cancel(openTimer);openTimer=null;}
+        if(healthTimer!==null)cancel(healthTimer);
+        healthTimer=after(()=>{if(!stopped&&ws===active){try{active.close();}catch{}}},120000);
+      }
+      const updates=providerFrame?parseMarketFrame(frame,observedAt):[];
       if(updates.length){
         received=true;
         attempts=0;
-        if(openTimer!==null){cancel(openTimer);openTimer=null;}
         status('STREAMING');
         for(const q of updates)onQuote(q);
       }
@@ -83,10 +98,11 @@ export function startPublicStream({
     active.onerror=()=>status('DEGRADED');
     active.onclose=()=>{if(ws===active){ws=null;status('DISCONNECTED');
       if(openTimer!==null){cancel(openTimer);openTimer=null;}
+      if(healthTimer!==null){cancel(healthTimer);healthTimer=null;}
       if(pingTimer!==null){cancel(pingTimer);pingTimer=null;}
       // Probe legacy Engine.IO v3 if server rejects v4. Do not claim verified
       // streaming until a correctly parsed, timestamp-valid provider event.
-      if(!received&&attempts>=2)version=3;
+      if(!providerFrames&&!received&&attempts>=2)version=3;
       reconnect();
     }};
   }
@@ -99,6 +115,7 @@ export function startPublicStream({
     stopped=true;
     if(retryTimer!==null)cancel(retryTimer);
     if(openTimer!==null)cancel(openTimer);
+    if(healthTimer!==null)cancel(healthTimer);
     if(pingTimer!==null)cancel(pingTimer);
     if(ws){try{ws.close();}catch{}}ws=null;
   };

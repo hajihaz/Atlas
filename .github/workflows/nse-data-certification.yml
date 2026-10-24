@@ -1,0 +1,47 @@
+name: NSE data certification
+
+on:
+  pull_request:
+    paths:
+      - 'research/nse-certification/**'
+      - 'tests/nse-certification/**'
+      - 'docs/research/nse-certification/**'
+      - 'research/advanced/**'
+      - '.github/workflows/nse-data-certification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nse-data-certification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  offline-certification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test ingestion, certification, independent ranking and adversarial inputs
+        run: node --test tests/nse-certification/*.test.mjs
+      - name: Test public capture, pinned metadata and safe archive inspection
+        run: python -m unittest discover -s tests/nse-certification -p 'test_*.py' -v
+      - name: Verify existing replay contracts
+        run: node --test tests/research/*.test.mjs
+      - name: Reproduce every null-preserving acceptance export
+        shell: bash
+        run: |
+          if node research/nse-certification/cli.mjs replay --root . --manifest docs/research/nse-certification/empty-bundle.json --out "$RUNNER_TEMP/nse-certification"; then
+            exit 1
+          else
+            result=$?
+            test "$result" -eq 3
+          fi
+          diff -r docs/research/nse-certification/results "$RUNNER_TEMP/nse-certification"

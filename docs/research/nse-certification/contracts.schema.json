@@ -1,0 +1,385 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:nse-certification:contracts:v1",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/bundle"
+    },
+    {
+      "$ref": "#/$defs/review"
+    }
+  ],
+  "$defs": {
+    "file": {
+      "type": "object",
+      "required": [
+        "id",
+        "path",
+        "sha256",
+        "kind",
+        "role",
+        "sourceId",
+        "sourceUrl",
+        "retrievedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]{1,120}$"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "kind": {
+          "enum": [
+            "HISTORICAL_MARKET",
+            "SYNTHETIC_FIXTURE"
+          ]
+        },
+        "role": {
+          "enum": [
+            "ORIGINAL",
+            "CANDLES",
+            "UNIVERSE",
+            "MASTER",
+            "ELIGIBILITY",
+            "SUSPENSIONS",
+            "IDENTITY",
+            "ACTIONS",
+            "PUBLICATION",
+            "RIGHTS"
+          ]
+        },
+        "sourceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceUrl": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "retrievedAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$"
+        },
+        "publishedAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$"
+        },
+        "session": {
+          "type": "string",
+          "minLength": 1
+        },
+        "instrumentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "format": {
+          "enum": [
+            "UPSTOX_V3",
+            "FYERS_V3",
+            "ATLAS_CSV",
+            "NORMALIZED_V1"
+          ]
+        },
+        "volumeUnit": {
+          "enum": [
+            "SHARES",
+            "INDEX"
+          ]
+        },
+        "priceBasis": {
+          "enum": [
+            "RAW_UNADJUSTED",
+            "BACK_ADJUSTED",
+            "UNKNOWN"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "role": {
+                "const": "CANDLES"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "session",
+              "instrumentId",
+              "format",
+              "volumeUnit",
+              "priceBasis"
+            ]
+          }
+        }
+      ]
+    },
+    "session": {
+      "type": "object",
+      "required": [
+        "session",
+        "universeFileId",
+        "candleFileIds",
+        "indexFileId",
+        "actionsFileId",
+        "publicationFileId",
+        "rightsFileIds"
+      ],
+      "properties": {
+        "session": {
+          "type": "string",
+          "minLength": 1
+        },
+        "universeFileId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "indexFileId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actionsFileId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "publicationFileId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candleFileIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "rightsFileIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "grant": {
+      "type": "object",
+      "required": [
+        "sourceId",
+        "evidenceFileId",
+        "additionalCostINR",
+        "privateOfflineResearch",
+        "derivedPerformancePublication",
+        "validFrom",
+        "validThrough",
+        "dataFrom",
+        "dataThrough"
+      ],
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidenceFileId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "validFrom": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$"
+        },
+        "validThrough": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$"
+        },
+        "dataFrom": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$"
+        },
+        "dataThrough": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$"
+        },
+        "additionalCostINR": {
+          "const": 0
+        },
+        "privateOfflineResearch": {
+          "const": "GRANTED"
+        },
+        "derivedPerformancePublication": {
+          "const": "GRANTED"
+        }
+      },
+      "additionalProperties": false
+    },
+    "bundle": {
+      "type": "object",
+      "required": [
+        "schema",
+        "kind",
+        "producer",
+        "files",
+        "sessions"
+      ],
+      "properties": {
+        "schema": {
+          "const": "atlas.nse-bundle.v1"
+        },
+        "kind": {
+          "enum": [
+            "HISTORICAL_MARKET",
+            "SYNTHETIC_FIXTURE"
+          ]
+        },
+        "producer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "files": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": {
+            "$ref": "#/$defs/file"
+          }
+        },
+        "sessions": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "$ref": "#/$defs/session"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "review": {
+      "type": "object",
+      "required": [
+        "schema",
+        "reviewer",
+        "reviewedAt",
+        "manifestSha256",
+        "decision",
+        "sessions",
+        "checks",
+        "permissions",
+        "grants"
+      ],
+      "properties": {
+        "schema": {
+          "const": "atlas.nse-independent-review.v1"
+        },
+        "reviewer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewedAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$"
+        },
+        "manifestSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "decision": {
+          "const": "APPROVED"
+        },
+        "sessions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "checks": {
+          "type": "object",
+          "required": [
+            "authenticSource",
+            "fullPointInTimeUniverse",
+            "rawUnadjustedPricesAndShareVolumes",
+            "corporateActionsAndIdentity",
+            "recordedPublicationAvailability",
+            "privateOfflineUsePermitted",
+            "derivedResultsPermitted"
+          ],
+          "properties": {
+            "authenticSource": {
+              "const": "VERIFIED"
+            },
+            "fullPointInTimeUniverse": {
+              "const": "VERIFIED"
+            },
+            "rawUnadjustedPricesAndShareVolumes": {
+              "const": "VERIFIED"
+            },
+            "corporateActionsAndIdentity": {
+              "const": "VERIFIED"
+            },
+            "recordedPublicationAvailability": {
+              "const": "VERIFIED"
+            },
+            "privateOfflineUsePermitted": {
+              "const": "VERIFIED"
+            },
+            "derivedResultsPermitted": {
+              "const": "VERIFIED"
+            },
+            "shortEligibility": {
+              "const": "VERIFIED"
+            }
+          },
+          "additionalProperties": false
+        },
+        "permissions": {
+          "type": "object",
+          "required": [
+            "privateOfflineResearch",
+            "derivedPerformancePublication",
+            "rawRedistribution"
+          ],
+          "properties": {
+            "privateOfflineResearch": {
+              "const": "GRANTED"
+            },
+            "derivedPerformancePublication": {
+              "const": "GRANTED"
+            },
+            "rawRedistribution": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "grants": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/grant"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
