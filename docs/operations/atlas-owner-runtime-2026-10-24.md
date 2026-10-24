@@ -109,3 +109,5 @@ configure approved read-only NSE/IPO access and collect authentic data; confirm
 a real device alert; verify ChatGPT paper commands through the existing authenticated HHC connection; accumulate
 forward evidence and complete exact-head release acceptance. Credentials and
 2FA stay in their native trusted UI, never in chat.
+
+Updated 25 October: [background-alert recovery repair](atlas-alert-recovery-fix-2026-10-25.md) fixes concurrent orphan-lock recovery and preserves the existing notification key. The sender remains disabled pending source and device acceptance.

@@ -1,6 +1,7 @@
 // Owner-local push subscriptions and delivery. Never imported by the browser bundle.
 import {randomBytes,createHash,timingSafeEqual} from 'node:crypto';
-import {mkdir,readFile,writeFile,rename,unlink,lstat,open} from 'node:fs/promises';
+import {readFile,writeFile,rename,unlink,lstat} from 'node:fs/promises';
+import {withPrivateLock as locked} from './private-lock.js';
 import {resolve,dirname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import webpush from 'web-push';
@@ -18,10 +19,6 @@ export function validateSubscription(raw){
    Buffer.from(keys.p256dh,'base64url').length!==65||Buffer.from(keys.auth,'base64url').length!==16)throw Error('Invalid push keys');
  return {endpoint:u.href,keys:{p256dh:keys.p256dh,auth:keys.auth}};
 }
-async function directory(path){
- await mkdir(path,{recursive:true,mode:0o700});
- if((await lstat(path)).isSymbolicLink())throw Error('Unsafe private push directory');
-}
 async function read(path,fallback){
  try{if((await lstat(path)).isSymbolicLink())throw Error('Unsafe push file');return JSON.parse(await readFile(path,'utf8'));}
  catch(e){if(e.code==='ENOENT')return fallback;throw e;}
@@ -30,25 +27,6 @@ async function atomic(path,value){
  const tmp=path+'.'+randomBytes(8).toString('hex')+'.tmp';
  try{await writeFile(tmp,JSON.stringify(value),{mode:0o600,flag:'wx'});await rename(tmp,path);}
  finally{await unlink(tmp).catch(()=>{});}
-}
-async function locked(dir,action){
- await directory(dir);
- const lock=join(dir,'operation.lock');let fd;
- try{fd=await open(lock,'wx',0o600);}
- catch(e){
-  if(e.code!=='EEXIST')throw e;
-  let stale=false;
-  try{
-   const meta=JSON.parse(await readFile(lock,'utf8'));
-   if(Number.isInteger(meta.pid)&&meta.pid>1&&Number.isFinite(meta.at)&&Date.now()-meta.at>30000){
-    try{process.kill(meta.pid,0);}catch(check){if(check.code==='ESRCH')stale=true;}
-   }
-  }catch{}
-  if(!stale)throw Error('Push operation already active');
-  await unlink(lock);fd=await open(lock,'wx',0o600);
- }
- await fd.writeFile(JSON.stringify({pid:process.pid,at:Date.now()}));
- try{return await action();}finally{await fd.close();await unlink(lock);}
 }
 export function createPushStore(dir=DEFAULT_PUSH_DIRECTORY){
  return {

@@ -52,7 +52,7 @@ as unavailable evidence, never as zero P/L or successful execution.
 
 ## Verified boundary
 
-[Acceptance receipt](atlas-hhc-chat-commands-2026-10-25.json): 602 Python tests and 41 subtests passed, with one missing LEAN-data test skipped; 137 modules passed strict typing. No frontend source changed.
+[Acceptance receipt](atlas-hhc-chat-commands-2026-10-25.json): 602 Python tests and 41 subtests passed, with one missing LEAN-data test skipped; 137 modules passed strict typing. The HHC command change did not change UI components.
 
 The command tests use disposable artificial ledgers, then exercise the real
 subprocess interface. They cover status/day reporting, disabled controls,
