@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { startPublicStream } from '../lib/publicStream.js';
+import { isRecentQuote, connectionDescription } from '../lib/quoteFreshness.js';
 
 type Quote = {
   symbol: string; currency:'INR'; price:number|null; bid:number|null; ask:number|null;
@@ -48,11 +49,6 @@ const formatStamp=(ts:number,range:Range)=>{
     ? {day:'2-digit',month:'short',hour:'numeric',hour12:true}
     : {day:'2-digit',month:'short',year:'2-digit'};
   return new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',...opts}).format(ts);
-};
-const fresh=(quote:Quote|undefined,now:number)=>{
-  if(!quote||quote.price===null||!quote.sourceAt)return false;
-  const age=now-Date.parse(quote.sourceAt);
-  return age>=-5000&&age<=90000;
 };
 export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props){
   const [now,setNow]=useState(()=>Date.now());
@@ -117,7 +113,7 @@ export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props)
         setQuotes(old=>{
           const merged={...old};
           for(const q of data.quotes){
-            if(!q.sourceAt||!fresh(q,Date.now()))continue;
+            if(!q.sourceAt||!isRecentQuote(q,Date.now()))continue;
             const p=merged[q.symbol];
             if(!p?.sourceAt||Date.parse(p.sourceAt)<Date.parse(q.sourceAt))merged[q.symbol]=q;
           }
@@ -160,8 +156,9 @@ export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props)
   },[selection,range,stock]);
 
   const selected=quotes[selection];
-  const currentPrice=fresh(selected,now)?selected:undefined;
-  const connected=Object.values(quotes).some(q=>fresh(q,now));
+  const currentPrice=isRecentQuote(selected,now)?selected:undefined;
+  const connected=Object.values(quotes).some(q=>isRecentQuote(q,now));
+  const recentStream=lastStreamRef.current>0&&now-lastStreamRef.current<7000;
   const bars=useMemo(()=>{
     if(!history?.candles.length)return [] as Point[];
     const mapped=history.candles.map(c=>({time:c.time,close:c.close,
@@ -193,8 +190,7 @@ export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props)
       </div>
       <div><small>DATA CONNECTION</small>
         <strong className={connected?'live-good':'live-warning'}>{connected?'RECENT':'WAITING'}</strong>
-        <span>{connection==='STREAMING'?'1s public stream · updates on provider events':
-          'Stream '+connection.toLowerCase()+' · REST fallback every 15s'}</span>
+        <span>{connectionDescription(connection,recentStream)}</span>
       </div>
       <div><small>REAL CAPITAL</small><strong>BLOCKED</strong>
         <span>Paper research only · no broker orders</span></div>
@@ -204,7 +200,7 @@ export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props)
 
     <div className="live-grid live-coin-grid">
       {COINS.map(({symbol,name})=>{
-        const q=quotes[symbol],ok=fresh(q,now);
+        const q=quotes[symbol],ok=isRecentQuote(q,now);
         return <button type="button" key={symbol} className={'panel live-quote live-quote-button '+(selection===symbol?'live-selected':'')}
           onClick={()=>setSelection(symbol)} aria-pressed={selection===symbol}>
           <div className="live-quote-header"><span>{name.toUpperCase()} / INR</span>{ok?<Wifi size={17}/>:<WifiOff size={17}/>}</div>

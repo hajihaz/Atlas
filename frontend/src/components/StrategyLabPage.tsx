@@ -141,7 +141,7 @@ export default function StrategyLabPage({mode='strategies',goRisk}:{
       <div className="panel research-trades">
        <h3>Modeled transaction ledger</h3>
        <p>Trade timestamps and signals are derived from provider candles, not from an authenticated broker.</p>
-       {item.trades?.length?<div className="research-trade-scroll"><table>
+       {item.trades?.length?<div className="research-trade-scroll" role="region" aria-label="Modeled transaction ledger; scroll horizontally" tabIndex={0}><table>
         <thead><tr><th>Model fill</th><th>Side</th><th>Price</th><th>Fee</th><th>Closed P/L</th></tr></thead>
         <tbody>{item.trades.slice().reverse().map((t,i)=><tr key={i}>
           <td>{date(t.barTime)}</td><td>{t.side}</td><td>{money(t.price)}</td>

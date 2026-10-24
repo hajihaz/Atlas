@@ -21,7 +21,7 @@ export default function ScalpStormAllocationPlan(){
      <div><small>Planned stock slots</small><strong>{STOCK_SLOTS}</strong></div>
      <div><small>Equal weight per slot</small><strong>{format.format(perSlot)}</strong></div>
    </div>
-   <div className="scalpstorm-bars" aria-label="Ten equal 10 percent allocation slots">
+   <div className="scalpstorm-bars" role="img" aria-label="Ten equal 10 percent allocation slots">
      {SLOTS.map(i=><span key={i} title={'Research slot '+i+' · '+format.format(perSlot)}/>)}
    </div>
    <div className="scalpstorm-slot-grid">

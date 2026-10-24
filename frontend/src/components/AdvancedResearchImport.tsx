@@ -103,7 +103,7 @@ export default function AdvancedResearchImport(){
    <div className="research-trades">
     <h3>Source-file modeled event details</h3>
     {strategy.trades.length===0?<p>No hypothetical fills were recorded in this imported report.</p>:
-     <div className="research-trade-scroll"><table>
+     <div className="research-trade-scroll" role="region" aria-label="Imported modeled trades; scroll horizontally" tabIndex={0}><table>
       <thead><tr><th>Model time</th><th>Side</th><th>Modeled price</th>
        <th>Quantity</th><th>Fees</th><th>Exit P/L</th></tr></thead>
       <tbody>{strategy.trades.slice(-30).reverse().map((t,i)=><tr key={i}>
