@@ -16,7 +16,7 @@ stock history, one-second streaming, phone delivery or hosted release.
 | Clear capital, trades, P/L, fees and drawdown | Independent account balances, realized/unrealized P/L, recorded fees, daily drilldowns, monthly recorded-day totals and observed drawdown. | Cloud/private-ledger synchronization needs a narrowly scoped server-only credential. Full exchange costs, liquidity and impact are not certified. |
 | Dependable strategy selection | QuantStats cross-checks observed day-end drawdown. Optuna is installed for later bounded research. | The observed strategies lost virtual capital. No strategy is certified profitable; optimization is not activated on missing or invalid data. Time and new out-of-sample evidence cannot be manufactured. |
 | IPO intelligence | Existing research UI plus permission-based Web Push subscription, source freshness checks and idempotent delivery reservations. | Source access/intended-use approval, a fresh permitted feed, device permission and a confirmed delivery are still required. Sender remains disabled. No IPO applications are placed. |
-| Atlas + ChatGPT control | Official MCP stdio server tested end to end: read account/day records and idempotently pause/resume existing paper accounts; risk latch vetoes resume. | ChatGPT does not consume local stdio directly. Registration of a suitably authenticated remote connector remains an owner/account integration gate. No public listener or tunnel was created. |
+| Atlas + ChatGPT control | Official MCP stdio server tested end to end: read account/day records and idempotently pause/resume existing paper accounts; risk latch vetoes resume. | Updated 25 October: authenticated status, reports and restricted paper controls work through the existing HHC connection; see [chat commands](atlas-hhc-chat-commands-2026-10-25.md). A separate remote MCP connector is optional. No public listener or tunnel was created. |
 | ₹0 operation and capital protection | No additional subscription or infrastructure spend; all orders remain simulated, actual capital ₹0. Existing source fills retained; drawdown breaches halt new signals. | Hosted GitHub jobs cannot start because of the reported account billing/spending restriction. Main and production remain gated by exact-head hosted checks. Real-money use needs separate explicit approval. |
 
 ## Installed upstream projects
@@ -106,6 +106,6 @@ without green hosted checks on the exact release head.
 The remaining execution order is: restore zero-cost hosted-job availability;
 create the narrow private-ledger read credential in a trusted owner flow;
 configure approved read-only NSE/IPO access and collect authentic data; confirm
-a real device alert; register the authenticated ChatGPT connector; accumulate
+a real device alert; verify ChatGPT paper commands through the existing authenticated HHC connection; accumulate
 forward evidence and complete exact-head release acceptance. Credentials and
 2FA stay in their native trusted UI, never in chat.
