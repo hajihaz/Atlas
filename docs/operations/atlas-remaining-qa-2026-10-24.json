@@ -1,0 +1,417 @@
+{
+  "schema": "atlas.local-accessibility-audit.v1",
+  "startedAt": "2026-10-24T15:40:07.549Z",
+  "completedAt": "2026-10-24T15:40:51.092Z",
+  "head": "a8f3ddb41a4fa8d66d5f7b2eb700d2be3a0e97dd",
+  "sourceFingerprint": "41b7107a62c14aca5d8525457a0a75b92626143a9e9d7f1f5456f1c1588a37a8",
+  "engine": "axe-core 4.14.0",
+  "browser": "156.0.8078.47",
+  "scope": "Ten first-party views, light/dark, desktop/320px; explicit unavailable API states",
+  "networkPolicy": "Only dedicated loopback app origin; all market APIs return 503; remote HTTP and WebSocket blocked",
+  "realMarketRequests": 0,
+  "realOrdersPlaced": 0,
+  "automatedPass": true,
+  "manualReviewRequired": true,
+  "fullWcagCertification": false,
+  "sourceUnchangedDuringAudit": true,
+  "cases": [
+    {
+      "page": "Live Paper Lab",
+      "viewport": "desktop",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 93
+    },
+    {
+      "page": "Overview",
+      "viewport": "desktop",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 56
+    },
+    {
+      "page": "Market Watch",
+      "viewport": "desktop",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 22
+    },
+    {
+      "page": "IPO Intelligence",
+      "viewport": "desktop",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 25
+    },
+    {
+      "page": "Strategies",
+      "viewport": "desktop",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 26
+    },
+    {
+      "page": "Research Lab",
+      "viewport": "desktop",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 34
+    },
+    {
+      "page": "ScalpStorm X",
+      "viewport": "desktop",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 227
+    },
+    {
+      "page": "Risk Center",
+      "viewport": "desktop",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 48
+    },
+    {
+      "page": "Orders & Activity",
+      "viewport": "desktop",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 116
+    },
+    {
+      "page": "Audit & Evidence",
+      "viewport": "desktop",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 49
+    },
+    {
+      "page": "Live Paper Lab",
+      "viewport": "desktop",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 93
+    },
+    {
+      "page": "Overview",
+      "viewport": "desktop",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 56
+    },
+    {
+      "page": "Market Watch",
+      "viewport": "desktop",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 22
+    },
+    {
+      "page": "IPO Intelligence",
+      "viewport": "desktop",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 520
+    },
+    {
+      "page": "Strategies",
+      "viewport": "desktop",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 26
+    },
+    {
+      "page": "Research Lab",
+      "viewport": "desktop",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 34
+    },
+    {
+      "page": "ScalpStorm X",
+      "viewport": "desktop",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 260
+    },
+    {
+      "page": "Risk Center",
+      "viewport": "desktop",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 48
+    },
+    {
+      "page": "Orders & Activity",
+      "viewport": "desktop",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 116
+    },
+    {
+      "page": "Audit & Evidence",
+      "viewport": "desktop",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 49
+    },
+    {
+      "page": "Live Paper Lab",
+      "viewport": "phone",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 117
+    },
+    {
+      "page": "Overview",
+      "viewport": "phone",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 81
+    },
+    {
+      "page": "Market Watch",
+      "viewport": "phone",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 29
+    },
+    {
+      "page": "IPO Intelligence",
+      "viewport": "phone",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 31
+    },
+    {
+      "page": "Strategies",
+      "viewport": "phone",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 36
+    },
+    {
+      "page": "Research Lab",
+      "viewport": "phone",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 54
+    },
+    {
+      "page": "ScalpStorm X",
+      "viewport": "phone",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 284
+    },
+    {
+      "page": "Risk Center",
+      "viewport": "phone",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 84
+    },
+    {
+      "page": "Orders & Activity",
+      "viewport": "phone",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 175
+    },
+    {
+      "page": "Audit & Evidence",
+      "viewport": "phone",
+      "theme": "light",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 87
+    },
+    {
+      "page": "Live Paper Lab",
+      "viewport": "phone",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 117
+    },
+    {
+      "page": "Overview",
+      "viewport": "phone",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 81
+    },
+    {
+      "page": "Market Watch",
+      "viewport": "phone",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 29
+    },
+    {
+      "page": "IPO Intelligence",
+      "viewport": "phone",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 311
+    },
+    {
+      "page": "Strategies",
+      "viewport": "phone",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 36
+    },
+    {
+      "page": "Research Lab",
+      "viewport": "phone",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 54
+    },
+    {
+      "page": "ScalpStorm X",
+      "viewport": "phone",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 317
+    },
+    {
+      "page": "Risk Center",
+      "viewport": "phone",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 84
+    },
+    {
+      "page": "Orders & Activity",
+      "viewport": "phone",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 175
+    },
+    {
+      "page": "Audit & Evidence",
+      "viewport": "phone",
+      "theme": "dark",
+      "pageOverflow": false,
+      "violations": 0,
+      "gradientFailures": 0,
+      "measuredTextRuns": 87
+    }
+  ],
+  "keyboard": [
+    {
+      "viewport": "desktop",
+      "theme": "light",
+      "offscreenFocusCount": 0
+    },
+    {
+      "viewport": "desktop",
+      "theme": "dark",
+      "offscreenFocusCount": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "light",
+      "offscreenFocusCount": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "dark",
+      "offscreenFocusCount": 0
+    }
+  ],
+  "rawReportSha256": "1a1e14961b9cb468af6932949f55bc7b86328055e6e040a0ed98495c2ef78849",
+  "drawer": {
+    "passed": true,
+    "checks": [
+      "open focus",
+      "dialog semantics",
+      "30 forward tabs trapped",
+      "30 reverse tabs trapped",
+      "Escape restores trigger focus",
+      "closed menu inert",
+      "navigation focuses main",
+      "desktop resize restores sidebar"
+    ],
+    "realMarketRequests": 0,
+    "realOrders": 0
+  }
+}

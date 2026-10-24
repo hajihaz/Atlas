@@ -165,7 +165,7 @@ export default function CloudPaperCard(){
          report.lastSourceCheck?.status==='BLOCKED'?'Blocked':'Not yet recorded'}
       </strong></div>
     </div>
-    <div className="cloud-paper-comparison" aria-label="Verified recent paper-run evidence">
+    <div className="cloud-paper-comparison" role="group" aria-label="Verified recent paper-run evidence">
       <div className="cloud-paper-comparison-heading">
         <strong>Recent checkpoint evidence</strong>
         <span>Only actual attempts since evidence tracking started · last 24 maximum</span>
@@ -179,7 +179,7 @@ export default function CloudPaperCard(){
             <div><small>Rejected public source</small><strong>{rejectedProof}</strong></div>
             <div><small>New hypothetical fills</small><strong>{newModeledInWindow}</strong></div>
           </div>
-          <div className="cloud-paper-rank-scroll">
+          <div className="cloud-paper-rank-scroll" role="region" aria-label="Recent checkpoint evidence; scroll horizontally" tabIndex={0}>
             <table><thead><tr><th>Recorded IST</th><th>Check</th><th>Reason</th><th>New virtual fills</th></tr></thead>
               <tbody>{proof.slice(-5).reverse().map(x=><tr key={x.runCount}>
                 <td>{ts(x.at)}</td><td>{x.sourceAccepted?'Verified':'Not accepted'}</td>
@@ -224,7 +224,7 @@ export default function CloudPaperCard(){
         <span>{rankReady?'Provisional ordering from recorded modeled equity':
           'Ranking withheld until five checkpoints and three closed exits per strategy'}</span>
       </div>
-      <div className="cloud-paper-rank-scroll">
+      <div className="cloud-paper-rank-scroll" role="region" aria-label="Virtual strategy comparison; scroll horizontally" tabIndex={0}>
         <table><thead><tr><th>Strategy</th><th>Virtual equity</th><th>Modeled net P/L</th><th>Max drawdown</th><th>Modeled exits</th></tr></thead>
           <tbody>{shown.map(s=><tr key={s.strategyId}>
             <td>{s.strategyName}</td><td>{money(s.virtualEquityINR)}</td>
@@ -262,7 +262,7 @@ export default function CloudPaperCard(){
       <div><small>Unrealized residual estimate</small><strong>{money(selectedSummary?.modeledUnrealizedResidualINR??0)}</strong></div>
      </div>
      {current.lastDecisionEvidence&&
-       <p className="cloud-paper-notice" aria-label="Explanation for latest modeled trading decision">
+       <p className="cloud-paper-notice" role="note" aria-label="Explanation for latest modeled trading decision">
         <strong>Last eligible paper decision:</strong> {
           decisionExplanation[current.lastDecisionEvidence.code]??'Model decision could not be classified.'
         } <span>Source candle: {ts(current.lastDecisionEvidence.completedBarAt)}.
@@ -318,7 +318,7 @@ export default function CloudPaperCard(){
          <div><small>Realized P/L on modeled exits</small><strong>{activeDay.modeledSells?money(activeDay.realizedExitPnlINR):'—'}</strong></div>
          <div><small>Checkpoint observations</small><strong>{activeDay.checkpoints}</strong></div>
         </div>
-        {activeDay.events.length>0?<div className="research-trade-scroll">
+        {activeDay.events.length>0?<div className="research-trade-scroll" role="region" aria-label="Selected paper day events; scroll horizontally" tabIndex={0}>
          <table><thead><tr><th>Event (IST)</th><th>Modeled side</th><th>Price</th><th>Fee</th><th>Exit P/L</th></tr></thead>
           <tbody>{activeDay.events.map((e,i)=><tr key={e.at+'-'+i}>
            <td>{ts(e.at)}</td><td>{e.side}</td><td>{money(e.priceINR)}</td>
@@ -332,14 +332,13 @@ export default function CloudPaperCard(){
       <a className="cloud-daybook-export" href="/cloud-paper-daybook.json"
        target="_blank" rel="noopener noreferrer">Read-only paper daybook JSON — same saved evidence for ChatGPT</a>
      </section>
-     <div className="research-trade-scroll">
+     <div className="research-trade-scroll" role="region" aria-label="Recent modeled paper events; scroll horizontally" tabIndex={0}>
       <table><thead><tr><th>Observed</th><th>Modeled side</th><th>Price</th><th>Virtual fee</th><th>Modeled P/L</th></tr></thead>
-       <tbody>{current.events.slice().reverse().slice(0,30).map((e,i)=><tr key={i}>
+       <tbody>{current.events.length===0&&<tr><td colSpan={5}>No source-triggered modeled trade yet.</td></tr>}{current.events.slice().reverse().slice(0,30).map((e,i)=><tr key={i}>
         <td>{ts(e.quoteAt)}</td><td>{e.side}</td><td>{money(e.modeledPriceINR)}</td>
         <td>{money(e.feeINR)}</td><td>{e.realizedPnlINR===null?'—':money(e.realizedPnlINR)}</td>
        </tr>)}</tbody>
       </table>
-      {current.events.length===0&&<p className="research-status">No source-triggered modeled trade yet.</p>}
      </div>
      {current.pausedReason&&<p className="cloud-paper-notice">Guard halted this strategy: {current.pausedReason}</p>}
     </div>}

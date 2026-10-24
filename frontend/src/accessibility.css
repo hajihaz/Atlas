@@ -1,0 +1,83 @@
+/* Audited reading and touch layer. No financial-data or execution behavior. */
+html[data-theme="light"]{--pm-muted:#4f6675;--pm-accent:#0b7653}
+html[data-theme="light"] .sidebar-system-card span{color:#426858}
+html[data-theme="light"] .account-name small{color:#526b76}
+html[data-theme="dark"] .nav-section-name{color:#91aeb9}
+html[data-theme="dark"] .scalp-day-selected>span{color:#b5c8d0}
+html[data-theme="light"] .scalp-day-selected>span{color:#425d67}
+html[data-theme="light"] .scalp-day-selected>small{color:#704e18}
+html[data-theme="light"] .scalp-day-selected .scalp-day-no_trade{color:#6c4c15}
+
+/* Keep status and source labels readable, not merely decorative microtype. */
+.live-ticker small,.live-ticker span,.live-quote small,.live-quote-header,
+.live-chart-evidence,.scx-allocation-grid small,.scx-day-result small,
+.scx-scenario-summary small,.scx-month-stats small,.scx-fee-detail small,
+.scx-table-note,.scx-disclaimer{font-size:11px;line-height:1.5}
+
+/* Twenty daily signals need a real touch target and a contained scroll rail. */
+.scx-signal-track{max-width:100%;min-height:44px;overflow-x:auto;overflow-y:hidden}
+.scx-signal-track button{flex:0 0 44px;min-width:44px;min-height:44px}
+.scx-movement-row{min-height:44px}
+.live-chart-ranges button{min-height:44px}
+.real-bottom-note button,.markets-page a[href],.ipo-page a[href],
+.cloud-paper-footer a[href],.text-link{display:inline-flex;align-items:center;min-height:28px}
+.ipo-search input{min-height:32px}
+.scx-table-scroll:focus-visible,.scx-timeline:focus-visible,
+.research-trade-scroll:focus-visible,.cloud-paper-rank-scroll:focus-visible,
+.ipo-accuracy-table:focus-visible{outline:3px solid #167f5c;outline-offset:2px}
+@media(max-width:650px){.scx-root{overflow-x:clip}}
+
+/* Light-surface contrast for the risk and financial evidence sections. */
+html[data-theme="light"] .scx-allocation-grid small,
+html[data-theme="light"] .scx-day-result small,
+html[data-theme="light"] .scx-scenario-summary small,
+html[data-theme="light"] .scx-month-stats small,
+html[data-theme="light"] .scx-fee-detail small{color:#4d6869}
+html[data-theme="light"] .scx-ledger-table td:nth-child(2) small{color:#4c6665}
+html[data-theme="light"] .scx-equity-empty p{color:#565e59}
+html[data-theme="light"] .cloud-paper-comparison,
+html[data-theme="light"] .cloud-daybook-details{--pm-muted:#4f6675}
+
+html[data-theme="light"] .ipo-source-link,
+html[data-theme="light"] .ipo-alert-button{color:#f5fff9}
+html[data-theme="light"] .ipo-review{color:#805717}
+html[data-theme="light"] .ipo-accuracy-table th{color:#526876}
+html[data-theme="light"] .ipo-accuracy-table td{color:#243b46}
+
+/* Keyboard bypass and a phone drawer that is absent from the closed tab order. */
+.atlas-skip-link{position:fixed;top:-100px;left:12px;z-index:1000;padding:12px 18px;
+ background:#0b6247;color:#fff;border:2px solid #fff;border-radius:6px;font-weight:700}
+.atlas-skip-link:focus{top:8px;outline:3px solid #085b99;outline-offset:2px}
+#atlas-main:focus-visible{outline:2px solid #167f5c;outline-offset:4px}
+@media(max-width:800px){.sidebar{visibility:hidden}.sidebar.mobile-open{visibility:visible}}
+
+/* Rendered-gradient checks cover labels axe cannot resolve automatically. */
+html[data-theme="light"] .workspace-label,
+html[data-theme="light"] .app-footer,
+html[data-theme="light"] .app-footer .footer-separator{color:#4f6675}
+html[data-theme="dark"] .app-footer,
+html[data-theme="dark"] .app-footer .footer-separator{color:#91aeb9}
+html[data-theme="light"] .live-ticker small,
+html[data-theme="light"] .live-quote-header,
+html[data-theme="light"] .live-progress-grid small,
+html[data-theme="light"] .panel-heading p,
+html[data-theme="light"] .scx-timeline span,
+html[data-theme="light"] .scx-legend,
+html[data-theme="light"] .scx-table-note,
+html[data-theme="light"] .scx-disclaimer{color:#4f6675}
+html[data-theme="light"] .live-ticker .live-warning{color:#785018}
+html[data-theme="light"] .real-hero .primary-button{background:#89e4b7}
+html[data-theme="light"] .real-data-tag.missing,
+html[data-theme="light"] .real-readiness-row>span,
+html[data-theme="light"] .cloud-paper-notice{color:#77521e}
+html[data-theme="dark"] .real-data-tag.missing,
+html[data-theme="dark"] .real-readiness-row>span,
+html[data-theme="dark"] .cloud-paper-notice{color:#dbb87e}
+html[data-theme="light"] .ipo-accent{color:#147450}
+html[data-theme="light"] .ipo-hero p,
+html[data-theme="light"] .ipo-toolbar p,
+html[data-theme="light"] .ipo-freshness,
+html[data-theme="light"] .ipo-footer-notes{color:#4f6675}
+#atlas-main{scroll-margin-top:80px}
+
+html[data-theme="light"] .research-trade-scroll td[colspan]{color:#4f6675}

@@ -72,7 +72,7 @@ export default function PaperTrialsPage({group,statusMessage,start,pause,resume,
       <div><small>Quote received</small><strong>{selected?.lastQuoteAt?
         new Date(selected.lastQuoteAt).toLocaleTimeString('en-US',{timeZone:'Asia/Kolkata',hour12:true}):'Waiting'}</strong></div>
     </div>
-    {selected?.events.length?<div className="research-trade-scroll"><table><thead>
+    {selected?.events.length?<div className="research-trade-scroll" role="region" aria-label="Virtual fill events; scroll horizontally" tabIndex={0}><table><thead>
       <tr><th>Observation time</th><th>Virtual side</th><th>Indicative fill</th><th>Modeled fee</th><th>Virtual realized P/L</th></tr>
     </thead><tbody>{selected.events.slice().reverse().map((event,i)=><tr key={i}>
       <td>{new Date(event.observedAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})}</td>
