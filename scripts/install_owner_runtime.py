@@ -8,11 +8,16 @@ import os
 import plistlib
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 STATE = ROOT / ".atlas-runtime"
 JOBS = {
+    "com.hajihaz.atlas.public-stream": [
+        "/opt/homebrew/opt/node@24/bin/node",
+        str(ROOT / "scripts/run_public_stream.mjs"),
+    ],
     "com.hajihaz.atlas.owner-ui": [
         "/opt/homebrew/opt/node@24/bin/node",
         str(ROOT / "scripts/run_owner_runtime.mjs"),
@@ -46,6 +51,24 @@ def payloads() -> dict[str, dict]:
         }
         for label, args in JOBS.items()
     }
+
+
+def bootstrap_agent(domain: str, dest: Path) -> None:
+    # launchd can briefly return EIO while a booted-out process is still reaping.
+    # Retry only that transient status, with a small fixed bound.
+    for attempt in range(3):
+        process = subprocess.run(  # noqa: S603 - fixed user LaunchAgent plist
+            ["/bin/launchctl", "bootstrap", domain, str(dest)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if process.returncode == 0:
+            return
+        if process.returncode != 5 or attempt == 2:
+            break
+        time.sleep(0.25 * (attempt + 1))
+    raise RuntimeError(f"Owner service bootstrap failed (exit {process.returncode})")
 
 
 def main() -> int:
@@ -87,14 +110,7 @@ def main() -> int:
         dest.write_bytes(temp.read_bytes())
         dest.chmod(0o600)
         temp.unlink()
-        process = subprocess.run(  # noqa: S603 - fixed user LaunchAgent plist
-            ["/bin/launchctl", "bootstrap", domain, str(dest)],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if process.returncode:
-            raise RuntimeError("Owner service bootstrap failed")
+        bootstrap_agent(domain, dest)
     print(
         json.dumps(
             {"installed": list(jobs), "url": "http://127.0.0.1:4300", "realOrdersEnabled": False}

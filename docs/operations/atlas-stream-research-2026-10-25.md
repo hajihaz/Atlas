@@ -45,3 +45,9 @@ The default audit output is private `.atlas-runtime/research-audit.json`. It rea
 Private execution receipts are under `.ai/raw`; they include `kraken-soak-summary-20261025.json`, `real-stream-browser-20261025.json`, `research-tools-mechanics-20261025.json`, `research-dependency-audit-20261025.json`, `source-acceptance-20261025.json` and final regression summaries. No secrets, raw private ledger or notification subscription were added to Git.
 
 Useful upstream sources: [Kraken trade protocol](https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade), [DuckDB](https://github.com/duckdb/duckdb), [bt](https://github.com/pmorissette/bt), [skfolio](https://github.com/skfolio/skfolio). The other shortlisted engines remain deferred where they duplicate existing capabilities or require missing data, broker access or compute budgets.
+
+## Persistent Mac observation
+
+`com.hajihaz.atlas.public-stream` runs `scripts/run_public_stream.mjs` through the existing user LaunchAgent installer. It reuses the tested public WebSocket adapter and continues independently of an open dashboard. It writes only a private, bounded `.atlas-runtime/public-stream.json` snapshot once per second. Observation time and provider event time remain distinct; stale prices become null. The writer coalesces slow writes, rejects symlink state paths and shuts down cleanly. It never accesses the INR ledger.
+
+The initial reinstall exposed a transient launchd EIO during process cleanup. The absent reporting observer was restored immediately, the installer received a three-attempt EIO-only retry, and artificial failure-injection tests verified the retry bound. A subsequent complete installation succeeded. Live restart checks verify source times continue advancing, the existing recorder remains PID 819, the 1,860 fills and both risk stops remain unchanged, and the saved notification key is preserved.
