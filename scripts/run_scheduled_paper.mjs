@@ -3,6 +3,7 @@
 // historical backfill. The state is a public virtual RESEARCH REPORT.
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {assertNextCloudSnapshot} from './paper_ledger_guard.mjs';
 import {auditGeneratedPaperFills} from './paper_generated_fill_audit.mjs';
 import {attachPaperDecisionEvidence,countPaperDecisionEvidence} from './paper_decision_evidence.mjs';
@@ -14,7 +15,11 @@ import {getChart} from '../frontend/api/market-history.js';
 import {getLiveFeed} from '../frontend/api/live-feed.js';
 import {advanceCloud,composeTwoHourCandles,failureState,recordUnverifiedFirstCheckpoint,MODE} from './scheduled_paper_engine.mjs';
 
-const OUTPUT=path.resolve('frontend/public/cloud-paper.json');
+const ownerOutput=process.argv.length===3&&process.argv[2]==='--owner-output';
+if(process.argv.length>2&&!ownerOutput)throw Error('Unknown checkpoint argument');
+const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const OUTPUT=ownerOutput?path.join(ROOT,'.atlas-runtime/published/cloud-paper.json'):
+ path.resolve('frontend/public/cloud-paper.json');
 const SYMBOL='BTCINR';
 const LIMIT_BYTES=100000;
 function isSeed(d){return d?.schema===1&&d?.mode===MODE&&

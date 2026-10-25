@@ -59,7 +59,7 @@ test('explicit device test stays separate from deadline alerts and requires an a
  let payload,calls=0;
  const send=async(s,body,options)=>{calls++;payload=JSON.parse(body);assert.equal(options.TTL,300);return {statusCode:201};};
  const sent=await store.testDelivery(device.id,{send});
- assert.equal(calls,1);assert.equal(payload.title,'Atlas notification test');
+ assert.equal(calls,1);assert.match(payload.title,/^Atlas notification test · [A-F0-9]{6}$/);
  assert.equal(sent.status,'accepted_by_push_service');assert.equal(sent.deviceConfirmed,false);
  assert.equal((await store.receipt(sent.receiptId)).deviceConfirmed,false);
  await assert.rejects(store.receipt('0'.repeat(64),{confirm:true}),/Unknown/);
@@ -67,6 +67,9 @@ test('explicit device test stays separate from deadline alerts and requires an a
  await assert.rejects(store.receipt(payload.receiptId,{confirm:true,proof:'0'.repeat(64)}),/Invalid device receipt proof/);
  assert.ok(!JSON.stringify(sent).includes(payload.receiptProof));
  assert.ok(!(await readFile(join(dir,'test-receipts.json'),'utf8')).includes(payload.receiptProof));
+ const displayed=await store.receipt(payload.receiptId,{confirm:true,proof:payload.receiptProof,stage:'displayed'});
+ assert.equal(displayed.browserDisplayed,true);assert.equal(displayed.deviceConfirmed,false);
+ assert.equal(displayed.status,'browser_notification_displayed');
  const clicked=await store.receipt(payload.receiptId,{confirm:true,proof:payload.receiptProof});
  assert.equal(clicked.deviceConfirmed,true);assert.equal(clicked.status,'device_notification_clicked');
  assert.deepEqual(await store.receipt(payload.receiptId,{confirm:true,proof:payload.receiptProof}),clicked);
@@ -101,10 +104,11 @@ test('service-worker click submits only the bounded receipt and opens the same-o
  handlers.notificationclick({notification:{close(){this.data=null;},data:{receiptId,receiptProof,url:'https://evil.invalid'}},
   waitUntil:promise=>{operation=promise;}});
  await operation;
- assert.equal(requests.length,1);assert.equal(requests[0].url,'/api/ipo-push');
- assert.deepEqual(JSON.parse(requests[0].options.body),{action:'receipt',receiptId,receiptProof});
+ assert.equal(requests.length,2);assert.equal(requests[0].url,'/api/ipo-push');
+ assert.deepEqual(JSON.parse(requests[0].options.body),{action:'displayed',receiptId,receiptProof});
+ assert.deepEqual(JSON.parse(requests[1].options.body),{action:'receipt',receiptId,receiptProof});
  assert.deepEqual(opened,[origin+'/#ipo']);
  handlers.notificationclick({notification:{close(){},data:{receiptId:'../keys.json'}},
   waitUntil:promise=>{operation=promise;}});
- await operation;assert.equal(requests.length,1);
+ await operation;assert.equal(requests.length,2);
 });

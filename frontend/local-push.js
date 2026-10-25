@@ -65,7 +65,7 @@ export function createPushStore(dir=DEFAULT_PUSH_DIRECTORY){
     await atomic(path,records);
     try{
      const response=await send(validateSubscription(row.subscription),JSON.stringify({
-      title:'Atlas notification test',body:'Test only. Tap this notification to confirm delivery on this device.',
+      title:'Atlas notification test · '+receiptId.slice(0,6).toUpperCase(),body:'Test only. Tap this notification to confirm delivery on this device.',
       tag:'atlas-test-'+receiptId,receiptId,receiptProof,url:'/#ipo',
      }),{TTL:300,timeout:8000,vapidDetails:{subject:'https://atlas-control-center-pi.vercel.app',...keys}});
      records[receiptId].status=response?.statusCode>=200&&response.statusCode<300?'accepted_by_push_service':'unconfirmed';
@@ -74,7 +74,7 @@ export function createPushStore(dir=DEFAULT_PUSH_DIRECTORY){
     return {receiptId,status:records[receiptId].status,deviceConfirmed:false};
    });
   },
-  async receipt(receiptId,{confirm=false,proof=null}={}){
+  async receipt(receiptId,{confirm=false,proof=null,stage='clicked'}={}){
    if(typeof receiptId!=='string'||!/^[a-f0-9]{64}$/.test(receiptId))throw Error('Invalid delivery receipt');
    return locked(dir,async()=>{
     const path=join(dir,'test-receipts.json'),records=await read(path,{}),record=records[receiptId];
@@ -84,10 +84,17 @@ export function createPushStore(dir=DEFAULT_PUSH_DIRECTORY){
        !timingSafeEqual(Buffer.from(createHash('sha256').update(proof).digest('hex')),Buffer.from(record.proofHash)))
       throw Error('Invalid device receipt proof');
      if(Date.now()-Date.parse(record.createdAt)>600000)throw Error('Delivery receipt expired');
-     record.deviceConfirmed=true;record.status='device_notification_clicked';
-     record.clickedAt??=new Date().toISOString();await atomic(path,records);
+     if(!['displayed','clicked'].includes(stage))throw Error('Invalid receipt stage');
+     if(stage==='displayed'){
+      record.browserDisplayed=true;record.displayedAt??=new Date().toISOString();
+      if(!record.deviceConfirmed)record.status='browser_notification_displayed';
+     }else{
+      record.deviceConfirmed=true;record.status='device_notification_clicked';
+      record.clickedAt??=new Date().toISOString();
+     }
+     await atomic(path,records);
     }
-    return {receiptId,status:record.status,deviceConfirmed:record.deviceConfirmed,clickedAt:record.clickedAt??null};
+    return {receiptId,status:record.status,deviceConfirmed:record.deviceConfirmed,browserDisplayed:record.browserDisplayed===true,displayedAt:record.displayedAt??null,clickedAt:record.clickedAt??null};
    });
   },
   async deliver(feed,{now=new Date(),send=webpush.sendNotification,enabled=false}={}){
@@ -107,7 +114,7 @@ export function createPushStore(dir=DEFAULT_PUSH_DIRECTORY){
      all[event]={status:'attempted',at:now.toISOString()};
      await atomic(path,all);attempted++;
      const payload=JSON.stringify({title:'Atlas IPO deadline: '+issue.company,
-       body:'Issue closes '+issue.closeDate+'. Verify issuer and broker cutoffs before applying.',
+       body:'The source calendar reports this issue closes '+issue.closeDate+'. Verify issuer and broker cutoffs before applying.',
        tag:'atlas-ipo-'+createHash('sha256').update(event).digest('hex').slice(0,24),url:'/#ipo'});
      try{
       const result=await send(validateSubscription(row.subscription),payload,{TTL:3600,timeout:8000,
@@ -143,7 +150,8 @@ export async function handlePushRequest(req,res,store=createPushStore()){
   for await(const chunk of req){bytes+=chunk.length;if(bytes>8192)return answer(413,{error:'body_too_large'});text+=chunk.toString('utf8');}
   let input;try{input=JSON.parse(text);}catch{return answer(400,{error:'invalid_json'});}
   // A notification click proves possession of its encrypted 256-bit receipt capability.
-  if(input?.action==='receipt')return answer(200,await store.receipt(input.receiptId,{confirm:true,proof:input.receiptProof}));
+  if(['receipt','displayed'].includes(input?.action))return answer(200,await store.receipt(input.receiptId,{
+   confirm:true,proof:input.receiptProof,stage:input.action==='displayed'?'displayed':'clicked'}));
   const token=req.headers['x-atlas-push-pairing'];
   if(typeof token!=='string'||token.length!==nonce.length||Date.now()>nonceExpires||
     !timingSafeEqual(Buffer.from(token),Buffer.from(nonce)))return answer(403,{error:'pairing_required'});

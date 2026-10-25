@@ -49,7 +49,9 @@ test('the frontend shows stale instead of displaying expired GMP and alerting re
  assert.match(ui,/const currentGmp=recentGmp\(issue,stale\)/);
  assert.match(ui,/browserDeadlineCandidates\(issues,stale,now\)/);
  assert.match(ui,/currentDemand\?multiple\(issue\.subscription\.total\):'Stale/);
- assert.match(ui,/stale\?'stored NSE snapshot; current feed unverified':'NSE snapshot current'/);
+ assert.match(ui,/stale\?'Stored snapshot; current data unverified':feed.coverage.mainboard/);
+ assert.match(ui,/PUBLISHER SNAPSHOT/);
+ assert.match(ui,/publisher aggregates require exchange or issuer confirmation/);
  assert.doesNotMatch(ui,/Mainboard: NSE feed connected/);
  assert.doesNotMatch(ui,/for\(const i of feed\.issues\).*new Notification/);
 });

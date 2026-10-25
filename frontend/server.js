@@ -2,6 +2,9 @@
 // It binds only to loopback and exposes a fixed route allowlist; it is never a
 // broker, order, or production server.
 import http from 'node:http';
+import {readFile,lstat} from 'node:fs/promises';
+import {validatePrivateCloudSnapshot} from './api/cloud-paper.js';
+import {validatePublisherIpoSnapshot} from './src/lib/publisherIpoValidation.js';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {handlePushRequest} from './local-push.js';
@@ -45,6 +48,25 @@ async function localPaper(request,response){
   response.end(JSON.stringify(data));
  }catch{response.writeHead(503);response.end(JSON.stringify({error:'owner_local_paper_unavailable'}));}
 }
+async function ownerSnapshot(request,response,kind){
+ response.setHeader('Cache-Control','no-store');response.setHeader('X-Content-Type-Options','nosniff');
+ response.setHeader('Content-Type','application/json');
+ if(request.method!=='GET'){response.writeHead(405,{'Allow':'GET'});response.end(JSON.stringify({error:'method_not_allowed'}));return;}
+ try{
+  const host=new URL('http://'+request.headers.host);
+  if(!['127.0.0.1','localhost'].includes(host.hostname)||Number(host.port||80)!==request.socket.localPort)throw Error();
+  if(request.headers.origin&&!['127.0.0.1','localhost'].includes(new URL(request.headers.origin).hostname))throw Error();
+  const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+  const folder=path.join(root,'.atlas-runtime'),subfolder=kind==='paper'?path.join(folder,'published'):folder;
+  const file=path.join(subfolder,kind==='paper'?'cloud-paper.json':'ipo-feed.json');
+  if((await lstat(folder)).isSymbolicLink()||(await lstat(subfolder)).isSymbolicLink())throw Error();
+  const info=await lstat(file);
+  if(info.isSymbolicLink()||!info.isFile()||info.size>500000)throw Error();
+  const data=JSON.parse(await readFile(file,'utf8'));
+  (kind==='paper'?validatePrivateCloudSnapshot:validatePublisherIpoSnapshot)(data);
+  response.end(JSON.stringify(data));
+ }catch{response.writeHead(503);response.end(JSON.stringify({error:'owner_snapshot_unavailable'}));}
+}
 export function createLocalApiServer({serveBuild=false}={}) {
   return http.createServer(async (request, response) => {
     // Match the raw path, not URL's normalized pathname, to reject traversal
@@ -53,6 +75,8 @@ export function createLocalApiServer({serveBuild=false}={}) {
     if(rawPath==='/api/ipo-push'){await handlePushRequest(request,response);return;}
     if(serveBuild&&!rawPath.startsWith('/api/')){await serveOwnerBuild(request,response);return;}
     if(rawPath==='/api/local-paper'){await localPaper(request,response);return;}
+    if(rawPath==='/api/ipo-feed'){await ownerSnapshot(request,response,'ipo');return;}
+    if(rawPath==='/api/cloud-paper'){await ownerSnapshot(request,response,'paper');return;}
     if (!Object.hasOwn(ROUTES, rawPath)) {
       response.writeHead(404, { 'Content-Type': 'application/json', 'X-Content-Type-Options': 'nosniff' });
       response.end(JSON.stringify({ error: 'not_found' }));

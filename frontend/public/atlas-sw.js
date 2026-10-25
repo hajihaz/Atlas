@@ -3,11 +3,20 @@ self.addEventListener('push',event=>{
  let input;try{input=event.data.json();}catch{return;}
  if(!input||typeof input.title!=='string'||!input.title.startsWith('Atlas ')||
    typeof input.body!=='string'||typeof input.tag!=='string')return;
- event.waitUntil(self.registration.showNotification(input.title.slice(0,160),{
+ event.waitUntil((async()=>{
+ await self.registration.showNotification(input.title.slice(0,160),{
   body:input.body.slice(0,500),tag:input.tag.slice(0,100),data:{url:'/#ipo',
    receiptId:typeof input.receiptId==='string'&&/^[a-f0-9]{64}$/.test(input.receiptId)?input.receiptId:null,
    receiptProof:typeof input.receiptProof==='string'&&/^[a-f0-9]{64}$/.test(input.receiptProof)?input.receiptProof:null}
- }));
+ });
+ // The browser accepting showNotification is a separate stage from an OS-visible
+ // notification or an actual click. The receipt capability is never exposed to the UI.
+ if(typeof input.receiptId==='string'&&/^[a-f0-9]{64}$/.test(input.receiptId)&&
+    typeof input.receiptProof==='string'&&/^[a-f0-9]{64}$/.test(input.receiptProof)){
+  try{await fetch('/api/ipo-push',{method:'POST',credentials:'omit',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({action:'displayed',receiptId:input.receiptId,receiptProof:input.receiptProof})});}catch{}
+ }
+ })());
 });
 self.addEventListener('notificationclick',event=>{
  // Capture payload before closing; do not depend on the host retaining closed notification data.

@@ -42,6 +42,11 @@ def payloads() -> dict[str, dict]:
                 "PATH": "/opt/homebrew/opt/node@24/bin:/opt/homebrew/bin:/usr/bin:/bin",
                 "PYTHONUNBUFFERED": "1",
                 "ATLAS_PAPER_RISK_GUARD": "1",
+                **(
+                    {"ATLAS_IPO_ALERTS_APPROVED": "1"}
+                    if label == "com.hajihaz.atlas.owner-observer"
+                    else {}
+                ),
             },
             "RunAtLoad": True,
             "KeepAlive": True,
@@ -74,8 +79,11 @@ def bootstrap_agent(domain: str, dest: Path) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--install", action="store_true")
+    parser.add_argument("--only", choices=JOBS)
     args = parser.parse_args()
     jobs = payloads()
+    if args.only:
+        jobs = {args.only: jobs[args.only]}
     if not args.install:
         print(json.dumps(jobs, indent=2))
         return 0
@@ -83,7 +91,8 @@ def main() -> int:
         raise RuntimeError("macOS user LaunchAgents required")
     if not (ROOT / "frontend/dist/index.html").is_file():
         raise RuntimeError("Verified production build required")
-    for _label, argv in JOBS.items():
+    for value in jobs.values():
+        argv = value["ProgramArguments"]
         if not Path(argv[0]).is_file():
             raise RuntimeError("Pinned runtime missing")
     STATE.mkdir(mode=0o700, exist_ok=True)

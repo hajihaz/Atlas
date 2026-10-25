@@ -14,7 +14,8 @@ export type IpoIssue = {
   newsStatus?:string;
   source:string;detailSource:string;bidDeadline:string|null;mandateDeadline:string|null;
   registrar?:string|null;rhpUrl?:string|null;priceJustificationUrl?:string|null;
-  sourceObservedAt?:string|null;sourceStale?:boolean;
+  sourceObservedAt?:string|null;sourceStale?:boolean;sourceUpdatedAt?:string|null;
+  sourceKind?:'PUBLISHER_AGGREGATE';subscriptionAsOf?:string|null;
 };
 export type IpoFinancials={
   revenueGrowthPct:number|null;profitMarginPct:number|null;debtEquity:number|null;source:string;asOf:string;
@@ -57,7 +58,7 @@ export function mergePrimaryResearch(issues:IpoIssue[], input:unknown):IpoIssue[
   });
 }
 export type IpoAccuracy = {schemaVersion:1;source:string;license:string;generatedAt:string;totalPublished:number;sourceDirectionAccuracyPct:number|null;sourceAverageAbsoluteErrorPctPoints:number|null;scopeWarning:string;rows:{company:string;board:string;listedOn:string;predictedPct:number;actualPct:number;priceIssue:number|null;priceListing:number|null}[]};
-export type IpoFeed={schemaVersion:1;generatedAt:string|null;sourceName:string;sourceURL:string;coverage:{mainboard:string;sme:string};issues:IpoIssue[];warnings:string[]};
+export type IpoFeed={schemaVersion:1;generatedAt:string|null;sourceName:string;sourceURL:string;coverage:{mainboard:string;sme:string};issues:IpoIssue[];warnings:string[];sourceKind?:'PUBLISHER_AGGREGATE';disclaimer?:string;attributions?:{name:string;url:string}[]};
 export const EMPTY_FEED:IpoFeed={schemaVersion:1,generatedAt:null,sourceName:'NSE',sourceURL:'https://www.nseindia.com/market-data/all-upcoming-issues-ipo',coverage:{mainboard:'Not verified',sme:'Not verified'},issues:[],warnings:[]};
 export function validFeed(value:unknown): value is IpoFeed {
   if(!value||typeof value!=='object')return false;
@@ -92,7 +93,13 @@ export function issueSourceStale(issue:IpoIssue,now=new Date()):boolean {
   const time=Date.parse(issue.sourceObservedAt);
   return !Number.isFinite(time)|| now.getTime()-time > 180*60000 || time>now.getTime()+60000;
 }
-/** Exchange observations and unofficial GMP must expire independently. */
+/** Publisher demand, calendar observations and unofficial GMP expire independently. */
+export function subscriptionDataFresh(issue:IpoIssue,feedStale:boolean,now=new Date()):boolean{
+ if(!issueDataFresh(issue,feedStale,now))return false;
+ if(issue.sourceKind!=='PUBLISHER_AGGREGATE')return true;
+ const at=Date.parse(issue.subscriptionAsOf||'');
+ return Number.isFinite(at)&&now.getTime()-at<=180*60000&&at<=now.getTime()+60000;
+}
 export function issueDataFresh(issue:IpoIssue,feedStale:boolean,now=new Date()):boolean{
   return !feedStale&&!issueSourceStale(issue,now);
 }
@@ -136,7 +143,7 @@ export function recommendation(i:IpoIssue,stale:boolean,now=new Date()):{label:s
   const stage=effectiveStatus(i,now);
   if(stage==='CLOSED')return {label:'APPLICATION CLOSED',reason:'The bidding period has ended. Allotment and actual listing performance still require registrar/exchange confirmation.',score:null,tone:'neutral'};
   if(stage==='UPCOMING')return {label:'PRE-OPEN WATCH',reason:'The issue is not open for bidding. Read the prospectus and check the final price, valuation and offer risks before applying.',score:null,tone:'neutral'};
-  if(stale||issueSourceStale(i,now))return {label:'SOURCE STALE',reason:'Latest verified exchange snapshot is too old to assess current demand.',score:null,tone:'warning'};
+  if(stale||issueSourceStale(i,now))return {label:'SOURCE STALE',reason:'The source snapshot is too old to assess current demand.',score:null,tone:'warning'};
   if(i.financials===null)return {label:'HOLD — DO NOT APPLY YET',reason:'Verified issuer financials, valuation and prospectus risk review are missing. Subscription multiples alone cannot support a reliable Apply decision. Wait for a complete risk assessment.',score:null,tone:'warning'};
   const f=i.financials;
   if(f.investmentDecision==='HOLD_FOR_VALUATION_REVIEW' || f.valuationVerified===false || f.peerComparisonVerified===false){

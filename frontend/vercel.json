@@ -29,5 +29,10 @@
       ]
     }
   ],
-  "ignoreCommand": "node vercel-ignore.mjs"
+  "ignoreCommand": "node vercel-ignore.mjs",
+  "git": {
+    "deploymentEnabled": {
+      "data/atlas-runtime": false
+    }
+  }
 }

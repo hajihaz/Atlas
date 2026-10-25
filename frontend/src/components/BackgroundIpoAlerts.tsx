@@ -1,21 +1,32 @@
 import {useEffect,useState} from 'react';
+const RECEIPT_KEY='atlas.ipo.test-receipt.v1';
+function pendingReceipt(){
+ try{const value=JSON.parse(sessionStorage.getItem(RECEIPT_KEY)||'null');
+  return value&&/^[a-f0-9]{64}$/.test(value.id)&&typeof value.at==='number'&&
+   Date.now()-value.at>=0&&Date.now()-value.at<600000?value.id as string:'';
+ }catch{return '';}
+}
 export default function BackgroundIpoAlerts(){
  const [status,setStatus]=useState(''),[busy,setBusy]=useState(false);
  const [device,setDevice]=useState<{id:string;pairing:string}|null>(null);
- const [receiptId,setReceiptId]=useState('');
+ const [receiptId,setReceiptId]=useState(pendingReceipt);
  useEffect(()=>{
   if(!receiptId)return;
-  let active=true,loading=false;
+  let active=true,loading=false,displayNoted=false;
   const controller=new AbortController();
   const check=async()=>{
    if(loading)return;loading=true;
    try{
     const response=await fetch('/api/ipo-push?receipt='+encodeURIComponent(receiptId),{
      cache:'no-store',credentials:'omit',signal:controller.signal});
-    const receipt=await response.json() as {deviceConfirmed?:boolean;status?:string};
+    const receipt=await response.json() as {deviceConfirmed?:boolean;browserDisplayed?:boolean;status?:string};
     if(active&&response.ok&&receipt.deviceConfirmed===true&&receipt.status==='device_notification_clicked'){
-     setStatus('Test notification clicked on this device. Deadline reminders still need fresh approved IPO data and the Mac sender.');
+     setStatus('Test notification clicked on this device. Deadline reminders need fresh IPO data and the Mac sender online.');
+     try{sessionStorage.removeItem(RECEIPT_KEY);}catch{}
      setReceiptId('');
+    }else if(active&&response.ok&&receipt.browserDisplayed===true&&!displayNoted){
+     displayNoted=true;
+     setStatus('The browser displayed the test notification. Check Notification Centre and tap it to confirm device interaction.');
     }
    }catch{}finally{loading=false;}
   };
@@ -35,7 +46,7 @@ export default function BackgroundIpoAlerts(){
     throw Error('Notification setup could not be verified.');
    const permission=await Notification.requestPermission();
    if(permission!=='granted')throw Error('Notification permission is required.');
-   const registration=await navigator.serviceWorker.register('/atlas-sw.js?atlas-receipts=2',{
+   const registration=await navigator.serviceWorker.register('/atlas-sw.js?atlas-receipts=3',{
     scope:'/',updateViaCache:'none'});
    await registration.update();
    const worker=registration.installing??registration.waiting??registration.active;
@@ -73,6 +84,7 @@ export default function BackgroundIpoAlerts(){
     body:JSON.stringify({action:'test',id:device.id})});
    const result=await response.json() as {receiptId:string;status:string};
    if(!response.ok||!result.receiptId)throw Error('Test unavailable. Reconnect the device, or wait one minute after the previous test.');
+   try{sessionStorage.setItem(RECEIPT_KEY,JSON.stringify({id:result.receiptId,at:Date.now()}));}catch{}
    setReceiptId(result.receiptId);
    setStatus(result.status==='accepted_by_push_service'
     ?'Push service accepted the test. Tap the notification on your device to confirm actual delivery.'

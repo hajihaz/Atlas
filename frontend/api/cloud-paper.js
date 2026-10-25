@@ -3,6 +3,7 @@
 // It is a fixed-path GET-only mirror of already-public virtual research ledger data,
 // not an order / trading endpoint. Never include source, auth, or upstream errors in responses.
 import {buildCloudPaperSummary} from '../src/lib/cloudPaperDaybook.js';
+import {configuredArtifactRef,RUNTIME_DATA_REF} from '../src/lib/privateArtifact.js';
 const SOURCE='https://api.github.com/repos/hajihaz/Atlas/contents/frontend/public/cloud-paper.json?ref=';
 export const APPROVED_PREVIEW_REF='haor/atlas-runtime-completion-20261024';
 const MAX_BYTES=140_000;
@@ -43,7 +44,7 @@ export async function getPrivateCloudSnapshot({
 }={}){
  if(typeof token!=='string'||token.trim().length<20)
   throw Error('private_paper_source_not_configured');
- if(!['main',APPROVED_PREVIEW_REF].includes(ref))throw Error('invalid_paper_source_ref');
+ if(!['main',APPROVED_PREVIEW_REF,RUNTIME_DATA_REF].includes(ref))throw Error('invalid_paper_source_ref');
  const controller=new AbortController();
  const timer=setTimeout(()=>controller.abort(),timeoutMs);
  try{
@@ -74,8 +75,7 @@ export default async function handler(req,res){
   // client-side tokens. Require repository-scoped Contents:read credentials.
   const snapshot=await getPrivateCloudSnapshot({
    token:process.env.ATLAS_PAPER_READ_TOKEN,
-   ref:process.env.VERCEL_ENV==='preview'&&process.env.VERCEL_GIT_COMMIT_REF===APPROVED_PREVIEW_REF
-    ?APPROVED_PREVIEW_REF:'main',
+   ref:configuredArtifactRef(),
   });
   // Retain old evidence, but never cache an overdue checkpoint as a fresh response.
   if(Date.now()-Date.parse(snapshot.lastRunAt)<=5*3600000)

@@ -231,12 +231,28 @@ def main():
     parser = argparse.ArgumentParser(
         description="Offline/verified snapshot IPO briefing for ChatGPT"
     )
-    parser.add_argument("--feed", type=Path, default=DEFAULT_FEED)
+    parser.add_argument("--feed", type=Path)
     parser.add_argument("--research", type=Path, default=DEFAULT_RESEARCH)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
     try:
-        feed = json.loads(args.feed.read_text("utf-8"))
+        if args.feed:
+            feed = json.loads(args.feed.read_text("utf-8"))
+        else:
+            candidates = []
+            for path in [ROOT / ".atlas-runtime/ipo-feed.json", DEFAULT_FEED]:
+                try:
+                    if path.is_symlink() or path.stat().st_size > 500_000:
+                        continue
+                    item = json.loads(path.read_text("utf-8"))
+                    timestamp = parse_time(item.get("generatedAt"))
+                    if timestamp and timestamp <= datetime.now(UTC) + timedelta(minutes=1):
+                        candidates.append((timestamp, item))
+                except (OSError, ValueError, TypeError):
+                    continue
+            if not candidates:
+                raise ValueError("No attributable snapshot available")
+            feed = max(candidates, key=lambda item: item[0])[1]
         research = json.loads(args.research.read_text("utf-8")) if args.research.is_file() else None
         result = build_report(feed, research)
         print(
