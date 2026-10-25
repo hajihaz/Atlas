@@ -215,23 +215,25 @@ def publish(code_sha):
         journal.update(status="published", reconciledAt=datetime.now(UTC).isoformat())
         atomic(journal_path, journal)
         return {"status": "published_reconciled", "commit": candidate}
-    if remote and remote == journal.get("candidate") and journal.get("codeSha") == code_sha:
-        published_at = journal.get("publishedAt") or journal.get("reconciledAt")
-        if (
-            published_at
-            and datetime.now(UTC).timestamp() - datetime.fromisoformat(published_at).timestamp()
-            < 1800
-        ):
-            return {"status": "already_current", "commit": remote}
+    files = snapshots(code_sha)
+    digests = json.loads(files["frontend/public/runtime-publication.json"])["sha256"]
+    if (
+        remote
+        and remote == journal.get("candidate")
+        and journal.get("codeSha") == code_sha
+        and journal.get("sha256") == digests
+    ):
+        return {"status": "already_current", "commit": remote}
     if remote:
         check_existing_branch(remote)
-    candidate = create_commit(snapshots(code_sha), remote)
+    candidate = create_commit(files, remote)
     journal = {
         "status": "push_attempted",
         "candidate": candidate,
         "parent": remote,
         "codeSha": code_sha,
         "attemptedAt": datetime.now(UTC).isoformat(),
+        "sha256": digests,
     }
     atomic(journal_path, journal)
     git("push", "origin", candidate + ":" + REF, timeout=40)
@@ -240,6 +242,36 @@ def publish(code_sha):
     journal.update(status="published", publishedAt=datetime.now(UTC).isoformat())
     atomic(journal_path, journal)
     return {"status": "published", "commit": candidate}
+
+
+def checkpoint_plan(previous, schedule, now):
+    """Check completed 2h candles inside the existing 90-minute freshness gate.
+
+    Five-minute settlement grace, no off-phase attempts, and at most three
+    source-failure attempts per candle window. This never creates catch-up fills.
+    """
+    closed_epoch = int(now.timestamp() // 7200) * 7200
+    phase = now.timestamp() - closed_epoch
+    if not 300 <= phase <= 85 * 60:
+        return None
+    window = datetime.fromtimestamp(closed_epoch, UTC).isoformat()
+    last_run = datetime.fromisoformat(previous["lastRunAt"].replace("Z", "+00:00"))
+    if last_run.tzinfo is None:
+        raise ValueError("Paper checkpoint has no source timezone")
+    if last_run.timestamp() >= closed_epoch + 300 and previous.get("status") != "DEGRADED":
+        return None
+    attempts = schedule.get("attempts", 0) if schedule.get("windowClosedAt") == window else 0
+    if type(attempts) is not int or not 0 <= attempts <= 3:
+        raise ValueError("Invalid checkpoint attempt journal")
+    if attempts >= 3:
+        return None
+    if attempts:
+        last_attempt = datetime.fromisoformat(schedule["lastAttemptAt"])
+        if last_attempt.tzinfo is None or last_attempt.timestamp() > now.timestamp() + 30:
+            raise ValueError("Invalid checkpoint attempt timestamp")
+        if (now - last_attempt).total_seconds() < 300:
+            return None
+    return {"windowClosedAt": window, "attempts": attempts + 1, "lastAttemptAt": now.isoformat()}
 
 
 def cycle():
@@ -257,11 +289,14 @@ def cycle():
         if initial_check:
             atomic(paper_path, json.loads((ROOT / "frontend/public/cloud-paper.json").read_text()))
         old = json.loads(paper_path.read_text())
-        elapsed = (
-            datetime.now(UTC).timestamp()
-            - datetime.fromisoformat(old["lastRunAt"].replace("Z", "+00:00")).timestamp()
-        )
-        if initial_check or elapsed >= 2 * 3600:
+        schedule_path = STATE / "publisher-checkpoint-schedule.json"
+        if schedule_path.is_symlink():
+            raise ValueError("Unsafe checkpoint attempt journal")
+        schedule = json.loads(schedule_path.read_text()) if schedule_path.exists() else {}
+        plan = checkpoint_plan(old, schedule, datetime.now(UTC))
+        if plan:
+            # Reserve before network I/O; restarts cannot create a retry burst.
+            atomic(schedule_path, plan)
             output = run(
                 [NODE, str(ROOT / "scripts/run_scheduled_paper.mjs"), "--owner-output"], timeout=100
             )
@@ -347,8 +382,9 @@ def main():
                 raise
         if not args.loop:
             return
-        # No catch-up bursts. Refresh hourly; missed model intervals stay explicit.
-        STOP.wait(3600)
+        # Wake for completed-candle windows; provider responses remain hourly cached.
+        # Unchanged artifact digests do not generate commits or app deployments.
+        STOP.wait(300)
 
 
 if __name__ == "__main__":

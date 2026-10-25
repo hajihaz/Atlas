@@ -74,6 +74,25 @@ def atomic(path, value):
         Path(temp).unlink(missing_ok=True)
 
 
+def ambiguous_instrument_or_units(row):
+    """Conservative quarantine, not an assertion of an issuer's legal eligibility.
+
+    The publisher mixes some social/debt and sub-rupee/unit-ambiguous records into
+    its IPO list. Such rows need independently verified equity terms before use.
+    """
+    name = str(row.get("name") or "")
+    symbol = str(row.get("symbol") or "")
+    if re.search(r"\b(?:ZCZP|NCD|debentures?|bonds?)\b", name, re.IGNORECASE):
+        return True
+    if row.get("lotSize") is None and re.fullmatch(r"[A-Z]{2,}[GN]\d{2}", symbol):
+        return True
+    prices = [row.get("priceMin"), row.get("priceMax")]
+    return any(
+        isinstance(value, (int, float)) and not isinstance(value, bool) and 0 <= value < 1
+        for value in prices
+    )
+
+
 def build_snapshot(data, *, observed_at, gmp_data=None, previous=None, now=None):
     now = now or datetime.now(UTC)
     observed = stamp(observed_at)
@@ -106,7 +125,7 @@ def build_snapshot(data, *, observed_at, gmp_data=None, previous=None, now=None)
             )
     issues = []
     identities = set()
-    excluded = {"undated": 0, "conflicted": 0, "outsideWindow": 0, "invalid": 0}
+    excluded = {"undated": 0, "conflicted": 0, "outsideWindow": 0, "quarantined": 0, "invalid": 0}
     today = now.astimezone(ZoneInfo("Asia/Kolkata")).date()
     for row in data["ipos"]:
         if not isinstance(row, dict):
@@ -128,6 +147,9 @@ def build_snapshot(data, *, observed_at, gmp_data=None, previous=None, now=None)
         lifecycle = row.get("lifecycle")
         if not isinstance(lifecycle, dict) or lifecycle.get("conflicted") is not False:
             excluded["conflicted"] += 1
+            continue
+        if ambiguous_instrument_or_units(row):
+            excluded["quarantined"] += 1
             continue
         board, status = row.get("board"), str(row.get("status", "")).upper()
         name, slug = row.get("name"), row.get("slug")
@@ -250,6 +272,7 @@ def build_snapshot(data, *, observed_at, gmp_data=None, previous=None, now=None)
             data["disclaimer"],
             "Calendar, price and demand are publisher aggregates; not exchange-verified.",
             "GMP Today is a three-issue CC BY 4.0 sample, not full-market coverage.",
+            "Ambiguous security types and sub-rupee price units require primary confirmation.",
             "No bid/UPI cutoff, allotment or listing date is inferred from calendar dates.",
             "Excluded source rows: " + json.dumps(excluded, sort_keys=True),
         ]

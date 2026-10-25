@@ -31,6 +31,7 @@ test('ambiguous identities, impossible dates and inferred bid cutoffs are refuse
   f=>f.issues[0].bidDeadline='2026-10-29T17:00:00+05:30',
   f=>f.issues[0].sourceObservedAt='2026-10-25T06:01:00Z',
   f=>f.issues[0].gmp=Infinity,
+  f=>f.issues[0].priceMin=0.17,
   f=>f.disclaimer='',
   f=>f.attributions[0].url='javascript:alert(1)',
  ]){const f=fixture();mutate(f);assert.throws(()=>validatePublisherIpoSnapshot(f,now));}

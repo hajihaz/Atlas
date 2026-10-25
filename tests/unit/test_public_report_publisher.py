@@ -58,6 +58,15 @@ class PublicReportPublisherTests(unittest.TestCase):
             )
             with (
                 patch.object(publisher, "remote_head", return_value="a" * 40),
+                patch.object(
+                    publisher,
+                    "snapshots",
+                    return_value={
+                        "frontend/public/runtime-publication.json": json.dumps(
+                            {"sha256": {"paper": "digest", "ipo": "digest"}}
+                        )
+                    },
+                ),
                 patch.object(publisher, "git") as git,
             ):
                 result = publisher.publish("c" * 40)
@@ -116,13 +125,65 @@ class PublicReportPublisherTests(unittest.TestCase):
                         "candidate": "a" * 40,
                         "codeSha": "c" * 40,
                         "publishedAt": datetime.now(UTC).isoformat(),
+                        "sha256": {"paper": "digest", "ipo": "digest"},
                     }
                 )
             )
             with (
                 patch.object(publisher, "remote_head", return_value="a" * 40),
+                patch.object(
+                    publisher,
+                    "snapshots",
+                    return_value={
+                        "frontend/public/runtime-publication.json": json.dumps(
+                            {"sha256": {"paper": "digest", "ipo": "digest"}}
+                        )
+                    },
+                ),
                 patch.object(publisher, "git") as git,
             ):
                 result = publisher.publish("c" * 40)
             self.assertEqual(result["status"], "already_current")
             git.assert_not_called()
+
+    def test_new_candle_is_checked_after_settlement_not_at_the_old_phase(self):
+        previous = {"lastRunAt": "2026-10-25T05:58:00Z", "status": "DEGRADED"}
+        for hour, minute in [(5, 58), (6, 4), (7, 30), (7, 58)]:
+            with self.subTest(hour=hour, minute=minute):
+                self.assertIsNone(
+                    publisher.checkpoint_plan(
+                        previous, {}, datetime(2026, 10, 25, hour, minute, tzinfo=UTC)
+                    )
+                )
+        plan = publisher.checkpoint_plan(previous, {}, datetime(2026, 10, 25, 6, 5, tzinfo=UTC))
+        self.assertEqual(plan["windowClosedAt"], "2026-10-25T06:00:00+00:00")
+        self.assertEqual(plan["attempts"], 1)
+
+    def test_source_retries_are_spaced_and_bounded_without_relaxing_source_age(self):
+        previous = {"lastRunAt": "2026-10-25T06:05:00Z", "status": "DEGRADED"}
+        schedule = {
+            "windowClosedAt": "2026-10-25T06:00:00+00:00",
+            "attempts": 1,
+            "lastAttemptAt": "2026-10-25T06:05:00+00:00",
+        }
+        self.assertIsNone(
+            publisher.checkpoint_plan(previous, schedule, datetime(2026, 10, 25, 6, 9, tzinfo=UTC))
+        )
+        second = publisher.checkpoint_plan(
+            previous, schedule, datetime(2026, 10, 25, 6, 10, tzinfo=UTC)
+        )
+        self.assertEqual(second["attempts"], 2)
+        self.assertIsNone(
+            publisher.checkpoint_plan(
+                previous, {**second, "attempts": 3}, datetime(2026, 10, 25, 6, 20, tzinfo=UTC)
+            )
+        )
+
+    def test_successful_window_is_not_repeated_and_a_later_window_can_run(self):
+        previous = {"lastRunAt": "2026-10-25T06:05:10Z", "status": "RUNNING"}
+        self.assertIsNone(
+            publisher.checkpoint_plan(previous, {}, datetime(2026, 10, 25, 6, 10, tzinfo=UTC))
+        )
+        self.assertIsNotNone(
+            publisher.checkpoint_plan(previous, {}, datetime(2026, 10, 25, 8, 5, tzinfo=UTC))
+        )

@@ -25,6 +25,7 @@ export function validatePublisherIpoSnapshot(f,now=Date.now()){
    i.detailSource!=='https://www.xflot.com/api-docs'||i.financials!==null||
    ![i.priceMin,i.priceMax,i.lotSize,...Object.values(i.subscription??{})].every(optional)||
    !i.subscription||!['qib','nii','retail','individual','total'].every(k=>Object.hasOwn(i.subscription,k))||
+   i.priceMin!==null&&i.priceMin<1||i.priceMax!==null&&i.priceMax<1||
    i.priceMin!==null&&i.priceMax!==null&&i.priceMin>i.priceMax||
    i.lotSize!==null&&(!Number.isSafeInteger(i.lotSize)||i.lotSize<=0)||
    !Array.isArray(i.news)||i.news.length>5||

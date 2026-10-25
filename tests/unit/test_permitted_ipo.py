@@ -148,3 +148,12 @@ class PermittedPublisherTests(unittest.TestCase):
             )
             _, actual = ipo.cached_fetch(ipo.XFLOT, path, now=self.now)
             self.assertEqual(actual, observed)
+
+    def test_ambiguous_security_types_and_price_units_are_quarantined(self):
+        fractional = {**self.row, "slug": "fractional-ipo", "priceMin": 0.17, "priceMax": 0.18}
+        social = {**self.row, "name": "Example Foundation - ZCZP", "slug": "social-issue"}
+        series = {**self.row, "symbol": "EXAG04", "lotSize": None, "slug": "series-issue"}
+        result = self.build(self.feed(self.row, fractional, social, series))
+        self.assertEqual(len(result["issues"]), 1)
+        self.assertEqual(result["sourceCoverage"]["excluded"]["quarantined"], 3)
+        self.assertEqual(result["issues"][0]["id"], "EXAMPLE")
