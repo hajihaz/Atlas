@@ -1,4 +1,6 @@
 import BackgroundIpoAlerts from './BackgroundIpoAlerts';
+import IpoIssuerResearch from './IpoIssuerResearch';
+import {mergeIssuerReviews} from '../lib/ipoIssuerResearch';
 import {useCallback,useEffect,useMemo,useState} from 'react';
 import {ArrowUpRight,BellRing,CalendarDays,CheckCircle2,Clock3,ExternalLink,Info,Search,ShieldAlert,TrendingUp,Wallet,X} from 'lucide-react';
 import {ApplicationState,Board,EMPTY_FEED,effectiveStatus,feedAgeMinutes,formatInr,indiaToday,issueSourceStale,issueDataFresh,subscriptionDataFresh,recentGmp,browserDeadlineCandidates,officialAllotmentLinks,IpoFeed,IpoIssue,IpoAccuracy,minimumApplication,applicationBudgetPlan,mergePrimaryResearch,recommendation,validFeed} from '../lib/ipoIntelligence';
@@ -39,7 +41,8 @@ function Detail({issue,stale,tracking,setTracking,onClose}:{issue:IpoIssue;stale
     <div className="ipo-metric-box"><h3>Grey market and fundamentals</h3><div><span>Unofficial GMP</span><strong>{currentGmp?formatInr(currentGmp.gmp):issue.gmp===null?'Not quoted':'Quote stale'}</strong></div>
     <div><span>GMP timestamp</span><strong>{currentGmp?new Date(currentGmp.asOf).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',dateStyle:'short',timeStyle:'short'}):'Unavailable / expired'}</strong></div>
     <div><span>GMP source disagreement</span><strong>{currentGmp?(currentGmp.disputed?'DISPUTED ⚠':'No wide divergence flagged'):'No current reading'}</strong></div>
-    <div><span>Implied premium / issue price</span><strong>{!currentGmp||issue.gmpEstimatedGainPct===null||issue.gmpEstimatedGainPct===undefined?'—':issue.gmpEstimatedGainPct.toFixed(2)+'% (not a forecast)'}</strong></div><div><span>Company financials</span><strong>{issue.financials?'Source supplied':'Not verified'}</strong></div><div><span>Valuation and RHP review</span><strong>Required</strong></div><div><span>News verification</span><strong>{issue.news.length?issue.news.length+' entries':'Not connected'}</strong></div></div></div>
+    <div><span>Implied premium / issue price</span><strong>{!currentGmp||issue.gmpEstimatedGainPct===null||issue.gmpEstimatedGainPct===undefined?'—':issue.gmpEstimatedGainPct.toFixed(2)+'% (not a forecast)'}</strong></div><div><span>Company financials</span><strong>{issue.issuerReview?.stage==='CURRENT_RHP'?'Filing reviewed':issue.financials?'Source supplied':'Not verified'}</strong></div><div><span>Independent valuation</span><strong>Required</strong></div><div><span>News verification</span><strong>{issue.news.length?issue.news.length+' entries':'Not connected'}</strong></div></div></div>
+    <IpoIssuerResearch issue={issue} stale={stale}/>
     {issue.financials?.sourcePages?.length&&<section className="ipo-financial-panel">
       <div className="ipo-primary-label"><div><div className="ipo-eyebrow">SEBI-FILED ISSUER DISCLOSURES</div><h3>Financials &amp; disclosed risks</h3><p>{issue.financials.fiscalLabel||'Issuer-reported results'} · {issue.financials.units||'See official source'} · not independent valuation research</p></div><a href={issue.financials.source} className="ipo-source-link" target="_blank" rel="noopener noreferrer">Official SEBI PDF · pp. {issue.financials.sourcePages.join(', ')} <ExternalLink size={14}/></a></div>
       <div className="ipo-financial-grid">{([
@@ -77,6 +80,7 @@ export default function IPOIntelligencePage(){
   const [tracking,setTrackingState]=useState<Record<string,ApplicationState>>(readTracking);
   const [accuracy,setAccuracy]=useState<IpoAccuracy|null>(null);
   const [primaryResearch,setPrimaryResearch]=useState<unknown>(null);
+  const [issuerReviews,setIssuerReviews]=useState<unknown>(null);
   const [notifications,setNotifications]=useState(typeof Notification==='undefined'?'unsupported':Notification.permission);
   const load=useCallback(async()=>{
     setLoading(true);
@@ -96,7 +100,11 @@ export default function IPOIntelligencePage(){
   useEffect(()=>{void load();const id=window.setInterval(()=>void load(),10*60*1000);return()=>window.clearInterval(id);},[load]);
   useEffect(()=>{let canceled=false;(async()=>{try{const r=await fetch('/ipo-accuracy.json',{cache:'no-store'});if(!r.ok)return;const d:unknown=await r.json();if(!d||typeof d!=='object')return;const v=d as IpoAccuracy;if(v.schemaVersion!==1||v.license!=='CC BY 4.0'||!Array.isArray(v.rows)||!v.source.startsWith('https://gmptoday.in/'))return;if(!canceled)setAccuracy(v);}catch{/* optional third-party audit */}})();return()=>{canceled=true;};},[]);
   useEffect(()=>{let canceled=false;(async()=>{try{const r=await fetch('/ipo-primary-research.json',{cache:'no-store'});if(!r.ok)return;const data:unknown=await r.json();if(!canceled)setPrimaryResearch(data);}catch{/* issuer disclosure research optional */}})();return()=>{canceled=true;};},[]);
-  const issues=useMemo(()=>mergePrimaryResearch(feed.issues,primaryResearch),[feed,primaryResearch]);
+  useEffect(()=>{const controller=new AbortController();(async()=>{try{
+    const r=await fetch('/ipo-issuer-reviews.json',{cache:'no-store',signal:controller.signal});
+    if(r.ok)setIssuerReviews(await r.json());
+  }catch{/* primary evidence stays unavailable */}})();return()=>controller.abort();},[]);
+  const issues=useMemo(()=>mergeIssuerReviews(mergePrimaryResearch(feed.issues,primaryResearch),issuerReviews),[feed,primaryResearch,issuerReviews]);
   const stale=feedAgeMinutes(feed)>180;
   const rows=useMemo(()=>issues.filter(i=>board==='ALL'||i.board===board).filter(i=>status==='ALL'||effectiveStatus(i)===status).filter(i=>(i.company+' '+i.id).toLowerCase().includes(term.trim().toLowerCase())).sort((a,b)=>a.closeDate.localeCompare(b.closeDate)),[issues,board,status,term]);
   const counts=useMemo(()=>({open:issues.filter(i=>issueDataFresh(i,stale)&&effectiveStatus(i)==='OPEN').length,upcoming:issues.filter(i=>issueDataFresh(i,stale)&&effectiveStatus(i)==='UPCOMING').length,sme:issues.filter(i=>i.board==='SME').length,closing:issues.filter(i=>issueDataFresh(i,stale)&&effectiveStatus(i)==='OPEN'&&i.closeDate===indiaToday()).length}),[issues,stale]);

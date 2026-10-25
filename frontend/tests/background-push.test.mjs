@@ -112,3 +112,75 @@ test('service-worker click submits only the bounded receipt and opens the same-o
   waitUntil:promise=>{operation=promise;}});
  await operation;assert.equal(requests.length,2);
 });
+
+test('deadline display and click can arrive before the provider response without losing proof',async t=>{
+ const dir=await mkdtemp(join(tmpdir(),'atlas-deadline-receipt-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+ const store=createPushStore(dir);await store.config();await store.subscribe(sub);
+ let publicId,secret,calls=0;
+ const send=async(s,body)=>{
+  calls++;const p=JSON.parse(body);publicId=p.receiptId;secret=p.receiptProof;
+  await assert.rejects(store.receipt(publicId,{confirm:true,proof:'0'.repeat(64)}),/Invalid/);
+  await store.receipt(publicId,{confirm:true,proof:secret,stage:'displayed'});
+  await store.receipt(publicId,{confirm:true,proof:secret,stage:'clicked'});
+  // Concurrent scheduler sees the persisted reservation while the first provider call is in flight.
+  assert.equal((await store.deliver(feed(),{now,send:()=>assert.fail('duplicate'),enabled:true})).attempted,0);
+  return {statusCode:201};
+ };
+ const result=await store.deliver(feed(),{now,send,enabled:true});
+ assert.equal(calls,1);assert.equal(result.sent,1);
+ const receipt=await store.receipt(publicId);
+ assert.equal(receipt.status,'device_notification_clicked');assert.equal(receipt.browserDisplayed,true);assert.equal(receipt.deviceConfirmed,true);
+ await store.receipt(publicId,{confirm:true,proof:secret,stage:'displayed'});
+ assert.equal((await store.receipt(publicId)).status,'device_notification_clicked');
+ const audit=await store.deadlineAudit();
+ assert.equal(audit.deliveries.length,1);assert.equal(audit.deliveries[0].issueId,'synthetic-test-issuer');
+ assert.equal(audit.deliveries[0].transportStatus,'accepted_by_push_service');
+ assert.ok(!JSON.stringify(audit).includes(secret));assert.ok(!JSON.stringify(audit).includes(sub.endpoint));
+ assert.ok(!(await readFile(join(dir,'deadline-receipts.json'),'utf8')).includes(secret));
+ assert.equal((await stat(join(dir,'deadline-receipts.json'))).mode&0o777,0o600);
+});
+test('test acknowledgements also survive an early click and remain separate from deadline records',async t=>{
+ const dir=await mkdtemp(join(tmpdir(),'atlas-test-early-receipt-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+ const store=createPushStore(dir);await store.config();const device=await store.subscribe(sub);
+ const sent=await store.testDelivery(device.id,{send:async(s,body)=>{
+  const p=JSON.parse(body);await store.receipt(p.receiptId,{confirm:true,proof:p.receiptProof});return {statusCode:201};
+ }});
+ assert.equal(sent.deviceConfirmed,true);assert.equal(sent.status,'device_notification_clicked');
+ assert.deepEqual((await store.deadlineAudit()).deliveries,[]);
+});
+test('deadline receipt expiry rejects late proof, and public polling never confirms delivery',async t=>{
+ const dir=await mkdtemp(join(tmpdir(),'atlas-deadline-expiry-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+ const store=createPushStore(dir);await store.config();await store.subscribe(sub);let payload;
+ await store.deliver(feed(),{now,enabled:true,send:async(s,body)=>{payload=JSON.parse(body);return {statusCode:201};}});
+ assert.equal((await store.receipt(payload.receiptId)).deviceConfirmed,false);
+ const path=join(dir,'deadline-receipts.json'),data=JSON.parse(await readFile(path,'utf8'));
+ data[payload.receiptId].expiresAt='2000-01-01T00:00:00Z';
+ const {writeFile}=await import('node:fs/promises');await writeFile(path,JSON.stringify(data),{mode:0o600});
+ await assert.rejects(store.receipt(payload.receiptId,{confirm:true,proof:payload.receiptProof}),/expired/);
+ assert.equal((await store.receipt(payload.receiptId)).deviceConfirmed,false);
+});
+
+test('a provider timeout after a genuine device click retains that click without resending',async t=>{
+ const dir=await mkdtemp(join(tmpdir(),'atlas-deadline-unknown-click-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+ const store=createPushStore(dir);await store.config();await store.subscribe(sub);let publicId;
+ const sent=await store.deliver(feed(),{now,enabled:true,send:async(s,body)=>{
+  const p=JSON.parse(body);publicId=p.receiptId;
+  await store.receipt(publicId,{confirm:true,proof:p.receiptProof});throw Error('provider response lost');
+ }});
+ assert.equal(sent.sent,0);assert.equal((await store.receipt(publicId)).deviceConfirmed,true);
+ const [audit]=(await store.deadlineAudit()).deliveries;
+ assert.equal(audit.status,'device_notification_clicked');assert.equal(audit.transportStatus,'delivery_unconfirmed');
+ assert.equal((await store.deliver(feed(),{now,enabled:true,send:()=>assert.fail('duplicate')})).attempted,0);
+});
+test('service-worker retries only the same receipt after transient server errors',async()=>{
+ const {runInNewContext}=await import('node:vm');
+ const source=await readFile(new URL('../public/atlas-sw.js',import.meta.url),'utf8');
+ const handlers={},bodies=[];let operation;
+ runInNewContext(source,{URL,setTimeout:callback=>{callback();return 0;},
+  fetch:async(url,options)=>{bodies.push(options.body);return {ok:bodies.length===3,status:bodies.length===1?400:503};},
+  self:{location:{origin:'http://127.0.0.1:4300'},registration:{showNotification:async()=>{}},
+   clients:{},addEventListener:(name,handler)=>{handlers[name]=handler;}}});
+ handlers.push({data:{json:()=>({title:'Atlas IPO deadline: synthetic fixture',body:'Fixture only',tag:'test',receiptId:'c'.repeat(64),receiptProof:'d'.repeat(64)})},
+  waitUntil:promise=>{operation=promise;}});
+ await operation;assert.equal(bodies.length,3);assert.ok(bodies.every(x=>x===bodies[0]));
+});

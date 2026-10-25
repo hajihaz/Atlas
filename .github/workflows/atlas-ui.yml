@@ -95,6 +95,7 @@ jobs:
       - run: node --test frontend/tests/ipo-intelligence.test.mjs
       - run: node --experimental-strip-types --test frontend/tests/ipo-budget.test.mjs
       - run: node --experimental-strip-types --test frontend/tests/ipo-primary-research.test.mjs
+      - run: node --test frontend/tests/ipo-issuer-reviews.test.mjs
       - run: node --experimental-strip-types --test frontend/tests/ipo-freshness-safety.test.mjs
       - run: node --test frontend/tests/workbench-ui.test.mjs
       - run: node --test frontend/tests/scalpstorm-allocation-ui.test.mjs

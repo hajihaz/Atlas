@@ -1,3 +1,4 @@
+import type {IssuerReview} from './ipoIssuerResearch';
 export type Board = 'MAINBOARD' | 'SME';
 export type IpoState = 'OPEN' | 'UPCOMING' | 'CLOSED' | 'UNKNOWN';
 export type ApplicationState = 'WATCHING' | 'PLANNED' | 'APPLIED' | 'MANDATE_ACCEPTED' | 'ALLOTTED' | 'NOT_ALLOTTED';
@@ -9,7 +10,7 @@ export type IpoIssue = {
   gmpProvider?:string|null;gmpSources?:number|null;gmpDisputed?:boolean;gmpEstimatedGainPct?:number|null;
   gmpReadings?:{provider:string;gmp:number;asOf:string;url:string;sources:number;disputed:boolean;range:number[]|null;attribution:string}[];
   gmpHistory?:{observedAt:string;gmp:number;source:string}[];
-  financials:null|IpoFinancials;
+  financials:null|IpoFinancials;issuerReview?:IssuerReview;
   news:{title:string;source:string;url:string;publishedAt:string}[];
   newsStatus?:string;
   source:string;detailSource:string;bidDeadline:string|null;mandateDeadline:string|null;
@@ -144,6 +145,7 @@ export function recommendation(i:IpoIssue,stale:boolean,now=new Date()):{label:s
   if(stage==='CLOSED')return {label:'APPLICATION CLOSED',reason:'The bidding period has ended. Allotment and actual listing performance still require registrar/exchange confirmation.',score:null,tone:'neutral'};
   if(stage==='UPCOMING')return {label:'PRE-OPEN WATCH',reason:'The issue is not open for bidding. Read the prospectus and check the final price, valuation and offer risks before applying.',score:null,tone:'neutral'};
   if(stale||issueSourceStale(i,now))return {label:'SOURCE STALE',reason:'The source snapshot is too old to assess current demand.',score:null,tone:'warning'};
+  if(i.financials===null&&i.issuerReview?.stage==='CURRENT_RHP')return {label:'HOLD — MANUAL VALUATION REVIEW',reason:'Current issuer filings and disclosed risks have been reviewed. Independent valuation, peer comparability and the listed evidence gaps still require manual review.',score:null,tone:'warning'};
   if(i.financials===null)return {label:'HOLD — DO NOT APPLY YET',reason:'Verified issuer financials, valuation and prospectus risk review are missing. Subscription multiples alone cannot support a reliable Apply decision. Wait for a complete risk assessment.',score:null,tone:'warning'};
   const f=i.financials;
   if(f.investmentDecision==='HOLD_FOR_VALUATION_REVIEW' || f.valuationVerified===false || f.peerComparisonVerified===false){

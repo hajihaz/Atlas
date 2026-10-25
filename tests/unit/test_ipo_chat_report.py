@@ -118,3 +118,87 @@ class ReportSafetyTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class IssuerResearchReviewTests(unittest.TestCase):
+    def setUp(self):
+        import json
+
+        self.now = datetime(2026, 10, 26, 9, 30, tzinfo=IST)
+        self.catalog = json.loads(
+            (MODULE.parents[1] / "frontend/public/ipo-issuer-reviews.json").read_text()
+        )
+        self.rows = report.valid_reviews_by_key(self.catalog, self.now)
+
+    def test_real_catalog_preserves_period_unit_and_accounting_basis(self):
+        self.assertEqual(len(self.rows), 8)
+        records = {x["id"]: x for x in self.rows.values()}
+        self.assertEqual(records["EDELALTS"]["stage"], "SOURCE_GAP")
+        self.assertEqual(records["MKSONS"]["stage"], "CURRENT_RHP")
+        metrics = {m["key"]: m["value"] for m in records["SFCTECH"]["metrics"]}
+        self.assertEqual(metrics["revenue"], 803.629)
+        self.assertEqual(metrics["cfo"], -25.802)
+        self.assertIn("netDebtEquity", metrics)
+        self.assertNotIn("debtEquity", metrics)
+
+    def test_join_requires_exact_offer_and_bad_sources_or_numbers_fail_closed(self):
+        import copy
+
+        row = copy.deepcopy(self.catalog["records"][0])
+        mutations = [
+            lambda r: r["sources"][0].update(url="https://www.sebi.gov.in.evil.invalid/file.pdf"),
+            lambda r: r["sources"][0].update(sha256="fake"),
+            lambda r: r["metrics"][0].update(value=True),
+            lambda r: r["metrics"][0].update(page=1499),
+            lambda r: r.update(closeDate="2026-02-31"),
+            lambda r: r.update(decision="APPLY"),
+        ]
+        for mutate in mutations:
+            broken = copy.deepcopy(row)
+            mutate(broken)
+            with self.subTest(broken=broken["id"]):
+                self.assertEqual(
+                    report.valid_reviews_by_key(
+                        {"schemaVersion": 1, "records": [broken]}, self.now
+                    ),
+                    {},
+                )
+        self.assertEqual(
+            report.valid_reviews_by_key({"schemaVersion": 1, "records": [row, row]}, self.now), {}
+        )
+
+        item = {
+            **BASE,
+            **{k: row[k] for k in ("id", "company", "board", "openDate", "closeDate")},
+            "sourceObservedAt": self.now.isoformat(),
+            "priceMin": 142,
+            "priceMax": 150,
+        }
+        feed = sample(item, self.now.isoformat())
+        result = report.build_report(feed, reviews=self.catalog, now=self.now)["issues"][0]
+        self.assertEqual(result["issuerReview"]["historicalPEScenario"]["fairValueVerified"], False)
+        self.assertAlmostEqual(result["issuerReview"]["historicalPEScenario"]["high"], 150 / 5.99)
+        item["closeDate"] = "2026-11-05"
+        self.assertIsNone(
+            report.build_report(
+                sample(item, self.now.isoformat()), reviews=self.catalog, now=self.now
+            )["issues"][0]["issuerReview"]
+        )
+
+    def test_calendar_refresh_does_not_refresh_old_publisher_demand(self):
+        item = {
+            **BASE,
+            "sourceKind": "PUBLISHER_AGGREGATE",
+            "subscriptionAsOf": "2026-10-20T00:00:00Z",
+        }
+        result = report.build_report(sample(item), now=NOW)["issues"][0]
+        self.assertIsNone(result["subscriptionX"])
+        self.assertFalse(result["sourceStale"])
+
+    def test_verified_bid_cutoff_closes_issue_before_later_mandate_deadline(self):
+        item = {
+            **BASE,
+            "bidDeadline": "2026-10-23T09:00:00+05:30",
+            "mandateDeadline": "2026-10-23T17:00:00+05:30",
+        }
+        self.assertEqual(report.build_report(sample(item), now=NOW)["issues"], [])

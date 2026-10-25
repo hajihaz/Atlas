@@ -10,6 +10,22 @@ export default function BackgroundIpoAlerts(){
  const [status,setStatus]=useState(''),[busy,setBusy]=useState(false);
  const [device,setDevice]=useState<{id:string;pairing:string}|null>(null);
  const [receiptId,setReceiptId]=useState(pendingReceipt);
+ const [deadlineAudit,setDeadlineAudit]=useState<{company:string;status:string;createdAt:string}[]|null>(null);
+ useEffect(()=>{
+  const controller=new AbortController();let loading=false;
+  const poll=async()=>{
+   if(loading)return;loading=true;
+   try{const response=await fetch('/api/ipo-push?audit=deadline',{cache:'no-store',credentials:'omit',signal:controller.signal});
+    if(!response.ok)return;
+    const data=await response.json();
+    if(data?.mode==='OWNER_LOCAL_ONLY'&&Array.isArray(data.deliveries)&&!controller.signal.aborted)
+     setDeadlineAudit(data.deliveries.slice(0,3).filter((r:unknown)=>r&&typeof r==='object'&&
+      typeof (r as Record<string,unknown>).company==='string'&&typeof (r as Record<string,unknown>).status==='string'));
+   }catch{}finally{loading=false;}
+  };
+  void poll();const timer=setInterval(()=>void poll(),60000);
+  return()=>{controller.abort();clearInterval(timer);};
+ },[]);
  useEffect(()=>{
   if(!receiptId)return;
   let active=true,loading=false,displayNoted=false;
@@ -46,7 +62,7 @@ export default function BackgroundIpoAlerts(){
     throw Error('Notification setup could not be verified.');
    const permission=await Notification.requestPermission();
    if(permission!=='granted')throw Error('Notification permission is required.');
-   const registration=await navigator.serviceWorker.register('/atlas-sw.js?atlas-receipts=3',{
+   const registration=await navigator.serviceWorker.register('/atlas-sw.js?atlas-receipts=4',{
     scope:'/',updateViaCache:'none'});
    await registration.update();
    const worker=registration.installing??registration.waiting??registration.active;
@@ -96,5 +112,9 @@ export default function BackgroundIpoAlerts(){
   <button type="button" className="ipo-alert-button" disabled={busy} onClick={()=>void enable()}>{busy?'Connecting…':'Enable background alerts'}</button>
   {device?<button type="button" className="ipo-alert-button" disabled={busy||!!receiptId} onClick={()=>void sendTest()}>Send test notification</button>:null}
   {status?<p role="status" className="ipo-small-notice">{status}</p>:null}
+  {deadlineAudit!==null&&<div className="ipo-background-audit"><strong>Real deadline delivery audit</strong>
+   {deadlineAudit.length?deadlineAudit.map((r,i)=><p key={i}>{r.company}: {r.status==='device_notification_clicked'?'Notification clicked':r.status==='browser_notification_displayed'?'Browser displayed notification; click not recorded':r.status==='accepted_by_push_service'?'Push service accepted; device receipt pending':'Delivery unconfirmed'}.</p>):<p>No real deadline attempt recorded yet. An eligible issue needs a fresh source, and the Mac sender must be online.</p>}
+   <small>Push-service acceptance, browser display and a click are separate stages. Test notifications are excluded.</small>
+  </div>}
  </div>;
 }

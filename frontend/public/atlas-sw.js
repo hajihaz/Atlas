@@ -1,3 +1,17 @@
+async function acknowledge(action,receiptId,receiptProof){
+ if(typeof receiptId!=='string'||!/^[a-f0-9]{64}$/.test(receiptId)||
+    typeof receiptProof!=='string'||!/^[a-f0-9]{64}$/.test(receiptProof))return;
+ // Bounded retries are for the same idempotent receipt, never a second push.
+ for(const delay of [0,250,1000]){
+  if(delay)await new Promise(resolve=>setTimeout(resolve,delay));
+  try{
+   const response=await fetch('/api/ipo-push',{method:'POST',credentials:'omit',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({action,receiptId,receiptProof})});
+   if(response.ok)return;
+   if(![400,429,500,502,503,504].includes(response.status))return;
+  }catch{}
+ }
+}
 // Push only. No API, credential, quote or personal-ledger caching.
 self.addEventListener('push',event=>{
  let input;try{input=event.data.json();}catch{return;}
@@ -11,11 +25,7 @@ self.addEventListener('push',event=>{
  });
  // The browser accepting showNotification is a separate stage from an OS-visible
  // notification or an actual click. The receipt capability is never exposed to the UI.
- if(typeof input.receiptId==='string'&&/^[a-f0-9]{64}$/.test(input.receiptId)&&
-    typeof input.receiptProof==='string'&&/^[a-f0-9]{64}$/.test(input.receiptProof)){
-  try{await fetch('/api/ipo-push',{method:'POST',credentials:'omit',headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({action:'displayed',receiptId:input.receiptId,receiptProof:input.receiptProof})});}catch{}
- }
+ await acknowledge('displayed',input.receiptId,input.receiptProof);
  })());
 });
 self.addEventListener('notificationclick',event=>{
@@ -23,11 +33,7 @@ self.addEventListener('notificationclick',event=>{
  const receiptId=event.notification.data?.receiptId,receiptProof=event.notification.data?.receiptProof;
  event.notification.close();
  event.waitUntil((async()=>{
-  if(typeof receiptId==='string'&&/^[a-f0-9]{64}$/.test(receiptId)
-    &&typeof receiptProof==='string'&&/^[a-f0-9]{64}$/.test(receiptProof)){
-   try{await fetch('/api/ipo-push',{method:'POST',credentials:'omit',
-    headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'receipt',receiptId,receiptProof})});}catch{}
-  }
+  await acknowledge('receipt',receiptId,receiptProof);
   const target=new URL('/#ipo',self.location.origin).href;
   const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
   const same=windows.find(w=>new URL(w.url).origin===self.location.origin);

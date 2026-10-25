@@ -18,3 +18,16 @@
 .ipo-official-allotment{padding:17px;border:1px solid #365661;border-radius:12px;display:flex;flex-direction:column;gap:11px}.ipo-official-allotment h3{font-size:13px}.ipo-official-allotment p{font-size:11px;line-height:1.65;color:#9fb5be}[data-theme='light'] .ipo-official-allotment{border-color:#d3e0e4}[data-theme='light'] .ipo-official-allotment p{color:#627984}
 
 .ipo-disclosure a{color:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px}[data-theme='light'] .ipo-small-notice{color:#526d79}
+
+.ipo-issuer-review { overflow-wrap:anywhere; }
+.ipo-issuer-review h4 { margin:1.2rem 0 .45rem; }
+.ipo-issuer-review ul { padding-left:1.25rem; line-height:1.65; }
+.ipo-issuer-review li + li { margin-top:.45rem; }
+.ipo-issuer-review .ipo-financial-grid small { display:block; font-size:.72rem; opacity:.7; margin-top:.4rem; }
+.ipo-research-source { font-size:.83rem; line-height:1.65; }
+.ipo-research-source a { display:inline; }
+.ipo-document-audit { display:block; opacity:.65; font-size:.72rem; }
+.ipo-document-audit summary { cursor:pointer; }
+.ipo-background-audit { flex-basis:100%; font-size:.85rem; line-height:1.6; }
+.ipo-background-audit p { margin:.35rem 0; }
+.ipo-background-audit small { opacity:.7; }

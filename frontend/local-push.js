@@ -51,7 +51,7 @@ export function createPushStore(dir=DEFAULT_PUSH_DIRECTORY){
   },
   async testDelivery(id,{send=webpush.sendNotification}={}){
    if(typeof id!=='string'||!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid owner device');
-   return locked(dir,async()=>{
+   const job=await locked(dir,async()=>{
     const rows=await read(join(dir,'subscriptions.json'),[]);
     const row=rows.find(item=>item.id===id),keys=await read(join(dir,'keys.json'),null);
     if(!row||!keys)throw Error('Owner device is not subscribed');
@@ -63,27 +63,38 @@ export function createPushStore(dir=DEFAULT_PUSH_DIRECTORY){
     records[receiptId]={subscriberId:id,createdAt:new Date().toISOString(),status:'attempted',deviceConfirmed:false,
      proofHash:createHash('sha256').update(receiptProof).digest('hex')};
     await atomic(path,records);
-    try{
-     const response=await send(validateSubscription(row.subscription),JSON.stringify({
-      title:'Atlas notification test · '+receiptId.slice(0,6).toUpperCase(),body:'Test only. Tap this notification to confirm delivery on this device.',
-      tag:'atlas-test-'+receiptId,receiptId,receiptProof,url:'/#ipo',
-     }),{TTL:300,timeout:8000,vapidDetails:{subject:'https://atlas-control-center-pi.vercel.app',...keys}});
-     records[receiptId].status=response?.statusCode>=200&&response.statusCode<300?'accepted_by_push_service':'unconfirmed';
-    }catch{records[receiptId].status='delivery_unconfirmed';}
+    return {receiptId,subscription:validateSubscription(row.subscription),keys,payload:JSON.stringify({
+     title:'Atlas notification test · '+receiptId.slice(0,6).toUpperCase(),body:'Test only. Tap this notification to confirm delivery on this device.',
+     tag:'atlas-test-'+receiptId,receiptId,receiptProof,url:'/#ipo'})};
+   });
+   let transport='delivery_unconfirmed';
+   try{
+    const response=await send(job.subscription,job.payload,{TTL:300,timeout:8000,
+     vapidDetails:{subject:'https://atlas-control-center-pi.vercel.app',...job.keys}});
+    transport=response?.statusCode>=200&&response.statusCode<300?'accepted_by_push_service':'unconfirmed';
+   }catch{}
+   return locked(dir,async()=>{
+    const path=join(dir,'test-receipts.json'),records=await read(path,{}),record=records[job.receiptId];
+    if(!record)throw Error('Unknown delivery receipt');
+    record.transportStatus=transport;
+    if(!record.deviceConfirmed&&!record.browserDisplayed)record.status=transport;
     await atomic(path,records);
-    return {receiptId,status:records[receiptId].status,deviceConfirmed:false};
+    return {receiptId:job.receiptId,status:record.status,deviceConfirmed:record.deviceConfirmed};
    });
   },
   async receipt(receiptId,{confirm=false,proof=null,stage='clicked'}={}){
    if(typeof receiptId!=='string'||!/^[a-f0-9]{64}$/.test(receiptId))throw Error('Invalid delivery receipt');
    return locked(dir,async()=>{
-    const path=join(dir,'test-receipts.json'),records=await read(path,{}),record=records[receiptId];
+    let path=join(dir,'test-receipts.json'),records=await read(path,{}),record=records[receiptId];
+    if(!record){path=join(dir,'deadline-receipts.json');records=await read(path,{});record=records[receiptId];}
     if(!record)throw Error('Unknown delivery receipt');
     if(confirm){
      if(typeof proof!=='string'||!/^[a-f0-9]{64}$/.test(proof)||typeof record.proofHash!=='string'||
+       !/^[a-f0-9]{64}$/.test(record.proofHash)||
        !timingSafeEqual(Buffer.from(createHash('sha256').update(proof).digest('hex')),Buffer.from(record.proofHash)))
       throw Error('Invalid device receipt proof');
-     if(Date.now()-Date.parse(record.createdAt)>600000)throw Error('Delivery receipt expired');
+     const expires=record.kind==='deadline'?Date.parse(record.expiresAt):Date.parse(record.createdAt)+600000;
+     if(!Number.isFinite(expires)||Date.now()>expires)throw Error('Delivery receipt expired');
      if(!['displayed','clicked'].includes(stage))throw Error('Invalid receipt stage');
      if(stage==='displayed'){
       record.browserDisplayed=true;record.displayedAt??=new Date().toISOString();
@@ -94,38 +105,82 @@ export function createPushStore(dir=DEFAULT_PUSH_DIRECTORY){
      }
      await atomic(path,records);
     }
-    return {receiptId,status:record.status,deviceConfirmed:record.deviceConfirmed,browserDisplayed:record.browserDisplayed===true,displayedAt:record.displayedAt??null,clickedAt:record.clickedAt??null};
+    return {receiptId,status:record.status,deviceConfirmed:record.deviceConfirmed,browserDisplayed:record.browserDisplayed===true,
+     displayedAt:record.displayedAt??null,clickedAt:record.clickedAt??null};
+   });
+  },
+  async deadlineAudit(){
+   return locked(dir,async()=>{
+    const records=await read(join(dir,'deadline-receipts.json'),{});
+    return {mode:'OWNER_LOCAL_ONLY',deliveries:Object.entries(records)
+     .sort((a,b)=>String(b[1].createdAt).localeCompare(String(a[1].createdAt))).slice(0,10)
+     .map(([receiptId,r])=>({receiptId,issueId:r.issueId,company:r.company,closes:r.closes,alertDate:r.alertDate,
+      createdAt:r.createdAt,status:r.status,transportStatus:r.transportStatus??'attempted',
+      browserDisplayed:r.browserDisplayed===true,deviceConfirmed:r.deviceConfirmed===true,
+      displayedAt:r.displayedAt??null,clickedAt:r.clickedAt??null}))};
    });
   },
   async deliver(feed,{now=new Date(),send=webpush.sendNotification,enabled=false}={}){
    if(!enabled)return {status:'disabled',attempted:0,sent:0};
    if(!validFeed(feed)||feedAgeMinutes(feed,now)>180)return {status:'stale_source',attempted:0,sent:0};
    const candidates=browserDeadlineCandidates(feed.issues,false,now);
-   return locked(dir,async()=>{
+   // Reserve every event and receipt under the lock, then release it before network I/O.
+   // A service-worker acknowledgement may arrive before the push provider responds.
+   const batch=await locked(dir,async()=>{
     const rows=await read(join(dir,'subscriptions.json'),[]);
     const keys=await read(join(dir,'keys.json'),null);
-    if(!keys||!rows.length)return {status:'no_subscribers',attempted:0,sent:0};
+    if(!keys||!rows.length)return {status:'no_subscribers',jobs:[]};
     const path=join(dir,'deliveries.json'),all=await read(path,{});
-    let attempted=0,sent=0;
+    const receiptPath=join(dir,'deadline-receipts.json'),receipts=await read(receiptPath,{});
+    const jobs=[];
     for(const issue of candidates)for(const row of rows){
      const event=issue.id+':'+issue.closeDate+':'+indiaToday(now)+':'+row.id;
      if(all[event])continue;
-     // Reserve before network. Uncertain delivery is never blindly retried after a crash.
-     all[event]={status:'attempted',at:now.toISOString()};
-     await atomic(path,all);attempted++;
-     const payload=JSON.stringify({title:'Atlas IPO deadline: '+issue.company,
-       body:'The source calendar reports this issue closes '+issue.closeDate+'. Verify issuer and broker cutoffs before applying.',
-       tag:'atlas-ipo-'+createHash('sha256').update(event).digest('hex').slice(0,24),url:'/#ipo'});
-     try{
-      const result=await send(validateSubscription(row.subscription),payload,{TTL:3600,timeout:8000,
-       vapidDetails:{subject:'https://atlas-control-center-pi.vercel.app',publicKey:keys.publicKey,privateKey:keys.privateKey}});
-      if(result?.statusCode>=200&&result.statusCode<300){all[event].status='accepted_by_push_service';sent++;}
-      else all[event].status='unconfirmed';
-     }catch(e){all[event].status=[404,410].includes(e.statusCode)?'subscription_expired':'delivery_unconfirmed';}
-     await atomic(path,all);
+     const receiptId=randomBytes(32).toString('hex'),receiptProof=randomBytes(32).toString('hex');
+     const createdAt=new Date().toISOString();
+     const subscription=validateSubscription(row.subscription);
+     all[event]={status:'attempted',at:now.toISOString(),receiptId};
+     receipts[receiptId]={kind:'deadline',issueId:issue.id,company:issue.company,closes:issue.closeDate,
+      alertDate:indiaToday(now),createdAt,expiresAt:new Date(Date.now()+48*3600000).toISOString(),
+      status:'attempted',browserDisplayed:false,deviceConfirmed:false,
+      proofHash:createHash('sha256').update(receiptProof).digest('hex')};
+     jobs.push({event,receiptId,subscription,payload:JSON.stringify({
+      title:'Atlas IPO deadline: '+issue.company,
+      body:'The source calendar reports this issue closes '+issue.closeDate+'. Verify issuer and broker cutoffs before applying.',
+      tag:'atlas-ipo-'+createHash('sha256').update(event).digest('hex').slice(0,24),url:'/#ipo',receiptId,receiptProof})});
     }
-    return {status:'completed',attempted,sent,deliveryConfirmedOnDevice:false};
+    if(jobs.length){
+     // Keep a bounded audit, retaining all receipts in this batch.
+     const keep=new Set(jobs.map(j=>j.receiptId));
+     for(const [id] of Object.entries(receipts).sort((a,b)=>String(a[1].createdAt).localeCompare(String(b[1].createdAt)))){
+      if(Object.keys(receipts).length<=2000)break;
+      if(!keep.has(id))delete receipts[id];
+     }
+     await atomic(receiptPath,receipts);await atomic(path,all);
+    }
+    return {status:'completed',jobs,keys};
    });
+   let sent=0;
+   for(const job of batch.jobs){
+    let transport='delivery_unconfirmed';
+    try{
+     const result=await send(job.subscription,job.payload,{TTL:3600,timeout:8000,
+      vapidDetails:{subject:'https://atlas-control-center-pi.vercel.app',...batch.keys}});
+     transport=result?.statusCode>=200&&result.statusCode<300?'accepted_by_push_service':'unconfirmed';
+     if(transport==='accepted_by_push_service')sent++;
+    }catch(e){transport=[404,410].includes(e?.statusCode)?'subscription_expired':'delivery_unconfirmed';}
+    await locked(dir,async()=>{
+     const path=join(dir,'deliveries.json'),all=await read(path,{});
+     if(all[job.event]?.receiptId===job.receiptId){all[job.event].status=transport;await atomic(path,all);}
+     const receiptPath=join(dir,'deadline-receipts.json'),receipts=await read(receiptPath,{}),record=receipts[job.receiptId];
+     if(record){
+      record.transportStatus=transport;
+      if(!record.deviceConfirmed&&!record.browserDisplayed)record.status=transport;
+      await atomic(receiptPath,receipts);
+     }
+    });
+   }
+   return {status:batch.status,attempted:batch.jobs.length,sent,deliveryConfirmedOnDevice:false};
   }
  };
 }
@@ -142,6 +197,7 @@ export async function handlePushRequest(req,res,store=createPushStore()){
   if(req.method==='GET'){
    const receiptId=new URL(req.url??'/api/ipo-push','http://127.0.0.1').searchParams.get('receipt');
    if(receiptId)return answer(200,await store.receipt(receiptId));
+   if(new URL(req.url??'/api/ipo-push','http://127.0.0.1').searchParams.get('audit')==='deadline')return answer(200,await store.deadlineAudit());
    const keys=await store.config();nonceExpires=Date.now()+600000;
    return answer(200,{supported:true,publicKey:keys.publicKey,pairing:nonce,mode:'OWNER_LOCAL_ONLY'});
   }
