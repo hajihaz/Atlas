@@ -1,5 +1,6 @@
 """Proof that ChatGPT IPO briefing does not invent Apply verdicts or live demand."""
 
+import copy
 import importlib.util
 import unittest
 from datetime import datetime
@@ -133,7 +134,7 @@ class IssuerResearchReviewTests(unittest.TestCase):
     def test_real_catalog_preserves_period_unit_and_accounting_basis(self):
         self.assertEqual(len(self.rows), 8)
         records = {x["id"]: x for x in self.rows.values()}
-        self.assertEqual(records["EDELALTS"]["stage"], "DRAFT_ONLY")
+        self.assertEqual(records["EDELALTS"]["stage"], "CURRENT_RHP")
         self.assertEqual(records["MKSONS"]["stage"], "CURRENT_RHP")
         metrics = {m["key"]: m["value"] for m in records["SFCTECH"]["metrics"]}
         self.assertEqual(metrics["revenue"], 803.629)
@@ -203,14 +204,16 @@ class IssuerResearchReviewTests(unittest.TestCase):
         }
         self.assertEqual(report.build_report(sample(item), now=NOW)["issues"], [])
 
-    def test_eaaa_dated_context_cannot_create_a_current_offer_pe(self):
+    def test_eaaa_current_rhp_preserves_hold_and_annual_valuation_basis(self):
         row = next(x for x in self.catalog["records"] if x["id"] == "EDELALTS")
-        self.assertEqual(row["stage"], "DRAFT_ONLY")
+        self.assertEqual(row["stage"], "CURRENT_RHP")
         values = {m["key"]: m["value"] for m in row["metrics"]}
         self.assertEqual(values["revenue"], 869.54)
         self.assertEqual(values["totalIncome"], 963.759)
         self.assertEqual(values["cfo"], 235.244)
+        self.assertEqual(values["quarterCFO"], 130.384)
         self.assertEqual(values["patMargin"], 27.52)
+        self.assertFalse(any(p["company"].startswith("Gaja") for p in row["peerContext"]["peers"]))
         item = {
             **BASE,
             **{k: row[k] for k in ("id", "company", "board", "openDate", "closeDate")},
@@ -221,6 +224,14 @@ class IssuerResearchReviewTests(unittest.TestCase):
         result = report.build_report(
             sample(item, self.now.isoformat()), reviews=self.catalog, now=self.now
         )["issues"][0]
-        self.assertEqual(result["issuerReview"]["stage"], "DRAFT_ONLY")
-        self.assertIsNone(result["issuerReview"]["historicalPEScenario"])
+        research = result["issuerReview"]
+        self.assertEqual(research["stage"], "CURRENT_RHP")
+        self.assertAlmostEqual(research["historicalPEScenario"]["high"], 1665 / 40.36)
+        self.assertFalse(research["historicalPEScenario"]["fairValueVerified"])
         self.assertIn("HOLD", result["decision"])
+        draft = copy.deepcopy(self.catalog)
+        next(x for x in draft["records"] if x["id"] == "EDELALTS")["stage"] = "DRAFT_ONLY"
+        result = report.build_report(
+            sample(item, self.now.isoformat()), reviews=draft, now=self.now
+        )["issues"][0]
+        self.assertIsNone(result["issuerReview"]["historicalPEScenario"])

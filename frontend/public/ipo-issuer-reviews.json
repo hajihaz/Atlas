@@ -768,24 +768,62 @@
       "board": "MAINBOARD",
       "openDate": "2026-10-26",
       "closeDate": "2026-10-28",
-      "reviewedAt": "2026-10-25T10:52:06Z",
-      "stage": "DRAFT_ONLY",
-      "basis": "Restated consolidated financials in August 2026 DRHP addendum",
-      "fiscalPeriod": "Annual results to 31 March 2026; earlier addendum, not final offer terms",
+      "reviewedAt": "2026-10-25T12:29:25.856308Z",
+      "stage": "CURRENT_RHP",
+      "basis": "Consolidated RHP dated 19 Oct 2026; FY26 and Q1 FY27. Offer INR 1,585-1,665; minimum lot 9.",
+      "fiscalPeriod": "Annual results to 31 March 2026 and quarter to 30 June 2026; quarterly figures are not annualized",
       "sources": [
         {
           "id": "A",
           "kind": "LEAD_MANAGER",
-          "document": "DRHP_ADDENDUM",
-          "url": "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Limited%20-%20Addendum%20to%20DRHP-1786642854-1786687133.pdf",
-          "sha256": "c3888bc2ca80afc26d120dc8d3a3011419ad3a63d3ca1a372dc4acfca330f1be",
+          "document": "RHP",
+          "url": "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Ltd%20-%20Red%20Herring%20Prospectus-1792429309.pdf",
+          "sha256": "9f6c1b86c07db2f86c3a612555f982c4d45a256cc0be2eb883ae1849feda40b1",
           "pages": [
             1,
+            2,
+            24,
+            27,
+            28,
+            29,
+            35,
+            36,
+            83,
+            85,
+            86
+          ]
+        },
+        {
+          "id": "B",
+          "kind": "LEAD_MANAGER",
+          "document": "BASIS_FOR_OFFER_PRICE",
+          "url": "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Ltd%20-%20Basis%20for%20Offer%20Price-1792575650.pdf",
+          "sha256": "028b5d822d0572bdb43f35a54df13fe8f0005295c3d109beaff59fd7e599cd44",
+          "pages": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "id": "C",
+          "kind": "LEAD_MANAGER",
+          "document": "ABRIDGED_RHP",
+          "url": "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Ltd%20-%20Abridged%20Prospectus-1792429422.pdf",
+          "sha256": "c04bf7259d7da392ba8c45b12aefc299ac4c81b8b380fa461bb8e3deddc14cae",
+          "pages": [
             7,
-            10,
-            107,
-            108,
-            147
+            8
+          ]
+        },
+        {
+          "id": "D",
+          "kind": "LEAD_MANAGER",
+          "document": "PRICE_BAND_ADVERTISEMENT",
+          "url": "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Ltd%20-%20Pre-offer%20and%20Price%20Band%20Advertisement-1792559256.pdf",
+          "sha256": "05953e0edfa4615d41fcdd252cab54204b86954a6cb361272e496fc690f025b3",
+          "pages": [
+            1
           ]
         }
       ],
@@ -797,7 +835,7 @@
           "unit": "INR_CR",
           "periodEnd": "2026-03-31",
           "sourceId": "A",
-          "page": 107
+          "page": 85
         },
         {
           "key": "totalIncome",
@@ -806,7 +844,7 @@
           "unit": "INR_CR",
           "periodEnd": "2026-03-31",
           "sourceId": "A",
-          "page": 107
+          "page": 85
         },
         {
           "key": "pat",
@@ -815,7 +853,7 @@
           "unit": "INR_CR",
           "periodEnd": "2026-03-31",
           "sourceId": "A",
-          "page": 107
+          "page": 85
         },
         {
           "key": "cfo",
@@ -824,16 +862,16 @@
           "unit": "INR_CR",
           "periodEnd": "2026-03-31",
           "sourceId": "A",
-          "page": 108
+          "page": 86
         },
         {
           "key": "dilutedEPS",
-          "label": "Historical diluted EPS",
+          "label": "FY26 diluted EPS",
           "value": 40.36,
           "unit": "INR_PER_SHARE",
           "periodEnd": "2026-03-31",
           "sourceId": "A",
-          "page": 7
+          "page": 85
         },
         {
           "key": "debtEquity",
@@ -841,8 +879,8 @@
           "value": 0.41,
           "unit": "RATIO",
           "periodEnd": "2026-03-31",
-          "sourceId": "A",
-          "page": 10
+          "sourceId": "C",
+          "page": 8
         },
         {
           "key": "patMargin",
@@ -850,8 +888,8 @@
           "value": 27.52,
           "unit": "PCT",
           "periodEnd": "2026-03-31",
-          "sourceId": "A",
-          "page": 10
+          "sourceId": "C",
+          "page": 8
         },
         {
           "key": "variableReturn",
@@ -860,20 +898,89 @@
           "unit": "INR_CR",
           "periodEnd": "2026-03-31",
           "sourceId": "A",
-          "page": 147
+          "page": 86
+        },
+        {
+          "key": "quarterRevenue",
+          "label": "Q1 FY27 revenue from operations",
+          "value": 275.529,
+          "unit": "INR_CR",
+          "periodEnd": "2026-06-30",
+          "sourceId": "A",
+          "page": 85
+        },
+        {
+          "key": "quarterPAT",
+          "label": "Q1 FY27 profit after tax",
+          "value": 80.706,
+          "unit": "INR_CR",
+          "periodEnd": "2026-06-30",
+          "sourceId": "A",
+          "page": 85
+        },
+        {
+          "key": "quarterCFO",
+          "label": "Q1 FY27 operating cash flow",
+          "value": 130.384,
+          "unit": "INR_CR",
+          "periodEnd": "2026-06-30",
+          "sourceId": "A",
+          "page": 86
         }
       ],
       "risks": [
-        "Variable additional return includes unrealized fair-value gains; review valuation assumptions and the timing of cash realization.",
-        "Operating cash flow was negative in FY25 and FY24. Positive FY26 cash generation does not establish stable conversion across periods.",
-        "Income includes management fees and investment-related returns with different recurrence and valuation exposure; do not treat all income as recurring fees."
+        "Variable additional return includes unrealized gains; cash receipts can diverge from accrued profit.",
+        "Operating cash flow was negative in FY25 and FY24; positive FY26 cash generation does not establish stable conversion.",
+        "Illiquid fund investments rely on estimated values; the RHP identifies no directly comparable Indian listed peers.",
+        "Client capital calls and concentration create funding and portfolio risks.",
+        "The RHP discloses promoter-group regulatory proceedings; assess their current status and possible impact.",
+        "This is an offer for sale of existing shares, rather than fresh capital for the company."
       ],
       "gaps": [
-        "This is the August 2026 financial addendum. The October RHP is indexed publicly, but current issuer/lead-manager PDF retrieval failed; the complete current risk and governance review is not certified.",
-        "Earlier addendum offer-size and reservation figures are superseded; do not use them for current price, lot, schedule or allocation.",
-        "Current independent peer prices, accounting comparability and fair valuation remain unverified. No current offer P/E scenario is released from draft-only evidence."
+        "Peer prices in the filed comparison are dated 8 October 2026 and have not been independently refreshed. Historical P/E arithmetic is not verified fair value.",
+        "Price-basis page 3 prints Gaja P/E as 16.47 although its price 145.10 divided by diluted EPS 7.17 implies about 20.24. This source discrepancy is flagged; that peer is excluded below.",
+        "GMP and demand retain their separate publisher timestamps. Neither establishes fair value, profitability or an allotment probability."
       ],
-      "peerContext": null,
+      "peerContext": {
+        "priceAsOf": "2026-10-08",
+        "sourceId": "B",
+        "page": 3,
+        "note": "Issuer-reported, dated ratios for businesses with different models. Not independently current fair value. Gaja is excluded because its printed P/E does not reconcile with the same-row price and EPS.",
+        "peers": [
+          {
+            "company": "360 One WAM Limited",
+            "reportedPE": 35.67
+          },
+          {
+            "company": "Aditya Birla Sun Life AMC Limited",
+            "reportedPE": 29.84
+          },
+          {
+            "company": "Anand Rathi Wealth Limited",
+            "reportedPE": 90.69
+          },
+          {
+            "company": "HDFC Asset Management Company Limited",
+            "reportedPE": 33.76
+          },
+          {
+            "company": "Nippon Life India Asset Management Limited",
+            "reportedPE": 43.99
+          },
+          {
+            "company": "Nuvama Wealth Management Limited",
+            "reportedPE": 30.99
+          },
+          {
+            "company": "UTI Asset Management Company Limited",
+            "reportedPE": 27.93
+          },
+          {
+            "company": "ICICI Prudential Asset Management Company Limited",
+            "reportedPE": 45.95
+          }
+        ]
+      },
       "decision": "HOLD_FOR_MANUAL_REVIEW"
     }
   ]

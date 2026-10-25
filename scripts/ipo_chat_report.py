@@ -129,7 +129,13 @@ def valid_reviews_by_key(file, now):
                             )
                             or (u.netloc == "www.afsl.co.in" and u.path.startswith("/pdfnew/"))
                             or source["url"]
-                            == "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Limited%20-%20Addendum%20to%20DRHP-1786642854-1786687133.pdf"
+                            in (
+                                "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Limited%20-%20Addendum%20to%20DRHP-1786642854-1786687133.pdf",
+                                "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Ltd%20-%20Red%20Herring%20Prospectus-1792429309.pdf",
+                                "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Ltd%20-%20Basis%20for%20Offer%20Price-1792575650.pdf",
+                                "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Ltd%20-%20Abridged%20Prospectus-1792429422.pdf",
+                                "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Ltd%20-%20Pre-offer%20and%20Price%20Band%20Advertisement-1792559256.pdf",
+                            )
                         )
                     )
                     or (

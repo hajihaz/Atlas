@@ -64,15 +64,27 @@ test('P/E is historical arithmetic only and disappears with stale prices, wrong 
  assert.equal(recommendation(issue,false,now).score,null);
 });
 
-test('EAAA addendum remains dated financial context and cannot generate current offer valuation',()=>{
+test('EAAA current RHP keeps annual and quarterly facts distinct and only exposes historical P/E arithmetic',()=>{
  const row=data.records.find(r=>r.id==='EDELALTS');
- assert.equal(row.stage,'DRAFT_ONLY');
+ assert.equal(row.stage,'CURRENT_RHP');assert.equal(row.metrics.length,11);
  assert.equal(row.metrics.find(m=>m.key==='cfo').value,235.244);
+ assert.equal(row.metrics.find(m=>m.key==='quarterCFO').value,130.384);
+ assert.equal(row.metrics.find(m=>m.key==='quarterRevenue').periodEnd,'2026-06-30');
+ assert.equal(row.metrics.find(m=>m.key==='dilutedEPS').periodEnd,'2026-03-31');
  assert.equal(row.metrics.find(m=>m.key==='patMargin').label,'PAT / total income');
- const [issue]=mergeIssuerReviews([original('EDELALTS')],data,now);
- assert.ok(issue.issuerReview);assert.equal(historicalPEScenario(issue,false,now),null);
- const broken=structuredClone(row);broken.sources[0].url=broken.sources[0].url.replace('www.axiscapital.co.in','www.axiscapital.co.in.evil.invalid');
- assert.deepEqual(validatedReviews({schemaVersion:1,records:[broken]},now),[]);
- const fakeCurrent={...row,stage:'CURRENT_RHP'};
+ assert.equal(row.peerContext.priceAsOf,'2026-10-08');
+ assert.ok(!row.peerContext.peers.some(p=>p.company.startsWith('Gaja')));
+ const input=original('EDELALTS');const [issue]=mergeIssuerReviews([input],data,now);
+ assert.ok(issue.issuerReview);assert.equal(issue.sourceObservedAt,input.sourceObservedAt);
+ const pe=historicalPEScenario(issue,false,now);assert.ok(pe);
+ assert.ok(Math.abs(pe.low-1585/40.36)<1e-9);assert.ok(Math.abs(pe.high-1665/40.36)<1e-9);
+ assert.equal(recommendation(issue,false,now).score,null);assert.doesNotMatch(recommendation(issue,false,now).label,/APPLY NOW/);
+ const draft=structuredClone(issue);draft.issuerReview.stage='DRAFT_ONLY';
+ assert.equal(historicalPEScenario(draft,false,now),null);
+ for(const url of [row.sources[0].url.replace('www.axiscapital.co.in','www.axiscapital.co.in.evil.invalid'),row.sources[0].url.replace('1792429309','1792429308')]){
+  const broken=structuredClone(row);broken.sources[0].url=url;
+  assert.deepEqual(validatedReviews({schemaVersion:1,records:[broken]},now),[]);
+ }
+ const fakeCurrent=structuredClone(row);for(const s of fakeCurrent.sources)s.document='DRHP_ADDENDUM';
  assert.deepEqual(validatedReviews({schemaVersion:1,records:[fakeCurrent]},now),[]);
 });

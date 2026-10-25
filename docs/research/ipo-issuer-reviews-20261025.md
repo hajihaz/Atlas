@@ -2,8 +2,8 @@
 
 Atlas now joins a separate primary-filing review to the exact issuer ID, company,
 board, opening date and closing date. The eight open/upcoming records reviewed on
-25 October 2026 comprise seven current RHP/abridged-RHP reviews and one dated
-financial-addendum context (EAAA). The existing Paras financial record remains available separately.
+25 October 2026 now comprise eight current RHP/abridged-RHP reviews after the bounded
+EAAA recovery described below. The existing Paras financial record remains available separately.
 
 The source catalog is `frontend/public/ipo-issuer-reviews.json`. Each cited file
 has a canonical regulator, issuer or lead-manager URL, a SHA-256 fingerprint and
@@ -19,7 +19,7 @@ No social-media statement is used as financial evidence.
 | Carver Roboweld | Lead-manager RHP; this view uses standalone facts and EPS. The different consolidated EPS is identified as a valuation-basis gap. |
 | Bombay Coated and Special Steels | Lead-manager abridged filing and issue-price basis; the disclosed BMW price, EPS and P/E do not fully reconcile and are flagged. |
 | M.K. Sons Fine Jewels | Current 22 October RHP retrieved from its lead manager; older draft figures are superseded in this view. |
-| EAAA India Alternatives | Hash-pinned August financial addendum from Axis Capital supplies FY26 consolidated context. Current RHP downloads failed; no current-offer valuation is released from this earlier document. |
+| EAAA India Alternatives | Current 19 October RHP, abridged filing, price basis and price-band notice recovered from Axis Capital. Annual and quarterly facts remain distinct; dated peer ratios and the Gaja P/E discrepancy are flagged. |
 
 Lakh values divide by 100 and million values by 10 to obtain INR crore. Quarterly
 figures are not annualized. The displayed P/E scenario divides a fresh publisher
@@ -78,16 +78,22 @@ Hosted CI and production release are separate acceptance gates. Local passing
 tests do not clear them.
 
 
-The final owner-independent pass changed only EAAA's research record; all seven
-completed issuer records were compared against their saved fingerprints and
-remained identical. The October EAAA RHP was located on the issuer and Nuvama
-sites, but direct retrieval returned HTTP 403/502. The available Axis Capital
-addendum remains DRAFT_ONLY even though it contains FY26 figures. Its offer
-terms are not promoted to current terms, and its EPS cannot create a current
-P/E scenario. The PDF fingerprint is
-c3888bc2ca80afc26d120dc8d3a3011419ad3a63d3ca1a372dc4acfca330f1be;
-physical pages 7, 10, 107, 108 and 147 contain the selected financial context.
+The first final owner-independent pass at commit `22ed992` retained EAAA as
+DRAFT_ONLY because the issuer/Nuvama current PDF downloads returned 403/502.
+The explicitly approved five-gate recovery subsequently retrieved a different,
+public Axis Capital full RHP and three supporting documents. EAAA now uses
+CURRENT_RHP with 11 annual/quarterly metrics. Its recovered filing's provenance
+and bounded recovery outcomes are in [the five-gate recovery report](atlas-five-gate-recovery-20261025.md).
+The other seven issuer records remain identical to the verified baseline.
 
-The earlier full-regression results above are the baseline. Delta verification
-is recorded in the final independent-pass report; it does not imply the entire
-unchanged suite was rerun.
+Only historical annual-EPS arithmetic is displayed for fresh offer prices. The
+issuer's 8 October peer prices are not independently current fair value. The
+printed Gaja P/E discrepancy is retained as an evidence gap, and that peer is
+excluded from the selected context. The recommendation remains HOLD.
+
+The earlier full-regression results above are the baseline at `3018fb5`. New
+delta verification is recorded separately; it does not imply the entire
+unchanged suite was rerun. The existing later device acceptance was reconciled
+separately: signing keys and actual clicked receipts are preserved, while
+subscription/test-file byte changes from that acceptance are not misreported
+as identical to the earlier pre-reload snapshot.
