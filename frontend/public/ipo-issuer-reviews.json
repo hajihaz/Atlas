@@ -768,17 +768,110 @@
       "board": "MAINBOARD",
       "openDate": "2026-10-26",
       "closeDate": "2026-10-28",
-      "reviewedAt": "2026-10-25T09:24:23Z",
-      "stage": "SOURCE_GAP",
-      "basis": "Current primary financial source not verified",
-      "fiscalPeriod": "Current-offer evidence incomplete",
-      "sources": [],
-      "metrics": [],
-      "risks": [],
+      "reviewedAt": "2026-10-25T10:52:06Z",
+      "stage": "DRAFT_ONLY",
+      "basis": "Restated consolidated financials in August 2026 DRHP addendum",
+      "fiscalPeriod": "Annual results to 31 March 2026; earlier addendum, not final offer terms",
+      "sources": [
+        {
+          "id": "A",
+          "kind": "LEAD_MANAGER",
+          "document": "DRHP_ADDENDUM",
+          "url": "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Limited%20-%20Addendum%20to%20DRHP-1786642854-1786687133.pdf",
+          "sha256": "c3888bc2ca80afc26d120dc8d3a3011419ad3a63d3ca1a372dc4acfca330f1be",
+          "pages": [
+            1,
+            7,
+            10,
+            107,
+            108,
+            147
+          ]
+        }
+      ],
+      "metrics": [
+        {
+          "key": "revenue",
+          "label": "Revenue from operations",
+          "value": 869.54,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 107
+        },
+        {
+          "key": "totalIncome",
+          "label": "Total income",
+          "value": 963.759,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 107
+        },
+        {
+          "key": "pat",
+          "label": "Profit after tax",
+          "value": 265.197,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 107
+        },
+        {
+          "key": "cfo",
+          "label": "Operating cash flow",
+          "value": 235.244,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 108
+        },
+        {
+          "key": "dilutedEPS",
+          "label": "Historical diluted EPS",
+          "value": 40.36,
+          "unit": "INR_PER_SHARE",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 7
+        },
+        {
+          "key": "debtEquity",
+          "label": "Total borrowing / net worth",
+          "value": 0.41,
+          "unit": "RATIO",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 10
+        },
+        {
+          "key": "patMargin",
+          "label": "PAT / total income",
+          "value": 27.52,
+          "unit": "PCT",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 10
+        },
+        {
+          "key": "variableReturn",
+          "label": "Unrealized variable additional return",
+          "value": 290.472,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 147
+        }
+      ],
+      "risks": [
+        "Variable additional return includes unrealized fair-value gains; review valuation assumptions and the timing of cash realization.",
+        "Operating cash flow was negative in FY25 and FY24. Positive FY26 cash generation does not establish stable conversion across periods.",
+        "Income includes management fees and investment-related returns with different recurrence and valuation exposure; do not treat all income as recurring fees."
+      ],
       "gaps": [
-        "The issuer lists an October RHP behind a distribution confirmation; no restricted copy is reproduced here.",
-        "The independently accessible annual-report URL returned an access error; FY26 figures remain withheld.",
-        "Confirm the current RHP, annual earnings, offer terms, risk factors and comparable listed peers before an investment decision."
+        "This is the August 2026 financial addendum. The October RHP is indexed publicly, but current issuer/lead-manager PDF retrieval failed; the complete current risk and governance review is not certified.",
+        "Earlier addendum offer-size and reservation figures are superseded; do not use them for current price, lot, schedule or allocation.",
+        "Current independent peer prices, accounting comparability and fair valuation remain unverified. No current offer P/E scenario is released from draft-only evidence."
       ],
       "peerContext": null,
       "decision": "HOLD_FOR_MANUAL_REVIEW"

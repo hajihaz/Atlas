@@ -63,3 +63,16 @@ test('P/E is historical arithmetic only and disappears with stale prices, wrong 
  assert.doesNotMatch(recommendation(issue,false,now).label,/APPLY NOW/);
  assert.equal(recommendation(issue,false,now).score,null);
 });
+
+test('EAAA addendum remains dated financial context and cannot generate current offer valuation',()=>{
+ const row=data.records.find(r=>r.id==='EDELALTS');
+ assert.equal(row.stage,'DRAFT_ONLY');
+ assert.equal(row.metrics.find(m=>m.key==='cfo').value,235.244);
+ assert.equal(row.metrics.find(m=>m.key==='patMargin').label,'PAT / total income');
+ const [issue]=mergeIssuerReviews([original('EDELALTS')],data,now);
+ assert.ok(issue.issuerReview);assert.equal(historicalPEScenario(issue,false,now),null);
+ const broken=structuredClone(row);broken.sources[0].url=broken.sources[0].url.replace('www.axiscapital.co.in','www.axiscapital.co.in.evil.invalid');
+ assert.deepEqual(validatedReviews({schemaVersion:1,records:[broken]},now),[]);
+ const fakeCurrent={...row,stage:'CURRENT_RHP'};
+ assert.deepEqual(validatedReviews({schemaVersion:1,records:[fakeCurrent]},now),[]);
+});

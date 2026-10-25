@@ -133,7 +133,7 @@ class IssuerResearchReviewTests(unittest.TestCase):
     def test_real_catalog_preserves_period_unit_and_accounting_basis(self):
         self.assertEqual(len(self.rows), 8)
         records = {x["id"]: x for x in self.rows.values()}
-        self.assertEqual(records["EDELALTS"]["stage"], "SOURCE_GAP")
+        self.assertEqual(records["EDELALTS"]["stage"], "DRAFT_ONLY")
         self.assertEqual(records["MKSONS"]["stage"], "CURRENT_RHP")
         metrics = {m["key"]: m["value"] for m in records["SFCTECH"]["metrics"]}
         self.assertEqual(metrics["revenue"], 803.629)
@@ -202,3 +202,25 @@ class IssuerResearchReviewTests(unittest.TestCase):
             "mandateDeadline": "2026-10-23T17:00:00+05:30",
         }
         self.assertEqual(report.build_report(sample(item), now=NOW)["issues"], [])
+
+    def test_eaaa_dated_context_cannot_create_a_current_offer_pe(self):
+        row = next(x for x in self.catalog["records"] if x["id"] == "EDELALTS")
+        self.assertEqual(row["stage"], "DRAFT_ONLY")
+        values = {m["key"]: m["value"] for m in row["metrics"]}
+        self.assertEqual(values["revenue"], 869.54)
+        self.assertEqual(values["totalIncome"], 963.759)
+        self.assertEqual(values["cfo"], 235.244)
+        self.assertEqual(values["patMargin"], 27.52)
+        item = {
+            **BASE,
+            **{k: row[k] for k in ("id", "company", "board", "openDate", "closeDate")},
+            "sourceObservedAt": self.now.isoformat(),
+            "priceMin": 1585,
+            "priceMax": 1665,
+        }
+        result = report.build_report(
+            sample(item, self.now.isoformat()), reviews=self.catalog, now=self.now
+        )["issues"][0]
+        self.assertEqual(result["issuerReview"]["stage"], "DRAFT_ONLY")
+        self.assertIsNone(result["issuerReview"]["historicalPEScenario"])
+        self.assertIn("HOLD", result["decision"])

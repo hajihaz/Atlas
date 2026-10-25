@@ -128,6 +128,8 @@ def valid_reviews_by_key(file, now):
                                 and u.path.startswith("/wp-content/uploads/2026/10/")
                             )
                             or (u.netloc == "www.afsl.co.in" and u.path.startswith("/pdfnew/"))
+                            or source["url"]
+                            == "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Limited%20-%20Addendum%20to%20DRHP-1786642854-1786687133.pdf"
                         )
                     )
                     or (

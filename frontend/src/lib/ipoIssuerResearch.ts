@@ -20,7 +20,7 @@ function sourceOK(s:ResearchSource):boolean{
   const u=new URL(s.url);
   if(u.protocol!=='https:'||u.username||u.password||u.port||u.search||u.hash||!u.pathname.toLowerCase().endsWith('.pdf'))return false;
   return s.kind==='REGULATOR'&&u.hostname==='www.sebi.gov.in'&&u.pathname.startsWith('/sebi_data/')||
-   s.kind==='LEAD_MANAGER'&&(u.hostname==='shcapl.com'&&u.pathname.startsWith('/wp-content/uploads/2026/10/')||u.hostname==='www.afsl.co.in'&&u.pathname.startsWith('/pdfnew/'))||
+   s.kind==='LEAD_MANAGER'&&(u.hostname==='shcapl.com'&&u.pathname.startsWith('/wp-content/uploads/2026/10/')||u.hostname==='www.afsl.co.in'&&u.pathname.startsWith('/pdfnew/')||s.url==="https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Limited%20-%20Addendum%20to%20DRHP-1786642854-1786687133.pdf")||
    s.kind==='ISSUER'&&(u.hostname==='core4engineers.com'&&u.pathname.startsWith('/pdf/ipo/')||
     u.hostname==='www.mkjewels.in'&&u.pathname.startsWith('/uploads/mkjewels/pdf/'));
  }catch{return false;}
