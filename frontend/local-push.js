@@ -58,27 +58,31 @@ export function createPushStore(dir=DEFAULT_PUSH_DIRECTORY){
     const path=join(dir,'test-receipts.json'),records=await read(path,{});
     const recent=Object.values(records).filter(item=>item.subscriberId===id&&Date.now()-Date.parse(item.createdAt)<60000);
     if(recent.length)throw Error('Wait one minute before another test');
-    const receiptId=randomBytes(32).toString('hex');
+    const receiptId=randomBytes(32).toString('hex'),receiptProof=randomBytes(32).toString('hex');
     for(const key of Object.keys(records).slice(0,Math.max(0,Object.keys(records).length-49)))delete records[key];
-    records[receiptId]={subscriberId:id,createdAt:new Date().toISOString(),status:'attempted',deviceConfirmed:false};
+    records[receiptId]={subscriberId:id,createdAt:new Date().toISOString(),status:'attempted',deviceConfirmed:false,
+     proofHash:createHash('sha256').update(receiptProof).digest('hex')};
     await atomic(path,records);
     try{
      const response=await send(validateSubscription(row.subscription),JSON.stringify({
       title:'Atlas notification test',body:'Test only. Tap this notification to confirm delivery on this device.',
-      tag:'atlas-test-'+receiptId,receiptId,url:'/#ipo',
+      tag:'atlas-test-'+receiptId,receiptId,receiptProof,url:'/#ipo',
      }),{TTL:300,timeout:8000,vapidDetails:{subject:'https://atlas-control-center-pi.vercel.app',...keys}});
      records[receiptId].status=response?.statusCode>=200&&response.statusCode<300?'accepted_by_push_service':'unconfirmed';
     }catch{records[receiptId].status='delivery_unconfirmed';}
     await atomic(path,records);
-    return {receiptId,...records[receiptId]};
+    return {receiptId,status:records[receiptId].status,deviceConfirmed:false};
    });
   },
-  async receipt(receiptId,{confirm=false}={}){
+  async receipt(receiptId,{confirm=false,proof=null}={}){
    if(typeof receiptId!=='string'||!/^[a-f0-9]{64}$/.test(receiptId))throw Error('Invalid delivery receipt');
    return locked(dir,async()=>{
     const path=join(dir,'test-receipts.json'),records=await read(path,{}),record=records[receiptId];
     if(!record)throw Error('Unknown delivery receipt');
     if(confirm){
+     if(typeof proof!=='string'||!/^[a-f0-9]{64}$/.test(proof)||typeof record.proofHash!=='string'||
+       !timingSafeEqual(Buffer.from(createHash('sha256').update(proof).digest('hex')),Buffer.from(record.proofHash)))
+      throw Error('Invalid device receipt proof');
      if(Date.now()-Date.parse(record.createdAt)>600000)throw Error('Delivery receipt expired');
      record.deviceConfirmed=true;record.status='device_notification_clicked';
      record.clickedAt??=new Date().toISOString();await atomic(path,records);
@@ -139,7 +143,7 @@ export async function handlePushRequest(req,res,store=createPushStore()){
   for await(const chunk of req){bytes+=chunk.length;if(bytes>8192)return answer(413,{error:'body_too_large'});text+=chunk.toString('utf8');}
   let input;try{input=JSON.parse(text);}catch{return answer(400,{error:'invalid_json'});}
   // A notification click proves possession of its encrypted 256-bit receipt capability.
-  if(input?.action==='receipt')return answer(200,await store.receipt(input.receiptId,{confirm:true}));
+  if(input?.action==='receipt')return answer(200,await store.receipt(input.receiptId,{confirm:true,proof:input.receiptProof}));
   const token=req.headers['x-atlas-push-pairing'];
   if(typeof token!=='string'||token.length!==nonce.length||Date.now()>nonceExpires||
     !timingSafeEqual(Buffer.from(token),Buffer.from(nonce)))return answer(403,{error:'pairing_required'});

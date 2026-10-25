@@ -63,9 +63,13 @@ test('explicit device test stays separate from deadline alerts and requires an a
  assert.equal(sent.status,'accepted_by_push_service');assert.equal(sent.deviceConfirmed,false);
  assert.equal((await store.receipt(sent.receiptId)).deviceConfirmed,false);
  await assert.rejects(store.receipt('0'.repeat(64),{confirm:true}),/Unknown/);
- const clicked=await store.receipt(payload.receiptId,{confirm:true});
+ await assert.rejects(store.receipt(payload.receiptId,{confirm:true}),/Invalid device receipt proof/);
+ await assert.rejects(store.receipt(payload.receiptId,{confirm:true,proof:'0'.repeat(64)}),/Invalid device receipt proof/);
+ assert.ok(!JSON.stringify(sent).includes(payload.receiptProof));
+ assert.ok(!(await readFile(join(dir,'test-receipts.json'),'utf8')).includes(payload.receiptProof));
+ const clicked=await store.receipt(payload.receiptId,{confirm:true,proof:payload.receiptProof});
  assert.equal(clicked.deviceConfirmed,true);assert.equal(clicked.status,'device_notification_clicked');
- assert.deepEqual(await store.receipt(payload.receiptId,{confirm:true}),clicked);
+ assert.deepEqual(await store.receipt(payload.receiptId,{confirm:true,proof:payload.receiptProof}),clicked);
  await assert.rejects(store.testDelivery(device.id,{send}),/one minute/);
  await assert.rejects(store.testDelivery('not-a-device',{send}),/Invalid/);
  await assert.rejects(readFile(join(dir,'deliveries.json')),e=>e.code==='ENOENT');
@@ -88,17 +92,17 @@ test('service-worker click submits only the bounded receipt and opens the same-o
   self:{location:{origin},registration:{showNotification:async(...x)=>shown.push(x)},
    clients:{matchAll:async()=>[],openWindow:async url=>opened.push(url)},
    addEventListener:(name,handler)=>{handlers[name]=handler;}}});
- const receiptId='a'.repeat(64);
+ const receiptId='a'.repeat(64),receiptProof='b'.repeat(64);
  let operation;
- handlers.push({data:{json:()=>({title:'Atlas notification test',body:'Test only',tag:'test',receiptId,url:'https://evil.invalid'})},
+ handlers.push({data:{json:()=>({title:'Atlas notification test',body:'Test only',tag:'test',receiptId,receiptProof,url:'https://evil.invalid'})},
   waitUntil:promise=>{operation=promise;}});
  await operation;
  assert.equal(shown[0][1].data.receiptId,receiptId);
- handlers.notificationclick({notification:{close(){},data:{receiptId,url:'https://evil.invalid'}},
+ handlers.notificationclick({notification:{close(){},data:{receiptId,receiptProof,url:'https://evil.invalid'}},
   waitUntil:promise=>{operation=promise;}});
  await operation;
  assert.equal(requests.length,1);assert.equal(requests[0].url,'/api/ipo-push');
- assert.deepEqual(JSON.parse(requests[0].options.body),{action:'receipt',receiptId});
+ assert.deepEqual(JSON.parse(requests[0].options.body),{action:'receipt',receiptId,receiptProof});
  assert.deepEqual(opened,[origin+'/#ipo']);
  handlers.notificationclick({notification:{close(){},data:{receiptId:'../keys.json'}},
   waitUntil:promise=>{operation=promise;}});

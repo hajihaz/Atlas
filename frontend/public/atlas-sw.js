@@ -5,16 +5,18 @@ self.addEventListener('push',event=>{
    typeof input.body!=='string'||typeof input.tag!=='string')return;
  event.waitUntil(self.registration.showNotification(input.title.slice(0,160),{
   body:input.body.slice(0,500),tag:input.tag.slice(0,100),data:{url:'/#ipo',
-   receiptId:typeof input.receiptId==='string'&&/^[a-f0-9]{64}$/.test(input.receiptId)?input.receiptId:null}
+   receiptId:typeof input.receiptId==='string'&&/^[a-f0-9]{64}$/.test(input.receiptId)?input.receiptId:null,
+   receiptProof:typeof input.receiptProof==='string'&&/^[a-f0-9]{64}$/.test(input.receiptProof)?input.receiptProof:null}
  }));
 });
 self.addEventListener('notificationclick',event=>{
  event.notification.close();
  event.waitUntil((async()=>{
-  const receiptId=event.notification.data?.receiptId;
-  if(typeof receiptId==='string'&&/^[a-f0-9]{64}$/.test(receiptId)){
+  const receiptId=event.notification.data?.receiptId,receiptProof=event.notification.data?.receiptProof;
+  if(typeof receiptId==='string'&&/^[a-f0-9]{64}$/.test(receiptId)
+    &&typeof receiptProof==='string'&&/^[a-f0-9]{64}$/.test(receiptProof)){
    try{await fetch('/api/ipo-push',{method:'POST',credentials:'omit',
-    headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'receipt',receiptId})});}catch{}
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'receipt',receiptId,receiptProof})});}catch{}
   }
   const target=new URL('/#ipo',self.location.origin).href;
   const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
