@@ -22,7 +22,12 @@ export async function getPrivateArtifact({kind,token,ref='main',fetcher=fetch,ti
  }finally{clearTimeout(timer);}
 }
 export function configuredArtifactRef(env=process.env){
- // Only this reviewed preview reads the Mac publisher branch. Production stays on main.
- return env.VERCEL_ENV==='preview'&&env.VERCEL_GIT_COMMIT_REF===APPROVED_PREVIEW_REF
-  ?RUNTIME_DATA_REF:'main';
+ // The reviewed preview reads the data branch. Production needs an explicitly
+ // approved EXACT deployment commit after hosted CI; absence/mismatch stays on main.
+ if(env.VERCEL_ENV==='preview'&&env.VERCEL_GIT_COMMIT_REF===APPROVED_PREVIEW_REF)return RUNTIME_DATA_REF;
+ const approved=env.ATLAS_APPROVED_RUNTIME_REPORT_SHA;
+ if(env.VERCEL_ENV==='production'&&env.VERCEL_GIT_COMMIT_REF==='main'&&
+  typeof approved==='string'&&/^[a-f0-9]{40}$/.test(approved)&&approved===env.VERCEL_GIT_COMMIT_SHA)
+  return RUNTIME_DATA_REF;
+ return 'main';
 }

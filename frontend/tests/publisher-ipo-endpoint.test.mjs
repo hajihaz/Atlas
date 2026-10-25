@@ -63,3 +63,14 @@ test('oversize or future artifacts are refused',async()=>{
  const f=fixture();f.generatedAt='2026-10-26T00:00:00Z';
  await assert.rejects(read(JSON.stringify(f)));
 });
+
+
+test('production data activation is bound to an explicitly approved exact deployment SHA',()=>{
+ const base={VERCEL_ENV:'production',VERCEL_GIT_COMMIT_REF:'main',VERCEL_GIT_COMMIT_SHA:'a'.repeat(40)};
+ assert.equal(configuredArtifactRef(base),'main');
+ assert.equal(configuredArtifactRef({...base,ATLAS_APPROVED_RUNTIME_REPORT_SHA:'a'.repeat(40)}),RUNTIME_DATA_REF);
+ for(const approved of ['', '1', 'b'.repeat(40), 'a'.repeat(39), 'a'.repeat(40)+' '])
+  assert.equal(configuredArtifactRef({...base,ATLAS_APPROVED_RUNTIME_REPORT_SHA:approved}),'main');
+ assert.equal(configuredArtifactRef({...base,VERCEL_GIT_COMMIT_REF:'another-branch',ATLAS_APPROVED_RUNTIME_REPORT_SHA:'a'.repeat(40)}),'main');
+ assert.equal(configuredArtifactRef({...base,VERCEL_ENV:'preview',ATLAS_APPROVED_RUNTIME_REPORT_SHA:'a'.repeat(40)}),'main');
+});
