@@ -10,11 +10,11 @@
   "virtualCapitalPerStrategyINR": 100000,
   "realOrdersEnabled": false,
   "createdAt": "2026-10-19T22:37:32.197Z",
-  "lastRunAt": "2026-10-25T08:06:38.522Z",
-  "lastProviderAt": "2026-10-25T08:06:37.000Z",
-  "lastBarClosedAt": "2026-10-25T08:00:00.000Z",
+  "lastRunAt": "2026-10-25T10:06:58.608Z",
+  "lastProviderAt": "2026-10-25T10:06:58.000Z",
+  "lastBarClosedAt": "2026-10-25T10:00:00.000Z",
   "scheduledEveryMinutes": 120,
-  "runCount": 21,
+  "runCount": 22,
   "skippedIntervals": 53,
   "status": "RUNNING",
   "alert": null,
@@ -58,6 +58,10 @@
         {
           "at": "2026-10-25T08:06:38.522Z",
           "equityINR": 100000
+        },
+        {
+          "at": "2026-10-25T10:06:58.608Z",
+          "equityINR": 100000
         }
       ],
       "lastDecisionEvidence": {
@@ -66,8 +70,8 @@
         "code": "NO_ELIGIBLE_SIGNAL",
         "signal": "HOLD",
         "modeledFills": 0,
-        "checkedAt": "2026-10-25T08:06:38.522Z",
-        "completedBarAt": "2026-10-25T08:00:00.000Z",
+        "checkedAt": "2026-10-25T10:06:58.608Z",
+        "completedBarAt": "2026-10-25T10:00:00.000Z",
         "realOrdersEnabled": false,
         "actualCapitalINR": 0
       }
@@ -110,6 +114,10 @@
         {
           "at": "2026-10-25T08:06:38.522Z",
           "equityINR": 100000
+        },
+        {
+          "at": "2026-10-25T10:06:58.608Z",
+          "equityINR": 100000
         }
       ],
       "lastDecisionEvidence": {
@@ -118,8 +126,8 @@
         "code": "NO_ELIGIBLE_SIGNAL",
         "signal": "HOLD",
         "modeledFills": 0,
-        "checkedAt": "2026-10-25T08:06:38.522Z",
-        "completedBarAt": "2026-10-25T08:00:00.000Z",
+        "checkedAt": "2026-10-25T10:06:58.608Z",
+        "completedBarAt": "2026-10-25T10:00:00.000Z",
         "realOrdersEnabled": false,
         "actualCapitalINR": 0
       }
@@ -162,6 +170,10 @@
         {
           "at": "2026-10-25T08:06:38.522Z",
           "equityINR": 100000
+        },
+        {
+          "at": "2026-10-25T10:06:58.608Z",
+          "equityINR": 100000
         }
       ],
       "lastDecisionEvidence": {
@@ -170,8 +182,8 @@
         "code": "NO_ELIGIBLE_SIGNAL",
         "signal": "HOLD",
         "modeledFills": 0,
-        "checkedAt": "2026-10-25T08:06:38.522Z",
-        "completedBarAt": "2026-10-25T08:00:00.000Z",
+        "checkedAt": "2026-10-25T10:06:58.608Z",
+        "completedBarAt": "2026-10-25T10:00:00.000Z",
         "realOrdersEnabled": false,
         "actualCapitalINR": 0
       }
@@ -214,6 +226,10 @@
         {
           "at": "2026-10-25T08:06:38.522Z",
           "equityINR": 100000
+        },
+        {
+          "at": "2026-10-25T10:06:58.608Z",
+          "equityINR": 100000
         }
       ],
       "lastDecisionEvidence": {
@@ -222,8 +238,8 @@
         "code": "NO_ELIGIBLE_SIGNAL",
         "signal": "HOLD",
         "modeledFills": 0,
-        "checkedAt": "2026-10-25T08:06:38.522Z",
-        "completedBarAt": "2026-10-25T08:00:00.000Z",
+        "checkedAt": "2026-10-25T10:06:58.608Z",
+        "completedBarAt": "2026-10-25T10:00:00.000Z",
         "realOrdersEnabled": false,
         "actualCapitalINR": 0
       }
@@ -239,7 +255,7 @@
       "highestEquityINR": 100000,
       "maxDrawdownPct": 0,
       "status": "RUNNING",
-      "lastSignal": "HOLD",
+      "lastSignal": "SELL",
       "pausedReason": null,
       "closedTrades": 0,
       "wins": 0,
@@ -266,16 +282,20 @@
         {
           "at": "2026-10-25T08:06:38.522Z",
           "equityINR": 100000
+        },
+        {
+          "at": "2026-10-25T10:06:58.608Z",
+          "equityINR": 100000
         }
       ],
       "lastDecisionEvidence": {
         "schema": 1,
         "mode": "SOURCE_VERIFIED_PAPER_DECISION_ONLY",
-        "code": "NO_ELIGIBLE_SIGNAL",
-        "signal": "HOLD",
+        "code": "SELL_SIGNAL_WITHOUT_HOLDINGS",
+        "signal": "SELL",
         "modeledFills": 0,
-        "checkedAt": "2026-10-25T08:06:38.522Z",
-        "completedBarAt": "2026-10-25T08:00:00.000Z",
+        "checkedAt": "2026-10-25T10:06:58.608Z",
+        "completedBarAt": "2026-10-25T10:00:00.000Z",
         "realOrdersEnabled": false,
         "actualCapitalINR": 0
       }
@@ -287,9 +307,9 @@
     "schema": 1,
     "status": "PASS",
     "code": "ELIGIBLE",
-    "checkedAt": "2026-10-25T08:06:38.522Z",
-    "latestBarClosedAt": "2026-10-25T08:00:00.000Z",
-    "providerQuoteAt": "2026-10-25T08:06:37.000Z",
+    "checkedAt": "2026-10-25T10:06:58.608Z",
+    "latestBarClosedAt": "2026-10-25T10:00:00.000Z",
+    "providerQuoteAt": "2026-10-25T10:06:58.000Z",
     "candleAgeMinutes": 6,
     "latencyClass": "RECENT_OR_UNVERIFIED",
     "liveOrdersEnabled": false,
@@ -574,6 +594,21 @@
       "sourceAccepted": true,
       "sourceCode": "ELIGIBLE",
       "completedBarAt": "2026-10-25T08:00:00.000Z",
+      "candleAgeMinutes": 6,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 53,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 22,
+      "at": "2026-10-25T10:06:58.608Z",
+      "status": "RUNNING",
+      "classification": "SOURCE_VERIFIED_PAPER_ONLY",
+      "sourceAccepted": true,
+      "sourceCode": "ELIGIBLE",
+      "completedBarAt": "2026-10-25T10:00:00.000Z",
       "candleAgeMinutes": 6,
       "newModeledFills": 0,
       "haltedStrategies": 0,
