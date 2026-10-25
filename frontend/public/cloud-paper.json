@@ -1,0 +1,515 @@
+{
+  "schema": 1,
+  "mode": "SCHEDULED_VIRTUAL_PAPER",
+  "currency": "INR",
+  "symbol": "BTCINR",
+  "interval": "2h",
+  "source": "CoinDCX public completed spot candles + timestamped public ticker",
+  "execution": "SCHEDULED_MODEL_ONLY",
+  "actualCapitalINR": 0,
+  "virtualCapitalPerStrategyINR": 100000,
+  "realOrdersEnabled": false,
+  "createdAt": "2026-10-19T22:37:32.197Z",
+  "lastRunAt": "2026-10-25T05:58:12.794Z",
+  "lastProviderAt": "2026-10-25T04:25:14.000Z",
+  "lastBarClosedAt": "2026-10-25T04:00:00.000Z",
+  "scheduledEveryMinutes": 120,
+  "runCount": 19,
+  "skippedIntervals": 53,
+  "status": "DEGRADED",
+  "alert": "Source check CLOSED_CANDLE_TOO_OLD; no virtual fills processed.",
+  "firstRunHasNoBackfilledTrades": true,
+  "sessions": [
+    {
+      "strategyId": "sma_9_21",
+      "strategyName": "SMA 9/21 Crossover",
+      "cashINR": 100000,
+      "quantity": 0,
+      "costINR": 0,
+      "virtualEquityINR": 100000,
+      "feesINR": 0,
+      "highestEquityINR": 100000,
+      "maxDrawdownPct": 0,
+      "status": "RUNNING",
+      "lastSignal": "HOLD",
+      "pausedReason": null,
+      "closedTrades": 0,
+      "wins": 0,
+      "realizedPnlINR": 0,
+      "events": [],
+      "lastFillAt": null,
+      "equityHistory": [
+        {
+          "at": "2026-10-19T22:37:32.197Z",
+          "equityINR": 100000
+        },
+        {
+          "at": "2026-10-22T01:26:17.304Z",
+          "equityINR": 100000
+        },
+        {
+          "at": "2026-10-23T00:29:15.005Z",
+          "equityINR": 100000
+        }
+      ],
+      "lastDecisionEvidence": {
+        "schema": 1,
+        "mode": "SOURCE_VERIFIED_PAPER_DECISION_ONLY",
+        "code": "MISSED_BARS_NO_BACKFILL",
+        "signal": "NOT_EVALUATED",
+        "modeledFills": 0,
+        "checkedAt": "2026-10-25T04:25:14.697Z",
+        "completedBarAt": "2026-10-25T04:00:00.000Z",
+        "realOrdersEnabled": false,
+        "actualCapitalINR": 0
+      }
+    },
+    {
+      "strategyId": "ema_12_26",
+      "strategyName": "EMA 12/26 Momentum",
+      "cashINR": 100000,
+      "quantity": 0,
+      "costINR": 0,
+      "virtualEquityINR": 100000,
+      "feesINR": 0,
+      "highestEquityINR": 100000,
+      "maxDrawdownPct": 0,
+      "status": "RUNNING",
+      "lastSignal": "HOLD",
+      "pausedReason": null,
+      "closedTrades": 0,
+      "wins": 0,
+      "realizedPnlINR": 0,
+      "events": [],
+      "lastFillAt": null,
+      "equityHistory": [
+        {
+          "at": "2026-10-19T22:37:32.197Z",
+          "equityINR": 100000
+        },
+        {
+          "at": "2026-10-22T01:26:17.304Z",
+          "equityINR": 100000
+        },
+        {
+          "at": "2026-10-23T00:29:15.005Z",
+          "equityINR": 100000
+        }
+      ],
+      "lastDecisionEvidence": {
+        "schema": 1,
+        "mode": "SOURCE_VERIFIED_PAPER_DECISION_ONLY",
+        "code": "MISSED_BARS_NO_BACKFILL",
+        "signal": "NOT_EVALUATED",
+        "modeledFills": 0,
+        "checkedAt": "2026-10-25T04:25:14.697Z",
+        "completedBarAt": "2026-10-25T04:00:00.000Z",
+        "realOrdersEnabled": false,
+        "actualCapitalINR": 0
+      }
+    },
+    {
+      "strategyId": "rsi_14",
+      "strategyName": "RSI 14 Mean Reversion",
+      "cashINR": 100000,
+      "quantity": 0,
+      "costINR": 0,
+      "virtualEquityINR": 100000,
+      "feesINR": 0,
+      "highestEquityINR": 100000,
+      "maxDrawdownPct": 0,
+      "status": "RUNNING",
+      "lastSignal": "HOLD",
+      "pausedReason": null,
+      "closedTrades": 0,
+      "wins": 0,
+      "realizedPnlINR": 0,
+      "events": [],
+      "lastFillAt": null,
+      "equityHistory": [
+        {
+          "at": "2026-10-19T22:37:32.197Z",
+          "equityINR": 100000
+        },
+        {
+          "at": "2026-10-22T01:26:17.304Z",
+          "equityINR": 100000
+        },
+        {
+          "at": "2026-10-23T00:29:15.005Z",
+          "equityINR": 100000
+        }
+      ],
+      "lastDecisionEvidence": {
+        "schema": 1,
+        "mode": "SOURCE_VERIFIED_PAPER_DECISION_ONLY",
+        "code": "MISSED_BARS_NO_BACKFILL",
+        "signal": "NOT_EVALUATED",
+        "modeledFills": 0,
+        "checkedAt": "2026-10-25T04:25:14.697Z",
+        "completedBarAt": "2026-10-25T04:00:00.000Z",
+        "realOrdersEnabled": false,
+        "actualCapitalINR": 0
+      }
+    },
+    {
+      "strategyId": "breakout_20",
+      "strategyName": "20-Bar Breakout",
+      "cashINR": 100000,
+      "quantity": 0,
+      "costINR": 0,
+      "virtualEquityINR": 100000,
+      "feesINR": 0,
+      "highestEquityINR": 100000,
+      "maxDrawdownPct": 0,
+      "status": "RUNNING",
+      "lastSignal": "HOLD",
+      "pausedReason": null,
+      "closedTrades": 0,
+      "wins": 0,
+      "realizedPnlINR": 0,
+      "events": [],
+      "lastFillAt": null,
+      "equityHistory": [
+        {
+          "at": "2026-10-19T22:37:32.197Z",
+          "equityINR": 100000
+        },
+        {
+          "at": "2026-10-22T01:26:17.304Z",
+          "equityINR": 100000
+        },
+        {
+          "at": "2026-10-23T00:29:15.005Z",
+          "equityINR": 100000
+        }
+      ],
+      "lastDecisionEvidence": {
+        "schema": 1,
+        "mode": "SOURCE_VERIFIED_PAPER_DECISION_ONLY",
+        "code": "MISSED_BARS_NO_BACKFILL",
+        "signal": "NOT_EVALUATED",
+        "modeledFills": 0,
+        "checkedAt": "2026-10-25T04:25:14.697Z",
+        "completedBarAt": "2026-10-25T04:00:00.000Z",
+        "realOrdersEnabled": false,
+        "actualCapitalINR": 0
+      }
+    },
+    {
+      "strategyId": "sps_pullback",
+      "strategyName": "SPS Swing Pullback",
+      "cashINR": 100000,
+      "quantity": 0,
+      "costINR": 0,
+      "virtualEquityINR": 100000,
+      "feesINR": 0,
+      "highestEquityINR": 100000,
+      "maxDrawdownPct": 0,
+      "status": "RUNNING",
+      "lastSignal": "SELL",
+      "pausedReason": null,
+      "closedTrades": 0,
+      "wins": 0,
+      "realizedPnlINR": 0,
+      "events": [],
+      "lastFillAt": null,
+      "equityHistory": [
+        {
+          "at": "2026-10-19T22:37:32.197Z",
+          "equityINR": 100000
+        },
+        {
+          "at": "2026-10-22T01:26:17.304Z",
+          "equityINR": 100000
+        },
+        {
+          "at": "2026-10-23T00:29:15.005Z",
+          "equityINR": 100000
+        }
+      ],
+      "lastDecisionEvidence": {
+        "schema": 1,
+        "mode": "SOURCE_VERIFIED_PAPER_DECISION_ONLY",
+        "code": "MISSED_BARS_NO_BACKFILL",
+        "signal": "NOT_EVALUATED",
+        "modeledFills": 0,
+        "checkedAt": "2026-10-25T04:25:14.697Z",
+        "completedBarAt": "2026-10-25T04:00:00.000Z",
+        "realOrdersEnabled": false,
+        "actualCapitalINR": 0
+      }
+    }
+  ],
+  "lastCandleAgeMinutes": 25,
+  "latencyPolicy": "DELAYED_PUBLIC_CANDLE_MODEL_ONLY_MAX_90_MIN",
+  "lastSourceCheck": {
+    "schema": 1,
+    "status": "BLOCKED",
+    "code": "CLOSED_CANDLE_TOO_OLD",
+    "checkedAt": "2026-10-25T05:58:12.794Z",
+    "latestBarClosedAt": "2026-10-25T04:00:00.000Z",
+    "providerQuoteAt": null,
+    "candleAgeMinutes": 118,
+    "latencyClass": "RECENT_OR_UNVERIFIED",
+    "liveOrdersEnabled": false,
+    "paperOrdersExecuted": false
+  },
+  "recentCheckpoints": [
+    {
+      "runCount": 3,
+      "at": "2026-10-20T12:40:18.345Z",
+      "status": "GAP_SKIPPED",
+      "classification": "SKIPPED_SOURCE_INTERVALS",
+      "sourceAccepted": true,
+      "sourceCode": "ELIGIBLE",
+      "completedBarAt": "2026-10-20T12:00:00.000Z",
+      "candleAgeMinutes": 40,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 6,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 4,
+      "at": "2026-10-20T17:55:45.703Z",
+      "status": "DEGRADED",
+      "classification": "SOURCE_REJECTED",
+      "sourceAccepted": false,
+      "sourceCode": "CLOSED_CANDLE_TOO_OLD",
+      "completedBarAt": "2026-10-20T12:00:00.000Z",
+      "candleAgeMinutes": 115,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 6,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 5,
+      "at": "2026-10-20T22:14:04.671Z",
+      "status": "DEGRADED",
+      "classification": "SOURCE_REJECTED",
+      "sourceAccepted": false,
+      "sourceCode": "SIMULATION_VALIDATION_FAILED",
+      "completedBarAt": "2026-10-20T12:00:00.000Z",
+      "candleAgeMinutes": null,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 6,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 6,
+      "at": "2026-10-21T01:28:01.477Z",
+      "status": "DEGRADED",
+      "classification": "SOURCE_REJECTED",
+      "sourceAccepted": false,
+      "sourceCode": "SIMULATION_VALIDATION_FAILED",
+      "completedBarAt": "2026-10-20T12:00:00.000Z",
+      "candleAgeMinutes": null,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 6,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 7,
+      "at": "2026-10-21T08:28:20.620Z",
+      "status": "DEGRADED",
+      "classification": "SOURCE_REJECTED",
+      "sourceAccepted": false,
+      "sourceCode": "SIMULATION_VALIDATION_FAILED",
+      "completedBarAt": "2026-10-20T12:00:00.000Z",
+      "candleAgeMinutes": null,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 6,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 8,
+      "at": "2026-10-21T14:27:10.748Z",
+      "status": "DEGRADED",
+      "classification": "SOURCE_REJECTED",
+      "sourceAccepted": false,
+      "sourceCode": "SIMULATION_VALIDATION_FAILED",
+      "completedBarAt": "2026-10-20T12:00:00.000Z",
+      "candleAgeMinutes": null,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 6,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 9,
+      "at": "2026-10-21T18:20:45.499Z",
+      "status": "GAP_SKIPPED",
+      "classification": "SKIPPED_SOURCE_INTERVALS",
+      "sourceAccepted": true,
+      "sourceCode": "ELIGIBLE",
+      "completedBarAt": "2026-10-21T18:00:00.000Z",
+      "candleAgeMinutes": 20,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 20,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 10,
+      "at": "2026-10-21T19:14:10.043Z",
+      "status": "RUNNING",
+      "classification": "SOURCE_VERIFIED_PAPER_ONLY",
+      "sourceAccepted": true,
+      "sourceCode": "ELIGIBLE",
+      "completedBarAt": "2026-10-21T18:00:00.000Z",
+      "candleAgeMinutes": 74,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 20,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 11,
+      "at": "2026-10-21T22:26:00.642Z",
+      "status": "GAP_SKIPPED",
+      "classification": "SKIPPED_SOURCE_INTERVALS",
+      "sourceAccepted": true,
+      "sourceCode": "ELIGIBLE",
+      "completedBarAt": "2026-10-21T22:00:00.000Z",
+      "candleAgeMinutes": 26,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 21,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 12,
+      "at": "2026-10-22T01:26:17.304Z",
+      "status": "RUNNING",
+      "classification": "SOURCE_VERIFIED_PAPER_ONLY",
+      "sourceAccepted": true,
+      "sourceCode": "ELIGIBLE",
+      "completedBarAt": "2026-10-22T00:00:00.000Z",
+      "candleAgeMinutes": 86,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 21,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 13,
+      "at": "2026-10-22T08:30:46.739Z",
+      "status": "GAP_SKIPPED",
+      "classification": "SKIPPED_SOURCE_INTERVALS",
+      "sourceAccepted": true,
+      "sourceCode": "ELIGIBLE",
+      "completedBarAt": "2026-10-22T08:00:00.000Z",
+      "candleAgeMinutes": 30,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 24,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 14,
+      "at": "2026-10-22T14:28:31.920Z",
+      "status": "GAP_SKIPPED",
+      "classification": "SKIPPED_SOURCE_INTERVALS",
+      "sourceAccepted": true,
+      "sourceCode": "ELIGIBLE",
+      "completedBarAt": "2026-10-22T14:00:00.000Z",
+      "candleAgeMinutes": 28,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 26,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 15,
+      "at": "2026-10-22T19:09:36.553Z",
+      "status": "GAP_SKIPPED",
+      "classification": "SKIPPED_SOURCE_INTERVALS",
+      "sourceAccepted": true,
+      "sourceCode": "ELIGIBLE",
+      "completedBarAt": "2026-10-22T18:00:00.000Z",
+      "candleAgeMinutes": 69,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 27,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 16,
+      "at": "2026-10-22T22:22:01.310Z",
+      "status": "GAP_SKIPPED",
+      "classification": "SKIPPED_SOURCE_INTERVALS",
+      "sourceAccepted": true,
+      "sourceCode": "ELIGIBLE",
+      "completedBarAt": "2026-10-22T22:00:00.000Z",
+      "candleAgeMinutes": 22,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 28,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 17,
+      "at": "2026-10-23T00:29:15.005Z",
+      "status": "RUNNING",
+      "classification": "SOURCE_VERIFIED_PAPER_ONLY",
+      "sourceAccepted": true,
+      "sourceCode": "ELIGIBLE",
+      "completedBarAt": "2026-10-23T00:00:00.000Z",
+      "candleAgeMinutes": 29,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 28,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 18,
+      "at": "2026-10-25T04:25:14.697Z",
+      "status": "GAP_SKIPPED",
+      "classification": "SKIPPED_SOURCE_INTERVALS",
+      "sourceAccepted": true,
+      "sourceCode": "ELIGIBLE",
+      "completedBarAt": "2026-10-25T04:00:00.000Z",
+      "candleAgeMinutes": 25,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 53,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    },
+    {
+      "runCount": 19,
+      "at": "2026-10-25T05:58:12.794Z",
+      "status": "DEGRADED",
+      "classification": "SOURCE_REJECTED",
+      "sourceAccepted": false,
+      "sourceCode": "CLOSED_CANDLE_TOO_OLD",
+      "completedBarAt": "2026-10-25T04:00:00.000Z",
+      "candleAgeMinutes": 118,
+      "newModeledFills": 0,
+      "haltedStrategies": 0,
+      "skippedIntervals": 53,
+      "realOrdersEnabled": false,
+      "actualCapitalINR": 0
+    }
+  ]
+}
