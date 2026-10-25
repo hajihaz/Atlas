@@ -59,3 +59,11 @@ Notification receipt hardening: the status polling ID cannot acknowledge a test 
 After the initial locked-screen attempt, Safari became available. Device subscription succeeded. Three bounded test sends were accepted by the push service, and actual Atlas notifications were observed in macOS Notification Centre, including a saved native screenshot. Native press attempts did not produce a matching click acknowledgement; none was manufactured through the receipt API.
 
 Notification setup now explicitly updates the versioned worker without the HTTP cache and waits for activation. The click handler captures its proof before closing the host notification. A regression emulates the host clearing notification data on close. These checks harden the upgrade/lifecycle boundary; they do not establish the cause of the missing native click receipt. That actual Show/click acceptance step remains open. No additional test sends or automatic deadline alerts are enabled.
+
+## INR recorder recovery
+
+A later real-source check detected stale INR ledger quotes while the web client still received fresh CoinDCX data. A measured Python response took 24.401 seconds. The recorder compared its returned timestamp with the clock captured before the request, so a genuinely recent response could be rejected as future-dated.
+
+The network adapter now validates against response receipt time, and the recorder records the corresponding receipt clock. Provider timestamps and the 90-second age / five-second future limits are unchanged. Delayed-response regressions accept a genuine recent response and still reject truly stale or future timestamps. Ruff, strict typing of 137 modules and 604 Python tests plus 45 subtests passed; four skips remain, including optional-tool checks verified separately.
+
+The paper LaunchAgent was moved to this verified worktree with a controlled restart. The installer command timed out during launchd transition; state was reconciled rather than blindly replayed. The registered recorder recovered as PID 98270 and recorded new native INR quotes at 2026-10-25T05:13:14Z. Both quote ages were nine seconds at acceptance. All 1,860 fills, cash balances, losses and risk latches remained unchanged. No old checkout was edited.
