@@ -1,4 +1,3 @@
-
 /* Source-backed strategy workbench and zero-cost market terminal. */
 .research-workbench,.paper-forward,.stock-watch{display:flex;flex-direction:column;gap:18px;min-width:0}
 .research-topnote{display:flex;align-items:flex-start;gap:12px;
@@ -250,3 +249,32 @@ html[data-theme] .cloud-daybook-date:focus-visible,
  .cloud-paper-comparison-heading{align-items:flex-start}
  .cloud-paper-rank-scroll{-webkit-overflow-scrolling:touch}
 }
+
+/* Day Trader NSE · offline research card. Not live trading / certification. */
+.daytrader-nse{display:flex;flex-direction:column;gap:16px;padding:22px;min-width:0}
+.daytrader-title h2{font-size:clamp(19px,2vw,26px);letter-spacing:-.035em;margin:9px 0}
+.daytrader-title p{font-size:12px;line-height:1.7;color:var(--pm-muted);max-width:820px}
+.daytrader-title p strong{color:var(--pm-ink)}
+.daytrader-nse .premium-kicker{display:flex;align-items:center;gap:8px}
+.daytrader-warning{display:flex;align-items:center;gap:10px;border:1px solid #b98c55;
+  border-radius:10px;background:rgba(199,133,59,.09);color:var(--pm-ink);
+  font-size:11px;font-weight:750;line-height:1.65;padding:12px 14px}
+.daytrader-warning svg{flex-shrink:0;color:#b98041}
+.daytrader-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
+.daytrader-metrics>div,.daytrader-session-detail>div{display:flex;flex-direction:column;gap:8px;
+  background:var(--pm-raised);border:1px solid var(--pm-border);border-radius:11px;padding:13px;min-width:0}
+.daytrader-metrics span,.daytrader-session-detail small{font-size:10px;color:var(--pm-muted)}
+.daytrader-metrics strong,.daytrader-session-detail strong{font-size:clamp(13px,1.45vw,17px);
+  color:var(--pm-ink);overflow-wrap:anywhere}
+.daytrader-detail{display:grid;gap:10px}.daytrader-detail label{font-size:11px;font-weight:800}
+.daytrader-detail select{width:100%;max-width:365px;min-height:42px;font:inherit;font-size:12px;
+  padding:8px 11px;border:1px solid var(--pm-border);border-radius:10px;
+  background:var(--pm-raised);color:var(--pm-ink)}
+.daytrader-session-detail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.daytrader-method{display:flex;align-items:flex-start;gap:9px;font-size:10px;line-height:1.8;
+  color:var(--pm-muted);margin:0}
+.daytrader-method svg{flex-shrink:0;margin-top:2px}
+@media(max-width:700px){.daytrader-nse{padding:14px}.daytrader-session-detail{
+ grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:420px){.daytrader-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .daytrader-warning{align-items:flex-start}}
