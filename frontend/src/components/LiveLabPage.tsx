@@ -4,6 +4,7 @@ import {
   ShieldCheck, Wifi, WifiOff,
 } from 'lucide-react';
 import FinancialChart from './FinancialChart';
+import KrakenStreamPanel from './KrakenStreamPanel';
 import MacPaperPanel from './MacPaperPanel';
 import { startPublicStream } from '../lib/publicStream.js';
 import { isRecentQuote, connectionDescription } from '../lib/quoteFreshness.js';
@@ -183,6 +184,7 @@ export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props)
     <div className="sub-page-header"><div className="breadcrumb">ATLAS / LIVE PAPER LAB</div>
       <h1 id="live-title">Live market command center<span className="period">.</span></h1>
       <p>Automatic public INR crypto observations, selectable source-backed charts and clear connection status. No fabricated trades.</p></div>
+    <KrakenStreamPanel/>
     <div className="live-ticker panel">
       <div><small>INDIA STANDARD TIME · LIVE CLOCK</small>
         <strong aria-live="off">{CLOCK.format(now)}</strong>

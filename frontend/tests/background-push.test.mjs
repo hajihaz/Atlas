@@ -52,3 +52,55 @@ test('uncertain push failure is not blindly duplicated on restart',async t=>{
  await createPushStore(dir).deliver(feed(),{now,send,enabled:true});
  assert.equal(calls,1);
 });
+
+test('explicit device test stays separate from deadline alerts and requires an actual click receipt',async t=>{
+ const dir=await mkdtemp(join(tmpdir(),'atlas-test-receipt-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+ const store=createPushStore(dir);await store.config();const device=await store.subscribe(sub);
+ let payload,calls=0;
+ const send=async(s,body,options)=>{calls++;payload=JSON.parse(body);assert.equal(options.TTL,300);return {statusCode:201};};
+ const sent=await store.testDelivery(device.id,{send});
+ assert.equal(calls,1);assert.equal(payload.title,'Atlas notification test');
+ assert.equal(sent.status,'accepted_by_push_service');assert.equal(sent.deviceConfirmed,false);
+ assert.equal((await store.receipt(sent.receiptId)).deviceConfirmed,false);
+ await assert.rejects(store.receipt('0'.repeat(64),{confirm:true}),/Unknown/);
+ const clicked=await store.receipt(payload.receiptId,{confirm:true});
+ assert.equal(clicked.deviceConfirmed,true);assert.equal(clicked.status,'device_notification_clicked');
+ assert.deepEqual(await store.receipt(payload.receiptId,{confirm:true}),clicked);
+ await assert.rejects(store.testDelivery(device.id,{send}),/one minute/);
+ await assert.rejects(store.testDelivery('not-a-device',{send}),/Invalid/);
+ await assert.rejects(readFile(join(dir,'deliveries.json')),e=>e.code==='ENOENT');
+});
+test('push-service failure never confirms a device or retries the same test immediately',async t=>{
+ const dir=await mkdtemp(join(tmpdir(),'atlas-test-failure-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+ const store=createPushStore(dir);await store.config();const device=await store.subscribe(sub);
+ const sent=await store.testDelivery(device.id,{send:async()=>{throw Error('offline')}});
+ assert.equal(sent.status,'delivery_unconfirmed');assert.equal(sent.deviceConfirmed,false);
+ await assert.rejects(store.receipt('../keys.json'),/Invalid/);
+ await assert.rejects(store.testDelivery(device.id,{send:()=>assert.fail()}),/one minute/);
+});
+
+test('service-worker click submits only the bounded receipt and opens the same-origin IPO page',async()=>{
+ const {runInNewContext}=await import('node:vm');
+ const source=await readFile(new URL('../public/atlas-sw.js',import.meta.url),'utf8');
+ const handlers={},requests=[],opened=[],shown=[];
+ const origin='http://127.0.0.1:4300';
+ runInNewContext(source,{URL,fetch:async(url,options)=>{requests.push({url,options});return {ok:true};},
+  self:{location:{origin},registration:{showNotification:async(...x)=>shown.push(x)},
+   clients:{matchAll:async()=>[],openWindow:async url=>opened.push(url)},
+   addEventListener:(name,handler)=>{handlers[name]=handler;}}});
+ const receiptId='a'.repeat(64);
+ let operation;
+ handlers.push({data:{json:()=>({title:'Atlas notification test',body:'Test only',tag:'test',receiptId,url:'https://evil.invalid'})},
+  waitUntil:promise=>{operation=promise;}});
+ await operation;
+ assert.equal(shown[0][1].data.receiptId,receiptId);
+ handlers.notificationclick({notification:{close(){},data:{receiptId,url:'https://evil.invalid'}},
+  waitUntil:promise=>{operation=promise;}});
+ await operation;
+ assert.equal(requests.length,1);assert.equal(requests[0].url,'/api/ipo-push');
+ assert.deepEqual(JSON.parse(requests[0].options.body),{action:'receipt',receiptId});
+ assert.deepEqual(opened,[origin+'/#ipo']);
+ handlers.notificationclick({notification:{close(){},data:{receiptId:'../keys.json'}},
+  waitUntil:promise=>{operation=promise;}});
+ await operation;assert.equal(requests.length,1);
+});

@@ -3,7 +3,8 @@
 // It is a fixed-path GET-only mirror of already-public virtual research ledger data,
 // not an order / trading endpoint. Never include source, auth, or upstream errors in responses.
 import {buildCloudPaperSummary} from '../src/lib/cloudPaperDaybook.js';
-const URL='https://api.github.com/repos/hajihaz/Atlas/contents/frontend/public/cloud-paper.json?ref=main';
+const SOURCE='https://api.github.com/repos/hajihaz/Atlas/contents/frontend/public/cloud-paper.json?ref=';
+export const APPROVED_PREVIEW_REF='haor/atlas-runtime-completion-20261024';
 const MAX_BYTES=140_000;
 export function validatePrivateCloudSnapshot(x,now=Date.now()){
  if(!x||typeof x!=='object'||Array.isArray(x)||x.schema!==1||
@@ -38,14 +39,15 @@ export function validatePrivateCloudSnapshot(x,now=Date.now()){
  return x;
 }
 export async function getPrivateCloudSnapshot({
- token,fetcher=fetch,now=Date.now(),timeoutMs=6000,
+ token,fetcher=fetch,now=Date.now(),timeoutMs=6000,ref='main',
 }={}){
  if(typeof token!=='string'||token.trim().length<20)
   throw Error('private_paper_source_not_configured');
+ if(!['main',APPROVED_PREVIEW_REF].includes(ref))throw Error('invalid_paper_source_ref');
  const controller=new AbortController();
  const timer=setTimeout(()=>controller.abort(),timeoutMs);
  try{
-  const response=await fetcher(URL,{method:'GET',redirect:'error',
+  const response=await fetcher(SOURCE+encodeURIComponent(ref),{method:'GET',redirect:'error',
    signal:controller.signal,
    headers:{
     Accept:'application/vnd.github.raw+json',
@@ -72,8 +74,12 @@ export default async function handler(req,res){
   // client-side tokens. Require repository-scoped Contents:read credentials.
   const snapshot=await getPrivateCloudSnapshot({
    token:process.env.ATLAS_PAPER_READ_TOKEN,
+   ref:process.env.VERCEL_ENV==='preview'&&process.env.VERCEL_GIT_COMMIT_REF===APPROVED_PREVIEW_REF
+    ?APPROVED_PREVIEW_REF:'main',
   });
-  res.setHeader('Cache-Control','public, s-maxage=90, stale-while-revalidate=120');
+  // Retain old evidence, but never cache an overdue checkpoint as a fresh response.
+  if(Date.now()-Date.parse(snapshot.lastRunAt)<=5*3600000)
+   res.setHeader('Cache-Control','public, s-maxage=90, stale-while-revalidate=120');
   res.setHeader('X-Atlas-Paper-Origin','private-github-read-only');
   return res.status(200).json(snapshot);
  }catch{

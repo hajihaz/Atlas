@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import handler,{getPrivateCloudSnapshot,validatePrivateCloudSnapshot}
  from '../api/cloud-paper.js';
+import {APPROVED_PREVIEW_REF} from '../api/cloud-paper.js';
 
 const fixture=()=>JSON.parse(readFileSync(new URL('../public/cloud-paper.json',import.meta.url),'utf8'));
 const now=()=>Date.parse(fixture().lastRunAt)+20000;
@@ -101,4 +102,17 @@ test('server mirror shares strict daybook proof and rejects inconsistent account
   const data=fixture();mutation(data);
   assert.throws(()=>validatePrivateCloudSnapshot(data,now()),/invalid_paper_snapshot/);
  }
+});
+
+test('preview reads only the approved branch and refuses arbitrary refs before network',async()=>{
+ let calls=0;
+ const fetcher=async url=>{
+  calls++;assert.equal(url,'https://api.github.com/repos/hajihaz/Atlas/contents/frontend/public/cloud-paper.json?ref='+encodeURIComponent(APPROVED_PREVIEW_REF));
+  return {ok:true,headers:{get:()=>null},text:async()=>JSON.stringify(fixture())};
+ };
+ await getPrivateCloudSnapshot({token,now:now(),ref:APPROVED_PREVIEW_REF,fetcher});
+ assert.equal(calls,1);
+ for(const ref of ['../other','https://evil.invalid','main&path=secret','another-branch'])
+  await assert.rejects(getPrivateCloudSnapshot({token,ref,fetcher}),/invalid_paper_source_ref/);
+ assert.equal(calls,1);
 });

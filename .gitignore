@@ -62,4 +62,5 @@ lean-adapter/obj/
 
 # Isolated optional runtime and private worker state
 .venv-runtime/
+.venv-research/
 /.atlas-runtime/

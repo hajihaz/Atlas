@@ -49,6 +49,43 @@ export function createPushStore(dir=DEFAULT_PUSH_DIRECTORY){
     await atomic(path,rows);return {id,subscribed:true};
    });
   },
+  async testDelivery(id,{send=webpush.sendNotification}={}){
+   if(typeof id!=='string'||!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid owner device');
+   return locked(dir,async()=>{
+    const rows=await read(join(dir,'subscriptions.json'),[]);
+    const row=rows.find(item=>item.id===id),keys=await read(join(dir,'keys.json'),null);
+    if(!row||!keys)throw Error('Owner device is not subscribed');
+    const path=join(dir,'test-receipts.json'),records=await read(path,{});
+    const recent=Object.values(records).filter(item=>item.subscriberId===id&&Date.now()-Date.parse(item.createdAt)<60000);
+    if(recent.length)throw Error('Wait one minute before another test');
+    const receiptId=randomBytes(32).toString('hex');
+    for(const key of Object.keys(records).slice(0,Math.max(0,Object.keys(records).length-49)))delete records[key];
+    records[receiptId]={subscriberId:id,createdAt:new Date().toISOString(),status:'attempted',deviceConfirmed:false};
+    await atomic(path,records);
+    try{
+     const response=await send(validateSubscription(row.subscription),JSON.stringify({
+      title:'Atlas notification test',body:'Test only. Tap this notification to confirm delivery on this device.',
+      tag:'atlas-test-'+receiptId,receiptId,url:'/#ipo',
+     }),{TTL:300,timeout:8000,vapidDetails:{subject:'https://atlas-control-center-pi.vercel.app',...keys}});
+     records[receiptId].status=response?.statusCode>=200&&response.statusCode<300?'accepted_by_push_service':'unconfirmed';
+    }catch{records[receiptId].status='delivery_unconfirmed';}
+    await atomic(path,records);
+    return {receiptId,...records[receiptId]};
+   });
+  },
+  async receipt(receiptId,{confirm=false}={}){
+   if(typeof receiptId!=='string'||!/^[a-f0-9]{64}$/.test(receiptId))throw Error('Invalid delivery receipt');
+   return locked(dir,async()=>{
+    const path=join(dir,'test-receipts.json'),records=await read(path,{}),record=records[receiptId];
+    if(!record)throw Error('Unknown delivery receipt');
+    if(confirm){
+     if(Date.now()-Date.parse(record.createdAt)>600000)throw Error('Delivery receipt expired');
+     record.deviceConfirmed=true;record.status='device_notification_clicked';
+     record.clickedAt??=new Date().toISOString();await atomic(path,records);
+    }
+    return {receiptId,status:record.status,deviceConfirmed:record.deviceConfirmed,clickedAt:record.clickedAt??null};
+   });
+  },
   async deliver(feed,{now=new Date(),send=webpush.sendNotification,enabled=false}={}){
    if(!enabled)return {status:'disabled',attempted:0,sent:0};
    if(!validFeed(feed)||feedAgeMinutes(feed,now)>180)return {status:'stale_source',attempted:0,sent:0};
@@ -92,16 +129,22 @@ export async function handlePushRequest(req,res,store=createPushStore()){
   if(!['127.0.0.1','localhost'].includes(host.hostname)||Number(host.port||80)!==req.socket.localPort)return answer(403,{error:'owner_local_only'});
   if(req.headers.origin&&!['127.0.0.1','localhost'].includes(new URL(req.headers.origin).hostname))return answer(403,{error:'owner_local_only'});
   if(req.method==='GET'){
+   const receiptId=new URL(req.url??'/api/ipo-push','http://127.0.0.1').searchParams.get('receipt');
+   if(receiptId)return answer(200,await store.receipt(receiptId));
    const keys=await store.config();nonceExpires=Date.now()+600000;
    return answer(200,{supported:true,publicKey:keys.publicKey,pairing:nonce,mode:'OWNER_LOCAL_ONLY'});
   }
   if(req.method!=='POST')return answer(405,{error:'method_not_allowed'});
+  let text='',bytes=0;
+  for await(const chunk of req){bytes+=chunk.length;if(bytes>8192)return answer(413,{error:'body_too_large'});text+=chunk.toString('utf8');}
+  let input;try{input=JSON.parse(text);}catch{return answer(400,{error:'invalid_json'});}
+  // A notification click proves possession of its encrypted 256-bit receipt capability.
+  if(input?.action==='receipt')return answer(200,await store.receipt(input.receiptId,{confirm:true}));
   const token=req.headers['x-atlas-push-pairing'];
   if(typeof token!=='string'||token.length!==nonce.length||Date.now()>nonceExpires||
     !timingSafeEqual(Buffer.from(token),Buffer.from(nonce)))return answer(403,{error:'pairing_required'});
-  let text='',bytes=0;
-  for await(const chunk of req){bytes+=chunk.length;if(bytes>8192)return answer(413,{error:'body_too_large'});text+=chunk.toString('utf8');}
-  const value=await store.subscribe(JSON.parse(text));
+  if(input?.action==='test')return answer(200,await store.testDelivery(input.id));
+  const value=await store.subscribe(input);
   return answer(200,value);
  }catch{return answer(400,{error:'push_setup_unavailable'});}
 }
