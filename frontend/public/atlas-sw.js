@@ -10,9 +10,10 @@ self.addEventListener('push',event=>{
  }));
 });
 self.addEventListener('notificationclick',event=>{
+ // Capture payload before closing; do not depend on the host retaining closed notification data.
+ const receiptId=event.notification.data?.receiptId,receiptProof=event.notification.data?.receiptProof;
  event.notification.close();
  event.waitUntil((async()=>{
-  const receiptId=event.notification.data?.receiptId,receiptProof=event.notification.data?.receiptProof;
   if(typeof receiptId==='string'&&/^[a-f0-9]{64}$/.test(receiptId)
     &&typeof receiptProof==='string'&&/^[a-f0-9]{64}$/.test(receiptProof)){
    try{await fetch('/api/ipo-push',{method:'POST',credentials:'omit',

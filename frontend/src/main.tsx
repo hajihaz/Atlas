@@ -16,6 +16,6 @@ createRoot(document.getElementById('root')!).render(
 // Cache only the app shell; live financial evidence remains network-only.
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost','127.0.0.1'].includes(location.hostname))) {
   window.addEventListener('load', () => {
-    void navigator.serviceWorker.register('/atlas-sw.js',{scope:'/'}).catch(() => {});
+    void navigator.serviceWorker.register('/atlas-sw.js?atlas-receipts=2',{scope:'/',updateViaCache:'none'}).catch(() => {});
   },{once:true});
 }

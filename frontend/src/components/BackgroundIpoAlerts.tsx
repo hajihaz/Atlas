@@ -35,7 +35,20 @@ export default function BackgroundIpoAlerts(){
     throw Error('Notification setup could not be verified.');
    const permission=await Notification.requestPermission();
    if(permission!=='granted')throw Error('Notification permission is required.');
-   const registration=await navigator.serviceWorker.register('/atlas-sw.js',{scope:'/'});
+   const registration=await navigator.serviceWorker.register('/atlas-sw.js?atlas-receipts=2',{
+    scope:'/',updateViaCache:'none'});
+   await registration.update();
+   const worker=registration.installing??registration.waiting??registration.active;
+   if(!worker)throw Error('The notification worker is unavailable.');
+   if(worker.state!=='activated')await new Promise<void>((resolve,reject)=>{
+    const changed=()=>{
+     if(worker.state==='activated'){cleanup();resolve();}
+     else if(worker.state==='redundant'){cleanup();reject(Error('The notification worker could not activate.'));}
+    };
+    const timeout=setTimeout(()=>{cleanup();reject(Error('Notification setup timed out. Try connecting again.'));},15000);
+    const cleanup=()=>{clearTimeout(timeout);worker.removeEventListener('statechange',changed);};
+    worker.addEventListener('statechange',changed);changed();
+   });
    await navigator.serviceWorker.ready;
    const bytes=Uint8Array.from(atob(config.publicKey.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
    const subscription=await registration.pushManager.getSubscription()??await registration.pushManager.subscribe({

@@ -98,7 +98,7 @@ test('service-worker click submits only the bounded receipt and opens the same-o
   waitUntil:promise=>{operation=promise;}});
  await operation;
  assert.equal(shown[0][1].data.receiptId,receiptId);
- handlers.notificationclick({notification:{close(){},data:{receiptId,receiptProof,url:'https://evil.invalid'}},
+ handlers.notificationclick({notification:{close(){this.data=null;},data:{receiptId,receiptProof,url:'https://evil.invalid'}},
   waitUntil:promise=>{operation=promise;}});
  await operation;
  assert.equal(requests.length,1);assert.equal(requests[0].url,'/api/ipo-push');

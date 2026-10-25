@@ -36,7 +36,7 @@ The default audit output is private `.atlas-runtime/research-audit.json`. It rea
 | ScalpStorm historical certification | 0/20 sessions. Authentic permitted minute data, point-in-time eligibility and intended-use evidence remain absent. Null historical results are preserved. |
 | Strategy qualification | Existing accounts remain risk halted after losses. Longer authentic holdout/forward evidence and valid NSE inputs are still required. |
 | Official IPO/SME dates | A separately permitted fresh source is needed. Existing records remain explicitly old; fresh news or an unofficial audit cannot establish official bid or UPI cutoffs. |
-| Device alerts | The Mac was at loginwindow during the native attempt. Unlock, browser/device notification permission and an actual test-notification click remain unverified. Automatic deadline sending stays disabled while source freshness is unresolved. |
+| Device alerts | Safari subscription succeeded and real Atlas test notifications were observed in macOS Notification Centre. Three attempts were accepted by the push service; no matching click receipt is confirmed. The actual Show/click acknowledgement remains pending. Automatic deadline sending stays disabled while source freshness is unresolved. |
 | Production release | PR #49 stays a draft. Exact-head hosted green CI and real-source final acceptance are required before main/production. |
 | Upstox | Parked until Haji confirms account activation. No token, app, segment or static-IP attempts were made in this batch. |
 
@@ -53,3 +53,9 @@ Useful upstream sources: [Kraken trade protocol](https://docs.kraken.com/exchang
 The initial reinstall exposed a transient launchd EIO during process cleanup. The absent reporting observer was restored immediately, the installer received a three-attempt EIO-only retry, and artificial failure-injection tests verified the retry bound. A subsequent complete installation succeeded. Live restart checks verify source times continue advancing, the existing recorder remains PID 819, the 1,860 fills and both risk stops remain unchanged, and the saved notification key is preserved.
 
 Notification receipt hardening: the status polling ID cannot acknowledge a test by itself. A separate random proof travels only inside the encrypted push payload; the Mac stores its hash. Receipt updates require the matching proof and expire after ten minutes. Regression checks reject status-ID-only requests, wrong proofs and unknown receipts; neither setup responses nor stored records contain the raw proof. Actual device delivery remains unverified until a real notification click.
+
+## Native device acceptance boundary
+
+After the initial locked-screen attempt, Safari became available. Device subscription succeeded. Three bounded test sends were accepted by the push service, and actual Atlas notifications were observed in macOS Notification Centre, including a saved native screenshot. Native press attempts did not produce a matching click acknowledgement; none was manufactured through the receipt API.
+
+Notification setup now explicitly updates the versioned worker without the HTTP cache and waits for activation. The click handler captures its proof before closing the host notification. A regression emulates the host clearing notification data on close. These checks harden the upgrade/lifecycle boundary; they do not establish the cause of the missing native click receipt. That actual Show/click acceptance step remains open. No additional test sends or automatic deadline alerts are enabled.
