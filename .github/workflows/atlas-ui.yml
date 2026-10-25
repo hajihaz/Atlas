@@ -18,6 +18,7 @@ on:
       - 'scripts/paper_run_health.mjs'
       - 'scripts/paper_checkpoint_evidence.mjs'
       - 'scripts/paper_decision_evidence.mjs'
+      - 'scripts/paper_input_receipts.mjs'
       - 'scripts/publish_scheduled_paper.sh'
       - 'scripts/tests/paper-publish-race.test.mjs'
       - '.github/workflows/atlas-paper-scheduled.yml'
@@ -39,6 +40,7 @@ on:
       - 'scripts/paper_run_health.mjs'
       - 'scripts/paper_checkpoint_evidence.mjs'
       - 'scripts/paper_decision_evidence.mjs'
+      - 'scripts/paper_input_receipts.mjs'
       - 'scripts/publish_scheduled_paper.sh'
       - 'scripts/tests/paper-publish-race.test.mjs'
       - '.github/workflows/atlas-paper-scheduled.yml'
@@ -88,7 +90,7 @@ jobs:
       - run: node --test frontend/tests/scheduled-runner-forward.test.mjs
       - run: node --test frontend/tests/paper-run-health.test.mjs
       - run: node --test frontend/tests/paper-checkpoint-evidence.test.mjs
-      - run: node --test frontend/tests/paper-decision-evidence.test.mjs
+      - run: node --test frontend/tests/paper-decision-evidence.test.mjs frontend/tests/paper-input-receipts.test.mjs
       - run: node --test frontend/tests/paper-cadence.test.mjs
       - run: node --test frontend/tests/cloud-paper-daybook.test.mjs
       - run: node --test frontend/tests/publisher-ipo-endpoint.test.mjs

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "methodology": "Exact issuer, board and offer-date join. Physical PDF pages and SHA-256 pin the reviewed files. Lakh values divide by 100 and million values by 10 to obtain INR crore. Dated issuer peer disclosures are not independent current valuation. Historical P/E scenarios use fresh publisher price bands and pre-offer annual EPS only; all decisions remain HOLD_FOR_MANUAL_REVIEW. No full prospectus text is redistributed.",
+  "methodology": "Exact issuer, board and offer-date join. Physical PDF pages and SHA-256 pin reviewed sources. Lakh values divide by100 and million values by10 for INR crore. Issuer-reported dated peers remain separate from any independently dated peer audit. Historical earnings multiples do not establish fair value; all decisions remain HOLD_FOR_MANUAL_REVIEW. No full prospectus text is redistributed.",
   "records": [
     {
       "id": "BLSPOLY",
@@ -768,7 +768,7 @@
       "board": "MAINBOARD",
       "openDate": "2026-10-26",
       "closeDate": "2026-10-28",
-      "reviewedAt": "2026-10-25T12:29:25.856308Z",
+      "reviewedAt": "2026-10-25T13:43:34.864649Z",
       "stage": "CURRENT_RHP",
       "basis": "Consolidated RHP dated 19 Oct 2026; FY26 and Q1 FY27. Offer INR 1,585-1,665; minimum lot 9.",
       "fiscalPeriod": "Annual results to 31 March 2026 and quarter to 30 June 2026; quarterly figures are not annualized",
@@ -937,7 +937,7 @@
         "This is an offer for sale of existing shares, rather than fresh capital for the company."
       ],
       "gaps": [
-        "Peer prices in the filed comparison are dated 8 October 2026 and have not been independently refreshed. Historical P/E arithmetic is not verified fair value.",
+        "Nine independently dated peer prices and primary FY26 EPS inputs are now checked in the separate audit below. Different business models, accounting sensitivity and future cash realization still prevent a verified fair-value target.",
         "Price-basis page 3 prints Gaja P/E as 16.47 although its price 145.10 divided by diluted EPS 7.17 implies about 20.24. This source discrepancy is flagged; that peer is excluded below.",
         "GMP and demand retain their separate publisher timestamps. Neither establishes fair value, profitability or an allotment probability."
       ],
@@ -981,7 +981,253 @@
           }
         ]
       },
-      "decision": "HOLD_FOR_MANUAL_REVIEW"
+      "decision": "HOLD_FOR_MANUAL_REVIEW",
+      "independentPeerAudit": {
+        "auditedAt": "2026-10-25T13:43:34.864649Z",
+        "quoteSource": "Bigdata.com / FMP connected research snapshot",
+        "fairValueVerified": false,
+        "sources": [
+          {
+            "id": "P1",
+            "kind": "EXCHANGE",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://nsearchives.nseindia.com/corporate/IIFLWAM_21042026162348_OutcomeMergedSigned.pdf",
+            "sha256": "52bfa70548c1d9fd1dde6fadd32607e679578f85aeac6676b5668952a8af9c6c",
+            "pages": [
+              9
+            ]
+          },
+          {
+            "id": "P2",
+            "kind": "EXCHANGE",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://nsearchives.nseindia.com/annual_reports/AR_29605_ABSLAMC_2025_2026_A_8053616_07072026111525.pdf",
+            "sha256": "0d2b8c284ef5caf8783aef5fbc8b4275de29871c02cf78df05ed07884597c298",
+            "pages": [
+              221
+            ]
+          },
+          {
+            "id": "P3",
+            "kind": "ISSUER",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://www.anandrathiwealth.in/wealthpdf/oct26/ConsolidatedFinancailResultsQ2FY2026-27.pdf",
+            "sha256": "10a9936cbf4170e6f001348840b1bd2a46a401fe941a998a4cdcc854596cc926",
+            "pages": [
+              4,
+              7
+            ]
+          },
+          {
+            "id": "P4",
+            "kind": "EXCHANGE",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://nsearchives.nseindia.com/corporate/DEEPTI_16042026130521_NSEBSE_05.pdf",
+            "sha256": "ba466ca239962ee857f609ecf4e96cc3592e0752dad67a10195f27363dd210da",
+            "pages": [
+              12,
+              15
+            ]
+          },
+          {
+            "id": "P5",
+            "kind": "EXCHANGE",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://nsearchives.nseindia.com/corporate/RNLAM_22072026173751_Outcome_Final.pdf",
+            "sha256": "37fefc85c398757cb2391cc1c35b12184b1b7902993417bc5e08efaa3acbd42c",
+            "pages": [
+              7
+            ]
+          },
+          {
+            "id": "P6",
+            "kind": "ISSUER",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://www.nuvama.com/wp-content/uploads/2026/05/SE_BMOutcome_11052026-2.pdf",
+            "sha256": "8cb37e3aff7ebd603ad5de2e3bcbe79ca8a88952209fe414a0d88fa399c4d5a4",
+            "pages": [
+              15,
+              20
+            ]
+          },
+          {
+            "id": "P7",
+            "kind": "EXCHANGE",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://nsearchives.nseindia.com/corporate/CSUTIAMC_24062026231845_Notice_of_AGM.pdf",
+            "sha256": "fa950a83f62838b19633c89b53d36b5981f0b4305ffe595650cbb1bafaba1579",
+            "pages": [
+              199
+            ]
+          },
+          {
+            "id": "P8",
+            "kind": "EXCHANGE",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/cd1c6a68-fa6a-4c15-b21e-9b72735bc9c7.pdf",
+            "sha256": "8f187dcafb061dc851ef5227932f495e9a8d8616fe6d5ee80a39b1c202f128e7",
+            "pages": [
+              183
+            ]
+          },
+          {
+            "id": "P9",
+            "kind": "ISSUER",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://gajacapital.com/assets/pdf/outcome-of-board-meeting.pdf",
+            "sha256": "c83ae84050bddb54e77beded27cb089813ea7b1f61f688fd99f2290d226f3cdb",
+            "pages": [
+              7,
+              8
+            ]
+          }
+        ],
+        "peers": [
+          {
+            "company": "360 One Wam Ltd.",
+            "ticker": "360ONE.NS",
+            "price": 997.1,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T09:58:21Z",
+            "annualEPS": {
+              "value": 29.19,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P1",
+              "page": 9,
+              "basis": "CONSOLIDATED_DILUTED_FY26"
+            },
+            "basisNote": "Consolidated diluted FY26 EPS; compare after employee-option dilution."
+          },
+          {
+            "company": "Aditya Birla Sun Life AMC Ltd.",
+            "ticker": "ABSLAMC.NS",
+            "price": 889.05,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T10:00:02Z",
+            "annualEPS": {
+              "value": 33.68,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P2",
+              "page": 221,
+              "basis": "CONSOLIDATED_DILUTED_FY26"
+            },
+            "basisNote": "Consolidated diluted EPS; standalone diluted EPS 34.04 is a different basis."
+          },
+          {
+            "company": "Anand Rathi Wealth Ltd.",
+            "ticker": "ANANDRATHI.NS",
+            "price": 2235,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T09:58:22Z",
+            "annualEPS": {
+              "value": 23.58,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P3",
+              "page": 4,
+              "basis": "CONSOLIDATED_DILUTED_FY26"
+            },
+            "basisNote": "Restated for 1:1 bonus allotted 3 June 2026; includes continuing and discontinued operations."
+          },
+          {
+            "company": "HDFC Asset Management Co. Ltd.",
+            "ticker": "HDFCAMC.NS",
+            "price": 2250,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T09:58:21Z",
+            "annualEPS": {
+              "value": 66.5,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P4",
+              "page": 12,
+              "basis": "CONSOLIDATED_DILUTED_FY26"
+            },
+            "basisNote": "Consolidated diluted EPS already includes November 2025 bonus adjustment."
+          },
+          {
+            "company": "Nippon Life India Asset Management Ltd.",
+            "ticker": "NAM-INDIA.NS",
+            "price": 922.6,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T09:58:21Z",
+            "annualEPS": {
+              "value": 23.63,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P5",
+              "page": 7,
+              "basis": "CONSOLIDATED_DILUTED_FY26"
+            },
+            "basisNote": "Consolidated FY26 annual diluted EPS in the June-quarter filing; quarter is not annualized."
+          },
+          {
+            "company": "Nuvama Wealth Management Ltd.",
+            "ticker": "NUVAMA.NS",
+            "price": 1661.9,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T10:00:03Z",
+            "annualEPS": {
+              "value": 56.06,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P6",
+              "page": 15,
+              "basis": "CONSOLIDATED_DILUTED_FY26"
+            },
+            "basisNote": "Consolidated diluted EPS on INR 2 face value after December 2025 5-for-1 share split."
+          },
+          {
+            "company": "UTI Asset Management Co. Ltd.",
+            "ticker": "UTIAMC.NS",
+            "price": 817.05,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T09:59:56Z",
+            "annualEPS": {
+              "value": 31.41,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P7",
+              "page": 199,
+              "basis": "CONSOLIDATED_DILUTED_FY26"
+            },
+            "basisNote": "Consolidated diluted EPS attributable to owners; standalone earnings are not substituted."
+          },
+          {
+            "company": "ICICI Prudential Asset Management Co. Ltd.",
+            "ticker": "ICICIAMC.NS",
+            "price": 2651.8,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T09:59:58Z",
+            "annualEPS": {
+              "value": 66.7,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P8",
+              "page": 183,
+              "basis": "COMPANY_DILUTED_FY26"
+            },
+            "basisNote": "Company FY26 basic/diluted EPS is rounded to one decimal; compare that precision, not an invented 66.73."
+          },
+          {
+            "company": "Gaja Alternative Asset Management Ltd.",
+            "ticker": "GAJA.BO",
+            "price": 115.6,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T09:59:00Z",
+            "annualEPS": {
+              "value": 7.17,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P9",
+              "page": 8,
+              "basis": "CONSOLIDATED_DILUTED_FY26"
+            },
+            "basisNote": "Consolidated FY26 annual diluted EPS; distinct from annualized quarterly columns."
+          }
+        ],
+        "notes": [
+          "Qualified assessment: HOLD. The INR 1,585-1,665 band implies 39.27-41.25 times EAAA FY26 diluted EPS. Different business models, illiquid fund marks and unrealized variable returns prevent a reliable fair-value target from a simple peer average.",
+          "Anand Rathi's filed 90.69 times P/E already incorporates its 1:1 bonus, as its filing footnote states; displayed EPS 47.17 is the older basis. This independent comparison uses the latest filing's restated 23.58. Do not adjust it twice.",
+          "Gaja's original filed peer ratio remains excluded from issuer context because 145.10 / 7.17 does not equal the printed 16.47. The independently recomputed ratio below uses a separate, dated BSE quote; it does not resolve the filing discrepancy.",
+          "These are FY26 historical earnings multiples, not trailing-twelve-month or forward P/E. Quarterly provider EPS was not annualized; Anand Rathi's provider Q2 EPS 5.36 also differs from the filing's diluted 5.30.",
+          "Quotes are provider observations from 23 October, with individual source clocks. They are not certified exchange closes or a permanent Atlas live-feed entitlement. ICICI and Gaja INR units were separately confirmed through the provider.",
+          "Data sources: Bigdata.com quotes, with FMP identified in currency confirmations; primary issuer/exchange earnings PDFs below. No Apply recommendation, listing-gain forecast or allotment probability is established."
+        ]
+      }
     }
   ]
 }

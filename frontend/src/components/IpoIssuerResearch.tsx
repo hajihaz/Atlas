@@ -1,6 +1,6 @@
 import {ExternalLink} from 'lucide-react';
 import type {IpoIssue} from '../lib/ipoIntelligence';
-import {historicalPEScenario} from '../lib/ipoIssuerResearch';
+import {historicalPEScenario,independentPeerPE} from '../lib/ipoIssuerResearch';
 
 export default function IpoIssuerResearch({issue,stale}:{issue:IpoIssue;stale:boolean}){
  const r=issue.issuerReview;
@@ -13,10 +13,21 @@ export default function IpoIssuerResearch({issue,stale}:{issue:IpoIssue;stale:bo
   <p>{r.basis} · {r.fiscalPeriod}. Reviewed {r.reviewedAt.slice(0,10)}. Figures are issuer disclosures.</p>
   {r.metrics.length>0&&<div className="ipo-financial-grid">{r.metrics.map(m=><div key={m.key}><span>{m.label} · {m.periodEnd}</span><strong>{m.value.toLocaleString('en-IN',{maximumFractionDigits:4})} {units[m.unit]}</strong><small>Source {m.sourceId}, physical PDF page {m.page}</small></div>)}</div>}
   <div className="ipo-small-notice">{pe?<><strong>Historical earnings P/E scenario: {pe.low.toFixed(2)}–{pe.high.toFixed(2)}×.</strong> Reported calendar price band ÷ FY26 diluted EPS ₹{pe.eps.toFixed(2)} ({pe.basis}). Pre-offer earnings basis; fresh shares can dilute EPS. This arithmetic does not establish fair value or expected returns.</>:'P/E scenario withheld: current annual earnings, current offer evidence or fresh price-band evidence is incomplete.'}</div>
-  {r.peerContext&&<div><h4>Issuer-reported peer context · prices dated {r.peerContext.priceAsOf}</h4><ul>{r.peerContext.peers.map(p=><li key={p.company}>{p.company}: disclosed P/E {p.reportedPE.toFixed(2)}×</li>)}</ul><p className="ipo-small-notice">{r.peerContext.note} Source {r.peerContext.sourceId}, physical PDF page {r.peerContext.page}. These prices and ratios have not been independently refreshed by Atlas.</p></div>}
+  {r.peerContext&&<div><h4>Issuer-reported peer context · prices dated {r.peerContext.priceAsOf}</h4><ul>{r.peerContext.peers.map(p=><li key={p.company}>{p.company}: disclosed P/E {p.reportedPE.toFixed(2)}×</li>)}</ul><p className="ipo-small-notice">{r.peerContext.note} Source {r.peerContext.sourceId}, physical PDF page {r.peerContext.page}. These are the original issuer-reported values. Any independent dated audit is shown separately below.</p></div>}
+  {r.independentPeerAudit&&<div className="ipo-independent-peers">
+   <h4>Independent peer research · audited {r.independentPeerAudit.auditedAt.slice(0,10)}</h4>
+   <p className="ipo-small-notice">{r.independentPeerAudit.quoteSource}. Each quote retains its source time. Historical FY26 multiples; fair value is unverified.</p>
+   <ul>{r.independentPeerAudit.peers.map(p=><li key={p.ticker}>
+    <strong>{p.company}: {independentPeerPE(p).toFixed(2)}× historical P/E.</strong>{' '}
+    Quote ₹{p.price.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})} at {new Date(p.priceAsOf).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',hour12:true})} IST.
+    {' '}FY26 diluted EPS ₹{p.annualEPS.value.toFixed(2)}. {p.basisNote}
+    {' '}Source {p.annualEPS.sourceId}, physical PDF page {p.annualEPS.page}.
+   </li>)}</ul>
+   <ul>{r.independentPeerAudit.notes.map(n=><li key={n}>{n}</li>)}</ul>
+  </div>}
   {r.risks.length>0&&<div><h4>Disclosed risks to review</h4><ul>{r.risks.map(x=><li key={x}>{x}</li>)}</ul></div>}
   <div><h4>Still required before an investment decision</h4><ul>{r.gaps.map(x=><li key={x}>{x}</li>)}</ul></div>
-  {r.sources.map(s=><div key={s.id} className="ipo-research-source"><a href={s.url} target="_blank" rel="noopener noreferrer">Source {s.id} · {s.document.replaceAll('_',' ')} · physical PDF pp. {s.pages.join(', ')} <ExternalLink size={13}/></a><details className="ipo-document-audit"><summary>Document fingerprint</summary><small>SHA-256: {s.sha256}</small></details></div>)}
-  <p className="ipo-small-notice"><strong>HOLD FOR MANUAL REVIEW.</strong> Filing review does not constitute independent peer valuation or an Apply recommendation.</p>
+  {[...r.sources,...(r.independentPeerAudit?.sources??[])].map(s=><div key={s.id} className="ipo-research-source"><a href={s.url} target="_blank" rel="noopener noreferrer">Source {s.id} · {s.document.replaceAll('_',' ')} · physical PDF pp. {s.pages.join(', ')} <ExternalLink size={13}/></a><details className="ipo-document-audit"><summary>Document fingerprint</summary><small>SHA-256: {s.sha256}</small></details></div>)}
+  <p className="ipo-small-notice"><strong>HOLD FOR MANUAL REVIEW.</strong> Historical peer multiples and filing review do not establish verified fair value or an Apply recommendation.</p>
  </section>;
 }

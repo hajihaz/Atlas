@@ -3,6 +3,8 @@
 // historical backfill. The state is a public virtual RESEARCH REPORT.
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import {createHash} from 'node:crypto';
+import {writePaperInputReceipt} from './paper_input_receipts.mjs';
 import {fileURLToPath} from 'node:url';
 import {assertNextCloudSnapshot} from './paper_ledger_guard.mjs';
 import {auditGeneratedPaperFills} from './paper_generated_fill_audit.mjs';
@@ -28,12 +30,14 @@ function isSeed(d){return d?.schema===1&&d?.mode===MODE&&
   Array.isArray(d.sessions)&&d.sessions.length===0&&d.realOrdersEnabled===false;}
 async function main(){
  const now=Date.now();
- const old=JSON.parse(await fs.readFile(OUTPUT,'utf8'));
+ const previousSerialized=await fs.readFile(OUTPUT,'utf8');
+ const old=JSON.parse(previousSerialized);
  if(!isSeed(old)&&!(old?.schema===1&&old.mode===MODE&&old.realOrdersEnabled===false
    &&old.symbol===SYMBOL&&Array.isArray(old.sessions)&&old.sessions.length===5))
    throw Error('Refusing to mutate unknown paper state');
  const previous=isSeed(old)?null:old;
  let next;
+ let receiptInputs;
  let diagnostic=unavailablePaperSource(now);
  try{
   const [history,feed]=await Promise.all([
@@ -55,6 +59,7 @@ async function main(){
   diagnostic=diagnosePaperSource({symbol:SYMBOL,history,feed,bars,quote,now});
   if(diagnostic.status!=='PASS')
     throw Error('Source gate refused the observation: '+diagnostic.code);
+  receiptInputs={history,bars,quote};
   next=advanceCloud(previous,bars,quote,now);
   // Source-only explanation; never initiates modeled orders or changes cash.
   next=attachPaperDecisionEvidence(previous,next,bars);
@@ -93,6 +98,21 @@ async function main(){
    throw Error('Unsafe paper output');
  assertNextCloudSnapshot(old,next,now);
  const markdown=renderPaperRunHealthMarkdown(health);
+ // Capture exact normalized inputs BEFORE committing an accepted owner checkpoint.
+ // A capture can survive an interrupted ledger write; its candidate hash must
+ // independently match the committed snapshot before it proves a decision.
+ if(ownerOutput&&diagnostic.status==='PASS'){
+  const sources={strategy:'frontend/lib/research-engine.js',
+   paperEngine:'scripts/scheduled_paper_engine.mjs',
+   decisionEvidence:'scripts/paper_decision_evidence.mjs',
+   receiptWriter:'scripts/paper_input_receipts.mjs'};
+  const entries=await Promise.all(Object.entries(sources).map(async([key,file])=>
+   [key,createHash('sha256').update(await fs.readFile(path.join(ROOT,file))).digest('hex')]));
+  const receipt=await writePaperInputReceipt(path.join(ROOT,'.atlas-runtime/paper-input-receipts'),
+   {previousSerialized,candidateSerialized:data,...receiptInputs,
+    diagnostic,now,codeHashes:Object.fromEntries(entries)});
+  console.log('Owner private paper input receipt:',JSON.stringify(receipt));
+ }
  await writePaperSnapshotAtomic(OUTPUT,data);
  // GitHub's job may succeed while the provider is safely DEGRADED; surface
  // this distinction without converting an unverified observation into a fill.

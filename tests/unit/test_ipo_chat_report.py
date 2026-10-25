@@ -235,3 +235,43 @@ class IssuerResearchReviewTests(unittest.TestCase):
             sample(item, self.now.isoformat()), reviews=draft, now=self.now
         )["issues"][0]
         self.assertIsNone(result["issuerReview"]["historicalPEScenario"])
+
+    def test_independent_peer_audit_preserves_bonus_basis_and_separate_quote_clocks(self):
+        row = next(x for x in self.rows.values() if x["id"] == "EDELALTS")
+        audit = row["independentPeerAudit"]
+        self.assertFalse(audit["fairValueVerified"])
+        self.assertEqual(len(audit["peers"]), 9)
+        anand = next(x for x in audit["peers"] if x["ticker"] == "ANANDRATHI.NS")
+        self.assertEqual(anand["annualEPS"]["value"], 23.58)
+        self.assertAlmostEqual(anand["price"] / anand["annualEPS"]["value"], 94.7837150127)
+        self.assertTrue(all(p["priceAsOf"].startswith("2026-10-23") for p in audit["peers"]))
+        self.assertEqual(row["peerContext"]["priceAsOf"], "2026-10-08")
+        item = {"priceMin": 1585, "priceMax": 1665}
+        result = report.review_summary(row, item, False)
+        self.assertEqual(result["independentPeerAudit"], audit)
+        self.assertEqual(result["decision"], "HOLD_FOR_MANUAL_REVIEW")
+
+    def test_invalid_peer_currency_period_source_clock_and_fair_value_fail_closed(self):
+        row = next(x for x in self.catalog["records"] if x["id"] == "EDELALTS")
+        mutations = [
+            lambda a: a["peers"][0].update(currency="USD"),
+            lambda a: a["peers"][0]["annualEPS"].update(periodEnd="2026-06-30"),
+            lambda a: a["peers"][0]["annualEPS"].update(page=1499),
+            lambda a: a["peers"][0].update(priceAsOf="2099-01-01T00:00:00Z"),
+            lambda a: a.update(fairValueVerified=True),
+            lambda a: a["sources"][0].update(
+                url=a["sources"][0]["url"].replace(
+                    "nsearchives.nseindia.com", "nsearchives.nseindia.com.evil.invalid"
+                )
+            ),
+        ]
+        for mutate in mutations:
+            broken = copy.deepcopy(row)
+            mutate(broken["independentPeerAudit"])
+            with self.subTest(mutation=mutations.index(mutate)):
+                self.assertEqual(
+                    report.valid_reviews_by_key(
+                        {"schemaVersion": 1, "records": [broken]}, self.now
+                    ),
+                    {},
+                )

@@ -88,3 +88,35 @@ test('EAAA current RHP keeps annual and quarterly facts distinct and only expose
  const fakeCurrent=structuredClone(row);for(const s of fakeCurrent.sources)s.document='DRHP_ADDENDUM';
  assert.deepEqual(validatedReviews({schemaVersion:1,records:[fakeCurrent]},now),[]);
 });
+
+test('independent peer research uses dated quotes, primary annual EPS and the restated bonus basis',()=>{
+ const row=validatedReviews(data,now).find(r=>r.id==='EDELALTS');
+ const a=row.independentPeerAudit;
+ assert.equal(a.peers.length,9);assert.equal(a.sources.length,9);
+ assert.equal(a.fairValueVerified,false);
+ const by=ticker=>a.peers.find(p=>p.ticker===ticker);
+ const anand=by('ANANDRATHI.NS');
+ assert.equal(anand.annualEPS.value,23.58);
+ assert.ok(Math.abs(anand.price/anand.annualEPS.value-94.78371501272264)<1e-8);
+ assert.equal(by('ICICIAMC.NS').annualEPS.value,66.7,'preserve source rounding');
+ assert.ok(a.peers.every(p=>p.currency==='INR'&&p.annualEPS.periodEnd==='2026-03-31'));
+ assert.ok(a.peers.every(p=>p.priceAsOf.startsWith('2026-10-23')));
+ assert.equal(row.peerContext.priceAsOf,'2026-10-08','never relabel original issuer prices');
+ assert.match(a.notes.join(' '),/already incorporates its 1:1 bonus/);
+});
+test('wrong peer units, quarterly EPS, future clocks, fabricated fair value and spoofed PDFs withhold the audit',()=>{
+ const base=data.records.find(r=>r.id==='EDELALTS');
+ for(const mutate of [
+  a=>a.peers[0].currency='USD',
+  a=>a.peers[0].annualEPS.periodEnd='2026-06-30',
+  a=>a.peers[0].annualEPS.page=1499,
+  a=>a.peers[0].priceAsOf='2099-01-01T00:00:00Z',
+  a=>a.peers[0].price=Infinity,
+  a=>a.fairValueVerified=true,
+  a=>a.sources[0].url=a.sources[0].url.replace('nsearchives.nseindia.com','nsearchives.nseindia.com.evil.invalid'),
+  a=>a.peers.push(structuredClone(a.peers[0])),
+ ]){
+  const row=structuredClone(base);mutate(row.independentPeerAudit);
+  assert.deepEqual(validatedReviews({schemaVersion:1,records:[row]},now),[]);
+ }
+});

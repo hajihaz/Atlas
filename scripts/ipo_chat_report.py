@@ -66,6 +66,104 @@ def valid_research_by_key(research):
     return out
 
 
+def valid_independent_peer_audit(audit, now):
+    """Validate dated research inputs; never certify fair value or a live feed."""
+    from urllib.parse import urlsplit
+
+    try:
+        if not isinstance(audit, dict):
+            return False
+        at = parse_time(audit.get("auditedAt"))
+        if (
+            at is None
+            or at > now + timedelta(minutes=1)
+            or audit.get("quoteSource") != "Bigdata.com / FMP connected research snapshot"
+            or audit.get("fairValueVerified") is not False
+        ):
+            return False
+        sources, peers, notes = (audit[k] for k in ("sources", "peers", "notes"))
+        if (
+            not isinstance(sources, list)
+            or not 0 < len(sources) <= 10
+            or not isinstance(peers, list)
+            or not 0 < len(peers) <= 10
+            or not isinstance(notes, list)
+            or not 0 < len(notes) <= 8
+            or not all(isinstance(n, str) and 0 < len(n) <= 400 for n in notes)
+        ):
+            return False
+        catalog = {}
+        for source in sources:
+            u = urlsplit(source["url"])
+            issuer = source["kind"] == "ISSUER" and (
+                (u.netloc == "www.anandrathiwealth.in"
+                and u.path.startswith("/wealthpdf/"))
+                or (u.netloc == "www.nuvama.com"
+                and u.path.startswith("/wp-content/uploads/2026/05/"))
+                or (u.netloc == "gajacapital.com"
+                and u.path.startswith("/assets/pdf/"))
+            )
+            exchange = source["kind"] == "EXCHANGE" and (
+                (u.netloc == "nsearchives.nseindia.com"
+                and u.path.startswith(("/corporate/", "/annual_reports/")))
+                or (u.netloc == "www.bseindia.com"
+                and u.path.startswith("/xml-data/corpfiling/AttachHis/"))
+            )
+            digest, pages, identity = (source[k] for k in ("sha256", "pages", "id"))
+            if (
+                not (issuer or exchange)
+                or u.scheme != "https"
+                or u.query
+                or u.fragment
+                or not u.path.lower().endswith(".pdf")
+                or not isinstance(digest, str)
+                or len(digest) != 64
+                or any(c not in "0123456789abcdef" for c in digest)
+                or not isinstance(pages, list)
+                or not 0 < len(pages) <= 60
+                or not all(type(p) is int and 0 < p <= 1500 for p in pages)
+                or not isinstance(identity, str)
+                or not 0 < len(identity) <= 60
+                or identity in catalog
+                or not isinstance(source.get("document"), str)
+                or not 0 < len(source["document"]) <= 120
+            ):
+                return False
+            catalog[identity] = source
+        tickers = set()
+        for peer in peers:
+            if not isinstance(peer, dict):
+                return False
+            quote_at, eps = parse_time(peer.get("priceAsOf")), peer["annualEPS"]
+            if (
+                not isinstance(peer.get("company"), str)
+                or not 0 < len(peer["company"]) <= 200
+                or not isinstance(peer.get("ticker"), str)
+                or not 0 < len(peer["ticker"]) <= 40
+                or peer["ticker"] in tickers
+                or not finite_number(peer.get("price"))
+                or peer["price"] <= 0
+                or peer.get("currency") != "INR"
+                or quote_at is None
+                or not timedelta(0) <= at - quote_at <= timedelta(days=7)
+                or not isinstance(peer.get("basisNote"), str)
+                or not 0 < len(peer["basisNote"]) <= 240
+                or not isinstance(eps, dict)
+                or not finite_number(eps.get("value"))
+                or eps["value"] <= 0
+                or eps.get("periodEnd") != "2026-03-31"
+                or eps.get("basis") not in ("COMPANY_DILUTED_FY26", "CONSOLIDATED_DILUTED_FY26")
+                or type(eps.get("page")) is not int
+                or eps["page"] not in catalog[eps["sourceId"]]["pages"]
+                or not finite_number(peer["price"] / eps["value"])
+            ):
+                return False
+            tickers.add(peer["ticker"])
+        return True
+    except (KeyError, TypeError, ValueError, AttributeError, OverflowError):
+        return False
+
+
 def valid_reviews_by_key(file, now):
     """Accept only pinned primary sources and an exact issuer/board/offer identity."""
     from collections import Counter
@@ -236,6 +334,10 @@ def valid_reviews_by_key(file, now):
                     continue
             if row["stage"] == "SOURCE_GAP" and (sources or metrics or peer is not None):
                 continue
+            if "independentPeerAudit" in row and not valid_independent_peer_audit(
+                row["independentPeerAudit"], now
+            ):
+                continue
             out[key] = row
         except (KeyError, TypeError, ValueError, AttributeError):
             continue
@@ -284,6 +386,7 @@ def review_summary(row, item, stale):
         "gaps": row["gaps"],
         "sources": row["sources"],
         "peerContext": row["peerContext"],
+        "independentPeerAudit": row.get("independentPeerAudit"),
         "historicalPEScenario": scenario,
         "decision": "HOLD_FOR_MANUAL_REVIEW",
     }
