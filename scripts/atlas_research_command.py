@@ -18,6 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from atlas.integrations.archive_export import export_parquet_with_manifest, verify_parquet_export
 from atlas.integrations.backtrader_bridge import run_backtrader_sma
 from atlas.integrations.historical_backfill import backfill
 from atlas.integrations.history_quality import audit_history
@@ -114,6 +115,7 @@ def main() -> int:
             "backfill",
             "audit-history",
             "provenance",
+            "verify-export",
         ),
     )
     parser.add_argument("--provider", choices=("upstox", "fyers", "upstox_v3", "fyers_v3"))
@@ -168,12 +170,18 @@ def main() -> int:
         if not args.input_file:
             parser.error("pit-rank requires --input-file")
         result = _pit_file(Path(args.input_file))
+    elif args.action == "verify-export":
+        if not args.output:
+            parser.error("verify-export requires --output path to a Parquet file")
+        result = verify_parquet_export(Path(args.output))
     elif args.action == "export":
         if not args.output or not Path(args.archive).is_file():
             raise ValueError("Parquet export requires an existing archive and --output")
+        exported = export_parquet_with_manifest(archive, Path(args.output))
         result = {
+            **exported,
             "status": "LOCAL_ARCHIVE_EXPORT",
-            "path": str(archive.export_parquet(Path(args.output))),
+            "integrity_status": exported["status"],
             "live_orders": False,
         }
     elif args.action == "provenance":

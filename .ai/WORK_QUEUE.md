@@ -29,6 +29,7 @@
 - [x] Extended fault-injection campaign for OS/process interruption during SQLite commit and recovery (synthetic subprocess INSERT/pre-COMMIT/post-COMMIT failpoints; exactly-once replay).
 - [x] Read-only NSE history audit: intraday gaps, unusual timestamps, source hashes, always uncertified.
 - [x] Transactional historical source receipts: additive DuckDB metadata, immutable-first timestamp, local checksum, unverified-rights status, legacy detection, interrupted-process tests.
+- [x] Portable Parquet provenance: local integrity-only manifest, no-clobber publication, tampering/race detection, and verified CLI copy checks.
 - [ ] Sustained external sandbox/paper evidence (requires external broker credential/data).
 - [x] Define production deployment authority zones, durable-state invariants, secret isolation, network policy, and fail-safe release gates.
 - [ ] Production broker/provider selection and credential isolation (owner/external gate).

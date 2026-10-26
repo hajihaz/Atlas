@@ -1,19 +1,21 @@
 # Atlas NPWWMI — Next Unblocked Work
 
-Completed 26 October 2026: SQLite real-process kill windows, read-only
-historical bar quality diagnostics, TradingView chart code splitting,
-and transactional DuckDB historical source provenance receipts.
-Runbook: docs/operations/atlas-npwwmi-provenance-2026-10-26.md.
+Completed on 26 October 2026:
+- Actual SQLite execution-journal crash-window testing.
+- Read-only NSE intraday data-quality audit.
+- TradingView historical replay code-splitting.
+- Transactional DuckDB source provenance receipts and process-crash tests.
+- Portable Parquet snapshot + integrity-only provenance sidecar and verifier,
+  including no-overwrite, corruption, partial-file and concurrent-import gates.
 
-Next autonomous tasks:
-1. Create a portable, explicit-uncertified provenance manifest alongside
-   Parquet historical exports; validate checksums and reject partial exports.
-2. Strengthen provenance conflict reporting without permitting source-history
-   corrections or overriding immutable bar records automatically.
-3. Extend read-only historical quality/audit usability in Atlas UI.
-4. Continue finite, offline safety/regression tests.
+Next owner-independent tasks, in priority order:
+1. Review and expand read-only source conflicts with a deterministic comparison
+   report; never auto-rewrite immutable historical bars.
+2. Improve offline strategy audit/report use of quality/provenance warnings.
+3. Add more local-only paper durability and security regression coverage.
+4. Improve research UI accessibility and bundle weight without behavior changes.
 
-External gates, parked independently: broker read-only credentials/data terms;
-authentic NSE point-in-time universe/minute data and official session calendar;
-OpenAlgo local API access; GitHub Actions account billing/spending limit.
-Do not place brokerage orders, change billing or release to main/production.
+External gates remain independent: verified Upstox/FYERS NSE API permissions;
+rights-cleared point-in-time NSE universe/minute data and trading calendar;
+OpenAlgo local key/service; GitHub Actions billing/spending limit.
+No live orders, billing changes, production merge or invented performance.
