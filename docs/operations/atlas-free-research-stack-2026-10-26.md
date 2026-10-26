@@ -11,7 +11,7 @@ paper runner and research statistics.
 
 | Integration | New capability | Operational status |
 | --- | --- | --- |
-| Upstox V3 | strict read-only NSE historical minute candles | API/token gate |
+| Upstox V3 | strict read-only NSE historical minute candles and observational LTP snapshots | API/token gate |
 | FYERS V3 | strict read-only historical candles | app/data entitlement gate |
 | DuckDB and Parquet | immutable local OHLCV, ZSTD snapshot export | local tests pass |
 | Atlas backtest and Backtrader | independent SMA next-bar comparison | hypothetical only |
@@ -58,6 +58,7 @@ Use the connected HajiHaz Commander to run these Atlas commands:
     .venv/bin/python scripts/atlas_research_command.py ingest --provider upstox --instrument 'NSE_EQ|INE123456789' --from-date 2026-10-05 --to-date 2026-10-05
     .venv/bin/python scripts/atlas_research_command.py ingest --provider fyers --instrument 'NSE:SBIN-EQ' --from-date 2026-10-05 --to-date 2026-10-05
     .venv/bin/python scripts/atlas_research_command.py compare --provider upstox_v3 --instrument 'NSE_EQ|INE123456789'
+    .venv/bin/python scripts/atlas_research_command.py quote --instrument 'NSE_EQ|INE123456789'
     .venv/bin/python scripts/atlas_research_command.py export --output data/snapshots/local-nse.parquet
     .venv/bin/python scripts/atlas_research_command.py pit-rank --input-file /path/to/universe.json
     .venv/bin/python scripts/atlas_research_command.py analyzer-status
@@ -76,6 +77,9 @@ rights, universe membership and completeness are independently confirmed.
 
 The optional SMA comparison models illustrative commission and slippage.
 It does not reproduce a broker-specific NSE statutory fee or tax schedule.
+The Upstox REST LTP response has **no exchange trade timestamp**, so Atlas
+returns an observational quote with execution_freshness_verified=false;
+it cannot trigger either live orders or paper trades.
 Live NSE market streaming still needs credentials and an approved persistent
 worker. A Vercel static dashboard is not a persistent market feed.
 

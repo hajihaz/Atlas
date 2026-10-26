@@ -38,13 +38,21 @@ def market_data_get(url: str, headers: dict[str, str]) -> object:
     parts = urlsplit(url)
     if parts.scheme != "https" or parts.port not in (None, 443) or parts.fragment:
         raise ValueError("only pinned HTTPS market data URLs permitted")
-    approved = (
+    upstox_history = (
         parts.hostname == "api.upstox.com"
         and parts.path.startswith("/v3/historical-candle/")
         and parts.query == ""
-    ) or (
+    )
+    upstox_quote = (
+        parts.hostname == "api.upstox.com"
+        and parts.path == "/v3/market-quote/ltp"
+        and parts.query.startswith("instrument_key=")
+        and "&" not in parts.query
+    )
+    fyers_history = (
         parts.hostname == "api-t1.fyers.in" and parts.path == "/data/history" and bool(parts.query)
     )
+    approved = upstox_history or upstox_quote or fyers_history
     if not approved or parts.username is not None or parts.password is not None:
         raise ValueError("unapproved read-only market-data endpoint")
     return _read(Request(url, headers=headers, method="GET"))  # noqa: S310

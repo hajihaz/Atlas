@@ -28,6 +28,7 @@ from atlas.integrations.nse_sources import (
 )
 from atlas.integrations.openalgo_sandbox import observe_analyzer
 from atlas.integrations.point_in_time import VolumeObservation, certify_volume_rank
+from atlas.integrations.upstox_quote import upstox_ltp
 
 
 def _batch_from_archive(
@@ -98,7 +99,8 @@ def _pit_file(path: Path) -> dict[str, object]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "action", choices=("status", "ingest", "compare", "export", "pit-rank", "analyzer-status")
+        "action",
+        choices=("status", "ingest", "compare", "export", "pit-rank", "analyzer-status", "quote"),
     )
     parser.add_argument("--provider", choices=("upstox", "fyers", "upstox_v3", "fyers_v3"))
     parser.add_argument("--instrument")
@@ -123,6 +125,25 @@ def main() -> int:
             "archive_present": Path(args.archive).is_file(),
             "certified_nse_sessions": None,
             "notice": "Token presence does not verify provider access or NSE PIT history.",
+        }
+    elif args.action == "quote":
+        if not args.instrument:
+            parser.error("quote requires --instrument")
+        quote = upstox_ltp(
+            args.instrument,
+            token=os.environ.get("UPSTOX_ANALYTICS_TOKEN", ""),
+            received_at=dt.datetime.now(dt.UTC),
+        )
+        result = {
+            "instrument_key": quote.instrument_key,
+            "source": quote.source,
+            "last_price_inr": str(quote.last_price),
+            "volume": quote.volume,
+            "observed_received_at": quote.received_at.isoformat(),
+            "exchange_market_timestamp": None,
+            "execution_freshness_verified": False,
+            "paper_order_enabled": False,
+            "warning": "LTP lacks exchange time; cannot trigger paper or live orders.",
         }
     elif args.action == "analyzer-status":
         result = observe_analyzer(

@@ -206,3 +206,62 @@ class SafetyContracts(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ReadOnlyQuoteContracts(unittest.TestCase):
+    def test_upstox_ltp_is_observational_only(self):
+        from atlas.integrations.upstox_quote import upstox_ltp
+
+        received = minute(44)
+        calls = []
+
+        def fake(url, headers):
+            calls.append((url, headers))
+            return {
+                "status": "success",
+                "data": {
+                    "NSE_EQ:TEST": {
+                        "instrument_token": "NSE_EQ|INE123456789",
+                        "last_price": 124.25,
+                        "volume": 10500,
+                        "cp": 120,
+                    }
+                },
+            }
+
+        q = upstox_ltp(
+            "NSE_EQ|INE123456789", token="example-only", received_at=received, getter=fake
+        )
+        self.assertFalse(q.execution_freshness_verified)
+        self.assertIsNone(q.market_timestamp)
+        self.assertEqual(q.last_price, Decimal("124.25"))
+        self.assertIn("/v3/market-quote/ltp?", calls[0][0])
+        self.assertNotIn("example-only", calls[0][0])
+
+    def test_quote_rejects_provider_spoof_and_bad_price(self):
+        from atlas.integrations.upstox_quote import upstox_ltp
+
+        def forged(url, headers):
+            return {
+                "status": "success",
+                "data": {
+                    "NSE_EQ:WRONG": {
+                        "instrument_token": "NSE_EQ|FORGED",
+                        "last_price": 100,
+                        "volume": 1,
+                    }
+                },
+            }
+
+        with self.assertRaises(ValueError):
+            upstox_ltp("NSE_EQ|INE123456789", token="test", received_at=minute(3), getter=forged)
+        with self.assertRaises(RuntimeError):
+            upstox_ltp("NSE_EQ|INE123456789", token="", received_at=minute(3), getter=forged)
+
+    def test_transport_rejects_quote_auth_redirection(self):
+        from atlas.market.read_only_transport import market_data_get
+
+        with self.assertRaises(ValueError):
+            market_data_get("https://evil.example/v3/market-quote/ltp?instrument_key=X", {})
+        with self.assertRaises(ValueError):
+            market_data_get("https://api.upstox.com/v3/order/place?instrument_key=X", {})
