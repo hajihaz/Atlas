@@ -13,12 +13,14 @@ import hashlib
 import json
 import os
 import sys
+from dataclasses import asdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from atlas.integrations.backtrader_bridge import run_backtrader_sma
 from atlas.integrations.historical_backfill import backfill
+from atlas.integrations.history_quality import audit_history
 from atlas.integrations.history_store import CandleArchive
 from atlas.integrations.nse_sources import (
     IST,
@@ -110,6 +112,7 @@ def main() -> int:
             "analyzer-status",
             "quote",
             "backfill",
+            "audit-history",
         ),
     )
     parser.add_argument("--provider", choices=("upstox", "fyers", "upstox_v3", "fyers_v3"))
@@ -172,6 +175,18 @@ def main() -> int:
             "path": str(archive.export_parquet(Path(args.output))),
             "live_orders": False,
         }
+    elif args.action == "audit-history":
+        if not args.provider or not args.instrument:
+            parser.error("audit-history requires --provider and --instrument")
+        provider = {"upstox": "upstox_v3", "fyers": "fyers_v3"}.get(args.provider, args.provider)
+        result = asdict(
+            audit_history(
+                archive,
+                provider=provider,
+                instrument=args.instrument,
+                interval=args.interval,
+            )
+        )
     elif args.action == "backfill":
         if not all((args.provider, args.instrument, args.from_date, args.to_date)):
             parser.error("backfill requires provider, instrument and date range")

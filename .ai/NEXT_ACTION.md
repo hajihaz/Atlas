@@ -1,9 +1,16 @@
-# Next Action
+# Next Pending Atlas Work Without Owner Input
 
-Next objectively executable autonomous work:
-1. Expand LEAN golden fixtures beyond the current SPY buy fixture (sell/rebalance/multi-asset/cash-limit cases).
-2. Continue deterministic chaos tests around crash windows between portfolio mutation, ledger persistence, and applied-event persistence.
-3. Design transactional persistence that atomically couples broker observation, portfolio transition, ledger append, and idempotency record.
-4. Continue production deployment implementation behind local-only interfaces.
+Completed 26 October 2026: disposable SQLite INSERT/COMMIT crash-window tests,
+exactly-once recovery tests, and a conservative read-only NSE history quality
+audit CLI. See docs/operations/atlas-npwwmi-crash-history-2026-10-26.md.
 
-Owner/external gates are intentionally not executable autonomously: real Upstox sandbox credential smoke, sustained external paper history, production provider selection/credentials, compliance review, and live-capital authorization.
+Next unblocked work:
+1. Enhance market-history source provenance and rights tracking without inventing permissions.
+2. Add exchange-session/holiday coverage checks only after a verified session calendar is available.
+3. Expand local-only paper durability/security regressions.
+4. Address research UI bundle size and chart replay accessibility while preserving behavior.
+
+External gates are separate: broker read-only credentials/entitlements, authentic
+rights-cleared NSE point-in-time universe/minute data, OpenAlgo local service,
+and GitHub Actions account billing. No paid changes, live trading or main
+release should occur without independently passing required approvals.
