@@ -1,0 +1,27 @@
+{
+  "project": "Atlas",
+  "branch": "haor/atlas-free-research-stack-20261026",
+  "pr": 51,
+  "cost_incurred_in_new_subscriptions": "\u20b90",
+  "summary": "Read-only NSE historical+observational quote adapter, multi-chunk backfill, DuckDB/Parquet, Backtrader, OpenAlgo observer, TradingView chart replay, PIT rank checks, ChatGPT/HHC commands. Existing risk/paper engine preserved.",
+  "repo_main_untouched": true,
+  "live_money_enabled": false,
+  "hosted_ci": "BLOCKED pre-job by GitHub payments/spending-limit notice; no steps executed",
+  "preview": "READY, authenticated Vercel CLI head request returned HTTP 200; direct unauthenticated request redirected to protected login",
+  "tests": {
+    "python_full_pre_backfill": "585/585 full Python test suite passed, zero skips, with temporary local PostgreSQL+LEAN fixtures; cleaned",
+    "backfill_selected": "9 passed",
+    "javascript": "314 passed",
+    "ruff_mypy_typescript": "Ruff pass; 137-source-file mypy pass; TypeScript/Vite pass"
+  },
+  "external_gates": [
+    "GitHub Actions account billing/spending-limit: zero runner steps; no payment changes authorized",
+    "Upstox read-only Analytics Token unavailable; NSE provider live and historical access unverified",
+    "FYERS app/data API credentials unavailable; historical source unverified",
+    "OpenAlgo local API key/service unavailable, observer-only by safety design",
+    "Complete rights-cleared point-in-time NSE universe plus timestamped minute data unavailable",
+    "Persistent authenticated NSE WebSocket worker cannot be activated without provider access"
+  ],
+  "owner_decision_needed": "Read-only API tokens/rights and GitHub Actions billing; cannot achieve full NSE live paper or certified historical returns until resolved.",
+  "time": "2026-10-26"
+}

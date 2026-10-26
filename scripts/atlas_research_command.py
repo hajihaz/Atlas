@@ -18,6 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from atlas.integrations.backtrader_bridge import run_backtrader_sma
+from atlas.integrations.historical_backfill import backfill
 from atlas.integrations.history_store import CandleArchive
 from atlas.integrations.nse_sources import (
     IST,
@@ -100,7 +101,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "action",
-        choices=("status", "ingest", "compare", "export", "pit-rank", "analyzer-status", "quote"),
+        choices=(
+            "status",
+            "ingest",
+            "compare",
+            "export",
+            "pit-rank",
+            "analyzer-status",
+            "quote",
+            "backfill",
+        ),
     )
     parser.add_argument("--provider", choices=("upstox", "fyers", "upstox_v3", "fyers_v3"))
     parser.add_argument("--instrument")
@@ -161,6 +171,38 @@ def main() -> int:
             "status": "LOCAL_ARCHIVE_EXPORT",
             "path": str(archive.export_parquet(Path(args.output))),
             "live_orders": False,
+        }
+    elif args.action == "backfill":
+        if not all((args.provider, args.instrument, args.from_date, args.to_date)):
+            parser.error("backfill requires provider, instrument and date range")
+        if args.provider not in ("upstox", "fyers"):
+            raise ValueError("unsupported backfill provider")
+        start = dt.date.fromisoformat(args.from_date)
+        end = dt.date.fromisoformat(args.to_date)
+        summary = backfill(
+            archive,
+            provider=args.provider,
+            instrument=args.instrument,
+            start=start,
+            end=end,
+            token=(
+                os.environ.get("UPSTOX_ANALYTICS_TOKEN", "")
+                if args.provider == "upstox"
+                else os.environ.get("FYERS_ACCESS_TOKEN", "")
+            ),
+            app_id=os.environ.get("FYERS_APP_ID", ""),
+        )
+        result = {
+            "status": summary.status,
+            "provider": summary.provider,
+            "instrument": summary.instrument,
+            "requests": summary.requests,
+            "bars_received": summary.bars_received,
+            "bars_added": summary.bars_added,
+            "from_date": summary.first_date,
+            "to_date": summary.last_date,
+            "rankings_verified": False,
+            "live_capital_enabled": False,
         }
     elif args.action == "ingest":
         if not all((args.provider, args.instrument, args.from_date, args.to_date)):

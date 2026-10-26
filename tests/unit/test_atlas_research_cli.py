@@ -78,6 +78,37 @@ class AtlasResearchCommandTests(unittest.TestCase):
             self.assertEqual(p.returncode, 0, p.stdout)
             self.assertGreater(Path(target).stat().st_size, 0)
 
+    def test_backfill_requires_read_only_provider_token(self):
+        p = cli(
+            "backfill",
+            "--provider",
+            "upstox",
+            "--instrument",
+            "NSE_EQ|INE123456789",
+            "--from-date",
+            "2026-10-05",
+            "--to-date",
+            "2026-10-06",
+        )
+        self.assertEqual(p.returncode, 2)
+        self.assertIn("BLOCKED_OR_INVALID", p.stdout)
+
+    def test_backfill_fails_closed_without_account(self):
+        p = cli(
+            "backfill",
+            "--provider",
+            "upstox",
+            "--instrument",
+            "NSE_EQ|INE123456789",
+            "--from-date",
+            "2022-01-03",
+            "--to-date",
+            "2022-01-31",
+        )
+        self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
+        self.assertIn("BLOCKED_OR_INVALID", p.stdout)
+        self.assertNotIn("live_orders", p.stdout)
+
     def test_openalgo_not_order_capable_without_auth(self):
         p = cli("analyzer-status")
         self.assertEqual(p.returncode, 2)

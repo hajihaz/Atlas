@@ -57,6 +57,7 @@ Use the connected HajiHaz Commander to run these Atlas commands:
     .venv/bin/python scripts/atlas_research_command.py status
     .venv/bin/python scripts/atlas_research_command.py ingest --provider upstox --instrument 'NSE_EQ|INE123456789' --from-date 2026-10-05 --to-date 2026-10-05
     .venv/bin/python scripts/atlas_research_command.py ingest --provider fyers --instrument 'NSE:SBIN-EQ' --from-date 2026-10-05 --to-date 2026-10-05
+    .venv/bin/python scripts/atlas_research_command.py backfill --provider upstox --instrument 'NSE_EQ|INE123456789' --from-date 2022-01-03 --to-date 2026-10-26
     .venv/bin/python scripts/atlas_research_command.py compare --provider upstox_v3 --instrument 'NSE_EQ|INE123456789'
     .venv/bin/python scripts/atlas_research_command.py quote --instrument 'NSE_EQ|INE123456789'
     .venv/bin/python scripts/atlas_research_command.py export --output data/snapshots/local-nse.parquet
@@ -97,3 +98,21 @@ Reference specifications:
 - https://fyers.in/api-docs/v3/api/market-data/historical-data
 - https://docs.openalgo.in/new-features/api-analyzer
 - https://github.com/tradingview/lightweight-charts
+
+
+## Automatic historical backfill
+
+The optional backfill command retrieves historical candles over inclusive
+calendar-date ranges in provider-approved chunks (Upstox: up to 28 days,
+FYERS: up to 100 days), with 1-second pacing between requests.
+Archive records preserve hash provenance, and repeat runs remain idempotent.
+Failures leave prior validated chunks intact without imputing any gaps.
+Backfill output remains **UNCERTIFIED_HISTORICAL_ARCHIVE**.
+
+Example commands (instrument keys are format examples, not guaranteed listings):
+
+    .venv/bin/python scripts/atlas_research_command.py backfill --provider upstox --instrument 'NSE_EQ|INE123456789' --from-date 2022-01-03 --to-date 2026-10-23
+    .venv/bin/python scripts/atlas_research_command.py backfill --provider fyers --instrument 'NSE:SBIN-EQ' --from-date 2025-11-01 --to-date 2026-10-23
+
+Network calls require approved account credentials, data entitlements,
+vendor terms and historical rights. No data is fetched when those are absent.
