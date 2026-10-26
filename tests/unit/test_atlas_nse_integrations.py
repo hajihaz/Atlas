@@ -176,12 +176,28 @@ class SafetyContracts(unittest.TestCase):
 
         def fake(url, body):
             logs.append((url, body))
-            return {"analyze_mode": True}
+            return {
+                "status": "success",
+                "data": {"analyze_mode": True, "mode": "analyze", "total_logs": 2},
+            }
 
         response = observe_analyzer("http://127.0.0.1:5000", "test-only", post_json=fake)
         self.assertTrue(response["analyzer_enabled"])
         self.assertFalse(response["orders_enabled"])
         self.assertEqual(logs[0][0], "http://127.0.0.1:5000/api/v1/analyzer")
+        with self.assertRaises(ValueError):
+            observe_analyzer(
+                "http://127.0.0.1:5000", "test-only", post_json=lambda u, p: {"analyze_mode": True}
+            )
+        with self.assertRaises(ValueError):
+            observe_analyzer(
+                "http://127.0.0.1:5000",
+                "test-only",
+                post_json=lambda u, p: {
+                    "status": "success",
+                    "data": {"analyze_mode": True, "mode": "live"},
+                },
+            )
         with self.assertRaises(ValueError):
             observe_analyzer("https://example.com", "test-only", post_json=fake)
         with self.assertRaises(ValueError):

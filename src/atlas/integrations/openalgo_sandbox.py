@@ -56,11 +56,17 @@ def observe_analyzer(
         response = post_json(target, {"apikey": api_key})
     except Exception:
         raise RuntimeError("OpenAlgo sandbox status unavailable") from None
-    if not isinstance(response, dict):
+    if not isinstance(response, dict) or response.get("status") != "success":
         raise ValueError("unexpected analyzer status")
+    data = response.get("data")
+    if not isinstance(data, dict) or type(data.get("analyze_mode")) is not bool:
+        raise ValueError("OpenAlgo analyzer response lacks trusted mode")
+    mode = data.get("mode")
+    if mode not in ("analyze", "live") or (mode == "analyze") != data["analyze_mode"]:
+        raise ValueError("OpenAlgo analyzer mode mismatch")
     return {
         "connected": True,
-        "analyzer_enabled": response.get("analyze_mode") is True,
+        "analyzer_enabled": data["analyze_mode"],
         "orders_enabled": False,
         "warning": (
             "Observer only; Atlas uses local paper engine. OpenAlgo order APIs are dual-use."
