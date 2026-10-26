@@ -29,3 +29,5 @@ Next approved work is consolidation of PR49/50/51 in an isolated candidate and
 combined verification. Main, production, existing runtime services, the 1,860
 original paper fills, risk halts and the genuine IPO deadline receipt are preserved.
 Upstox is parked. Hosted CI and authentic permitted NSE evidence remain gates.
+
+Combined acceptance supersedes the earlier component-only counts: 720 Python tests and 85 subtests, zero skips; 476 repository JavaScript tests; strict mypy152, Ruff, TypeScript/build and four Chromium checks passed. See atlas-combined-candidate-2026-10-26.md and draft PR52.

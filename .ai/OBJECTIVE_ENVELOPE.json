@@ -62,8 +62,8 @@
       "verified_points": 6
     }
   ],
-  "final_acceptance": "NOT_PASSED: blocked on authenticated NSE providers, authentic PIT source, OpenAlgo local setup and GitHub account-level CI gate.",
-  "status": "EXECUTING",
+  "final_acceptance": "NOT_PASSED: authentic permitted NSE/PIT evidence, strategy qualification, authenticated OpenAlgo and required hosted CI/release remain gated.",
+  "status": "EXTERNAL_ACTIVATION_GATED",
   "progress": {
     "score": 71,
     "basis": "weighted engineering milestones; partial credit only where verified local work exists; external NSE access and hosted CI absent",
@@ -108,12 +108,12 @@
         "name": "tests, integration, push/verify",
         "earned": 6,
         "weight": 10,
-        "remaining": "hosted CI billing gate, isolated PostgreSQL verification, reviewed release"
+        "remaining": "required exact-head hosted CI and reviewed production acceptance; isolated PostgreSQL and combined local regression are verified"
       }
     ]
   },
-  "repo_branch": "haor/atlas-free-research-stack-20261026",
-  "pull_request": "https://github.com/hajihaz/Atlas/pull/51",
+  "repo_branch": "haor/atlas-consolidated-20261026",
+  "pull_request": "https://github.com/hajihaz/Atlas/pull/52",
   "external_gates": [
     "GitHub Actions included minutes exhausted (2000/2000); recorded reset 2026-11-01; no payment changes or bypass",
     "Upstox read-only Analytics Token unavailable; NSE provider live and historical access unverified",
@@ -122,20 +122,25 @@
     "Complete rights-cleared point-in-time NSE universe plus timestamped minute data unavailable",
     "Persistent authenticated NSE WebSocket worker cannot be activated without provider access"
   ],
-  "next_safe_action": "Complete recorded quality-warning task, consolidate PR49/50/51 and verify combined draft without changing main.",
+  "next_safe_action": "No executable task remains in this finite checkpoint. Resume on changed permitted data, authenticated local observer or hosted CI entitlement evidence. Upstox stays parked until explicit activation confirmation.",
   "owner_gates": [
-    "Upstox Analytics Token and permitted data entitlements",
-    "FYERS Market Data credentials/entitlements",
-    "authentic complete point-in-time NSE universe + historical rights and timing evidence",
-    "local OpenAlgo service/API key if sandbox analyzer required",
-    "GitHub Actions account billing/spending limit prevented both hosted jobs from starting"
+    "Permitted authenticated NSE live/historical provider data; Upstox explicitly parked.",
+    "Complete rights-cleared point-in-time NSE universe and minute history with timing evidence.",
+    "Authenticated local OpenAlgo analyzer service/key; port5000 is macOS ControlCenter.",
+    "Included GitHub Actions minutes exhausted; required hosted CI before normal production release.",
+    "Strategy qualification requires genuine cost/holdout/forward evidence; engineering tests do not establish returns."
   ],
   "release": {
-    "branch": "haor/atlas-free-research-stack-20261026",
-    "pull_request": 51,
+    "branch": "haor/atlas-consolidated-20261026",
+    "pull_request": 52,
     "github_pr_status": "OPEN_DRAFT_NOT_MERGED",
     "production_status": "UNCHANGED",
-    "capital_status": "BLOCKED"
+    "capital_status": "BLOCKED",
+    "source_pull_requests": [
+      49,
+      50,
+      51
+    ]
   },
   "acceptance": "Local component builds and tests pass; full approved objective remains external-activation gated. No certified NSE historical backtest or live NSE paper execution claimed.",
   "historical_validation_baselines": {
@@ -158,18 +163,23 @@
     },
     "notice": "Dated earlier commits; not current-head combined acceptance."
   },
-  "updated_at": "2026-10-26T11:32:44.350675+00:00",
+  "updated_at": "2026-10-26T11:49:30.236627+00:00",
   "verification": {
-    "base_sha": "85d9396bbc030f04679d49ed4b44e572afd3a48d",
-    "latest_reported_python": "613 passed, 7 skipped",
-    "latest_reported_javascript": "316 passed",
-    "current_combined_acceptance": "PENDING_NEW_CHANGES",
-    "python": "619 passed, 7 skipped",
-    "javascript_frontend_only": "207 passed",
+    "code_commit": "9346be498e47d1fa5507a7abcc8c70e43cc8a91b",
+    "python": "720 passed; 85 subtests passed; zero skips",
+    "python_fixtures": "disposable PostgreSQL stopped/deleted; original LEAN hashes unchanged and link removed",
+    "javascript": "476 passed across 73 files",
     "ruff": "passed",
-    "mypy": "141 source files passed",
+    "mypy": "152 source files passed",
     "typescript": "passed",
-    "build": "passed",
-    "evidence": ".ai/raw/haor-consolidation-20261026/quality-verification.json"
+    "frontend_build": "passed",
+    "chromium": "4 synthetic QA checks passed; zero writes, notifications or orders",
+    "preview": "READY; authenticated root and strategy API HTTP200",
+    "preview_code_commit": "9346be498e47d1fa5507a7abcc8c70e43cc8a91b",
+    "preview_url": "https://atlas-control-center-ezt4bo5hc-kuddosahib-8503s-projects.vercel.app",
+    "new_paper_checkpoints": "31-34 only; 20 independent decisions matched; no new modeled fills",
+    "integration_score": 71,
+    "overall_final_acceptance": false,
+    "production_changed": false
   }
 }

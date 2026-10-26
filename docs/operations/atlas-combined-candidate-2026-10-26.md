@@ -47,3 +47,5 @@ No billing changes, CI substitutions or live capital are authorized.
 Authentic permitted NSE data, historical rights/PIT evidence, provider activation,
 strategy qualification and production acceptance remain external gates.
 Integration progress remains 71/100 under its existing weighted scope.
+
+Publication checkpoint: draft PR52 is open. Commit9346be4 has a READY Vercel preview with authenticated root/API HTTP200. Its real-source Strategy Lab response contained719 public INR crypto candles and five hypothetical strategies, explicit unverified evidence, and zero real/paper order execution. A state-only checkpoint follows; its exact branch-tip proof is stored separately. Required hosted CI remains unsatisfied.

@@ -1,3 +1,3 @@
-# Atlas current next action
+# Atlas next action
 
-Consume WORK_QUEUE.json and AGENT_HANDOFF.json. The planned research-output quality warnings are implemented and locally verified. Consolidate PR49/50/51 in an isolated candidate, then run combined acceptance and audit only new runtime observations after checkpoint30. Existing authentic-data and hosted-CI gates remain. No optional feature expansion, Upstox activation, payments, live orders or production merge.
+Use the consolidated candidate at /Users/hajihaz/projects/atlas-consolidated-20261026 and draft PR52. The finite local queue is completed and verified. Confirm final branch-tip receipt in .ai/raw/haor-consolidation-20261026/final-acceptance.json before ending publication. After that, resume only on changed evidence for the external gates in OBJECTIVE_ENVELOPE.json. No duplicate installs, deadline notifications, checkpoints through34 or unchanged test reruns. No new paid subscriptions, live orders, CI bypass or main merge. Upstox remains parked.

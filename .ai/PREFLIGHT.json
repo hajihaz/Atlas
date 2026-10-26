@@ -1,0 +1,41 @@
+{
+  "version": 3,
+  "status": "OWNER_GATE",
+  "objective": "Atlas 10-component no-paid-subscription historical research and paper integration",
+  "approval_status": "APPROVED_EXISTING_SCOPE",
+  "approved_at": "2026-10-26",
+  "approval_evidence": "User HAOR resumed assessed reconciliation, warning and consolidation queue.",
+  "scope_completed_locally": [
+    "reconcile_state",
+    "research_quality_warnings",
+    "consolidate_research_branches",
+    "new_paper_checkpoint_audit",
+    "verify_and_publish_draft"
+  ],
+  "remaining_gates": [
+    "Permitted authenticated NSE live/historical provider data; Upstox explicitly parked.",
+    "Complete rights-cleared point-in-time NSE universe and minute history with timing evidence.",
+    "Authenticated local OpenAlgo analyzer service/key; port5000 is macOS ControlCenter.",
+    "Included GitHub Actions minutes exhausted; required hosted CI before normal production release.",
+    "Strategy qualification requires genuine cost/holdout/forward evidence; engineering tests do not establish returns."
+  ],
+  "verification": {
+    "code_commit": "9346be498e47d1fa5507a7abcc8c70e43cc8a91b",
+    "python": "720 passed; 85 subtests passed; zero skips",
+    "python_fixtures": "disposable PostgreSQL stopped/deleted; original LEAN hashes unchanged and link removed",
+    "javascript": "476 passed across 73 files",
+    "ruff": "passed",
+    "mypy": "152 source files passed",
+    "typescript": "passed",
+    "frontend_build": "passed",
+    "chromium": "4 synthetic QA checks passed; zero writes, notifications or orders",
+    "preview": "READY; authenticated root and strategy API HTTP200",
+    "preview_code_commit": "9346be498e47d1fa5507a7abcc8c70e43cc8a91b",
+    "preview_url": "https://atlas-control-center-ezt4bo5hc-kuddosahib-8503s-projects.vercel.app",
+    "new_paper_checkpoints": "31-34 only; 20 independent decisions matched; no new modeled fills",
+    "integration_score": 71,
+    "overall_final_acceptance": false,
+    "production_changed": false
+  },
+  "updated_at": "2026-10-26T11:49:30.236627+00:00"
+}

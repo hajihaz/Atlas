@@ -1,13 +1,13 @@
 {
   "project": "Atlas",
-  "branch": "haor/atlas-free-research-stack-20261026",
-  "pr": 51,
+  "branch": "haor/atlas-consolidated-20261026",
+  "pr": 52,
   "cost_incurred_in_new_subscriptions": "\u20b90",
   "summary": "Read-only NSE historical+observational quote adapter, multi-chunk backfill, DuckDB/Parquet, Backtrader, OpenAlgo observer, TradingView chart replay, PIT rank checks, ChatGPT/HHC commands. Existing risk/paper engine preserved.",
   "repo_main_untouched": true,
   "live_money_enabled": false,
-  "hosted_ci": "Included Actions minutes exhausted; genuine hosted CI still required; no payment changes or bypass.",
-  "preview": "READY, authenticated Vercel CLI head request returned HTTP 200; direct unauthenticated request redirected to protected login",
+  "hosted_ci": "Included minutes exhausted; no manual retries or bypass.",
+  "preview": "https://atlas-control-center-ezt4bo5hc-kuddosahib-8503s-projects.vercel.app",
   "external_gates": [
     "GitHub Actions account billing/spending-limit: zero runner steps; no payment changes authorized",
     "Upstox read-only Analytics Token unavailable; NSE provider live and historical access unverified",
@@ -16,7 +16,13 @@
     "Complete rights-cleared point-in-time NSE universe plus timestamped minute data unavailable",
     "Persistent authenticated NSE WebSocket worker cannot be activated without provider access"
   ],
-  "owner_decision_needed": "Read-only API tokens/rights and GitHub Actions billing; cannot achieve full NSE live paper or certified historical returns until resolved.",
+  "owner_decision_needed": [
+    "Permitted authenticated NSE live/historical provider data; Upstox explicitly parked.",
+    "Complete rights-cleared point-in-time NSE universe and minute history with timing evidence.",
+    "Authenticated local OpenAlgo analyzer service/key; port5000 is macOS ControlCenter.",
+    "Included GitHub Actions minutes exhausted; required hosted CI before normal production release.",
+    "Strategy qualification requires genuine cost/holdout/forward evidence; engineering tests do not establish returns."
+  ],
   "time": "2026-10-26",
   "historical_test_baseline": {
     "python_full_pre_backfill": "585/585 full Python test suite passed, zero skips, with temporary local PostgreSQL+LEAN fixtures; cleaned",
@@ -25,13 +31,28 @@
     "ruff_mypy_typescript": "Ruff pass; 137-source-file mypy pass; TypeScript/Vite pass"
   },
   "tests": {
-    "python": "619 passed, 7 skipped",
-    "javascript_frontend_only": "207 passed",
+    "code_commit": "9346be498e47d1fa5507a7abcc8c70e43cc8a91b",
+    "python": "720 passed; 85 subtests passed; zero skips",
+    "python_fixtures": "disposable PostgreSQL stopped/deleted; original LEAN hashes unchanged and link removed",
+    "javascript": "476 passed across 73 files",
     "ruff": "passed",
-    "mypy": "141 source files passed",
+    "mypy": "152 source files passed",
     "typescript": "passed",
-    "build": "passed"
+    "frontend_build": "passed",
+    "chromium": "4 synthetic QA checks passed; zero writes, notifications or orders",
+    "preview": "READY; authenticated root and strategy API HTTP200",
+    "preview_code_commit": "9346be498e47d1fa5507a7abcc8c70e43cc8a91b",
+    "preview_url": "https://atlas-control-center-ezt4bo5hc-kuddosahib-8503s-projects.vercel.app",
+    "new_paper_checkpoints": "31-34 only; 20 independent decisions matched; no new modeled fills",
+    "integration_score": 71,
+    "overall_final_acceptance": false,
+    "production_changed": false
   },
-  "next_action": "Consolidate PR49/50/51 in an isolated research candidate; preserve production and existing runtime.",
-  "updated_at": "2026-10-26T11:32:44.350675+00:00"
+  "next_action": "No executable task remains in this finite checkpoint. Resume on changed permitted data, authenticated local observer or hosted CI entitlement evidence. Upstox stays parked until explicit activation confirmation.",
+  "updated_at": "2026-10-26T11:49:30.236627+00:00",
+  "source_prs": [
+    49,
+    50,
+    51
+  ]
 }

@@ -1,12 +1,46 @@
 {
-  "version": 2,
-  "status": "EXECUTING",
-  "repo": "/Users/hajihaz/projects/atlas-integrations-20261026",
-  "head": "85d9396bbc030f04679d49ed4b44e572afd3a48d",
-  "last_result": "Quality warnings implemented and verified: 619 Python passed/7 skipped; 207 frontend JS passed; Ruff/mypy141/TS/build pass.",
-  "next_action": "consolidate_research_branches",
-  "requires_owner": false,
-  "owner_gate_reason": null,
-  "continuation_required": true,
-  "updated_at": "2026-10-26T11:32:44.350675+00:00"
+  "version": 3,
+  "status": "OWNER_GATE",
+  "repo": "/Users/hajihaz/projects/atlas-consolidated-20261026",
+  "branch": "haor/atlas-consolidated-20261026",
+  "pull_request": 52,
+  "code_commit_at_verification": "9346be498e47d1fa5507a7abcc8c70e43cc8a91b",
+  "current_head_source": "git rev-parse HEAD; final state-only checkpoint may follow verified code",
+  "last_result": {
+    "code_commit": "9346be498e47d1fa5507a7abcc8c70e43cc8a91b",
+    "python": "720 passed; 85 subtests passed; zero skips",
+    "python_fixtures": "disposable PostgreSQL stopped/deleted; original LEAN hashes unchanged and link removed",
+    "javascript": "476 passed across 73 files",
+    "ruff": "passed",
+    "mypy": "152 source files passed",
+    "typescript": "passed",
+    "frontend_build": "passed",
+    "chromium": "4 synthetic QA checks passed; zero writes, notifications or orders",
+    "preview": "READY; authenticated root and strategy API HTTP200",
+    "preview_code_commit": "9346be498e47d1fa5507a7abcc8c70e43cc8a91b",
+    "preview_url": "https://atlas-control-center-ezt4bo5hc-kuddosahib-8503s-projects.vercel.app",
+    "new_paper_checkpoints": "31-34 only; 20 independent decisions matched; no new modeled fills",
+    "integration_score": 71,
+    "overall_final_acceptance": false,
+    "production_changed": false
+  },
+  "next_action": "No executable task remains in this finite checkpoint. Resume on changed permitted data, authenticated local observer or hosted CI entitlement evidence. Upstox stays parked until explicit activation confirmation.",
+  "requires_owner": true,
+  "owner_gate_reason": [
+    "Permitted authenticated NSE live/historical provider data; Upstox explicitly parked.",
+    "Complete rights-cleared point-in-time NSE universe and minute history with timing evidence.",
+    "Authenticated local OpenAlgo analyzer service/key; port5000 is macOS ControlCenter.",
+    "Included GitHub Actions minutes exhausted; required hosted CI before normal production release.",
+    "Strategy qualification requires genuine cost/holdout/forward evidence; engineering tests do not establish returns."
+  ],
+  "continuation_required": false,
+  "owner_relay_required": false,
+  "do_not_repeat": [
+    "source installation",
+    "closed deadline receipt",
+    "paper checkpoints through34",
+    "completed local regression without changed code"
+  ],
+  "exact_head_receipt": ".ai/raw/haor-consolidation-20261026/final-acceptance.json",
+  "updated_at": "2026-10-26T11:49:30.236627+00:00"
 }

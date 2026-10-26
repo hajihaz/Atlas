@@ -1,13 +1,19 @@
 {
   "protocol_version": 6,
   "project": "Atlas",
-  "project_path": "/Users/hajihaz/projects/atlas-integrations-20261026",
-  "status": "EXECUTING",
-  "current_task": "consolidate_research_branches",
-  "next_action": "new_paper_checkpoint_audit",
-  "blocked_reason": null,
+  "project_path": "/Users/hajihaz/projects/atlas-consolidated-20261026",
+  "status": "OWNER_GATE",
+  "current_task": null,
+  "next_action": "No executable task remains in this finite checkpoint. Resume on changed permitted data, authenticated local observer or hosted CI entitlement evidence. Upstox stays parked until explicit activation confirmation.",
+  "blocked_reason": [
+    "Permitted authenticated NSE live/historical provider data; Upstox explicitly parked.",
+    "Complete rights-cleared point-in-time NSE universe and minute history with timing evidence.",
+    "Authenticated local OpenAlgo analyzer service/key; port5000 is macOS ControlCenter.",
+    "Included GitHub Actions minutes exhausted; required hosted CI before normal production release.",
+    "Strategy qualification requires genuine cost/holdout/forward evidence; engineering tests do not establish returns."
+  ],
   "requires_high_reasoning": false,
   "preferred_execution": "HHC_RDC_FIRST",
   "usage_policy": "LOWEST_SUFFICIENT_MODEL",
-  "updated_at": "2026-10-26T11:32:44.350675+00:00"
+  "updated_at": "2026-10-26T11:49:30.236627+00:00"
 }
