@@ -473,3 +473,5 @@ html[data-theme="light"] .live-bidask span{color:#3c6269}
 .nse-pagination button:disabled{opacity:.4}.nse-pilot-universe{font-size:.73rem;line-height:1.8;margin:1rem 0;opacity:.8}
 @media(max-width:650px){.nse-account-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nse-account{padding:1rem}.nse-paper-status span{margin-left:0;width:100%}.nse-strategy-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:380px){.nse-strategy-grid{grid-template-columns:1fr}}
+
+.nse-paper-page .market-switch{display:flex;flex-wrap:wrap;gap:.4rem;max-width:100%}

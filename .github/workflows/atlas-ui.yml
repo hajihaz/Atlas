@@ -4,45 +4,27 @@ on:
     branches: [main]
     paths:
       - 'frontend/**'
-      - 'research/advanced/**'
+      - 'research/**'
       - 'tests/research/**'
+      - 'tests/nse-certification/**'
       - 'docs/research/advanced/**'
+      - 'scripts/**/*.mjs'
+      - 'scripts/**/*.js'
       - 'scripts/export_atlas_dashboard.py'
-      - 'scripts/run_scheduled_paper.mjs'
-      - 'scripts/scheduled_paper_engine.mjs'
-      - 'scripts/paper_ledger_guard.mjs'
-      - 'scripts/paper_source_diagnostics.mjs'
-      - 'scripts/virtual_order_lifecycle.mjs'
-      - 'scripts/virtual_order_accounting_bridge.mjs'
-      - 'scripts/paper_generated_fill_audit.mjs'
-      - 'scripts/paper_run_health.mjs'
-      - 'scripts/paper_checkpoint_evidence.mjs'
-      - 'scripts/paper_decision_evidence.mjs'
-      - 'scripts/paper_input_receipts.mjs'
       - 'scripts/publish_scheduled_paper.sh'
-      - 'scripts/tests/paper-publish-race.test.mjs'
       - '.github/workflows/atlas-paper-scheduled.yml'
       - '.github/workflows/atlas-ui.yml'
   pull_request:
     paths:
       - 'frontend/**'
-      - 'research/advanced/**'
+      - 'research/**'
       - 'tests/research/**'
+      - 'tests/nse-certification/**'
       - 'docs/research/advanced/**'
+      - 'scripts/**/*.mjs'
+      - 'scripts/**/*.js'
       - 'scripts/export_atlas_dashboard.py'
-      - 'scripts/run_scheduled_paper.mjs'
-      - 'scripts/scheduled_paper_engine.mjs'
-      - 'scripts/paper_ledger_guard.mjs'
-      - 'scripts/paper_source_diagnostics.mjs'
-      - 'scripts/virtual_order_lifecycle.mjs'
-      - 'scripts/virtual_order_accounting_bridge.mjs'
-      - 'scripts/paper_generated_fill_audit.mjs'
-      - 'scripts/paper_run_health.mjs'
-      - 'scripts/paper_checkpoint_evidence.mjs'
-      - 'scripts/paper_decision_evidence.mjs'
-      - 'scripts/paper_input_receipts.mjs'
       - 'scripts/publish_scheduled_paper.sh'
-      - 'scripts/tests/paper-publish-race.test.mjs'
       - '.github/workflows/atlas-paper-scheduled.yml'
       - '.github/workflows/atlas-ui.yml'
 permissions:
@@ -59,53 +41,13 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci --prefix frontend
       - run: npm run check --prefix frontend
-      - run: node --test scripts/tests/upstream-intake.test.mjs
-      - run: node --test scripts/tests/scalpstorm_equal_weight.test.mjs
-      - run: node --test scripts/tests/paper-publish-race.test.mjs
-      - run: node scripts/check_upstream_intake.mjs
-      - run: node --test frontend/tests/market-quotes.test.mjs
-      - run: node --test frontend/tests/closed-candles.test.mjs
-      - run: node --test frontend/tests/theme-contract.test.mjs
-      - run: node --test frontend/tests/premium-ui.test.mjs
-      - run: node --test frontend/tests/market-inr.test.mjs
-      - run: node --test frontend/tests/ist-12-hour.test.mjs
-      - run: node --test frontend/tests/market-history.test.mjs
-      - run: node --test frontend/tests/financial-chart-data.test.mjs frontend/tests/background-push.test.mjs frontend/tests/local-api-server.test.mjs frontend/tests/private-lock.test.mjs
-      - run: node --test frontend/tests/market-stream.test.mjs frontend/tests/kraken-stream.test.mjs frontend/tests/public-stream-observer.test.mjs
-      - run: node --test frontend/tests/tradingview-sandbox.test.mjs
-      - run: node --test frontend/tests/live-feed.test.mjs
-      - run: node --test frontend/tests/market-news.test.mjs
-      - run: node --test frontend/tests/research-engine.test.mjs
-      - run: node --test frontend/tests/advanced-research-import.test.mjs
-      - run: node --test frontend/tests/vercel-ignore-build.test.mjs
-      - run: node --test frontend/tests/paper-engine.test.mjs
-      - run: node --test frontend/tests/cloud-paper.test.mjs
-      - run: node --test frontend/tests/cloud-paper-private-endpoint.test.mjs
-      - run: node --test frontend/tests/cloud-paper-integrity.test.mjs
-      - run: node --test frontend/tests/cloud-paper-chaos.test.mjs
-      - run: node --test frontend/tests/paper-source-diagnostics.test.mjs
-      - run: node --test frontend/tests/virtual-order-lifecycle.test.mjs
-      - run: node --test frontend/tests/virtual-order-accounting-bridge.test.mjs
-      - run: node --test frontend/tests/paper-generated-fill-audit.test.mjs
-      - run: node --test frontend/tests/scheduled-runner-forward.test.mjs
-      - run: node --test frontend/tests/paper-run-health.test.mjs
-      - run: node --test frontend/tests/paper-checkpoint-evidence.test.mjs
-      - run: node --test frontend/tests/paper-decision-evidence.test.mjs frontend/tests/paper-input-receipts.test.mjs
-      - run: node --test frontend/tests/paper-cadence.test.mjs
-      - run: node --test frontend/tests/cloud-paper-daybook.test.mjs
-      - run: node --test frontend/tests/publisher-ipo-endpoint.test.mjs
-      - run: node --test frontend/tests/ipo-intelligence.test.mjs
-      - run: node --experimental-strip-types --test frontend/tests/ipo-budget.test.mjs
-      - run: node --experimental-strip-types --test frontend/tests/ipo-primary-research.test.mjs
-      - run: node --test frontend/tests/ipo-issuer-reviews.test.mjs
-      - run: node --experimental-strip-types --test frontend/tests/ipo-freshness-safety.test.mjs
-      - run: node --test frontend/tests/workbench-ui.test.mjs
-      - run: node --test frontend/tests/scalpstorm-allocation-ui.test.mjs
-      - run: node --test frontend/tests/agent-council.test.mjs
-      - run: node --test frontend/tests/council-engine.test.mjs
+      - name: Run every tracked JavaScript regression suite
+        shell: bash
+        run: git ls-files -z -- '*.test.mjs' | xargs -0 node --test
+      - name: Verify approved upstream intake
+        run: node scripts/check_upstream_intake.mjs
       - name: Verify source-bound advanced research and fail-closed ScalpStorm
         run: |
-          node --test tests/research/*.test.mjs
           node research/advanced/certify.mjs
           node --input-type=module -e "import r from './docs/research/advanced/certification.json' with {type:'json'}; if (r.historicalPerformanceCertified !== false || r.realOrdersEnabled !== false || r.tests.failed !== 0 || r.tests.passed < 101) process.exit(1)"
       - run: npm run build --prefix frontend

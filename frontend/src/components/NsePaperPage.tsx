@@ -19,7 +19,7 @@ function FillRows({events}:{events:NsePaperEvent[]}){
   </table></div>;
 }
 function LocalNsePaper(){
-  const [mode,setMode]=useState<'forward'|'historical'>('forward');
+  const [mode,setMode]=useState<'forward'|'historical'|'validation'>('forward');
   const [report,setReport]=useState<NsePaperReport|null>(null);
   const [selected,setSelected]=useState('sma_9_21');
   const [error,setError]=useState('');
@@ -67,7 +67,7 @@ function LocalNsePaper(){
   const rows=(detail??report)?.events.filter(e=>e.type==='FILL'&&e.strategyId===selected)??[];
   const days=report?.days.filter(d=>d.strategyId===selected)??[];
   const status=report?.status==='MARKET_CLOSED'?'Armed · market closed':
-    report?.status==='REPLAY_COMPLETE'?'Historical simulation complete':
+    report?.status==='REPLAY_COMPLETE'?(mode==='validation'?'Validation simulation complete':'Historical simulation complete'):
     report?.status==='OBSERVING'?'Observing NSE · paper only':
     report?.status==='SOURCE_UNAVAILABLE'?'Source paused · accounts preserved':'Preparing private ledger';
   return <section className="nse-paper-page">
@@ -77,17 +77,19 @@ function LocalNsePaper(){
     <div className="market-switch" aria-label="NSE result type">
       <button type="button" aria-pressed={mode==='forward'} className={mode==='forward'?'active':''} onClick={()=>setMode('forward')}>Forward paper</button>
       <button type="button" aria-pressed={mode==='historical'} className={mode==='historical'?'active':''} onClick={()=>setMode('historical')}>Historical simulations</button>
+      <button type="button" aria-pressed={mode==='validation'} className={mode==='validation'?'active':''} onClick={()=>setMode('validation')}>Validation window</button>
     </div>
     <div className="nse-paper-status panel" role="status"><Clock3 size={17}/><strong>{status}</strong>
       <span>{report?'Checked '+time(report.observedAt):error||'Reading the owner ledger…'}</span></div>
     <div className="nse-paper-explanation panel"><ShieldCheck size={18}/><div>
-      <strong>{mode==='historical'?'Historical source candles · assumed execution':'Automated virtual orders · owner Mac only'}</strong>
+      <strong>{mode==='validation'?'Separate validation window · modeled execution':mode==='historical'?'Historical source candles · assumed execution':'Automated virtual orders · owner Mac only'}</strong>
       <p>Each strategy has ₹1,00,000 split into ten ₹10,000 stock allocations. These comparison accounts are not additive.
       Whole shares, cash only, no leverage. Costs are modeled at 0.10% plus 0.05% slippage each side.</p>
-      <p>{mode==='historical'?'Historical results are hypothetical and were not earned by the forward accounts. Execution assumes a following-minute opening price, 0.02% spread per side and liquidity from a previous completed minute.':
+      <p>{mode!=='forward'?'Historical results are hypothetical and were not earned by the forward accounts. Execution assumes a following-minute opening price, 0.02% spread per side and liquidity from a previous completed minute.':
         'Orders require a new, fresh exchange trade after the signal was observed. Stale, missing or repeated quotes cannot fill an order.'}
         {' '}This fixed basket does not certify ScalpStorm’s historical market-wide top ten.</p>
     </div></div>
+    {mode==='validation'&&report?<p className="nse-observation-note" role="note">{report.note}</p>:null}
     {report?<div className="nse-strategy-grid">{report.sessions.map(s=>
       <button type="button" key={s.strategyId} onClick={()=>{setSelected(s.strategyId);setSelectedDay('');setOffset(0);}}
         className={'panel nse-strategy-card '+(selected===s.strategyId?'active':'')} aria-pressed={selected===s.strategyId}>
@@ -97,7 +99,7 @@ function LocalNsePaper(){
       </button>)}</div>:null}
     {session?<section className="panel nse-account" aria-label="Selected NSE strategy">
       <div className="nse-account-heading"><div><h2>{session.name}</h2><p>{session.description}</p></div>
-        <span>{mode==='historical'?'Unqualified historical simulation':'Forward observation · unqualified'}</span></div>
+        <span>{mode==='validation'?'Unqualified temporal validation':mode==='historical'?'Unqualified historical simulation':'Forward observation · unqualified'}</span></div>
       <dl className="nse-account-grid">
         {[['Starting virtual capital',session.initialCapitalINR],['Cash',session.cashINR],['Marked equity',session.equityINR],
           ['Realized P/L',session.realizedPnlINR],['Unrealized P/L',session.unrealizedPnlINR],['Modeled costs',session.feesINR]].map(([label,value])=>

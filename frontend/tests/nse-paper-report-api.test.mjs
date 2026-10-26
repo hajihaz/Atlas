@@ -88,3 +88,22 @@ test('historical fills survive the API projection and browser validation with re
   assert.deepEqual(validateNsePaperReport(accepted,Date.now(),'HISTORICAL_REPLAY'),accepted);
   assert.ok(accepted.events.filter(e=>e.type==='FILL').every(e=>Number.isSafeInteger(e.cashAfterPaise)));
 });
+
+test('validation mode reads separate private files without replacing original historical results',async t=>{
+ const {base,folder,report}=await fixture(t);
+ const historical={...report,mode:'HISTORICAL_REPLAY',note:'BASELINE_RETAINED'};
+ const validation={...report,mode:'HISTORICAL_REPLAY',note:'Separate temporal validation'};
+ const historicalFile=path.join(folder,'nse-history-report.json');
+ await fs.writeFile(historicalFile,JSON.stringify(historical),{mode:0o600});
+ await fs.writeFile(path.join(folder,'nse-validation-report.json'),JSON.stringify(validation),{mode:0o600});
+ const days=path.join(folder,'nse-validation-days');await fs.mkdir(days,{mode:0o700});
+ await fs.writeFile(path.join(days,'sma_9_21_2026-10-26_0.json'),JSON.stringify(validation),{mode:0o600});
+ const response=await fetch(base+'/api/nse-paper?mode=validation');
+ assert.equal(response.status,200);
+ const accepted=validateNsePaperReport(await response.json(),Date.now(),'HISTORICAL_REPLAY');
+ assert.equal(accepted.note,'Separate temporal validation');
+ const day=await fetch(base+'/api/nse-paper?mode=validation&strategy=sma_9_21&date=2026-10-26');
+ assert.equal(day.status,200);assert.equal((await day.json()).note,'Separate temporal validation');
+ assert.equal(await fs.readFile(historicalFile,'utf8'),JSON.stringify(historical));
+ const forward=await fetch(base+'/api/nse-paper?mode=forward');assert.equal((await forward.json()).mode,'FORWARD');
+});

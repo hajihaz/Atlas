@@ -31,7 +31,7 @@ export async function handleNsePaper(request,response,ownerRoot){
   const mode=query.get('mode')??'forward',strategy=query.get('strategy'),date=query.get('date');
   if([...query.keys()].some(k=>!['mode','strategy','date','offset'].includes(k))||
     [...new Set(query.keys())].some(k=>query.getAll(k).length!==1)||
-    !['forward','historical'].includes(mode)||!!strategy!==!!date||
+    !['forward','historical','validation'].includes(mode)||!!strategy!==!!date||
     strategy&&!['sma_9_21','ema_12_26','rsi_14','breakout_20','sps_pullback'].includes(strategy)||
     date&&!validDay(date)||
     query.has('offset')&&(!strategy||!/^\d{1,7}$/.test(query.get('offset'))||Number(query.get('offset'))>1000000)){
@@ -41,8 +41,8 @@ export async function handleNsePaper(request,response,ownerRoot){
     const folder=path.join(ownerRoot,'.atlas-runtime');
     const expected=mode==='forward'?'FORWARD':'HISTORICAL_REPLAY';
     let data;
-    if(strategy&&mode==='historical'){
-      data=await readSnapshot(path.join(folder,'nse-history-days',strategy+'_'+date+'_'+(query.get('offset')??'0')+'.json'));
+    if(strategy&&mode!=='forward'){
+      data=await readSnapshot(path.join(folder,mode==='validation'?'nse-validation-days':'nse-history-days',strategy+'_'+date+'_'+(query.get('offset')??'0')+'.json'));
     }else if(strategy){
       const file=path.join(folder,'nse-paper.sqlite3');
       const result=await exec(process.execPath,[path.join(CODE_ROOT,'scripts/nse_paper_report.mjs'),
@@ -50,7 +50,7 @@ export async function handleNsePaper(request,response,ownerRoot){
         env:{PATH:process.env.PATH,NODE_NO_WARNINGS:'1'}});
       data=JSON.parse(result.stdout);
     }else{
-      data=await readSnapshot(path.join(folder,mode==='forward'?'nse-paper.json':'nse-history-report.json'));
+      data=await readSnapshot(path.join(folder,mode==='forward'?'nse-paper.json':mode==='validation'?'nse-validation-report.json':'nse-history-report.json'));
     }
     const safe=validateNsePaperReport(data,Date.now(),expected);
     response.end(JSON.stringify(safe));
