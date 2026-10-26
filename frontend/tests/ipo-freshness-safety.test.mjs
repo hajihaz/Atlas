@@ -26,7 +26,7 @@ test('retained BSE record must never send a deadline alert or current GMP',()=>{
  assert.equal(issueDataFresh(prior,false,now),false);
  assert.equal(recentGmp(prior,false,now),null);
  assert.deepEqual(browserDeadlineCandidates([prior],false,now),[]);
- assert.match(recommendation(prior,false).label,/SOURCE STALE/);
+ assert.match(recommendation(prior,false,now).label,/SOURCE STALE/);
 });
 test('GMP expires independently after 36 hours or when timestamp is invalid',()=>{
  assert.equal(recentGmp({...base,gmpAsOf:'2026-10-21T00:00:00Z'},false,now),null);

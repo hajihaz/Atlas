@@ -1,0 +1,10 @@
+{
+ "objective":"Atlas 10-component no-paid-subscription historical research and paper integration",
+ "approved_at":"2026-10-26",
+ "owner_approval":"Integrate all. If you dont have access of any of implementations stop that only and start nextwork. GO",
+ "scope":{"components":["Upstox V3 historical read-only","FYERS V3 historical read-only","DuckDB/Parquet","Atlas native+Backtrader comparison","OpenAlgo safe sandbox integration","TradingView Lightweight Charts","NSE point-in-time certification","persistent paper strategy runtime","risk/statistics/Monte Carlo","ChatGPT Atlas command/report interface"]},
+ "constraints":["zero new paid subscriptions","do not modify original main working tree","no live-money trading or broker order authority","do not invent missing historical evidence","no secrets in version control","preserve existing risk controls","mark unavailable credentials and certifiable datasets independently"],
+ "milestones":[{"name":"read-only NSE source adapters","weight":20},{"name":"historical persistence and PIT verification","weight":20},{"name":"backtesting/analytics bridge","weight":20},{"name":"OpenAlgo isolated sandbox adapter","weight":10},{"name":"frontend chart/replay","weight":10},{"name":"paper runner and ChatGPT control/report","weight":10},{"name":"tests, integration, push/verify","weight":10}],
+ "final_acceptance":"All implemented components tested; blockers explicitly classified; no live capital path enabled; only verified work released.",
+ "status":"EXECUTING"
+}

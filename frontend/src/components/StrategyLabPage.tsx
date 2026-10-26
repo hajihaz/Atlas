@@ -2,7 +2,7 @@ import {useEffect,useState} from 'react';
 import AgentCouncilPanel from './AgentCouncilPanel';
 import ScalpStormAllocationPlan from './ScalpStormAllocationPlan';
 import {Activity,ArrowRight,BookOpenText,Clock3,ShieldCheck,TrendingUp,TrendingDown,FlaskConical,Layers3} from 'lucide-react';
-import {LineChart,Line,ResponsiveContainer,CartesianGrid,XAxis,YAxis,Tooltip} from 'recharts';
+import LightweightEquityReplay from './LightweightEquityReplay';
 type T={side:string;barTime:number;signalBarTime:number;price:number;quantity:number;feeINR:number;positionPnlINR:number|null};
 type S={
  id:string;name:string;category:string;description:string;logic:string;
@@ -112,21 +112,7 @@ export default function StrategyLabPage({mode='strategies',goRisk}:{
           <div><small>Realized model P&amp;L</small><strong>{money(item.realizedPnlINR)}</strong></div>
         </div>
         <div className="research-chart-caption">Hypothetical portfolio value (₹) · source-based historical replay</div>
-        <div className="research-chart"><ResponsiveContainer width="100%" height="100%">
-          <LineChart data={item.equity??[]}>
-            <CartesianGrid strokeOpacity={0.10} vertical={false}/>
-            <XAxis dataKey="time" type="number" domain={['dataMin','dataMax']}
-              tickFormatter={n=>new Intl.DateTimeFormat('en-IN',{day:'2-digit',month:'short',timeZone:'Asia/Kolkata'}).format(n)}
-              tick={{fontSize:10,fill:'#8a9ca9'}} minTickGap={28}/>
-            <YAxis domain={['auto','auto']} width={88}
-              tickFormatter={n=>'₹'+Math.round(n).toLocaleString('en-IN')}
-              tick={{fontSize:10,fill:'#8a9ca9'}}/>
-            <Tooltip formatter={n=>money(typeof n==='number'?n:undefined)}
-              labelFormatter={n=>date(Number(n))}/>
-            <Line dataKey="equityINR" dot={false} type="linear" stroke="#279d72"
-              strokeWidth={2.4} isAnimationActive={false}/>
-          </LineChart>
-        </ResponsiveContainer></div>
+        <LightweightEquityReplay points={item.equity??[]}/>
         </>}
       </div>
       <div className="panel research-trades">
