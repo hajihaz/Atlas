@@ -17,6 +17,9 @@ const IPOIntelligencePage = lazy(() => import('./components/IPOIntelligencePage'
 type Page='live'|'overview'|'ipo'|'markets'|'strategies'|'research'|'scalpstorm'|'risk'|'orders'|'audit';
 type Theme='light'|'dark';
 const THEME_KEY='atlas.theme.preference';
+function pageFromHash(hash:string):Page{
+  return hash==='#ipo'?'ipo':hash==='#scalpstorm'?'scalpstorm':'live';
+}
 function initialTheme():Theme{
   try{return window.localStorage.getItem(THEME_KEY)==='dark'?'dark':'light';}
   catch{return 'light';}
@@ -80,7 +83,7 @@ function SimplePage({page,go}:{page:Exclude<Page,'overview'|'markets'|'live'|'ip
   </section>;
 }
 export default function App(){
-  const [page,setPage]=useState<Page>(window.location.hash==='#ipo'?'ipo':window.location.hash==='#scalpstorm'?'scalpstorm':'live');
+  const [page,setPage]=useState<Page>(()=>pageFromHash(window.location.hash));
   const [collapsed,setCollapsed]=useState(false);
   const [mobileOpen,setMobileOpen]=useState(false);
   const [mobileViewport,setMobileViewport]=useState(()=>window.matchMedia('(max-width:800px)').matches);
@@ -93,6 +96,17 @@ export default function App(){
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content',theme==='light'?'#f7f9fc':'#090f17');
     try{window.localStorage.setItem(THEME_KEY, theme);}catch{/* restricted browser storage */}
   },[theme]);
+  useEffect(()=>{
+    // Notification clicks can navigate an existing client without remounting it.
+    const updateFromHash=()=>{
+      setPage(pageFromHash(window.location.hash));
+      setMobileOpen(false);setNotices(false);
+      window.scrollTo({top:0,behavior:'auto'});
+      requestAnimationFrame(()=>document.getElementById('atlas-main')?.focus());
+    };
+    window.addEventListener('hashchange',updateFromHash);
+    return ()=>window.removeEventListener('hashchange',updateFromHash);
+  },[]);
   function focusMenu(){document.querySelector<HTMLButtonElement>('.mobile-menu')?.focus();}
   function closeMenu(){setMobileOpen(false);requestAnimationFrame(focusMenu);}
   useEffect(()=>{
@@ -118,7 +132,14 @@ export default function App(){
     document.addEventListener('keydown',keydown);
     return ()=>document.removeEventListener('keydown',keydown);
   },[mobileViewport,mobileOpen]);
-  function go(next:Page){if(next==='ipo')window.history.replaceState(null,'','#ipo');else if(window.location.hash==='#ipo')window.history.replaceState(null,'',window.location.pathname+window.location.search);setPage(next);setMobileOpen(false);setNotices(false);window.scrollTo({top:0,behavior:'auto'});requestAnimationFrame(()=>document.getElementById('atlas-main')?.focus());}
+  function go(next:Page){
+    const hash=next==='ipo'?'#ipo':next==='scalpstorm'?'#scalpstorm':'';
+    if(hash||window.location.hash==='#ipo'||window.location.hash==='#scalpstorm')
+      window.history.replaceState(null,'',window.location.pathname+window.location.search+hash);
+    setPage(next);setMobileOpen(false);setNotices(false);
+    window.scrollTo({top:0,behavior:'auto'});
+    requestAnimationFrame(()=>document.getElementById('atlas-main')?.focus());
+  }
   const label=nav.find(item=>item.id===page)?.title??'Overview';
   return <div className={'app-shell '+(collapsed?'sidebar-collapsed':'')}>
     <a className="atlas-skip-link" href="#atlas-main" inert={mobileViewport&&mobileOpen} onClick={event=>{event.preventDefault();document.getElementById('atlas-main')?.focus();}}>Skip to main content</a>
