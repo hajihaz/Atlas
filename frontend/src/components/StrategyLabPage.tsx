@@ -1,8 +1,8 @@
-import {useEffect,useState} from 'react';
+import {lazy,Suspense,useEffect,useState} from 'react';
 import AgentCouncilPanel from './AgentCouncilPanel';
 import ScalpStormAllocationPlan from './ScalpStormAllocationPlan';
 import {Activity,ArrowRight,BookOpenText,Clock3,ShieldCheck,TrendingUp,TrendingDown,FlaskConical,Layers3} from 'lucide-react';
-import LightweightEquityReplay from './LightweightEquityReplay';
+const LightweightEquityReplay=lazy(()=>import('./LightweightEquityReplay'));
 type T={side:string;barTime:number;signalBarTime:number;price:number;quantity:number;feeINR:number;positionPnlINR:number|null};
 type S={
  id:string;name:string;category:string;description:string;logic:string;
@@ -112,7 +112,9 @@ export default function StrategyLabPage({mode='strategies',goRisk}:{
           <div><small>Realized model P&amp;L</small><strong>{money(item.realizedPnlINR)}</strong></div>
         </div>
         <div className="research-chart-caption">Hypothetical portfolio value (₹) · source-based historical replay</div>
-        <LightweightEquityReplay points={item.equity??[]}/>
+        <Suspense fallback={<div className="research-status" role="status">Loading historical replay…</div>}>
+          <LightweightEquityReplay points={item.equity??[]}/>
+        </Suspense>
         </>}
       </div>
       <div className="panel research-trades">

@@ -42,3 +42,18 @@ remain external gates, not satisfied by this quality audit.
 - No GitHub Actions certification yet; account billing/spending limit blocks
   hosted runners before any steps execute.
 - No live capital, real brokerage orders, API subscriptions, or production merge.
+
+
+## Separate technical improvement: on-demand historical chart
+
+The TradingView Lightweight Charts library now loads through React.lazy
+and Suspense only when Atlas actually renders the historical replay.
+The frontend build measured a 170.69 KB reduction in the initial JS chunk
+(895.65 KB to 724.96 KB, approximately 19.1%) and a dedicated
+170.63 KB historical chart chunk. An accessible loading message accompanies
+the dynamic import. This does not change strategies, source data, paper
+execution or permissions.
+
+Two new frontend regression checks verify split import, read-only display
+and attribution. The frontend suite passes 203 tests (prior 201), while
+the separate script/research suite remains 113 passed.
