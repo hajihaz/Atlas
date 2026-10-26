@@ -1,30 +1,17 @@
-# Current State
+# Atlas current verified state —26 October2026
 
-Status: autonomous hardening checkpoint completed — 2026-09-27
+Integration76/100 under the unchanged weighted rubric. Upstox is active for read-only data; it is no longer parked.
+Functional code c0920d248b6aebbba17eb9d99d2bce63061cbe23; combined candidate PR52. Local tests756 Python+85 subtests,482 JavaScript; no skips. Ruff,mypy155,TypeScript,build and actual private NSE UI pass.
 
-Verified in this work session:
-- Python 3.11 is the canonical test path; pytest resolves src automatically.
-- 222 unit/reproducibility tests pass.
-- Full pytest: 222 passed, 1 PostgreSQL integration test skipped because ATLAS_TEST_DB is unset.
-- Ruff passes across src/tests/scripts.
-- mypy strict passes across src/atlas.
-- compileall passes.
-- pip-audit reports no known vulnerabilities.
-- detect-secrets passes after explicitly allowlisting the documented localhost-only development DB credential.
-- Offline authority/secret certification passes; Upstox sandbox transport remains isolated.
-- Durable execution-ledger persistence and integrity recovery exist.
-- Durable paper-account snapshot/recovery exists.
-- Durable broker event-id registry exists for restart idempotency.
-- Persistent emergency halt state exists with integrity hash.
-- Operational health aggregation is fail-closed.
-- Paper broker supports deterministic rejects, partial fills, fees, slippage, cancellation and idempotency.
-- Broker order transition state machine rejects terminal-state regressions.
-- Risk gate now covers concentration/gross exposure plus position-count, turnover and drawdown limits.
-- Reconciliation optionally covers equity and fees in addition to cash/positions.
-- Paper reporting includes turnover, fees, fills and rejected-order counts.
-- Canonical ./scripts/certify.sh performs 11 offline engineering gates, including the real LEAN golden fixture.
-- Actual LEAN certification now covers two fixtures: the original SPY decision fixture and a multi-asset SPY/AAPL rebalance + sell-to-zero matrix fixture. Both pass with frozen outputs.
+Owner UI:http://127.0.0.1:4310/#markets . All7 services running; original5 unchanged. Target history7500 minute bars each NIFTY50 and RELIANCE over20 campaign dates. Owner-only Parquet and fixed SMA replay pass. Orders disabled. Full ScalpStorm0/20 certified.
 
-TransactionalExecutionJournal now provides a single durable SQLite commit boundary for broker fill observation, account snapshot, ledger chain checkpoint, and exactly-once event ID. Recovery verifies both the execution hash chain and a separate account-state hash chain; tamper/divergence tests fail closed.
+Source preview READY:https://atlas-control-center-zs3d8yuxy-kuddosahib-8503s-projects.vercel.app . Upstox quotes remain Mac-only; cloud endpoint404. Required hosted CI failed before steps. Main/production unchanged.
 
-Live-capital status: BLOCKED by design. Offline engineering PASS does not authorize live trading.
+Remaining external acceptance:
+1. Complete authentic point-in-time NSE stock universe, historical top-volume selection and timing/rights evidence; ScalpStorm remains0/20 certified.
+2. Genuine in-session NSE observations and cost/holdout/forward strategy qualification; read-only quotes are not paper execution.
+3. FYERS account/app data credentials and authenticated source comparison.
+4. OpenAlgo genuine authenticated broker session/local service/key; Analytics Token is not a trading session.
+5. GitHub Actions included minutes exhausted; recorded reset1Nov2026; required exact-head hosted CI and normal production acceptance remain.
+
+Read docs/operations/atlas-upstox-read-only-2026-10-26.md and .ai/raw/upstox-activation-20261026/final-acceptance.json before resuming. Finish checkpoint publication if that final receipt is absent. Do not regenerate the existing token, repeat backfill, resend the completed IPO alert or replay closed audits through35.

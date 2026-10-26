@@ -1,50 +1,17 @@
-# Work Queue
+# Atlas current verified state —26 October2026
 
-- [x] Reconcile stale Atlas project state and engineering baseline.
-- [x] Standardize Python 3.11 test execution.
-- [x] Fix full pytest discovery behavior; PostgreSQL integration skips cleanly without ATLAS_TEST_DB.
-- [x] Make Ruff clean across src/tests/scripts.
-- [x] Make strict mypy clean across src/atlas.
-- [x] Run dependency and secret audits.
-- [x] Add durable execution-ledger persistence and tamper detection.
-- [x] Add durable paper-account recovery with ledger checkpoint validation.
-- [x] Add durable external-event idempotency registry.
-- [x] Add persistent emergency halt state.
-- [x] Add operational health aggregation.
-- [x] Expand deterministic paper broker failure scenarios.
-- [x] Add broker order-state transition validation.
-- [x] Expand independent risk limits.
-- [x] Expand cash/position reconciliation to optional equity/fee reconciliation.
-- [x] Add market-data adversarial tests.
-- [x] Expand paper reporting operational metrics.
-- [x] Create canonical 10-gate offline certification command.
-- [x] Re-run actual LEAN Atlas golden fixture successfully.
-- [x] Automate LEAN golden certification inside the canonical engineering certification.
-- [x] Add live-gate and strategy-promotion adversarial tests.
-- [x] Add crash/corruption recovery tests for durable safety state.
-- [x] Document production deployment trust boundaries.
-- [x] Expand LEAN golden fixture matrix beyond current SPY fixture (multi-asset, rebalance, sell-to-zero).
-- [x] Transactionally couple broker observation + account + ledger + idempotency persistence with the SQLite execution journal.
-- [x] Initial crash-window/chaos campaign across the transactional journal: duplicate replay, validation-before-commit, unjournaled-ledger divergence, ledger tamper, and account-state tamper all fail closed.
-- [x] Extended fault-injection campaign for OS/process interruption during SQLite commit and recovery (synthetic subprocess INSERT/pre-COMMIT/post-COMMIT failpoints; exactly-once replay).
-- [x] Read-only NSE history audit: intraday gaps, unusual timestamps, source hashes, always uncertified.
-- [x] Transactional historical source receipts: additive DuckDB metadata, immutable-first timestamp, local checksum, unverified-rights status, legacy detection, interrupted-process tests.
-- [x] Portable Parquet provenance: local integrity-only manifest, no-clobber publication, tampering/race detection, and verified CLI copy checks.
-- [x] Read-only Upstox/FYERS archived candle cross-check: explicit instrument mapping, exact timestamp OHLCV disagreements, missing bar reports, no mutation or automatic source winner.
-- [ ] Sustained external sandbox/paper evidence (requires external broker credential/data).
-- [x] Define production deployment authority zones, durable-state invariants, secret isolation, network policy, and fail-safe release gates.
-- [ ] Production broker/provider selection and credential isolation (owner/external gate).
-- [ ] Compliance review and authenticated live-capital authorization (owner/external gate).
+Integration76/100 under the unchanged weighted rubric. Upstox is active for read-only data; it is no longer parked.
+Functional code c0920d248b6aebbba17eb9d99d2bce63061cbe23; combined candidate PR52. Local tests756 Python+85 subtests,482 JavaScript; no skips. Ruff,mypy155,TypeScript,build and actual private NSE UI pass.
 
-## Consolidated finite checkpoint, 26 October 2026
+Owner UI:http://127.0.0.1:4310/#markets . All7 services running; original5 unchanged. Target history7500 minute bars each NIFTY50 and RELIANCE over20 campaign dates. Owner-only Parquet and fixed SMA replay pass. Orders disabled. Full ScalpStorm0/20 certified.
 
-- [x] Canonical state and counts reconciled.
-- [x] Historical quality/provenance/discrepancy warnings surfaced.
-- [x] PR49/50/51 consolidated and verified together.
-- [x] New checkpoints31-34 audited without mutations.
-- [x] Draft PR52 and protected preview verified; final branch-tip receipt is stored separately.
-- Remaining external gates are authoritative in WORK_QUEUE.json; optional feature additions are outside this checkpoint.
+Source preview READY:https://atlas-control-center-zs3d8yuxy-kuddosahib-8503s-projects.vercel.app . Upstox quotes remain Mac-only; cloud endpoint404. Required hosted CI failed before steps. Main/production unchanged.
 
-- [x] Remaining credential/OpenAlgo upstream dependency recovery investigated individually.
-- [x] Real-source owner-local crypto cost, walk-forward and holdout workflow executed and viewed; all results remain unqualified.
-- [x] Only new paper checkpoint35 audited; five decisions matched, no fills added by audit.
+Remaining external acceptance:
+1. Complete authentic point-in-time NSE stock universe, historical top-volume selection and timing/rights evidence; ScalpStorm remains0/20 certified.
+2. Genuine in-session NSE observations and cost/holdout/forward strategy qualification; read-only quotes are not paper execution.
+3. FYERS account/app data credentials and authenticated source comparison.
+4. OpenAlgo genuine authenticated broker session/local service/key; Analytics Token is not a trading session.
+5. GitHub Actions included minutes exhausted; recorded reset1Nov2026; required exact-head hosted CI and normal production acceptance remain.
+
+Read docs/operations/atlas-upstox-read-only-2026-10-26.md and .ai/raw/upstox-activation-20261026/final-acceptance.json before resuming. Finish checkpoint publication if that final receipt is absent. Do not regenerate the existing token, repeat backfill, resend the completed IPO alert or replay closed audits through35.

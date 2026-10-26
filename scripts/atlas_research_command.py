@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Atlas chat/HHC command: truthful, read-only NSE research and local paper analysis.
 
-Credentials via environment variables only. No live brokerage order import/path.
+Credentials via environment or an explicit private file. No live brokerage order import/path.
 Archive research is historical/hypothetical, never a verified NSE backtest.
 """
 

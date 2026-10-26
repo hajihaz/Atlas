@@ -2,18 +2,46 @@
   "protocol_version": 6,
   "project": "Atlas",
   "project_path": "/Users/hajihaz/projects/atlas-consolidated-20261026",
-  "status": "OWNER_GATE",
+  "status": "VERIFIED_CHECKPOINT_EXTERNAL_GATES",
   "current_task": null,
-  "next_action": "Changed external evidence only; owner-local crypto research and new checkpoint35 are verified.",
+  "next_action": "Check private final publication receipt; finish checkpoint publication if missing. After verified publication, resume only changed external gates; Upstox data access is complete.",
   "blocked_reason": [
-    "Permitted authenticated NSE live/historical provider data; Upstox explicitly parked.",
-    "Complete rights-cleared point-in-time NSE universe and minute history with timing evidence.",
-    "Authenticated local OpenAlgo analyzer service/key; port5000 is macOS ControlCenter.",
-    "Included GitHub Actions minutes exhausted; required hosted CI before normal production release.",
-    "Strategy qualification requires genuine cost/holdout/forward evidence; engineering tests do not establish returns."
+    "Complete authentic point-in-time NSE stock universe, historical top-volume selection and timing/rights evidence; ScalpStorm remains0/20 certified.",
+    "Genuine in-session NSE observations and cost/holdout/forward strategy qualification; read-only quotes are not paper execution.",
+    "FYERS account/app data credentials and authenticated source comparison.",
+    "OpenAlgo genuine authenticated broker session/local service/key; Analytics Token is not a trading session.",
+    "GitHub Actions included minutes exhausted; recorded reset1Nov2026; required exact-head hosted CI and normal production acceptance remain."
   ],
   "requires_high_reasoning": false,
   "preferred_execution": "HHC_RDC_FIRST",
   "usage_policy": "LOWEST_SUFFICIENT_MODEL",
-  "updated_at": "2026-10-26T12:13:46.380095+00:00"
+  "updated_at": "2026-10-26T14:17:23.917177+00:00",
+  "integration_score": 76,
+  "latest_upstox_recovery": {
+    "status": "VERIFIED_READ_ONLY_UPSTOX_RECOVERY",
+    "analytics_access_verified": true,
+    "upstox_parked": false,
+    "token_storage": "Owner-private0600 file outside Git; explicit opt-in only",
+    "target_window": "2026-09-18..2026-10-16",
+    "history_bars_each": 7500,
+    "instruments": [
+      "NSE_INDEX|Nifty 50",
+      "NSE_EQ|INE002A01018"
+    ],
+    "exact_existing_campaign_grid_matched": true,
+    "historical_receipt_batches": 4,
+    "owner_local_parquet_verified": true,
+    "fixed_reliance_sma_smoke": "Existing9/21 defaults;409 hypothetical orders; unqualified; report owner-only",
+    "rest_observer": "1s NORMAL_OPEN;60s after hours; pinned GET only; genuine exchange/quote times",
+    "owner_ui": "http://127.0.0.1:4310/#markets",
+    "new_services": [
+      "nse-observer",
+      "nse-owner-ui"
+    ],
+    "in_session_forward_validation": false,
+    "certified_scalpstorm_sessions": 0,
+    "paper_orders_enabled": false,
+    "real_orders_enabled": false,
+    "new_subscription_cost_inr": 0
+  }
 }

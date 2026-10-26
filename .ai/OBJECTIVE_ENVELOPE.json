@@ -29,12 +29,12 @@
     {
       "name": "read-only NSE source adapters",
       "weight": 20,
-      "verified_points": 14
+      "verified_points": 17
     },
     {
       "name": "historical persistence and PIT verification",
       "weight": 20,
-      "verified_points": 14
+      "verified_points": 16
     },
     {
       "name": "backtesting/analytics bridge",
@@ -62,23 +62,23 @@
       "verified_points": 6
     }
   ],
-  "final_acceptance": "NOT_PASSED: authentic permitted NSE/PIT evidence, strategy qualification, authenticated OpenAlgo and required hosted CI/release remain gated.",
-  "status": "EXTERNAL_ACTIVATION_GATED",
+  "final_acceptance": "NOT_PASSED: full NSE/PIT/strategy, FYERS/OpenAlgo and required hosted CI/release gates remain.",
+  "status": "PARTIAL_INTEGRATION_VERIFIED_EXTERNAL_GATES_REMAIN",
   "progress": {
-    "score": 71,
-    "basis": "weighted engineering milestones; partial credit only where verified local work exists; external NSE access and hosted CI absent",
+    "score": 76,
+    "basis": "Same frozen weights: +3 for verified Upstox source access; +2 for real target-window archive/export. No extra credit for simulated profits or observer-only quotes.",
     "milestones": [
       {
         "name": "read-only NSE source adapters",
-        "earned": 14,
+        "earned": 17,
         "weight": 20,
-        "remaining": "authenticated API access and vendor data entitlement"
+        "remaining": "FYERS authentication and second-source verification; Upstox real access verified"
       },
       {
         "name": "historical persistence and PIT verification",
-        "earned": 14,
+        "earned": 16,
         "weight": 20,
-        "remaining": "real complete NSE point-in-time universe and source rights"
+        "remaining": "Full historical PIT stock universe/top-volume coverage, corporate actions, timing/rights evidence"
       },
       {
         "name": "backtesting/analytics bridge",
@@ -102,7 +102,7 @@
         "name": "paper runner and ChatGPT control/report",
         "earned": 5,
         "weight": 10,
-        "remaining": "authenticated NSE feed and persistent NSE runtime; current live paper uses existing crypto sources"
+        "remaining": "Genuine NSE in-session forward/paper strategy validation; new observer has no execution authority"
       },
       {
         "name": "tests, integration, push/verify",
@@ -110,25 +110,30 @@
         "weight": 10,
         "remaining": "required exact-head hosted CI and reviewed production acceptance; isolated PostgreSQL and combined local regression are verified"
       }
-    ]
+    ],
+    "delta": {
+      "from": 71,
+      "to": 76,
+      "source_access": 3,
+      "real_history": 2
+    }
   },
   "repo_branch": "haor/atlas-consolidated-20261026",
   "pull_request": "https://github.com/hajihaz/Atlas/pull/52",
   "external_gates": [
-    "GitHub Actions included minutes exhausted (2000/2000); recorded reset 2026-11-01; no payment changes or bypass",
-    "Upstox read-only Analytics Token unavailable; NSE provider live and historical access unverified",
-    "FYERS app/data API credentials unavailable; historical source unverified",
-    "OpenAlgo local API key/service unavailable, observer-only by safety design",
-    "Complete rights-cleared point-in-time NSE universe plus timestamped minute data unavailable",
-    "Persistent authenticated NSE WebSocket worker cannot be activated without provider access"
+    "Complete authentic point-in-time NSE stock universe, historical top-volume selection and timing/rights evidence; ScalpStorm remains0/20 certified.",
+    "Genuine in-session NSE observations and cost/holdout/forward strategy qualification; read-only quotes are not paper execution.",
+    "FYERS account/app data credentials and authenticated source comparison.",
+    "OpenAlgo genuine authenticated broker session/local service/key; Analytics Token is not a trading session.",
+    "GitHub Actions included minutes exhausted; recorded reset1Nov2026; required exact-head hosted CI and normal production acceptance remain."
   ],
-  "next_safe_action": "Resume on changed permitted NSE data/authentication, rights-cleared historical evidence or restored hosted CI. Owner-local crypto research is complete; do not repeat it or checkpoints through35. Upstox remains parked.",
+  "next_safe_action": "Read final private publication receipt, then resume only changed external evidence. Do not repeat completed authentication, backfill, crypto validation, notifications or closed paper audits.",
   "owner_gates": [
-    "Permitted authenticated NSE live/historical provider data; Upstox explicitly parked.",
-    "Complete rights-cleared point-in-time NSE universe and minute history with timing evidence.",
-    "Authenticated local OpenAlgo analyzer service/key; port5000 is macOS ControlCenter.",
-    "Included GitHub Actions minutes exhausted; required hosted CI before normal production release.",
-    "Strategy qualification requires genuine cost/holdout/forward evidence; engineering tests do not establish returns."
+    "Complete authentic point-in-time NSE stock universe, historical top-volume selection and timing/rights evidence; ScalpStorm remains0/20 certified.",
+    "Genuine in-session NSE observations and cost/holdout/forward strategy qualification; read-only quotes are not paper execution.",
+    "FYERS account/app data credentials and authenticated source comparison.",
+    "OpenAlgo genuine authenticated broker session/local service/key; Analytics Token is not a trading session.",
+    "GitHub Actions included minutes exhausted; recorded reset1Nov2026; required exact-head hosted CI and normal production acceptance remain."
   ],
   "release": {
     "branch": "haor/atlas-consolidated-20261026",
@@ -142,7 +147,7 @@
       51
     ]
   },
-  "acceptance": "Local component builds and tests pass; full approved objective remains external-activation gated. No certified NSE historical backtest or live NSE paper execution claimed.",
+  "acceptance": "Authenticated Upstox read-only access and private owner observer/history verified; no certified ScalpStorm or NSE paper execution claimed.",
   "historical_validation_baselines": {
     "validation": {
       "python": "585/585 full Python suite with isolated PostgreSQL and archived LEAN data; temp resources cleaned",
@@ -163,22 +168,26 @@
     },
     "notice": "Dated earlier commits; not current-head combined acceptance."
   },
-  "updated_at": "2026-10-26T12:13:46.380095+00:00",
+  "updated_at": "2026-10-26T14:17:23.917177+00:00",
   "verification": {
-    "code_commit": "9346be498e47d1fa5507a7abcc8c70e43cc8a91b",
-    "python": "720 passed; 85 subtests passed; zero skips",
-    "python_fixtures": "disposable PostgreSQL stopped/deleted; original LEAN hashes unchanged and link removed",
-    "javascript": "476 passed across 73 files",
+    "updated_at": "2026-10-26T14:17:23.917177+00:00",
+    "code_commit": "c0920d248b6aebbba17eb9d99d2bce63061cbe23",
+    "python": "756 passed; 85 subtests passed; zero skips",
+    "python_fixtures": "Disposable UTF-8 PostgreSQL stopped/removed; original LEAN hashes unchanged",
+    "javascript": "482 passed across 74 files",
     "ruff": "passed",
-    "mypy": "152 source files passed",
+    "mypy": "155 source files passed",
     "typescript": "passed",
     "frontend_build": "passed",
-    "chromium": "4 synthetic QA checks passed; zero writes, notifications or orders",
-    "preview": "READY; authenticated root and strategy API HTTP200",
-    "preview_code_commit": "9346be498e47d1fa5507a7abcc8c70e43cc8a91b",
-    "preview_url": "https://atlas-control-center-ezt4bo5hc-kuddosahib-8503s-projects.vercel.app",
-    "new_paper_checkpoints": "31-34 only; 20 independent decisions matched; no new modeled fills",
-    "integration_score": 71,
+    "owner_browser": "Actual Upstox snapshot; desktop/mobile and navigation pass; no uploads/orders",
+    "owner_ui": "http://127.0.0.1:4310/#markets",
+    "owner_services": "7 running; original5 unchanged",
+    "preview": "READY; protected root and strategy API HTTP200; private NSE route404",
+    "preview_code_commit": "c0920d248b6aebbba17eb9d99d2bce63061cbe23",
+    "preview_url": "https://atlas-control-center-zs3d8yuxy-kuddosahib-8503s-projects.vercel.app",
+    "compiled_asset_sha256": "3d6724eae4f89dd68dcdd2bc20a5dc9a52c7dd962f458e2da3b66da6af49455b",
+    "compiled_asset_matches": true,
+    "integration_score": 76,
     "overall_final_acceptance": false,
     "production_changed": false
   },
@@ -203,5 +212,32 @@
     "evidence": ".ai/raw/gate-recovery-20261026/owner-report-acceptance.json",
     "new_paper_audited_through": 35,
     "new_forward_decisions_matched": 5
+  },
+  "latest_upstox_recovery": {
+    "status": "VERIFIED_READ_ONLY_UPSTOX_RECOVERY",
+    "analytics_access_verified": true,
+    "upstox_parked": false,
+    "token_storage": "Owner-private0600 file outside Git; explicit opt-in only",
+    "target_window": "2026-09-18..2026-10-16",
+    "history_bars_each": 7500,
+    "instruments": [
+      "NSE_INDEX|Nifty 50",
+      "NSE_EQ|INE002A01018"
+    ],
+    "exact_existing_campaign_grid_matched": true,
+    "historical_receipt_batches": 4,
+    "owner_local_parquet_verified": true,
+    "fixed_reliance_sma_smoke": "Existing9/21 defaults;409 hypothetical orders; unqualified; report owner-only",
+    "rest_observer": "1s NORMAL_OPEN;60s after hours; pinned GET only; genuine exchange/quote times",
+    "owner_ui": "http://127.0.0.1:4310/#markets",
+    "new_services": [
+      "nse-observer",
+      "nse-owner-ui"
+    ],
+    "in_session_forward_validation": false,
+    "certified_scalpstorm_sessions": 0,
+    "paper_orders_enabled": false,
+    "real_orders_enabled": false,
+    "new_subscription_cost_inr": 0
   }
 }
