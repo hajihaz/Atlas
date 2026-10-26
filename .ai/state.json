@@ -2,20 +2,18 @@
   "protocol_version": 6,
   "project": "Atlas",
   "project_path": "/Users/hajihaz/projects/atlas-consolidated-20261026",
-  "status": "VERIFIED_CHECKPOINT_EXTERNAL_GATES",
-  "current_task": null,
-  "next_action": "Check private final publication receipt; finish checkpoint publication if missing. After verified publication, resume only changed external gates; Upstox data access is complete.",
+  "status": "VERIFIED_SESSION_TARGET_AWAITING_GENUINE_MARKET_TIME",
+  "current_task": "final_checkpoint_publication",
+  "next_action": "First reconcile private final-publication receipt against branch HEAD. If missing finish publication. Otherwise inspect only new genuine open-session evidence; preserve zero fills until eligible source trades occur.",
   "blocked_reason": [
-    "Complete authentic point-in-time NSE stock universe, historical top-volume selection and timing/rights evidence; ScalpStorm remains0/20 certified.",
-    "Genuine in-session NSE observations and cost/holdout/forward strategy qualification; read-only quotes are not paper execution.",
-    "FYERS account/app data credentials and authenticated source comparison.",
-    "OpenAlgo genuine authenticated broker session/local service/key; Analytics Token is not a trading session.",
-    "GitHub Actions included minutes exhausted; recorded reset1Nov2026; required exact-head hosted CI and normal production acceptance remain."
+    "Genuine open-session NSE paper observation with completed candles and recorded causal decisions; no invented fills",
+    "Required exact-head GitHub-hosted CI before production; present jobs execute zero steps under account restriction",
+    "Haji review and normal production acceptance after requested95-readiness checkpoint"
   ],
   "requires_high_reasoning": false,
-  "preferred_execution": "HHC_RDC_FIRST",
+  "preferred_execution": "HHC",
   "usage_policy": "LOWEST_SUFFICIENT_MODEL",
-  "updated_at": "2026-10-26T14:17:23.917177+00:00",
+  "updated_at": "2026-10-26T17:38:53.219566+00:00",
   "integration_score": 76,
   "latest_upstox_recovery": {
     "status": "VERIFIED_READ_ONLY_UPSTOX_RECOVERY",
@@ -47,6 +45,47 @@
       "file_mode": "0600",
       "version_controlled": false,
       "explicit_opt_in": true
-    }
+    },
+    "notice": "Historical access checkpoint only; superseded operationally by latest_verified and current pilot"
+  },
+  "paper_pilot_readiness": 95,
+  "progress_scope": "Upstox-only fixed-ten-stock paper pilot readiness",
+  "integration_score_notice": "Dated prior broader checkpoint; not current paper-pilot score",
+  "requires_owner": false,
+  "latest_verified": {
+    "code_commit": "3ae496f75e5d4c471992938eb384e4ef8dbc09b1",
+    "python": "766 passed;85 subtests passed;zero skips",
+    "javascript": "519 passed across78 files",
+    "ruff": "passed",
+    "mypy": "passed;157 source files",
+    "typescript": "passed",
+    "frontend_build": "passed",
+    "owner_browser": "five strategies, ten filled/zero-fill selections, mobile390px,dark theme and mode switching passed",
+    "all_day_api_reports": 100,
+    "service_soak": "five samples over80s;two genuine source observations;eight stable services",
+    "owner_ui": "http://127.0.0.1:4310/#nse-paper",
+    "preview": {
+      "passed": true,
+      "codeCommit": "3ae496f75e5d4c471992938eb384e4ef8dbc09b1",
+      "deploymentId": "dpl_EK1K8FrTq8CbKFu2R8fuYisnX2zA",
+      "previewURL": "https://atlas-control-center-a9zgccejn-kuddosahib-8503s-projects.vercel.app",
+      "ready": true,
+      "rootHTTP": 200,
+      "privateNseHTTP": 404,
+      "assetPath": "/assets/index-Cbi2LDL9.js",
+      "assetSHA256": "70f0a21d01c6fea23a645c2a21ce385862434eddf7ee949edbba9669b3df0a5d",
+      "matchesLocalBuild": true,
+      "strategyHTTP": 200,
+      "strategyBars": 719,
+      "strategies": 5,
+      "liveOrdersEnabled": false,
+      "realBrokerOrders": 0,
+      "paperOrdersExecuted": false,
+      "paperLedgerStored": false,
+      "productionChanged": false
+    },
+    "paper_pilot_readiness": 95,
+    "paper_pilot_fully_accepted": false,
+    "production_changed": false
   }
 }

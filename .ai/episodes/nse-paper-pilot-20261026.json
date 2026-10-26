@@ -1,0 +1,8 @@
+{
+  "verified": true,
+  "functional_commit": "3ae496f75e5d4c471992938eb384e4ef8dbc09b1",
+  "failure_repaired": "API report projection removed cash-after-fill evidence and failed second validation",
+  "verification": "New filled-report API/browser round-trip regression and real historical UI passed",
+  "service_recovery": "Bounded launchd bootstrap retry after confirmed unload; original five services untouched",
+  "no_financial_replay_repeated": true
+}

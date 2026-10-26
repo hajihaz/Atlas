@@ -3,24 +3,18 @@
   "branch": "haor/atlas-consolidated-20261026",
   "pr": 52,
   "cost_incurred_in_new_subscriptions": "\u20b90",
-  "summary": "Read-only NSE historical+observational quote adapter, multi-chunk backfill, DuckDB/Parquet, Backtrader, OpenAlgo observer, TradingView chart replay, PIT rank checks, ChatGPT/HHC commands. Existing risk/paper engine preserved.",
+  "summary": "Consolidated research/runtime plus an Upstox-only private five-strategy NSE paper pilot",
   "repo_main_untouched": true,
   "live_money_enabled": false,
   "hosted_ci": "Included minutes exhausted; no manual retries or bypass.",
-  "preview": "https://atlas-control-center-zs3d8yuxy-kuddosahib-8503s-projects.vercel.app",
+  "preview": "https://atlas-control-center-a9zgccejn-kuddosahib-8503s-projects.vercel.app",
   "external_gates": [
-    "Complete authentic point-in-time NSE stock universe, historical top-volume selection and timing/rights evidence; ScalpStorm remains0/20 certified.",
-    "Genuine in-session NSE observations and cost/holdout/forward strategy qualification; read-only quotes are not paper execution.",
-    "FYERS account/app data credentials and authenticated source comparison.",
-    "OpenAlgo genuine authenticated broker session/local service/key; Analytics Token is not a trading session.",
-    "GitHub Actions included minutes exhausted; recorded reset1Nov2026; required exact-head hosted CI and normal production acceptance remain."
+    "Genuine open-session NSE paper observation with completed candles and recorded causal decisions; no invented fills",
+    "Required exact-head GitHub-hosted CI before production; present jobs execute zero steps under account restriction",
+    "Haji review and normal production acceptance after requested95-readiness checkpoint"
   ],
   "owner_decision_needed": [
-    "Complete authentic point-in-time NSE stock universe, historical top-volume selection and timing/rights evidence; ScalpStorm remains0/20 certified.",
-    "Genuine in-session NSE observations and cost/holdout/forward strategy qualification; read-only quotes are not paper execution.",
-    "FYERS account/app data credentials and authenticated source comparison.",
-    "OpenAlgo genuine authenticated broker session/local service/key; Analytics Token is not a trading session.",
-    "GitHub Actions included minutes exhausted; recorded reset1Nov2026; required exact-head hosted CI and normal production acceptance remain."
+    "Review before production promotion"
   ],
   "time": "2026-10-26",
   "historical_test_baseline": {
@@ -30,29 +24,43 @@
     "ruff_mypy_typescript": "Ruff pass; 137-source-file mypy pass; TypeScript/Vite pass"
   },
   "tests": {
-    "updated_at": "2026-10-26T14:17:23.917177+00:00",
-    "code_commit": "c0920d248b6aebbba17eb9d99d2bce63061cbe23",
-    "python": "756 passed; 85 subtests passed; zero skips",
-    "python_fixtures": "Disposable UTF-8 PostgreSQL stopped/removed; original LEAN hashes unchanged",
-    "javascript": "482 passed across 74 files",
+    "code_commit": "3ae496f75e5d4c471992938eb384e4ef8dbc09b1",
+    "python": "766 passed;85 subtests passed;zero skips",
+    "javascript": "519 passed across78 files",
     "ruff": "passed",
-    "mypy": "155 source files passed",
+    "mypy": "passed;157 source files",
     "typescript": "passed",
     "frontend_build": "passed",
-    "owner_browser": "Actual Upstox snapshot; desktop/mobile and navigation pass; no uploads/orders",
-    "owner_ui": "http://127.0.0.1:4310/#markets",
-    "owner_services": "7 running; original5 unchanged",
-    "preview": "READY; protected root and strategy API HTTP200; private NSE route404",
-    "preview_code_commit": "c0920d248b6aebbba17eb9d99d2bce63061cbe23",
-    "preview_url": "https://atlas-control-center-zs3d8yuxy-kuddosahib-8503s-projects.vercel.app",
-    "compiled_asset_sha256": "3d6724eae4f89dd68dcdd2bc20a5dc9a52c7dd962f458e2da3b66da6af49455b",
-    "compiled_asset_matches": true,
-    "integration_score": 76,
-    "overall_final_acceptance": false,
+    "owner_browser": "five strategies, ten filled/zero-fill selections, mobile390px,dark theme and mode switching passed",
+    "all_day_api_reports": 100,
+    "service_soak": "five samples over80s;two genuine source observations;eight stable services",
+    "owner_ui": "http://127.0.0.1:4310/#nse-paper",
+    "preview": {
+      "passed": true,
+      "codeCommit": "3ae496f75e5d4c471992938eb384e4ef8dbc09b1",
+      "deploymentId": "dpl_EK1K8FrTq8CbKFu2R8fuYisnX2zA",
+      "previewURL": "https://atlas-control-center-a9zgccejn-kuddosahib-8503s-projects.vercel.app",
+      "ready": true,
+      "rootHTTP": 200,
+      "privateNseHTTP": 404,
+      "assetPath": "/assets/index-Cbi2LDL9.js",
+      "assetSHA256": "70f0a21d01c6fea23a645c2a21ce385862434eddf7ee949edbba9669b3df0a5d",
+      "matchesLocalBuild": true,
+      "strategyHTTP": 200,
+      "strategyBars": 719,
+      "strategies": 5,
+      "liveOrdersEnabled": false,
+      "realBrokerOrders": 0,
+      "paperOrdersExecuted": false,
+      "paperLedgerStored": false,
+      "productionChanged": false
+    },
+    "paper_pilot_readiness": 95,
+    "paper_pilot_fully_accepted": false,
     "production_changed": false
   },
-  "next_action": "Check private final publication receipt; finish checkpoint publication if missing. After verified publication, resume only changed external gates; Upstox data access is complete.",
-  "updated_at": "2026-10-26T14:17:23.917177+00:00",
+  "next_action": "First reconcile private final-publication receipt against branch HEAD. If missing finish publication. Otherwise inspect only new genuine open-session evidence; preserve zero fills until eligible source trades occur.",
+  "updated_at": "2026-10-26T17:38:53.219566+00:00",
   "source_prs": [
     49,
     50,
@@ -110,6 +118,27 @@
       "file_mode": "0600",
       "version_controlled": false,
       "explicit_opt_in": true
+    },
+    "notice": "Historical access checkpoint; current pilot supersedes observer-only status"
+  },
+  "paper_pilot_readiness": 95,
+  "prior_broader_integration_checkpoint": 76,
+  "future_backlog": [
+    {
+      "id": "fyers_comparison",
+      "required_for_pilot": false,
+      "status": "optional_future"
+    },
+    {
+      "id": "openalgo_bridge",
+      "required_for_pilot": false,
+      "status": "optional_future"
+    },
+    {
+      "id": "original_scalpstorm_qualification",
+      "required_for_pilot": false,
+      "status": "broader_objective_deferred",
+      "reason": "Historical market-wide PIT universe, top-volume, corporate-action/timing/rights evidence and real cost/holdout/forward qualification remain separate"
     }
-  }
+  ]
 }

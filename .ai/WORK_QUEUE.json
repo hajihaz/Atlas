@@ -1,155 +1,78 @@
 {
-  "version": 2,
-  "objective_id": "atlas-integration-20261026",
-  "updated_at": "2026-10-26T14:17:23.917177+00:00",
-  "tasks": [
-    {
-      "id": "reconcile_state",
-      "status": "completed",
-      "result": "Canonical JSON queue now records approved work; old test baselines retained as history.",
-      "evidence": "docs/operations/atlas-combined-candidate-2026-10-26.md"
-    },
-    {
-      "id": "research_quality_warnings",
-      "status": "completed",
-      "description": "Surface archive quality/provenance/discrepancy in research JSON and historical limitations in Strategy Lab.",
-      "evidence": "docs/operations/atlas-combined-candidate-2026-10-26.md"
-    },
-    {
-      "id": "consolidate_research_branches",
-      "status": "completed",
-      "description": "Integrate PR49/50/51 in isolated branch, preserve synthetic labels and order blocks; resolve overlaps and verify combined head.",
-      "evidence": "docs/operations/atlas-combined-candidate-2026-10-26.md"
-    },
-    {
-      "id": "new_paper_checkpoint_audit",
-      "status": "completed",
-      "description": "Audit only new public observations after closed checkpoint30, preserving original accounts and deadline receipt.",
-      "evidence": "docs/operations/atlas-combined-candidate-2026-10-26.md"
-    },
-    {
-      "id": "verify_and_publish_draft",
-      "status": "completed",
-      "description": "Run meaningful combined regression, push draft candidate, verify exact preview and synchronize canonical continuation.",
-      "evidence": "docs/operations/atlas-combined-candidate-2026-10-26.md"
-    },
-    {
-      "id": "permitted_nse_feed",
-      "status": "completed",
-      "reason": "Upstox Analytics authenticated; private two-instrument full-quote REST observer and target-window history verified. No execution authority.",
-      "depends_on": []
-    },
-    {
-      "id": "certified_nse_history",
-      "status": "blocked",
-      "reason": "Complete authentic point-in-time NSE stock universe, historical top-volume selection and timing/rights evidence; ScalpStorm remains0/20 certified. Two authentic instrument histories are archived; full historical universe remains missing.",
-      "depends_on": [
-        "permitted_nse_feed"
-      ]
-    },
-    {
-      "id": "openalgo_authenticated_observer",
-      "status": "blocked",
-      "reason": "Pinned upstream status code requires genuine authenticated broker session, not only a local install/API key. No configured session is available.",
-      "depends_on": []
-    },
-    {
-      "id": "strategy_qualification",
-      "status": "blocked",
-      "reason": "Genuine in-session NSE observations and cost/holdout/forward strategy qualification; read-only quotes are not paper execution. Fixed Reliance replay is an unqualified integration smoke only.",
-      "depends_on": [
-        "certified_nse_history",
-        "permitted_nse_feed"
-      ]
-    },
-    {
-      "id": "hosted_ci",
-      "status": "blocked",
-      "reason": "Included GitHub Actions minutes exhausted; no manual retries, new charges or bypass. Existing follow-up owns entitlement/reset recovery.",
-      "depends_on": []
-    },
-    {
-      "id": "production_acceptance",
-      "status": "blocked",
-      "reason": "Requires exact-head hosted CI, source/strategy gates and normal reviewed release acceptance.",
-      "depends_on": [
-        "hosted_ci",
-        "strategy_qualification",
-        "openalgo_authenticated_observer"
-      ]
-    },
-    {
-      "id": "external_gate_recovery_investigation",
-      "status": "completed",
-      "result": "Targeted credential and pinned OpenAlgo broker-session dependency checks completed; unavailable dependent branches remain parked."
-    },
-    {
-      "id": "owner_local_real_crypto_validation",
-      "status": "completed",
-      "result": {
-        "status": "COMPLETED_OWNER_LOCAL_UNQUALIFIED",
-        "symbols": [
-          "BTCINR",
-          "ETHINR"
-        ],
-        "bars_each": 719,
-        "fixed_strategy_evaluations": 10,
-        "cost_scenarios": 30,
-        "walk_forward_evaluations": 30,
-        "holdouts": 10,
-        "source_hashes_verified": true,
-        "causality_checks_passed": true,
-        "holdout_overlap": false,
-        "owner_ui_imports_verified": true,
-        "raw_data_uploaded": false,
-        "profitability_certified": false,
-        "nse_certified": false,
-        "evidence": ".ai/raw/gate-recovery-20261026/owner-report-acceptance.json",
-        "new_paper_audited_through": 35,
-        "new_forward_decisions_matched": 5
-      }
-    },
-    {
-      "id": "upstox_authenticated_private_observer_history",
-      "status": "completed",
-      "result": {
-        "status": "VERIFIED_READ_ONLY_UPSTOX_RECOVERY",
-        "analytics_access_verified": true,
-        "upstox_parked": false,
-        "target_window": "2026-09-18..2026-10-16",
-        "history_bars_each": 7500,
-        "instruments": [
-          "NSE_INDEX|Nifty 50",
-          "NSE_EQ|INE002A01018"
-        ],
-        "exact_existing_campaign_grid_matched": true,
-        "historical_receipt_batches": 4,
-        "owner_local_parquet_verified": true,
-        "fixed_reliance_sma_smoke": "Existing9/21 defaults;409 hypothetical orders; unqualified; report owner-only",
-        "rest_observer": "1s NORMAL_OPEN;60s after hours; pinned GET only; genuine exchange/quote times",
-        "owner_ui": "http://127.0.0.1:4310/#markets",
-        "new_services": [
-          "nse-observer",
-          "nse-owner-ui"
-        ],
-        "in_session_forward_validation": false,
-        "certified_scalpstorm_sessions": 0,
-        "paper_orders_enabled": false,
-        "real_orders_enabled": false,
-        "new_subscription_cost_inr": 0,
-        "storage_policy": {
-          "scope": "OWNER_LOCAL",
-          "file_mode": "0600",
-          "version_controlled": false,
-          "explicit_opt_in": true
-        }
-      },
-      "evidence": "docs/operations/atlas-upstox-read-only-2026-10-26.md"
-    }
-  ],
-  "future_backlog": [],
+  "version": 3,
+  "updated_at": "2026-10-26T17:38:53.219566+00:00",
+  "objective_id": "atlas-upstox-only-paper-pilot-20261026",
   "repo": "/Users/hajihaz/projects/atlas-consolidated-20261026",
   "branch": "haor/atlas-consolidated-20261026",
   "pull_request": 52,
+  "tasks": [
+    {
+      "id": "upstox_source_and_fixed_universe",
+      "status": "completed_verified"
+    },
+    {
+      "id": "causal_five_strategy_engine",
+      "status": "completed_verified"
+    },
+    {
+      "id": "crash_safe_accounting_and_risk",
+      "status": "completed_verified"
+    },
+    {
+      "id": "frozen_history_and_owner_reports",
+      "status": "completed_verified"
+    },
+    {
+      "id": "combined_regressions",
+      "status": "completed_verified"
+    },
+    {
+      "id": "isolated_mac_services_and_browser",
+      "status": "completed_verified"
+    },
+    {
+      "id": "exact_code_preview",
+      "status": "completed_verified"
+    }
+  ],
+  "publication_guard": ".ai/raw/nse-paper-20261026/final-acceptance.json must match branch HEAD",
+  "pending_tasks": [
+    {
+      "id": "first_genuine_open_session",
+      "status": "waiting_market_time",
+      "requires_owner": false,
+      "reason": "Genuine open-session NSE paper observation with completed candles and recorded causal decisions; no invented fills"
+    }
+  ],
+  "release_backlog": [
+    {
+      "id": "hosted_ci",
+      "status": "external_account_gate",
+      "reason": "Required exact-head GitHub-hosted CI before production; present jobs execute zero steps under account restriction"
+    },
+    {
+      "id": "production_acceptance",
+      "status": "awaiting_owner_review_and_required_ci",
+      "reason": "Haji review and normal production acceptance after requested95-readiness checkpoint"
+    }
+  ],
+  "future_backlog": [
+    {
+      "id": "fyers_comparison",
+      "required_for_pilot": false,
+      "status": "optional_future"
+    },
+    {
+      "id": "openalgo_bridge",
+      "required_for_pilot": false,
+      "status": "optional_future"
+    },
+    {
+      "id": "original_scalpstorm_qualification",
+      "required_for_pilot": false,
+      "status": "broader_objective_deferred",
+      "reason": "Historical market-wide PIT universe, top-volume, corporate-action/timing/rights evidence and real cost/holdout/forward qualification remain separate"
+    }
+  ],
   "executable_tasks": []
 }

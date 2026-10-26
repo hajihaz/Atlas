@@ -1,64 +1,61 @@
 {
-  "version": 3,
-  "status": "OWNER_GATE",
-  "objective": "Atlas 10-component no-paid-subscription historical research and paper integration",
-  "approval_status": "APPROVED_EXISTING_SCOPE",
+  "objective": "Upstox-only private NSE paper-trading pilot: persistent five-strategy, ten-stock equal-allocation comparison, historical reports and Mac/ChatGPT read-only output",
+  "approval_status": "APPROVED",
   "approved_at": "2026-10-26",
-  "approval_evidence": "User HAOR resumed assessed reconciliation, warning and consolidation queue.",
-  "scope_completed_locally": [
-    "reconcile_state",
-    "research_quality_warnings",
-    "consolidate_research_branches",
-    "new_paper_checkpoint_audit",
-    "verify_and_publish_draft"
+  "approval_evidence": "Haji explicitly said start all procedure using existing Upstox, target95+ this work session; FYERS/OpenAlgo optional",
+  "findings": [
+    "Verified Upstox Analytics market/history access already exists; no NSE website login required",
+    "Five strategy definitions and integer-accounting components exist; current NSE screen is observation-only",
+    "Market is currently closed; genuine prospective fills cannot be manufactured",
+    "Original1860 crypto fills and five original services must be preserved",
+    "Hosted CI entitlement remains separate production-release gate"
   ],
-  "remaining_gates": [
-    "Permitted authenticated NSE live/historical provider data; Upstox explicitly parked.",
-    "Complete rights-cleared point-in-time NSE universe and minute history with timing evidence.",
-    "Authenticated local OpenAlgo analyzer service/key; port5000 is macOS ControlCenter.",
-    "Included GitHub Actions minutes exhausted; required hosted CI before normal production release.",
-    "Strategy qualification requires genuine cost/holdout/forward evidence; engineering tests do not establish returns."
+  "proposed_scope": [
+    "Pinned GET source metadata and intraday candles; fixed ten-stock pilot with authentic identities",
+    "Share one bounded Upstox collector, preserve existing two-instrument observation UI",
+    "Reuse five existing JS strategy definitions; whole shares,100000 INR per independent strategy,10000 per symbol,1x cash only",
+    "Private crash-safe SQLite journal; next independently observed trade after signal; stale/duplicate/session/gap/liquidity/risk safeguards",
+    "Owner-only strategy/day/trade reports and clearly distinct actual-source historical simulations",
+    "Meaningful failure/causality/crash/accounting tests, regression, draft push/preview and autostart"
   ],
-  "verification": {
-    "code_commit": "9346be498e47d1fa5507a7abcc8c70e43cc8a91b",
-    "python": "720 passed; 85 subtests passed; zero skips",
-    "python_fixtures": "disposable PostgreSQL stopped/deleted; original LEAN hashes unchanged and link removed",
-    "javascript": "476 passed across 73 files",
-    "ruff": "passed",
-    "mypy": "152 source files passed",
-    "typescript": "passed",
-    "frontend_build": "passed",
-    "chromium": "4 synthetic QA checks passed; zero writes, notifications or orders",
-    "preview": "READY; authenticated root and strategy API HTTP200",
-    "preview_code_commit": "9346be498e47d1fa5507a7abcc8c70e43cc8a91b",
-    "preview_url": "https://atlas-control-center-ezt4bo5hc-kuddosahib-8503s-projects.vercel.app",
-    "new_paper_checkpoints": "31-34 only; 20 independent decisions matched; no new modeled fills",
-    "integration_score": 71,
-    "overall_final_acceptance": false,
-    "production_changed": false
-  },
-  "updated_at": "2026-10-26T12:13:46.380095+00:00",
-  "latest_owner_authorization": "Complete remaining possible actions on Mac; park only dependencies needing owner help.",
-  "latest_recovery": {
-    "status": "COMPLETED_OWNER_LOCAL_UNQUALIFIED",
-    "symbols": [
-      "BTCINR",
-      "ETHINR"
-    ],
-    "bars_each": 719,
-    "fixed_strategy_evaluations": 10,
-    "cost_scenarios": 30,
-    "walk_forward_evaluations": 30,
-    "holdouts": 10,
-    "source_hashes_verified": true,
-    "causality_checks_passed": true,
-    "holdout_overlap": false,
-    "owner_ui_imports_verified": true,
-    "raw_data_uploaded": false,
-    "profitability_certified": false,
-    "nse_certified": false,
-    "evidence": ".ai/raw/gate-recovery-20261026/owner-report-acceptance.json",
-    "new_paper_audited_through": 35,
-    "new_forward_decisions_matched": 5
-  }
+  "execution_order": [
+    "resolve bounded pilot universe and freeze source protocol",
+    "implement source bridge, pure engine and durable journal",
+    "implement read-only owner API/CLI/UI",
+    "capture target history and evaluate fixed strategies without tuning",
+    "verify replay, failure injection, full regressions, preview and local autostart",
+    "reconcile current scope versus old broader integration rubric; close only after final acceptance"
+  ],
+  "required_access": [
+    "Existing private Upstox Analytics token",
+    "Existing Mac HHC/GitHub/Vercel access"
+  ],
+  "owner_decisions": [],
+  "likely_blockers": [
+    "Genuine open-market observations require elapsed market time",
+    "Full historical market-wide top-volume universe remains separate from a fixed-stock pilot",
+    "Hosted CI must pass before normal production promotion"
+  ],
+  "constraints": [
+    "zero new spend",
+    "no real broker order authority",
+    "no raw broker data in Git/Vercel",
+    "no edits to unrelated AGENTS.md or original crypto ledger",
+    "no fabricated certified ScalpStorm results",
+    "no optional provider work or repeated completed audits"
+  ],
+  "verification_requirements": [
+    "source identity and freshness",
+    "no same-observation or hindsight fills",
+    "integer cash and whole shares; actual fees labeled modeled",
+    "atomic process-crash recovery and singleton worker",
+    "actual historical and closed-market source checks",
+    "independent JS decision parity and complete local regressions",
+    "real owner browser and deployment smoke"
+  ],
+  "status": "VERIFIED_SESSION_TARGET_95",
+  "scope_hash": "254c762934b413e0e73bca6760b66c19d781606086bffda190b169991c37b4f5",
+  "updated_at": "2026-10-26T17:38:53.219566+00:00",
+  "remaining_time_gate": "Genuine open-session NSE paper observation with completed candles and recorded causal decisions; no invented fills",
+  "scope_acceptance": "Readiness95 verified; full pilot100 waits for genuine market observation; production remains gated"
 }
