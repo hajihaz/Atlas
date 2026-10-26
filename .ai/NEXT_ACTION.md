@@ -1,16 +1,19 @@
-# Next Pending Atlas Work Without Owner Input
+# Atlas NPWWMI — Next Unblocked Work
 
-Completed 26 October 2026: disposable SQLite INSERT/COMMIT crash-window tests,
-exactly-once recovery tests, and a conservative read-only NSE history quality
-audit CLI. See docs/operations/atlas-npwwmi-crash-history-2026-10-26.md.
+Completed 26 October 2026: SQLite real-process kill windows, read-only
+historical bar quality diagnostics, TradingView chart code splitting,
+and transactional DuckDB historical source provenance receipts.
+Runbook: docs/operations/atlas-npwwmi-provenance-2026-10-26.md.
 
-Next unblocked work:
-1. Enhance market-history source provenance and rights tracking without inventing permissions.
-2. Add exchange-session/holiday coverage checks only after a verified session calendar is available.
-3. Expand local-only paper durability/security regressions.
-4. Continue historical replay accessibility and source-backed quality panels (initial TradingView bundle code-splitting completed and tested).
+Next autonomous tasks:
+1. Create a portable, explicit-uncertified provenance manifest alongside
+   Parquet historical exports; validate checksums and reject partial exports.
+2. Strengthen provenance conflict reporting without permitting source-history
+   corrections or overriding immutable bar records automatically.
+3. Extend read-only historical quality/audit usability in Atlas UI.
+4. Continue finite, offline safety/regression tests.
 
-External gates are separate: broker read-only credentials/entitlements, authentic
-rights-cleared NSE point-in-time universe/minute data, OpenAlgo local service,
-and GitHub Actions account billing. No paid changes, live trading or main
-release should occur without independently passing required approvals.
+External gates, parked independently: broker read-only credentials/data terms;
+authentic NSE point-in-time universe/minute data and official session calendar;
+OpenAlgo local API access; GitHub Actions account billing/spending limit.
+Do not place brokerage orders, change billing or release to main/production.

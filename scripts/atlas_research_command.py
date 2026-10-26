@@ -113,6 +113,7 @@ def main() -> int:
             "quote",
             "backfill",
             "audit-history",
+            "provenance",
         ),
     )
     parser.add_argument("--provider", choices=("upstox", "fyers", "upstox_v3", "fyers_v3"))
@@ -175,6 +176,11 @@ def main() -> int:
             "path": str(archive.export_parquet(Path(args.output))),
             "live_orders": False,
         }
+    elif args.action == "provenance":
+        if not args.provider or not args.instrument:
+            parser.error("provenance requires --provider and --instrument")
+        provider = {"upstox": "upstox_v3", "fyers": "fyers_v3"}.get(args.provider, args.provider)
+        result = asdict(archive.provenance(provider, args.instrument, args.interval))
     elif args.action == "audit-history":
         if not args.provider or not args.instrument:
             parser.error("audit-history requires --provider and --instrument")
