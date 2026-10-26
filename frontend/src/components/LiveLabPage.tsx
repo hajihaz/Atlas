@@ -3,8 +3,11 @@ import {
   Activity, ArrowRight, CircleAlert, Clock3, LockKeyhole,
   ShieldCheck, Wifi, WifiOff,
 } from 'lucide-react';
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import FinancialChart from './FinancialChart';
+import KrakenStreamPanel from './KrakenStreamPanel';
+import MacPaperPanel from './MacPaperPanel';
 import { startPublicStream } from '../lib/publicStream.js';
+import { isRecentQuote, connectionDescription } from '../lib/quoteFreshness.js';
 
 type Quote = {
   symbol: string; currency:'INR'; price:number|null; bid:number|null; ask:number|null;
@@ -48,11 +51,6 @@ const formatStamp=(ts:number,range:Range)=>{
     ? {day:'2-digit',month:'short',hour:'numeric',hour12:true}
     : {day:'2-digit',month:'short',year:'2-digit'};
   return new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',...opts}).format(ts);
-};
-const fresh=(quote:Quote|undefined,now:number)=>{
-  if(!quote||quote.price===null||!quote.sourceAt)return false;
-  const age=now-Date.parse(quote.sourceAt);
-  return age>=-5000&&age<=90000;
 };
 export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props){
   const [now,setNow]=useState(()=>Date.now());
@@ -117,7 +115,7 @@ export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props)
         setQuotes(old=>{
           const merged={...old};
           for(const q of data.quotes){
-            if(!q.sourceAt||!fresh(q,Date.now()))continue;
+            if(!q.sourceAt||!isRecentQuote(q,Date.now()))continue;
             const p=merged[q.symbol];
             if(!p?.sourceAt||Date.parse(p.sourceAt)<Date.parse(q.sourceAt))merged[q.symbol]=q;
           }
@@ -160,8 +158,9 @@ export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props)
   },[selection,range,stock]);
 
   const selected=quotes[selection];
-  const currentPrice=fresh(selected,now)?selected:undefined;
-  const connected=Object.values(quotes).some(q=>fresh(q,now));
+  const currentPrice=isRecentQuote(selected,now)?selected:undefined;
+  const connected=Object.values(quotes).some(q=>isRecentQuote(q,now));
+  const recentStream=lastStreamRef.current>0&&now-lastStreamRef.current<7000;
   const bars=useMemo(()=>{
     if(!history?.candles.length)return [] as Point[];
     const mapped=history.candles.map(c=>({time:c.time,close:c.close,
@@ -185,6 +184,7 @@ export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props)
     <div className="sub-page-header"><div className="breadcrumb">ATLAS / LIVE PAPER LAB</div>
       <h1 id="live-title">Live market command center<span className="period">.</span></h1>
       <p>Automatic public INR crypto observations, selectable source-backed charts and clear connection status. No fabricated trades.</p></div>
+    <KrakenStreamPanel/>
     <div className="live-ticker panel">
       <div><small>INDIA STANDARD TIME · LIVE CLOCK</small>
         <strong aria-live="off">{CLOCK.format(now)}</strong>
@@ -193,8 +193,7 @@ export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props)
       </div>
       <div><small>DATA CONNECTION</small>
         <strong className={connected?'live-good':'live-warning'}>{connected?'RECENT':'WAITING'}</strong>
-        <span>{connection==='STREAMING'?'1s public stream · updates on provider events':
-          'Stream '+connection.toLowerCase()+' · REST fallback every 15s'}</span>
+        <span>{connectionDescription(connection,recentStream)}</span>
       </div>
       <div><small>REAL CAPITAL</small><strong>BLOCKED</strong>
         <span>Paper research only · no broker orders</span></div>
@@ -204,7 +203,7 @@ export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props)
 
     <div className="live-grid live-coin-grid">
       {COINS.map(({symbol,name})=>{
-        const q=quotes[symbol],ok=fresh(q,now);
+        const q=quotes[symbol],ok=isRecentQuote(q,now);
         return <button type="button" key={symbol} className={'panel live-quote live-quote-button '+(selection===symbol?'live-selected':'')}
           onClick={()=>setSelection(symbol)} aria-pressed={selection===symbol}>
           <div className="live-quote-header"><span>{name.toUpperCase()} / INR</span>{ok?<Wifi size={17}/>:<WifiOff size={17}/>}</div>
@@ -247,22 +246,7 @@ export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props)
          {stock?'NSE stock data not connected. Licensed market-data access is required.':
            historyError||'No verified INR candle history returned for this asset and range.'}
        </div>:<div className="live-chart-graphic live-history-chart">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={bars}>
-              <CartesianGrid stroke="currentColor" strokeOpacity={0.08} vertical={false}/>
-              <XAxis dataKey="label" tick={{fill:'#8ca1af',fontSize:10}} minTickGap={48}/>
-              <YAxis domain={['auto','auto']} tick={{fill:'#8ca1af',fontSize:10}} width={100}
-                tickFormatter={(v:number)=>'₹'+Math.round(v).toLocaleString('en-IN')}/>
-              <Tooltip formatter={v=>INR(typeof v==='number'?v:null)}
-                labelFormatter={(_,payload)=>{
-                  const time=payload?.[0]?.payload?.time;
-                  return typeof time==='number'
-                    ?new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',dateStyle:'medium',timeStyle:'medium'}).format(time)+' IST':'';
-                }}/>
-              <Line type="linear" dataKey="close" stroke="#40b78c" dot={false}
-                connectNulls={false} isAnimationActive={false} strokeWidth={2}/>
-            </LineChart>
-          </ResponsiveContainer>
+          <FinancialChart symbol={selection} candles={history?.candles??[]} observations={streamPoints[selection]??[]}/>
         </div>}
       <div className="live-chart-evidence" aria-live="polite">
         <span>{history?.candles.length??0} provider-returned completed candles ·
@@ -275,9 +259,10 @@ export default function LiveLabPage({goStrategies,goMarkets,goScalpStorm}:Props)
       </p>
     </section>
 
+    <MacPaperPanel/>
     <section className="panel live-system">
       <div className="panel-heading"><div><div className="heading-kicker">STRATEGY CONTROL</div>
-        <h2>Continuous paper-trading lab</h2>
+        <h2>Hosted paper research</h2>
         <p>Live market observations do not establish authenticated broker execution or a reconciled paper ledger.</p>
       </div><span className="tag tag-gold">PAPER SYNC NOT CONNECTED</span></div>
       <div className="live-progress-grid">

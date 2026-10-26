@@ -1,0 +1,156 @@
+{
+  "schema": "atlas.hhc-chat-acceptance.v1",
+  "localDate": "2026-10-25",
+  "recordedAt": "2026-10-24T22:29:12.600576+00:00",
+  "baseHead": "c43b8eb2a57e24c0453981cb95e1a6a48976381b",
+  "change": "Use existing owner-authenticated HHC transport for restricted Atlas paper commands; separate remote MCP is optional.",
+  "commands": [
+    "status",
+    "report",
+    "pause",
+    "resume"
+  ],
+  "noNewPublicEndpoint": true,
+  "noNewCredential": true,
+  "actualCapitalINR": 0,
+  "realOrdersEnabled": false,
+  "extraSpendINR": 0,
+  "verification": {
+    "pythonPassed": 602,
+    "subtestsPassed": 41,
+    "skipped": 1,
+    "skipReason": "Missing LEAN sample cohort data",
+    "newCommandTestsPassed": 7,
+    "commandSubtestsPassed": 12,
+    "strictTypedModules": 137,
+    "ruffPassed": true,
+    "secretFindings": 0,
+    "mcpRegressionPassed": true,
+    "database": "Disposable PostgreSQL17 UTF8 stopped after tests",
+    "unchangedFrontendPriorEvidence": {
+      "sourceHead": "c43b8eb2a57e24c0453981cb95e1a6a48976381b",
+      "nodePassed": 424,
+      "a11yStates": 40,
+      "frontendCodeChanged": false
+    }
+  },
+  "liveReadback": {
+    "transport": "Existing owner-authenticated HHC, invoked from ChatGPT",
+    "newPublicEndpoint": false,
+    "newCredentials": false,
+    "realOrdersEnabled": false,
+    "observations": [
+      {
+        "asOf": "2026-10-24T22:27:18+00:00",
+        "runtime": {
+          "status": "CONNECTED",
+          "lastCheckedAt": "2026-10-24T22:27:00+00:00"
+        },
+        "accounts": [
+          {
+            "id": "atlas-btc-sma",
+            "active": false,
+            "riskHalted": true,
+            "markFresh": true,
+            "lastSourceAt": "2026-10-24T22:27:00+00:00",
+            "paperFills": 750,
+            "quoteCount": 10910,
+            "realizedPnlINR": -25475.06,
+            "feesINR": 7474.51
+          },
+          {
+            "id": "atlas-eth-momentum",
+            "active": false,
+            "riskHalted": true,
+            "markFresh": true,
+            "lastSourceAt": "2026-10-24T22:27:00+00:00",
+            "paperFills": 1110,
+            "quoteCount": 10910,
+            "realizedPnlINR": -37286.91,
+            "feesINR": 11062.67
+          }
+        ]
+      },
+      {
+        "asOf": "2026-10-24T22:27:39+00:00",
+        "runtime": {
+          "status": "CONNECTED",
+          "lastCheckedAt": "2026-10-24T22:27:20+00:00"
+        },
+        "accounts": [
+          {
+            "id": "atlas-btc-sma",
+            "active": false,
+            "riskHalted": true,
+            "markFresh": true,
+            "lastSourceAt": "2026-10-24T22:27:20+00:00",
+            "paperFills": 750,
+            "quoteCount": 10911,
+            "realizedPnlINR": -25475.06,
+            "feesINR": 7474.51
+          },
+          {
+            "id": "atlas-eth-momentum",
+            "active": false,
+            "riskHalted": true,
+            "markFresh": true,
+            "lastSourceAt": "2026-10-24T22:27:20+00:00",
+            "paperFills": 1110,
+            "quoteCount": 10911,
+            "realizedPnlINR": -37286.91,
+            "feesINR": 11062.67
+          }
+        ]
+      },
+      {
+        "asOf": "2026-10-24T22:28:00+00:00",
+        "runtime": {
+          "status": "CONNECTED",
+          "lastCheckedAt": "2026-10-24T22:27:41+00:00"
+        },
+        "accounts": [
+          {
+            "id": "atlas-btc-sma",
+            "active": false,
+            "riskHalted": true,
+            "markFresh": true,
+            "lastSourceAt": "2026-10-24T22:27:40+00:00",
+            "paperFills": 750,
+            "quoteCount": 10912,
+            "realizedPnlINR": -25475.06,
+            "feesINR": 7474.51
+          },
+          {
+            "id": "atlas-eth-momentum",
+            "active": false,
+            "riskHalted": true,
+            "markFresh": true,
+            "lastSourceAt": "2026-10-24T22:27:40+00:00",
+            "paperFills": 1110,
+            "quoteCount": 10912,
+            "realizedPnlINR": -37286.91,
+            "feesINR": 11062.67
+          }
+        ]
+      }
+    ],
+    "dayReport": {
+      "strategyId": "atlas-btc-sma",
+      "date": "2026-10-25",
+      "totalEvents": 0,
+      "accountingVerified": true
+    },
+    "verified": true
+  },
+  "writeVerification": "Disposable artificial ledgers only; owner source account state was not changed",
+  "remainingGates": [
+    "Exact-head hosted CI cannot start due account restriction",
+    "Narrow server-only private-ledger credential",
+    "Approved NSE/IPO access, usage rights and authentic point-in-time bundle;0/20 NSE sessions",
+    "One-second browser streaming and reliable source continuity",
+    "Owner device permission and confirmed IPO background delivery",
+    "Valid new strategy and out-of-sample/forward evidence"
+  ],
+  "mainMerged": false,
+  "productionDeployed": false
+}

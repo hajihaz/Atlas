@@ -1,0 +1,9 @@
+# Optional isolated Atlas runtime adapters. Core remains dependency-free.
+upstox-python-sdk
+ccxt
+quantstats
+optuna
+APScheduler<4
+mcp<2
+pip-audit
+urllib3>=2.8,<3

@@ -1,0 +1,105 @@
+{
+  "schema": "atlas.alert-recovery-acceptance.v1",
+  "localDate": "2026-10-25",
+  "recordedAt": "2026-10-24T22:45:26.514194+00:00",
+  "baseHead": "af5744c8e4115628165479005fb7ec5733748e46",
+  "trigger": "Concurrent recovery of a stale shared file lock during cold configuration",
+  "isolatedBeforeFix": {
+    "scope": "Disposable artificial push stores; no subscriptions or sends",
+    "rows": [
+      {
+        "round": 0,
+        "returned": 1,
+        "distinctReturned": 1,
+        "returnedKeysMatchStored": false
+      }
+    ],
+    "raceObserved": true
+  },
+  "repair": "Atomic publication of nonempty per-owner lease directories; exact-marker orphan cleanup; fail-closed legacy/symlink handling",
+  "tests": {
+    "nodePassed": 430,
+    "nodeSkipped": 0,
+    "newLockTests": 6,
+    "concurrentOrphanRounds": 12,
+    "callersPerRound": 24,
+    "pythonPassed": 602,
+    "pythonSkipped": 1,
+    "strictTypedModules": 137,
+    "buildPassed": true,
+    "newSourceSecretFindings": 0
+  },
+  "ownerServiceProof": {
+    "originalRecorderBefore": {
+      "code": 0,
+      "pid": 819
+    },
+    "ownerServicesBefore": {
+      "com.hajihaz.atlas.owner-ui": {
+        "code": 0,
+        "pid": 59151
+      },
+      "com.hajihaz.atlas.owner-observer": {
+        "code": 0,
+        "pid": 59672
+      }
+    },
+    "legacyLockRemoved": false,
+    "originalRecorderAfter": {
+      "code": 0,
+      "pid": 819
+    },
+    "services": {
+      "com.hajihaz.atlas.owner-ui": {
+        "code": 0,
+        "pid": 60296
+      },
+      "com.hajihaz.atlas.owner-observer": {
+        "code": 0,
+        "pid": 60299
+      }
+    },
+    "preexistingKeys": true,
+    "existingKeysPreserved": true,
+    "configMatchesStoredPublicKey": true,
+    "observer": {
+      "status": "verified",
+      "accountingVerified": true,
+      "sourceFresh": true,
+      "sourceFeedStatus": "CONNECTED",
+      "asOf": "2026-10-24T22:43:47+00:00",
+      "accounts": 2,
+      "realOrdersEnabled": false
+    },
+    "realOrdersEnabled": false,
+    "senderEnabled": false,
+    "verified": true
+  },
+  "ownerBrowserChecks": [
+    "actual source accounting and risk halt",
+    "mutation, foreign Origin and rebinding Host rejected",
+    "private files and order routes inaccessible",
+    "push setup contains public key only; unpaired mutation denied",
+    "UI renders actual risk-halted accounts, monthly totals and verified day trade records",
+    "installed chart renders provider-shaped artificial OHLC; no invented market claim",
+    "320px layout has no page overflow",
+    "installed service worker serves app shell offline",
+    "no financial JSON, API or subscription material cached"
+  ],
+  "uiComponentsChanged": false,
+  "notificationSent": false,
+  "backgroundSenderEnabled": false,
+  "realOrdersEnabled": false,
+  "additionalSpendINR": 0,
+  "mainMerged": false,
+  "productionDeployed": false,
+  "releaseGate": "Exact-head hosted CI and remaining source/device acceptance gates",
+  "remaining": [
+    "GitHub account billing/spending restriction",
+    "Private-ledger server-only credential",
+    "Approved NSE/IPO data rights/access;0/20 authentic sessions",
+    "One-second browser streaming/continuous source reliability",
+    "Real device permission and confirmed notification delivery",
+    "Valid strategy/forward evidence"
+  ]
+}

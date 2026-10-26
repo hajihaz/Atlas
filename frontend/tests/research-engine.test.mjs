@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {MODELED_CAPITAL_INR,STRATEGIES,runAllStrategies,runSimulation,decision,validateResearchBars} from '../lib/research-engine.js';
 import handler,{getLab} from '../api/strategy-lab.js';
 
@@ -87,4 +88,12 @@ test('reject untrusted input and any execution/mutation HTTP methods',async()=>{
  assert.equal(r.error,'method_not_allowed');
  const r2=await handler({method:'GET',query:{symbol:'HACK'}},response);
  assert.equal(response.code,400);assert.equal(r2.error,'unsupported_market_or_period');
+});
+
+test('Strategy Lab makes incomplete provider history visible rather than claiming certification',()=>{
+ const component=readFileSync(new URL('../src/components/StrategyLabPage.tsx',import.meta.url),'utf8');
+ assert.match(component,/Full requested history NOT verified/);
+ assert.match(component,/lab\.providerWarning/);
+ assert.match(component,/missing dates,/);
+ assert.match(component,/lab\.dataCompleteVerified/);
 });

@@ -45,6 +45,10 @@ def get_json(url: str, timeout: int = 9):
         )
     ):
         raise ValueError("Untrusted IPO provider URL")
+    if parts.hostname == "www.nseindia.com":
+        raise ValueError(
+            "NSE website collection is disabled: a separately permitted IPO source is required"
+        )
     request = urllib.request.Request(url, headers=HEADERS)  # noqa: S310 - validated HTTPS IPO provider endpoint
     with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310 - validated HTTPS IPO provider endpoint
         if response.status != 200 or "json" not in response.headers.get("content-type", "").lower():

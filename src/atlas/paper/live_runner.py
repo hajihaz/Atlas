@@ -406,7 +406,9 @@ def cli() -> None:
         while True:
             now = int(time.time())
             try:
-                state = ingest(db, fetch_quotes(now), now)
+                observations = fetch_quotes()
+                now = int(time.time())
+                state = ingest(db, observations, now)
                 print(
                     json.dumps(
                         {
@@ -418,7 +420,7 @@ def cli() -> None:
                     flush=True,
                 )
             except Exception as exc:
-                failure(db, type(exc).__name__ + ": " + str(exc), now)
+                failure(db, type(exc).__name__ + ": " + str(exc), int(time.time()))
                 print(
                     json.dumps({"status": "DISCONNECTED", "reason": str(exc)[:150]}),
                     file=sys.stderr,

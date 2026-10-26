@@ -1,0 +1,571 @@
+{
+  "schema": "atlas.nse-certification.v1",
+  "manifestSha256": "7a24075800b4f00a37c74892f8a6328a34a13424df6195f6dac0061e5eca6d57",
+  "dataKind": "HISTORICAL_MARKET",
+  "realSessionsCertified": 0,
+  "expectedSessions": 20,
+  "technicalSessionsPassed": 0,
+  "reviewSha256": null,
+  "reviewBoundary": "Hashes verify bytes. Source authenticity, publication timestamps and legal grants require independent documentary review.",
+  "capitalINR": 100000,
+  "slots": 10,
+  "slotINR": 10000,
+  "realOrdersEnabled": false,
+  "realOrdersPlaced": 0,
+  "daily": [
+    {
+      "session": "2026-09-18",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-09-21",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-09-22",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-09-23",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-09-24",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-09-25",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-09-28",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-09-29",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-09-30",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-10-01",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-10-05",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-10-06",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-10-07",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-10-08",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-10-09",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-10-12",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-10-13",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-10-14",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-10-15",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    },
+    {
+      "session": "2026-10-16",
+      "status": "UNVERIFIED",
+      "technicalPass": false,
+      "certified": false,
+      "blockers": [
+        {
+          "gate": "input",
+          "code": "MISSING_SESSION_BUNDLE"
+        },
+        {
+          "gate": "independentReview",
+          "code": "NO_PINNED_INDEPENDENT_REVIEW"
+        }
+      ],
+      "eligibleStockCount": null,
+      "selected": null,
+      "trades": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "netPnlINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "endingEquityINR": null
+    }
+  ],
+  "months": [
+    {
+      "month": "2026-09",
+      "expectedSessions": 9,
+      "certifiedSessions": 0,
+      "trades": null,
+      "netPnlINR": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "frequentlySelectedStocks": null
+    },
+    {
+      "month": "2026-10",
+      "expectedSessions": 11,
+      "certifiedSessions": 0,
+      "trades": null,
+      "netPnlINR": null,
+      "realizedPnlINR": null,
+      "unrealizedPnlINR": null,
+      "feesINR": null,
+      "returnPct": null,
+      "maxDrawdownPct": null,
+      "frequentlySelectedStocks": null
+    }
+  ],
+  "historicalNetPnlINR": null,
+  "historicalReturnPct": null,
+  "historicalMaxDrawdownPct": null,
+  "frequentlySelectedStocks": null,
+  "financialStatus": "NOT_SIMULATED_UNTIL_ALL_20_SOURCE_SESSIONS_CERTIFIED",
+  "reportHash": "e91cdf5e42164c3a3b607e47802550b19d8b73f70193b4ef84b8c183f35404a5"
+}

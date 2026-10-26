@@ -1,0 +1,279 @@
+{
+  "schema": "atlas.nse-source-findings.v1",
+  "expectedSessions": [
+    "2026-09-18",
+    "2026-09-21",
+    "2026-09-22",
+    "2026-09-23",
+    "2026-09-24",
+    "2026-09-25",
+    "2026-09-28",
+    "2026-09-29",
+    "2026-09-30",
+    "2026-10-01",
+    "2026-10-05",
+    "2026-10-06",
+    "2026-10-07",
+    "2026-10-08",
+    "2026-10-09",
+    "2026-10-12",
+    "2026-10-13",
+    "2026-10-14",
+    "2026-10-15",
+    "2026-10-16"
+  ],
+  "sourceReceiptsVerified": 57,
+  "successfulHttpSnapshots": 52,
+  "httpFailures": [
+    {
+      "id": "upstox-feed",
+      "status": 404,
+      "error": null
+    },
+    {
+      "id": "hf-dataset-metadata",
+      "status": 401,
+      "error": null
+    },
+    {
+      "id": "hf-dataset-readme",
+      "status": 401,
+      "error": null
+    },
+    {
+      "id": "shoonya-home",
+      "status": 308,
+      "error": null
+    },
+    {
+      "id": "flattrade-api",
+      "status": 404,
+      "error": null
+    }
+  ],
+  "olo": {
+    "repository": "https://github.com/olo-labs/olo-ai-training-data-nse-min-candle",
+    "commit": "0570761182b96724da3c43fdef547c139a3e93e8",
+    "treeSha1": "fe5592007a4b9b7df35480feeba9456af4690d52",
+    "treeTruncated": false,
+    "immutableCommitTreeAndDirectoryCrosscheck": "PASS",
+    "aliasTreeResponseSha": "0570761182b96724da3c43fdef547c139a3e93e8",
+    "aliasTreeResponseIdentityMismatch": true,
+    "stockArchives": 456,
+    "indexArchives": 428,
+    "firstStockDate": "2024-11-25",
+    "lastStockDate": "2026-09-24",
+    "requestedStockArchiveNamesPresent": 5,
+    "daily": [
+      {
+        "session": "2026-09-18",
+        "stockArchive": {
+          "date": "2026-09-18",
+          "path": "Minute/NSE/18092026.zip",
+          "bytesInGitTree": 6239632,
+          "gitBlobSha1": "022d98daa91203c06d204529e207558655c95695",
+          "downloadedArchiveSha256": null,
+          "minuteRowsInspected": false
+        },
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-09-21",
+        "stockArchive": {
+          "date": "2026-09-21",
+          "path": "Minute/NSE/21092026.zip",
+          "bytesInGitTree": 6302884,
+          "gitBlobSha1": "10746ceb3e3e1275c1105ccf6be0761947384775",
+          "downloadedArchiveSha256": null,
+          "minuteRowsInspected": false
+        },
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-09-22",
+        "stockArchive": {
+          "date": "2026-09-22",
+          "path": "Minute/NSE/22092026.zip",
+          "bytesInGitTree": 6330440,
+          "gitBlobSha1": "d06bb6fdfa6027440f1bc481a6765f038ee47bab",
+          "downloadedArchiveSha256": null,
+          "minuteRowsInspected": false
+        },
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-09-23",
+        "stockArchive": {
+          "date": "2026-09-23",
+          "path": "Minute/NSE/23092026.zip",
+          "bytesInGitTree": 6308450,
+          "gitBlobSha1": "dffe666b658b12262b4e7764cd4a30585170dd43",
+          "downloadedArchiveSha256": null,
+          "minuteRowsInspected": false
+        },
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-09-24",
+        "stockArchive": {
+          "date": "2026-09-24",
+          "path": "Minute/NSE/24092026.zip",
+          "bytesInGitTree": 6475966,
+          "gitBlobSha1": "39a146773a6e8cf7be28751af818da6e7bac4e25",
+          "downloadedArchiveSha256": null,
+          "minuteRowsInspected": false
+        },
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-09-25",
+        "stockArchive": null,
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-09-28",
+        "stockArchive": null,
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-09-29",
+        "stockArchive": null,
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-09-30",
+        "stockArchive": null,
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-10-01",
+        "stockArchive": null,
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-10-05",
+        "stockArchive": null,
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-10-06",
+        "stockArchive": null,
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-10-07",
+        "stockArchive": null,
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-10-08",
+        "stockArchive": null,
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-10-09",
+        "stockArchive": null,
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-10-12",
+        "stockArchive": null,
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-10-13",
+        "stockArchive": null,
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-10-14",
+        "stockArchive": null,
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-10-15",
+        "stockArchive": null,
+        "indexArchive": null,
+        "certified": false
+      },
+      {
+        "session": "2026-10-16",
+        "stockArchive": null,
+        "indexArchive": null,
+        "certified": false
+      }
+    ],
+    "decision": "QUARANTINED_METADATA_ONLY_UPSTREAM_RIGHTS_PIT_AND_BAR_CONTENT_UNVERIFIED",
+    "readmeCoverageIsNotArchiveCoverage": true
+  },
+  "voletiramu": {
+    "commit": "2c01a18c694f245556ff58bf7b882280f1de3679",
+    "release": "v1.0.0",
+    "publishedAt": "2026-05-02T18:39:35Z",
+    "advertisedFrom": "2024-04-01",
+    "advertisedThrough": "2026-04-30",
+    "advertisedSymbols": 214,
+    "assets": [
+      {
+        "name": "stocks_1m_csvs.zip",
+        "bytes": 485923642,
+        "publisherMetadataDigest": "sha256:20024713c455cc16b5daae91e06991d57a1acfa6a30c77bb7d5a742ee1789ab2",
+        "downloadedArchiveSha256": null
+      }
+    ],
+    "decision": "OUTSIDE_REQUESTED_WINDOW_RESTRICTED_RETROSPECTIVE_UNIVERSE"
+  },
+  "gsidhu": {
+    "commit": "c95d7f187c2a317ca6a2287148cf10c50a80e928",
+    "rootYears": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023"
+    ],
+    "decision": "NO_REQUESTED_WINDOW_EQUITY_ARCHIVE_VERIFIED"
+  },
+  "djjain": {
+    "commit": "bd312bfe6488e629cbe5c05a2a9643fab5f4fc33",
+    "advertisedSegment": "DERIVATIVES_NOT_CASH_EQUITIES",
+    "advertisedThrough": "2026-06",
+    "decision": "PURCHASE_INQUIRY_AND_OUTSIDE_WINDOW_NOT_A_FREE_CASH_DATASET"
+  },
+  "huggingFace": {
+    "url": "https://huggingface.co/api/datasets/Hitjob-Done/indian-stock-market-minute-data",
+    "observedStatus": 401,
+    "decision": "UNAVAILABLE_WITHOUT_AUTH_NO_LOGIN_ATTEMPTED"
+  },
+  "rawMarketArchivesDownloaded": 0,
+  "realSessionsCertified": 0,
+  "historicalNetPnlINR": null,
+  "historicalReturnPct": null,
+  "note": "Git blob SHA-1 and publisher-reported digests are metadata, not locally verified archive SHA-256 hashes.",
+  "findingsSha256": "d5db6a1c3fbdea8b33e3bdb1d6de2139346ac197538fc34c0cf2b4900c0d87a2"
+}

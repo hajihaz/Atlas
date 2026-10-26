@@ -1,0 +1,3 @@
+month,valueStatus,expectedSessions,certifiedSessions,trades,realizedPnlINR,unrealizedPnlINR,feesINR,netPnlINR,returnPct,maxDrawdownPct,frequentlySelectedStocks
+2026-09,UNVERIFIED,9,0,,,,,,,,
+2026-10,UNVERIFIED,11,0,,,,,,,,
