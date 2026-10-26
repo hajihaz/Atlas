@@ -12,13 +12,15 @@ import PaperTrialsPage from './components/PaperTrialsPage';
 import RiskAuditPage from './components/RiskAuditPage';
 import {usePaperTrials} from './lib/usePaperTrials';
 const LiveLabPage = lazy(() => import('./components/LiveLabPage'));
+const NsePaperPage = lazy(() => import('./components/NsePaperPage'));
 const IPOIntelligencePage = lazy(() => import('./components/IPOIntelligencePage'));
 
-type Page='live'|'overview'|'ipo'|'markets'|'strategies'|'research'|'scalpstorm'|'risk'|'orders'|'audit';
+type Page='live'|'overview'|'ipo'|'markets'|'nse'|'strategies'|'research'|'scalpstorm'|'risk'|'orders'|'audit';
 type Theme='light'|'dark';
 const THEME_KEY='atlas.theme.preference';
 function pageFromHash(hash:string):Page{
-  return hash==='#ipo'?'ipo':hash==='#scalpstorm'?'scalpstorm':hash==='#markets'?'markets':'live';
+  return hash==='#ipo'?'ipo':hash==='#scalpstorm'?'scalpstorm':hash==='#markets'?'markets':
+    hash==='#nse-paper'?'nse':'live';
 }
 function initialTheme():Theme{
   try{return window.localStorage.getItem(THEME_KEY)==='dark'?'dark':'light';}
@@ -28,6 +30,7 @@ const nav=[
   {id:'live',title:'Live Paper Lab',Icon:Activity},
   {id:'overview',title:'Overview',Icon:LayoutDashboard},
   {id:'markets',title:'Market Watch',Icon:ChartNoAxesCombined},
+  {id:'nse',title:'NSE Paper Trading',Icon:Activity},
   {id:'ipo',title:'IPO Intelligence',Icon:TrendingUp},
   {id:'strategies',title:'Strategies',Icon:Layers3},
   {id:'research',title:'Research Lab',Icon:BookOpenText},
@@ -43,7 +46,7 @@ const facts=[
   {title:'Crypto public references',status:'INDICATIVE',text:'Direct INR provider observations, not guaranteed executable prices.'},
   {title:'Independent execution gate',status:'BLOCKED',text:'This public frontend cannot place orders or enable real trading.'},
 ];
-function SimplePage({page,go}:{page:Exclude<Page,'overview'|'markets'|'live'|'ipo'>;go:(next:Page)=>void}){
+function SimplePage({page,go}:{page:Exclude<Page,'overview'|'markets'|'live'|'ipo'|'nse'>;go:(next:Page)=>void}){
   const data={
     strategies:{heading:'Strategies',desc:'Strategies require verified market data, reproducible results and risk approval.',title:'No verified live strategy results',
       detail:'Historical LEAN sample returns and illustrative portfolio simulations are no longer displayed as real performance.'},
@@ -133,9 +136,10 @@ export default function App(){
     return ()=>document.removeEventListener('keydown',keydown);
   },[mobileViewport,mobileOpen]);
   function go(next:Page){
-    const hash=next==='ipo'?'#ipo':next==='scalpstorm'?'#scalpstorm':next==='markets'?'#markets':'';
+    const hash=next==='ipo'?'#ipo':next==='scalpstorm'?'#scalpstorm':next==='markets'?'#markets':
+      next==='nse'?'#nse-paper':'';
     if(hash||window.location.hash==='#ipo'||window.location.hash==='#scalpstorm'||
-      window.location.hash==='#markets')
+      window.location.hash==='#markets'||window.location.hash==='#nse-paper')
       window.history.replaceState(null,'',window.location.pathname+window.location.search+hash);
     setPage(next);setMobileOpen(false);setNotices(false);
     window.scrollTo({top:0,behavior:'auto'});
@@ -154,7 +158,7 @@ export default function App(){
         {!collapsed&&<span className="brand-copy"><strong>ATLAS<span className="brand-dot">.</span></strong><small>QUANTITATIVE SYSTEMS</small></span>}
       </button><button className="collapse-button" onClick={()=>mobileViewport?closeMenu():setCollapsed(v=>!v)} aria-label={mobileViewport?'Close menu':'Toggle sidebar'} type="button"><ChevronLeft size={18}/></button></div>
       <div className="sidebar-inner"><div className="nav-section-name">{!collapsed?'WORKSPACE':'•••'}</div>
-        <nav className="nav-links" aria-label="Main navigation">{nav.map(({id,title,Icon})=>
+        <nav className="nav-links" aria-label="Main navigation">{nav.filter(n=>n.id!=='nse'||['127.0.0.1','localhost'].includes(window.location.hostname)).map(({id,title,Icon})=>
           <button key={id} type="button" title={title} className={'nav-link '+(page===id?'active':'')}
             onClick={()=>go(id)} aria-current={page===id?'page':undefined}><Icon size={19}/>
             {!collapsed&&<span>{title}</span>}{!collapsed&&page===id&&<span className="active-indicator"/>}
@@ -179,6 +183,7 @@ export default function App(){
         page==='overview'?<RealMarketPage variant="overview" paperGroup={paper.group} onNavigate={v=>go(v)}/>:
         page==='ipo'?<Suspense fallback={<div className='panel market-loading' role='status'>Loading IPO research…</div>}><IPOIntelligencePage/></Suspense>:
         page==='markets'?<StockWatchPage theme={theme} goResearch={()=>go('strategies')}/>:
+        page==='nse'?<Suspense fallback={<div role="status" className="panel market-loading">Reading private NSE accounts…</div>}><NsePaperPage/></Suspense>:
         page==='strategies'||page==='research'||page==='scalpstorm'?<StrategyLabPage mode={page} goRisk={()=>go('risk')}/>:
         page==='orders'?<PaperTrialsPage group={paper.group} statusMessage={paper.providerMessage}
           start={paper.start} pause={paper.pause} resume={paper.resume} clear={paper.clear}

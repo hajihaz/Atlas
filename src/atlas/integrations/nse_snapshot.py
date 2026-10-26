@@ -59,7 +59,15 @@ def market_snapshot(
     market: dict[str, object] | None = None,
     received_at: dt.datetime | None = None,
     getter: JsonGet = _get_json,
+    watchlist: dict[str, str] | None = None,
 ) -> dict[str, object]:
+    watchlist = WATCHLIST if watchlist is None else watchlist
+    if not 1 <= len(watchlist) <= 20 or any(
+        not re.fullmatch(r"NSE_(?:EQ|INDEX)\|[A-Za-z0-9 _.-]{2,64}", key)
+        or not re.fullmatch(r"[A-Z0-9&_. -]{1,40}", symbol)
+        for key, symbol in watchlist.items()
+    ):
+        raise ValueError("invalid bounded NSE watchlist")
     if not token:
         raise RuntimeError("Analytics credential unavailable")
     market = exchange_status(token=token, getter=getter) if market is None else market
@@ -71,7 +79,7 @@ def market_snapshot(
         or market.get("marketOpen") != (market["status"] == "NORMAL_OPEN")
     ):
         raise ValueError("untrusted market-state cache")
-    keys = quote(",".join(WATCHLIST), safe="")
+    keys = quote(",".join(watchlist), safe="")
     response = getter(
         "https://api.upstox.com/v3/market-quote/quotes?instrument_key=" + keys,
         {"Accept": "application/json", "Authorization": f"Bearer {token}"},
@@ -82,14 +90,14 @@ def market_snapshot(
     if not isinstance(response, dict) or response.get("status") != "success":
         raise ValueError("NSE market quotes unavailable")
     data = response.get("data")
-    if not isinstance(data, dict) or len(data) != len(WATCHLIST):
+    if not isinstance(data, dict) or len(data) != len(watchlist):
         raise ValueError("incomplete NSE watchlist response")
     found = {}
     for raw in data.values():
         if not isinstance(raw, dict):
             raise ValueError("invalid NSE quote row")
         key = raw.get("instrument_token")
-        if not isinstance(key, str) or key not in WATCHLIST or key in found:
+        if not isinstance(key, str) or key not in watchlist or key in found:
             raise ValueError("NSE instrument identity mismatch")
         price_raw = raw.get("last_price")
         if isinstance(price_raw, bool):
@@ -105,14 +113,30 @@ def market_snapshot(
             raise ValueError("invalid NSE share volume")
         traded = _timestamp(raw.get("last_trade_time"), received)
         source_time = _timestamp(raw.get("timestamp"), received)
+        book = raw.get("depth")
+        levels = {}
+        for side in ("buy", "sell"):
+            items = book.get(side) if isinstance(book, dict) else None
+            top = items[0] if isinstance(items, list) and items else None
+            book_price, book_qty = None, 0
+            if isinstance(top, dict):
+                price_value, quantity = top.get("price"), top.get("quantity")
+                if (
+                    isinstance(price_value, (int, float)) and not isinstance(price_value, bool)
+                    and 0 < price_value <= 1e12
+                    and type(quantity) is int and 0 < quantity <= 1_000_000_000
+                ):
+                    book_price, book_qty = float(price_value), quantity
+            levels[side] = {"price": book_price, "quantity": book_qty}
         found[key] = {
             "instrumentKey": key,
-            "symbol": WATCHLIST[key],
+            "symbol": watchlist[key],
             "lastPrice": float(price),
             "priceUnit": "POINTS" if key.startswith("NSE_INDEX|") else "INR",
             "volume": volume,
             "lastTradeAt": traded,
             "quoteTimestamp": source_time,
+            "depth": levels,
         }
     return {
         "schema": 1,
@@ -121,7 +145,7 @@ def market_snapshot(
         "source": "Upstox Analytics",
         "observedAt": received.astimezone(dt.UTC).isoformat(),
         "market": {name: market[name] for name in ("exchange", "status", "marketOpen")},
-        "quotes": [found[key] for key in WATCHLIST],
+        "quotes": [found[key] for key in watchlist],
         "sourcePayloadSHA256": hashlib.sha256(
             json.dumps(response, sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest(),

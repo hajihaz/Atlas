@@ -14,6 +14,9 @@ from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 MARKET_CLIENT_USER_AGENT = "AtlasReadOnlyResearch/0.2"
+NSE_INSTRUMENT_MASTER_URL = (
+    "https://assets.upstox.com/market-quote/instruments/exchange/NSE.json.gz"
+)
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -130,3 +133,20 @@ def local_openalgo_analyzer_post(target: str, body: dict[str, str]) -> object:
             method="POST",
         )
     )
+
+
+def nse_instrument_master_get() -> bytes:
+    """Exact public metadata GET, with no credential argument or redirect authority."""
+    request = Request(
+        NSE_INSTRUMENT_MASTER_URL,
+        headers={"User-Agent": MARKET_CLIENT_USER_AGENT},
+        method="GET",
+    )
+    try:
+        with build_opener(NoRedirect()).open(request, timeout=20) as response:
+            raw = response.read(8_000_001)
+    except Exception:
+        raise RuntimeError("pinned Upstox instrument master unavailable") from None
+    if not isinstance(raw, bytes) or len(raw) > 8_000_000:
+        raise ValueError("oversized or invalid instrument master")
+    return raw

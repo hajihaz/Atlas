@@ -49,10 +49,10 @@ function OwnerNseObservation(){
       </article>)}</div>
     <p className="nse-observation-note"><Clock3 size={15}/>
       {snapshot?'Feed checked '+time(snapshot.observedAt)+'. ':'Awaiting a verified local snapshot. '}
-      Source polling is once per second during the normal session and once per minute after hours.
+      Source polling is every two seconds during the normal session and once per minute after hours.
     </p>
     <p className="nse-observation-note"><ShieldCheck size={15}/>
-      Read-only prices on this Mac. Broker orders and paper orders are disabled.
+      Read-only prices on this Mac. The NSE strategy desk records separate virtual orders; broker orders remain disabled.
       Observation does not certify a strategy or execution freshness.
     </p>
   </section>;

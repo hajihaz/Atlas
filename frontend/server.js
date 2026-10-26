@@ -10,6 +10,7 @@ import {promisify} from 'node:util';
 import {handlePushRequest} from './local-push.js';
 import {serveOwnerBuild} from './owner-static.js';
 import {handleNseMarket,ownerRequestAllowed} from './local-nse.js';
+import {handleNsePaper} from './local-nse-paper.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -79,6 +80,7 @@ export function createLocalApiServer({serveBuild=false,readOnly=false,
       response.writeHead(405,{'Allow':'GET, HEAD, OPTIONS'});response.end();return;
     }
     if(rawPath==='/api/nse-market'){await handleNseMarket(request,response,ownerRoot);return;}
+    if(rawPath==='/api/nse-paper'){await handleNsePaper(request,response,ownerRoot);return;}
     if(rawPath==='/api/ipo-push'){
       if(readOnly){response.writeHead(404);response.end();return;}
       await handlePushRequest(request,response);return;
