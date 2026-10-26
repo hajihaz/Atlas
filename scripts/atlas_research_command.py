@@ -32,6 +32,7 @@ from atlas.integrations.nse_sources import (
 )
 from atlas.integrations.openalgo_sandbox import observe_analyzer
 from atlas.integrations.point_in_time import VolumeObservation, certify_volume_rank
+from atlas.integrations.source_comparison import compare_history_sources
 from atlas.integrations.upstox_quote import upstox_ltp
 
 
@@ -116,10 +117,13 @@ def main() -> int:
             "audit-history",
             "provenance",
             "verify-export",
+            "compare-sources",
         ),
     )
     parser.add_argument("--provider", choices=("upstox", "fyers", "upstox_v3", "fyers_v3"))
     parser.add_argument("--instrument")
+    parser.add_argument("--other-provider", choices=("upstox", "fyers", "upstox_v3", "fyers_v3"))
+    parser.add_argument("--other-instrument")
     parser.add_argument("--interval", default="1m")
     parser.add_argument("--from-date")
     parser.add_argument("--to-date")
@@ -184,6 +188,20 @@ def main() -> int:
             "integrity_status": exported["status"],
             "live_orders": False,
         }
+    elif args.action == "compare-sources":
+        if not all((args.provider, args.instrument, args.other_provider, args.other_instrument)):
+            parser.error("compare-sources needs both provider/instrument pairs")
+        aliases = {"upstox": "upstox_v3", "fyers": "fyers_v3"}
+        result = asdict(
+            compare_history_sources(
+                archive,
+                primary_provider=aliases.get(args.provider, args.provider),
+                primary_instrument=args.instrument,
+                secondary_provider=aliases.get(args.other_provider, args.other_provider),
+                secondary_instrument=args.other_instrument,
+                interval=args.interval,
+            )
+        )
     elif args.action == "provenance":
         if not args.provider or not args.instrument:
             parser.error("provenance requires --provider and --instrument")

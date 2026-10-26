@@ -9,11 +9,13 @@ Completed on 26 October 2026:
   including no-overwrite, corruption, partial-file and concurrent-import gates.
 
 Next owner-independent tasks, in priority order:
-1. Review and expand read-only source conflicts with a deterministic comparison
-   report; never auto-rewrite immutable historical bars.
-2. Improve offline strategy audit/report use of quality/provenance warnings.
-3. Add more local-only paper durability and security regression coverage.
-4. Improve research UI accessibility and bundle weight without behavior changes.
+1. Improve offline strategy research outputs with explicit historical quality,
+   source-rights and discrepancy-status gates. Never present uncertified data as
+   a verified NSE strategy result.
+2. Add local-only paper durability/security regression coverage.
+3. Improve historical replay accessibility while preserving current behavior.
+4. Enable official NSE exchange-session comparison only when a trusted calendar
+   and the right to store/use that dataset are actually available.
 
 External gates remain independent: verified Upstox/FYERS NSE API permissions;
 rights-cleared point-in-time NSE universe/minute data and trading calendar;
