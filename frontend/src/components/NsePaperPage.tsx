@@ -84,7 +84,7 @@ function LocalNsePaper(){
       <strong>{mode==='historical'?'Historical source candles · assumed execution':'Automated virtual orders · owner Mac only'}</strong>
       <p>Each strategy has ₹1,00,000 split into ten ₹10,000 stock allocations. These comparison accounts are not additive.
       Whole shares, cash only, no leverage. Costs are modeled at 0.10% plus 0.05% slippage each side.</p>
-      <p>{mode==='historical'?'Historical results are hypothetical and were not earned by the forward accounts.':
+      <p>{mode==='historical'?'Historical results are hypothetical and were not earned by the forward accounts. Execution assumes a following-minute opening price, 0.02% spread per side and liquidity from a previous completed minute.':
         'Orders require a new, fresh exchange trade after the signal was observed. Stale, missing or repeated quotes cannot fill an order.'}
         {' '}This fixed basket does not certify ScalpStorm’s historical market-wide top ten.</p>
     </div></div>
