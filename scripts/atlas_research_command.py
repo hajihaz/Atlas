@@ -32,6 +32,7 @@ from atlas.integrations.nse_sources import (
 )
 from atlas.integrations.openalgo_sandbox import observe_analyzer
 from atlas.integrations.point_in_time import VolumeObservation, certify_volume_rank
+from atlas.integrations.research_evidence import research_evidence
 from atlas.integrations.source_comparison import compare_history_sources
 from atlas.integrations.upstox_quote import upstox_ltp
 
@@ -58,7 +59,23 @@ def _batch_from_archive(
     )
 
 
-def _comparison(batch: HistoricalBatch) -> dict[str, object]:
+def _comparison(
+    batch: HistoricalBatch,
+    archive: CandleArchive,
+    *,
+    other_provider: str | None = None,
+    other_instrument: str | None = None,
+) -> dict[str, object]:
+    evidence = research_evidence(
+        archive,
+        provider=batch.provider,
+        instrument=batch.instrument,
+        interval=batch.interval,
+        other_provider=other_provider,
+        other_instrument=other_instrument,
+    )
+    if evidence.quality.observed_bars != len(batch.candles):
+        raise ValueError("archive changed during replay preparation")
     replay = run_backtrader_sma(batch)
     return {
         "mode": replay.status,
@@ -70,6 +87,8 @@ def _comparison(batch: HistoricalBatch) -> dict[str, object]:
         "hypothetical_pnl_inr": str(replay.ending_equity_inr - replay.initial_cash_inr),
         "completed_orders": replay.completed_orders,
         "data_snapshot_sha256": replay.source_hash,
+        "replay_scope": "ALL_ARCHIVED_CANDLES_EXACT_SERIES",
+        "evidence": asdict(evidence),
         "universe_verified": False,
         "live_capital_enabled": False,
     }
@@ -281,13 +300,22 @@ def main() -> int:
             "ranking_verified": False,
         }
         if args.compare:
-            result["backtrader_sma"] = _comparison(batch)
+            result["backtrader_sma"] = _comparison(
+                _batch_from_archive(archive, batch.provider, batch.instrument, batch.interval),
+                archive,
+            )
     else:
         if not args.provider or not args.instrument:
             parser.error("compare requires --provider and --instrument")
         provider = {"upstox": "upstox_v3", "fyers": "fyers_v3"}.get(args.provider, args.provider)
         batch = _batch_from_archive(archive, provider, args.instrument, args.interval)
-        result = _comparison(batch)
+        aliases = {"upstox": "upstox_v3", "fyers": "fyers_v3"}
+        result = _comparison(
+            batch,
+            archive,
+            other_provider=aliases.get(args.other_provider, args.other_provider),
+            other_instrument=args.other_instrument,
+        )
     print(json.dumps(result, indent=2, default=str))
     return 0
 

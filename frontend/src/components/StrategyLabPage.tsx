@@ -1,6 +1,8 @@
 import {lazy,Suspense,useEffect,useState} from 'react';
 import AgentCouncilPanel from './AgentCouncilPanel';
 import ScalpStormAllocationPlan from './ScalpStormAllocationPlan';
+import ResearchQualityNotice from './ResearchQualityNotice';
+import type {ResearchQuality} from './ResearchQualityNotice';
 import {Activity,ArrowRight,BookOpenText,Clock3,ShieldCheck,TrendingUp,TrendingDown,FlaskConical,Layers3} from 'lucide-react';
 const LightweightEquityReplay=lazy(()=>import('./LightweightEquityReplay'));
 type T={side:string;barTime:number;signalBarTime:number;price:number;quantity:number;feeINR:number;positionPnlINR:number|null};
@@ -14,7 +16,7 @@ type S={
 };
 type Lab={schema:number;mode:string;currency:'INR';symbol:string;range:string;
  generatedAt:string;source:string;barCount:number;historyCoverage:string;earliestBarAt:string|null;
- latestClosedAt:string|null;providerWarning:string;strategies:S[];
+ latestClosedAt:string|null;providerWarning:string;dataQuality?:ResearchQuality;strategies:S[];
  simulatedCapitalINR:number;liveOrdersEnabled:false;paperOrdersExecuted:false;paperLedgerStored:false;warning:string};
 const symbolOptions=['BTCINR','ETHINR','SOLINR','XRPINR','DOGEINR'];
 const money=(n:number|undefined)=>n===undefined?'—':new Intl.NumberFormat('en-IN',
@@ -80,6 +82,7 @@ export default function StrategyLabPage({mode='strategies',goRisk}:{
     <span>{lab.barCount} completed bars · {lab.historyCoverage.replaceAll('_',' ')} ·
     {lab.earliestBarAt?' Since '+date(Date.parse(lab.earliestBarAt)):''}</span>
     <span>Updated {date(Date.parse(lab.generatedAt))}</span></div>}
+  {lab&&<ResearchQualityNotice quality={lab.dataQuality} providerWarning={lab.providerWarning}/>}
   {lab&&<AgentCouncilPanel lab={lab} strategyId={item?.id??selected}/>}
   {lab&&<div className="research-layout">
     <div className="research-strategy-list">

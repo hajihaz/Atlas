@@ -63,7 +63,7 @@
     }
   ],
   "final_acceptance": "NOT_PASSED: blocked on authenticated NSE providers, authentic PIT source, OpenAlgo local setup and GitHub account-level CI gate.",
-  "status": "EXTERNAL_ACTIVATION_GATED",
+  "status": "EXECUTING",
   "progress": {
     "score": 71,
     "basis": "weighted engineering milestones; partial credit only where verified local work exists; external NSE access and hosted CI absent",
@@ -114,32 +114,15 @@
   },
   "repo_branch": "haor/atlas-free-research-stack-20261026",
   "pull_request": "https://github.com/hajihaz/Atlas/pull/51",
-  "validation": {
-    "python": "585/585 full Python suite with isolated PostgreSQL and archived LEAN data; temp resources cleaned",
-    "node": "314/314",
-    "ruff": "pass",
-    "mypy": "137 source files pass",
-    "frontend": "Vercel READY protected preview"
-  },
   "external_gates": [
-    "GitHub Actions account billing/spending-limit: zero runner steps; no payment changes authorized",
+    "GitHub Actions included minutes exhausted (2000/2000); recorded reset 2026-11-01; no payment changes or bypass",
     "Upstox read-only Analytics Token unavailable; NSE provider live and historical access unverified",
     "FYERS app/data API credentials unavailable; historical source unverified",
     "OpenAlgo local API key/service unavailable, observer-only by safety design",
     "Complete rights-cleared point-in-time NSE universe plus timestamped minute data unavailable",
     "Persistent authenticated NSE WebSocket worker cannot be activated without provider access"
   ],
-  "next_safe_action": "After owner provides external access or CI billing is resolved: replay and certify authentic NSE sessions; validate real-time feeds; rerun hosted CI and protected preview; only then consider main merge.",
-  "verification": {
-    "python": "578 passed, 7 skipped",
-    "node": "314 passed, 0 failed",
-    "ruff": "passed",
-    "mypy": "passed, 137 source files",
-    "frontend_typecheck": "passed",
-    "frontend_build": "passed",
-    "preview": "Vercel READY, authenticated preview HTTP 200; strategy API smoke 167 source candles, zero orders before backfill commit",
-    "main_changed": false
-  },
+  "next_safe_action": "Complete recorded quality-warning task, consolidate PR49/50/51 and verify combined draft without changing main.",
   "owner_gates": [
     "Upstox Analytics Token and permitted data entitlements",
     "FYERS Market Data credentials/entitlements",
@@ -154,5 +137,39 @@
     "production_status": "UNCHANGED",
     "capital_status": "BLOCKED"
   },
-  "acceptance": "Local component builds and tests pass; full approved objective remains external-activation gated. No certified NSE historical backtest or live NSE paper execution claimed."
+  "acceptance": "Local component builds and tests pass; full approved objective remains external-activation gated. No certified NSE historical backtest or live NSE paper execution claimed.",
+  "historical_validation_baselines": {
+    "validation": {
+      "python": "585/585 full Python suite with isolated PostgreSQL and archived LEAN data; temp resources cleaned",
+      "node": "314/314",
+      "ruff": "pass",
+      "mypy": "137 source files pass",
+      "frontend": "Vercel READY protected preview"
+    },
+    "verification": {
+      "python": "578 passed, 7 skipped",
+      "node": "314 passed, 0 failed",
+      "ruff": "passed",
+      "mypy": "passed, 137 source files",
+      "frontend_typecheck": "passed",
+      "frontend_build": "passed",
+      "preview": "Vercel READY, authenticated preview HTTP 200; strategy API smoke 167 source candles, zero orders before backfill commit",
+      "main_changed": false
+    },
+    "notice": "Dated earlier commits; not current-head combined acceptance."
+  },
+  "updated_at": "2026-10-26T11:32:44.350675+00:00",
+  "verification": {
+    "base_sha": "85d9396bbc030f04679d49ed4b44e572afd3a48d",
+    "latest_reported_python": "613 passed, 7 skipped",
+    "latest_reported_javascript": "316 passed",
+    "current_combined_acceptance": "PENDING_NEW_CHANGES",
+    "python": "619 passed, 7 skipped",
+    "javascript_frontend_only": "207 passed",
+    "ruff": "passed",
+    "mypy": "141 source files passed",
+    "typescript": "passed",
+    "build": "passed",
+    "evidence": ".ai/raw/haor-consolidation-20261026/quality-verification.json"
+  }
 }

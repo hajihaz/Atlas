@@ -1,6 +1,7 @@
 // Source-backed hypothetical replay only. No real or paper broker writes.
 import {getChart,RANGES,ASSETS} from './market-history.js';
 import {STRATEGIES,runAllStrategies} from '../lib/research-engine.js';
+import {researchQuality} from '../lib/research-quality.js';
 
 const ACCEPTED_RANGES=Object.freeze(['1W','1M','1Y']);
 export async function getLab({symbol='BTCINR',range='1M'}={},getter=getChart,now=Date.now()){
@@ -12,6 +13,7 @@ export async function getLab({symbol='BTCINR',range='1M'}={},getter=getChart,now
     ||source.paperExecutionEnabled!==false||!Array.isArray(source.candles))
     throw Error('source contract invalid');
   const interval=RANGES[range].unit;
+  const dataQuality=researchQuality(source,interval,RANGES[range].lookback,now);
   // Upstream missing/partial data is never substituted with synthetic bars.
   const strategies=source.candles.length>=55
     ?runAllStrategies(source.candles,interval)
@@ -23,6 +25,7 @@ export async function getLab({symbol='BTCINR',range='1M'}={},getter=getChart,now
     earliestBarAt:source.earliestAvailable,latestClosedAt:source.latestClosedAt,
     dataCompleteVerified:source.completeHistoryVerified,
     providerWarning:source.warning,
+    dataQuality,
     strategies,
     simulatedCapitalINR:100000,realBrokerOrders:0,liveOrdersEnabled:false,
     paperOrdersExecuted:false,paperLedgerStored:false,
