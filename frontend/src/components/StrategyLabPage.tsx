@@ -1,9 +1,11 @@
-import {useEffect,useState} from 'react';
+import {lazy,Suspense,useEffect,useState} from 'react';
 import AgentCouncilPanel from './AgentCouncilPanel';
 import AdvancedResearchImport from './AdvancedResearchImport';
 import ScalpStormDetailed from './ScalpStormDetailed';
+import ResearchQualityNotice from './ResearchQualityNotice';
+import type {ResearchQuality} from './ResearchQualityNotice';
 import {Activity,ArrowRight,BookOpenText,Clock3,ShieldCheck,TrendingUp,TrendingDown,FlaskConical,Layers3} from 'lucide-react';
-import {LineChart,Line,ResponsiveContainer,CartesianGrid,XAxis,YAxis,Tooltip} from 'recharts';
+const LightweightEquityReplay=lazy(()=>import('./LightweightEquityReplay'));
 type T={side:string;barTime:number;signalBarTime:number;price:number;quantity:number;feeINR:number;positionPnlINR:number|null};
 type S={
  id:string;name:string;category:string;description:string;logic:string;
@@ -15,7 +17,7 @@ type S={
 };
 type Lab={schema:number;mode:string;currency:'INR';symbol:string;range:string;
  generatedAt:string;source:string;barCount:number;historyCoverage:string;dataCompleteVerified:boolean;earliestBarAt:string|null;
- latestClosedAt:string|null;providerWarning:string;strategies:S[];
+ latestClosedAt:string|null;providerWarning:string;dataQuality?:ResearchQuality;strategies:S[];
  simulatedCapitalINR:number;liveOrdersEnabled:false;paperOrdersExecuted:false;paperLedgerStored:false;warning:string};
 const symbolOptions=['BTCINR','ETHINR','SOLINR','XRPINR','DOGEINR'];
 const money=(n:number|undefined)=>n===undefined?'—':new Intl.NumberFormat('en-IN',
@@ -89,6 +91,7 @@ export default function StrategyLabPage({mode='strategies',goRisk}:{
       {lab.latestClosedAt?' Last closed provider bar: '+date(Date.parse(lab.latestClosedAt))+'.':''}
     </span>
   </div>}
+  {lab&&<ResearchQualityNotice quality={lab.dataQuality} providerWarning={lab.providerWarning}/>}
   {lab&&<AgentCouncilPanel lab={lab} strategyId={item?.id??selected}/>}
   {lab&&<div className="research-layout">
     <div className="research-strategy-list">
@@ -121,21 +124,9 @@ export default function StrategyLabPage({mode='strategies',goRisk}:{
           <div><small>Realized model P&amp;L</small><strong>{money(item.realizedPnlINR)}</strong></div>
         </div>
         <div className="research-chart-caption">Hypothetical portfolio value (₹) · source-based historical replay</div>
-        <div className="research-chart"><ResponsiveContainer width="100%" height="100%">
-          <LineChart data={item.equity??[]}>
-            <CartesianGrid strokeOpacity={0.10} vertical={false}/>
-            <XAxis dataKey="time" type="number" domain={['dataMin','dataMax']}
-              tickFormatter={n=>new Intl.DateTimeFormat('en-IN',{day:'2-digit',month:'short',timeZone:'Asia/Kolkata'}).format(n)}
-              tick={{fontSize:10,fill:'#8a9ca9'}} minTickGap={28}/>
-            <YAxis domain={['auto','auto']} width={88}
-              tickFormatter={n=>'₹'+Math.round(n).toLocaleString('en-IN')}
-              tick={{fontSize:10,fill:'#8a9ca9'}}/>
-            <Tooltip formatter={n=>money(typeof n==='number'?n:undefined)}
-              labelFormatter={n=>date(Number(n))}/>
-            <Line dataKey="equityINR" dot={false} type="linear" stroke="#279d72"
-              strokeWidth={2.4} isAnimationActive={false}/>
-          </LineChart>
-        </ResponsiveContainer></div>
+        <Suspense fallback={<div className="research-status" role="status">Loading historical replay…</div>}>
+          <LightweightEquityReplay points={item.equity??[]}/>
+        </Suspense>
         </>}
       </div>
       <div className="panel research-trades">

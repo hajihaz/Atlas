@@ -1,4 +1,49 @@
 {
-  "version": 1,
-  "tasks": []
+  "version": 2,
+  "objective_id": "atlas-integration-20261026",
+  "updated_at": "2026-10-26T11:32:44.350675+00:00",
+  "tasks": [
+    {
+      "id": "reconcile_state",
+      "status": "completed",
+      "result": "Canonical JSON queue now records approved work; old test baselines retained as history."
+    },
+    {
+      "id": "research_quality_warnings",
+      "status": "completed",
+      "description": "Surface archive quality/provenance/discrepancy in research JSON and historical limitations in Strategy Lab.",
+      "evidence": ".ai/raw/haor-consolidation-20261026/quality-verification.json"
+    },
+    {
+      "id": "consolidate_research_branches",
+      "status": "in_progress",
+      "description": "Integrate PR49/50/51 in isolated branch, preserve synthetic labels and order blocks; resolve overlaps and verify combined head."
+    },
+    {
+      "id": "new_paper_checkpoint_audit",
+      "status": "pending",
+      "description": "Audit only new public observations after closed checkpoint30, preserving original accounts and deadline receipt."
+    },
+    {
+      "id": "verify_and_publish_draft",
+      "status": "pending",
+      "description": "Run meaningful combined regression, push draft candidate, verify exact preview and synchronize canonical continuation."
+    },
+    {
+      "id": "permitted_nse_evidence",
+      "status": "blocked",
+      "reason": "Authenticated permitted NSE data, PIT universe and historical rights absent; Upstox explicitly parked."
+    },
+    {
+      "id": "openalgo_authenticated_observer",
+      "status": "blocked",
+      "reason": "Verified local analyzer service and API key unavailable."
+    },
+    {
+      "id": "hosted_ci_and_production",
+      "status": "blocked",
+      "reason": "GitHub included Actions minutes exhausted; no payment changes or bypass; production acceptance requires genuine hosted CI."
+    }
+  ],
+  "future_backlog": []
 }
