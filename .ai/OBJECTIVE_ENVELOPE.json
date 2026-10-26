@@ -217,7 +217,6 @@
     "status": "VERIFIED_READ_ONLY_UPSTOX_RECOVERY",
     "analytics_access_verified": true,
     "upstox_parked": false,
-    "token_storage": "Owner-private0600 file outside Git; explicit opt-in only",
     "target_window": "2026-09-18..2026-10-16",
     "history_bars_each": 7500,
     "instruments": [
@@ -238,6 +237,12 @@
     "certified_scalpstorm_sessions": 0,
     "paper_orders_enabled": false,
     "real_orders_enabled": false,
-    "new_subscription_cost_inr": 0
+    "new_subscription_cost_inr": 0,
+    "storage_policy": {
+      "scope": "OWNER_LOCAL",
+      "file_mode": "0600",
+      "version_controlled": false,
+      "explicit_opt_in": true
+    }
   }
 }
