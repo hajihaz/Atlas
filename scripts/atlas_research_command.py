@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from atlas.integrations.archive_export import export_parquet_with_manifest, verify_parquet_export
 from atlas.integrations.backtrader_bridge import run_backtrader_sma
+from atlas.integrations.credentials import read_analytics_credential
 from atlas.integrations.historical_backfill import backfill
 from atlas.integrations.history_quality import audit_history
 from atlas.integrations.history_store import CandleArchive
@@ -149,14 +150,24 @@ def main() -> int:
     parser.add_argument("--archive", default="data/local/nse_history.duckdb")
     parser.add_argument("--output")
     parser.add_argument("--input-file")
+    parser.add_argument(
+        "--upstox-credential-file",
+        type=Path,
+        help="Explicit private owner-local Analytics credential; never loaded automatically",
+    )
     parser.add_argument("--compare", action="store_true")
     args = parser.parse_args()
+    upstox_token = (
+        read_analytics_credential(args.upstox_credential_file)
+        if args.upstox_credential_file is not None
+        else os.environ.get("UPSTOX_ANALYTICS_TOKEN", "")
+    )
     archive = CandleArchive(Path(args.archive))
     if args.action == "status":
         result = {
             "mode": "DATA_AND_PAPER_ONLY",
             "live_money_enabled": False,
-            "upstox_token_configured": bool(os.environ.get("UPSTOX_ANALYTICS_TOKEN")),
+            "upstox_token_configured": bool(upstox_token),
             "fyers_credentials_configured": bool(
                 os.environ.get("FYERS_APP_ID") and os.environ.get("FYERS_ACCESS_TOKEN")
             ),
@@ -170,7 +181,7 @@ def main() -> int:
             parser.error("quote requires --instrument")
         quote = upstox_ltp(
             args.instrument,
-            token=os.environ.get("UPSTOX_ANALYTICS_TOKEN", ""),
+            token=upstox_token,
             received_at=dt.datetime.now(dt.UTC),
         )
         result = {
@@ -252,7 +263,7 @@ def main() -> int:
             start=start,
             end=end,
             token=(
-                os.environ.get("UPSTOX_ANALYTICS_TOKEN", "")
+                upstox_token
                 if args.provider == "upstox"
                 else os.environ.get("FYERS_ACCESS_TOKEN", "")
             ),
@@ -276,7 +287,7 @@ def main() -> int:
         start, end = (dt.date.fromisoformat(s) for s in (args.from_date, args.to_date))
         if args.provider == "upstox":
             batch = upstox_history(
-                args.instrument, start, end, token=os.environ.get("UPSTOX_ANALYTICS_TOKEN", "")
+                args.instrument, start, end, token=upstox_token
             )
         elif args.provider == "fyers":
             batch = fyers_history(

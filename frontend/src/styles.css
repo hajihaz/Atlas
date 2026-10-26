@@ -434,3 +434,13 @@ html[data-theme="light"] .live-bidask span{color:#3c6269}
 
 /* Keep 12-hour IST clock digits stable without wrapping the AM/PM indicator. */
 .live-ticker>div:first-child strong{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.nse-owner-panel{padding:1.4rem;margin-bottom:1.25rem}
+.nse-owner-heading{display:flex;gap:1rem;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.nse-owner-heading h2{margin:.35rem 0 1rem;font-size:1.2rem}
+.nse-market-state{font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.55rem .7rem}
+.nse-owner-panel .stock-quote-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin:.5rem 0}
+.nse-owner-panel .stock-quote{padding:1rem 0}
+.nse-observation-note{display:flex;align-items:flex-start;gap:.5rem;font-size:.78rem;line-height:1.6;opacity:.85}
+.nse-observation-note svg{flex-shrink:0;margin-top:.2rem}
+@media(max-width:600px){.nse-owner-panel .stock-quote-grid{grid-template-columns:1fr}}

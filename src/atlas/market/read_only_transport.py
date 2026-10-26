@@ -7,9 +7,13 @@ exposed. Redirects are refused to protect bearer credentials from forwarding.
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
+from urllib.error import HTTPError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
+
+MARKET_CLIENT_USER_AGENT = "AtlasReadOnlyResearch/0.2"
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -19,10 +23,48 @@ class NoRedirect(HTTPRedirectHandler):
         raise RuntimeError("market-data redirect refused")
 
 
+class ReadOnlyServiceError(RuntimeError):
+    """Safe provider diagnostics without reflecting URLs, headers or error-body text."""
+
+    def __init__(self, status: int, code: str | None = None, retry_after: int = 0) -> None:
+        self.http_status = status
+        self.provider_code = code
+        self.retry_after_seconds = retry_after
+        self.retryable = status == 429 or 500 <= status <= 599
+        self.owner_action_required = status in (401, 403)
+        label = f"approved read-only service returned HTTP {status}"
+        if code is not None:
+            label += f" ({code})"
+        super().__init__(label)
+
+
 def _read(request: Request) -> object:
     try:
         with build_opener(NoRedirect()).open(request, timeout=15) as response:
             raw = response.read(8_000_001)
+    except HTTPError as error:
+        code = None
+        retry_after = 0
+        raw_retry = error.headers.get("Retry-After", "") if error.headers else ""
+        if raw_retry.isdigit():
+            retry_after = min(3600, int(raw_retry))
+        try:
+            body = json.loads(error.read(32_769))
+            candidates = [body.get("error_code")] if isinstance(body, dict) else []
+            if isinstance(body, dict) and isinstance(body.get("errors"), list):
+                candidates.extend(
+                    row.get("errorCode") or row.get("error_code")
+                    for row in body["errors"][:5]
+                    if isinstance(row, dict)
+                )
+            for candidate in candidates:
+                value = str(candidate)
+                if re.fullmatch(r"UDAPI[0-9]{4,8}|1010|1015|1020", value):
+                    code = value
+                    break
+        except (ValueError, TypeError, OSError, AttributeError):
+            pass
+        raise ReadOnlyServiceError(error.code, code, retry_after) from None
     except Exception:
         # Do not expose request URL, credentials or raw provider error bodies.
         raise RuntimeError("approved read-only data service unavailable") from None
@@ -45,17 +87,23 @@ def market_data_get(url: str, headers: dict[str, str]) -> object:
     )
     upstox_quote = (
         parts.hostname == "api.upstox.com"
-        and parts.path == "/v3/market-quote/ltp"
+        and parts.path in {"/v3/market-quote/ltp", "/v3/market-quote/quotes"}
         and parts.query.startswith("instrument_key=")
         and "&" not in parts.query
     )
     fyers_history = (
         parts.hostname == "api-t1.fyers.in" and parts.path == "/data/history" and bool(parts.query)
     )
-    approved = upstox_history or upstox_quote or fyers_history
+    upstox_status = (
+        parts.hostname == "api.upstox.com"
+        and parts.path == "/v2/market/status/NSE"
+        and parts.query == ""
+    )
+    approved = upstox_history or upstox_quote or upstox_status or fyers_history
     if not approved or parts.username is not None or parts.password is not None:
         raise ValueError("unapproved read-only market-data endpoint")
-    return _read(Request(url, headers=headers, method="GET"))  # noqa: S310
+    identified_headers = {**headers, "User-Agent": MARKET_CLIENT_USER_AGENT}
+    return _read(Request(url, headers=identified_headers, method="GET"))  # noqa: S310
 
 
 def local_openalgo_analyzer_post(target: str, body: dict[str, str]) -> object:

@@ -1,4 +1,5 @@
 import {useEffect,useState} from 'react';
+import NseMarketPanel from './NseMarketPanel';
 import {Activity,ArrowUpRight,BookOpenText,ChartNoAxesCombined,Clock3,ShieldCheck} from 'lucide-react';
 type Asset={key:string,label:string};
 const BSE:Asset[]=[
@@ -71,6 +72,7 @@ export default function StockWatchPage({theme,goResearch}:{
     aria-pressed={section==='crypto'}><Activity size={16}/> INR crypto quotes</button>
   </div>
   {section==='stocks'?<>
+   <NseMarketPanel/>
    <div className="stock-tv-toolbar panel"><label htmlFor="stock-symbol">Stock / index</label>
     <select id="stock-symbol" value={symbol} onChange={e=>setSymbol(e.target.value)}>
       {BSE.map(s=><option value={s.key} key={s.key}>{s.label}</option>)}
@@ -86,7 +88,7 @@ export default function StockWatchPage({theme,goResearch}:{
      </div>
    </div>
    <div className="panel market-info-row"><ShieldCheck size={17}/>
-     <span>Free BSE EOD stock charts are available for independent analysis. Intraday NSE quotes and strategy backtests still require a lawful machine-readable source.</span>
+     <span>BSE charts are separate from the private Upstox feed on your Mac. Strategy certification also needs complete historical NSE evidence.</span>
    </div>
   </>:<>
    <div className="stock-quote-grid">{watch.map(sym=>{

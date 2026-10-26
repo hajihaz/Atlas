@@ -18,7 +18,7 @@ type Page='live'|'overview'|'ipo'|'markets'|'strategies'|'research'|'scalpstorm'
 type Theme='light'|'dark';
 const THEME_KEY='atlas.theme.preference';
 function pageFromHash(hash:string):Page{
-  return hash==='#ipo'?'ipo':hash==='#scalpstorm'?'scalpstorm':'live';
+  return hash==='#ipo'?'ipo':hash==='#scalpstorm'?'scalpstorm':hash==='#markets'?'markets':'live';
 }
 function initialTheme():Theme{
   try{return window.localStorage.getItem(THEME_KEY)==='dark'?'dark':'light';}
@@ -133,8 +133,9 @@ export default function App(){
     return ()=>document.removeEventListener('keydown',keydown);
   },[mobileViewport,mobileOpen]);
   function go(next:Page){
-    const hash=next==='ipo'?'#ipo':next==='scalpstorm'?'#scalpstorm':'';
-    if(hash||window.location.hash==='#ipo'||window.location.hash==='#scalpstorm')
+    const hash=next==='ipo'?'#ipo':next==='scalpstorm'?'#scalpstorm':next==='markets'?'#markets':'';
+    if(hash||window.location.hash==='#ipo'||window.location.hash==='#scalpstorm'||
+      window.location.hash==='#markets')
       window.history.replaceState(null,'',window.location.pathname+window.location.search+hash);
     setPage(next);setMobileOpen(false);setNotices(false);
     window.scrollTo({top:0,behavior:'auto'});

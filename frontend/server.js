@@ -9,6 +9,7 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {handlePushRequest} from './local-push.js';
 import {serveOwnerBuild} from './owner-static.js';
+import {handleNseMarket,ownerRequestAllowed} from './local-nse.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -67,12 +68,21 @@ async function ownerSnapshot(request,response,kind){
   response.end(JSON.stringify(data));
  }catch{response.writeHead(503);response.end(JSON.stringify({error:'owner_snapshot_unavailable'}));}
 }
-export function createLocalApiServer({serveBuild=false}={}) {
+export function createLocalApiServer({serveBuild=false,readOnly=false,
+  ownerRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..')}={}) {
   return http.createServer(async (request, response) => {
     // Match the raw path, not URL's normalized pathname, to reject traversal
     // spellings and prevent arbitrary file/module imports.
     const rawPath = (request.url ?? '/').split('?')[0];
-    if(rawPath==='/api/ipo-push'){await handlePushRequest(request,response);return;}
+    if(readOnly&&!ownerRequestAllowed(request)){response.writeHead(403);response.end();return;}
+    if(readOnly&&!['GET','HEAD','OPTIONS'].includes(request.method)){
+      response.writeHead(405,{'Allow':'GET, HEAD, OPTIONS'});response.end();return;
+    }
+    if(rawPath==='/api/nse-market'){await handleNseMarket(request,response,ownerRoot);return;}
+    if(rawPath==='/api/ipo-push'){
+      if(readOnly){response.writeHead(404);response.end();return;}
+      await handlePushRequest(request,response);return;
+    }
     if(serveBuild&&!rawPath.startsWith('/api/')){await serveOwnerBuild(request,response);return;}
     if(rawPath==='/api/local-paper'){await localPaper(request,response);return;}
     if(rawPath==='/api/ipo-feed'){await ownerSnapshot(request,response,'ipo');return;}
@@ -106,7 +116,10 @@ export function createLocalApiServer({serveBuild=false}={}) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  createLocalApiServer().listen(3001, '127.0.0.1', () => {
-    console.log('Atlas local read-only API listening on http://127.0.0.1:3001');
+  const readOnly=process.env.ATLAS_OWNER_READ_ONLY==='1';
+  const port=readOnly?Number(process.env.ATLAS_OWNER_PORT||4310):3001;
+  if(!Number.isInteger(port)||port<1024||port>65535)throw Error('Invalid owner port');
+  createLocalApiServer({readOnly,serveBuild:readOnly}).listen(port, '127.0.0.1', () => {
+    console.log('Atlas local read-only API listening on http://127.0.0.1:'+port);
   });
 }
