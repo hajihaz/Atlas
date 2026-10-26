@@ -26,6 +26,7 @@ NETWORK_PATTERNS = (
     "httpx.put",
     "httpx.patch",
     "urlopen(",
+    "build_opener(",
 )
 ORDER_PATTERNS = ("create_order(", "submit_order(", "place_order(")
 SECRET_PATTERNS = ("UPSTOX_ACCESS_TOKEN=", "UPSTOX_SECRET=", "CLIENT_SECRET=")
@@ -39,7 +40,14 @@ def scan_tree(root: Path) -> tuple[AuditFinding, ...]:
         text = path.read_text(encoding="utf-8", errors="replace")
         for n, line in enumerate(text.splitlines(), 1):
             for pattern in NETWORK_PATTERNS:
-                if pattern in line and path.name != "upstox_transport.py":
+                allowed_transport = (
+                    pattern == "urlopen("
+                    and path.as_posix().endswith("atlas/broker/upstox_transport.py")
+                ) or (
+                    pattern == "build_opener("
+                    and path.as_posix().endswith("atlas/market/read_only_transport.py")
+                )
+                if pattern in line and not allowed_transport:
                     findings.append(AuditFinding(str(path), n, "NETWORK_AUTHORITY", pattern))
             for pattern in ORDER_PATTERNS:
                 if pattern in line and path.name != "upstox_transport.py":

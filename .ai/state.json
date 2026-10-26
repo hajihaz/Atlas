@@ -1,13 +1,13 @@
 {
   "protocol_version": 6,
   "project": "Atlas",
-  "project_path": "/Users/hajihaz/projects/Atlas",
-  "status": "initialized",
-  "current_task": null,
-  "next_action": null,
+  "project_path": "/Users/hajihaz/projects/atlas-integrations-20261026",
+  "status": "EXECUTING",
+  "current_task": "consolidate_research_branches",
+  "next_action": "new_paper_checkpoint_audit",
   "blocked_reason": null,
   "requires_high_reasoning": false,
   "preferred_execution": "HHC_RDC_FIRST",
   "usage_policy": "LOWEST_SUFFICIENT_MODEL",
-  "updated_at": "2026-09-27T00:06:45.449305+00:00"
+  "updated_at": "2026-10-26T11:32:44.350675+00:00"
 }
