@@ -53,9 +53,30 @@
     "independent JS decision parity and complete local regressions",
     "real owner browser and deployment smoke"
   ],
-  "status": "VERIFIED_SESSION_TARGET_95",
+  "status": "VERIFIED_FEASIBLE_NONMARKET_REVIEWS",
   "scope_hash": "254c762934b413e0e73bca6760b66c19d781606086bffda190b169991c37b4f5",
-  "updated_at": "2026-10-26T17:38:53.219566+00:00",
+  "updated_at": "2026-10-26T18:24:56.989737+00:00",
   "remaining_time_gate": "Genuine open-session NSE paper observation with completed candles and recorded causal decisions; no invented fills",
-  "scope_acceptance": "Readiness95 verified; full pilot100 waits for genuine market observation; production remains gated"
+  "scope_acceptance": "Readiness95 verified; full pilot100 waits for genuine market observation; production remains gated",
+  "approved_continuation": {
+    "approved_at": "2026-10-26T17:59:20.481378+00:00",
+    "approval_evidence": "Haji authorizes all remaining work except waiting for market opening and accepts the workspace review in this session",
+    "scope": [
+      "review and repair required CI coverage without weakening checks",
+      "complete feasible historical evidence verification",
+      "run separately frozen unseen-date research and cost sensitivity without tuning or changing existing ledgers",
+      "record owner acceptance and execute normal release only if exact-head required CI passes"
+    ],
+    "constraints": [
+      "zero new spending",
+      "no real broker orders",
+      "no public raw broker data",
+      "do not fabricate historical certification or open-session observations",
+      "preserve original accounts and unrelated AGENTS.md"
+    ],
+    "owner_review_accepted": true,
+    "market_open_gate_deferred": true
+  },
+  "owner_workspace_accepted": true,
+  "nonmarket_evidence": "docs/operations/atlas-nonmarket-acceptance-2026-10-26.md"
 }

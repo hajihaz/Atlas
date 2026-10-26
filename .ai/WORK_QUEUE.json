@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "updated_at": "2026-10-26T17:38:53.219566+00:00",
+  "updated_at": "2026-10-26T18:24:56.989737+00:00",
   "objective_id": "atlas-upstox-only-paper-pilot-20261026",
   "repo": "/Users/hajihaz/projects/atlas-consolidated-20261026",
   "branch": "haor/atlas-consolidated-20261026",
@@ -33,9 +33,29 @@
     {
       "id": "exact_code_preview",
       "status": "completed_verified"
+    },
+    {
+      "id": "owner_workspace_review",
+      "status": "accepted_by_owner",
+      "evidence": ".ai/OWNER_ACCEPTANCE_20261026.json"
+    },
+    {
+      "id": "complete_CI_test_discovery",
+      "status": "completed_verified",
+      "result": "All523 JS tests via actual workflow command;existing runner and assertions preserved"
+    },
+    {
+      "id": "separate_temporal_validation",
+      "status": "completed_verified",
+      "result": "ALL_FIVE_NOT_QUALIFIED; losses and risk halts preserved"
+    },
+    {
+      "id": "historical_certification_evidence_review",
+      "status": "completed_verified",
+      "certification_granted": false
     }
   ],
-  "publication_guard": ".ai/raw/nse-paper-20261026/final-acceptance.json must match branch HEAD",
+  "publication_guard": ".ai/raw/nonmarket-acceptance-20261026/final-acceptance.json must match branch HEAD",
   "pending_tasks": [
     {
       "id": "first_genuine_open_session",
@@ -48,12 +68,13 @@
     {
       "id": "hosted_ci",
       "status": "external_account_gate",
-      "reason": "Required exact-head GitHub-hosted CI before production; present jobs execute zero steps under account restriction"
+      "reason": "Required GitHub-hosted jobs still cannot start; authenticated billing access is unavailable to current CLI/browser"
     },
     {
       "id": "production_acceptance",
-      "status": "awaiting_owner_review_and_required_ci",
-      "reason": "Haji review and normal production acceptance after requested95-readiness checkpoint"
+      "status": "authorized_conditional_on_required_ci",
+      "additional_owner_review_required": false,
+      "reason": "Owner accepts workspace and normal release; required actual checks are not waived"
     }
   ],
   "future_backlog": [

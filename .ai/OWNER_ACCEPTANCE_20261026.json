@@ -1,0 +1,14 @@
+{
+  "schema": "atlas.owner-acceptance.v1",
+  "recordedAt": "2026-10-26T18:21:14.596125+00:00",
+  "workspace": "PRIVATE_UPSTOX_NSE_PAPER_PILOT",
+  "status": "ACCEPTED_BY_OWNER",
+  "evidence": "Haji explicitly accepts the NSE workspace review and authorizes the remaining non-market reviews and normal release process",
+  "additionalWorkspaceApprovalRequired": false,
+  "normalReleaseAuthorizedAfterRequiredCI": true,
+  "genuineMarketSessionDeferred": true,
+  "requiredCINotWaived": true,
+  "realBrokerOrdersAuthorized": false,
+  "newSpendingAuthorized": false,
+  "financialProfitabilityCertified": false
+}

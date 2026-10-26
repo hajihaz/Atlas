@@ -64,3 +64,8 @@ lean-adapter/obj/
 .venv-runtime/
 .venv-research/
 /.atlas-runtime/
+
+# Private owner evidence and local dependency symlinks
+/.ai/raw/
+/.venv
+/frontend/node_modules
