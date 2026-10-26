@@ -1,7 +1,7 @@
 {
   "version": 2,
   "objective_id": "atlas-integration-20261026",
-  "updated_at": "2026-10-26T11:49:30.236627+00:00",
+  "updated_at": "2026-10-26T12:13:46.380095+00:00",
   "tasks": [
     {
       "id": "reconcile_state",
@@ -50,7 +50,7 @@
     {
       "id": "openalgo_authenticated_observer",
       "status": "blocked",
-      "reason": "Genuine local OpenAlgo analyzer service/key unavailable; existing port5000 is macOS ControlCenter.",
+      "reason": "Pinned upstream status code requires genuine authenticated broker session, not only a local install/API key. No configured session is available.",
       "depends_on": []
     },
     {
@@ -77,6 +77,37 @@
         "strategy_qualification",
         "openalgo_authenticated_observer"
       ]
+    },
+    {
+      "id": "external_gate_recovery_investigation",
+      "status": "completed",
+      "result": "Targeted credential and pinned OpenAlgo broker-session dependency checks completed; unavailable dependent branches remain parked."
+    },
+    {
+      "id": "owner_local_real_crypto_validation",
+      "status": "completed",
+      "result": {
+        "status": "COMPLETED_OWNER_LOCAL_UNQUALIFIED",
+        "symbols": [
+          "BTCINR",
+          "ETHINR"
+        ],
+        "bars_each": 719,
+        "fixed_strategy_evaluations": 10,
+        "cost_scenarios": 30,
+        "walk_forward_evaluations": 30,
+        "holdouts": 10,
+        "source_hashes_verified": true,
+        "causality_checks_passed": true,
+        "holdout_overlap": false,
+        "owner_ui_imports_verified": true,
+        "raw_data_uploaded": false,
+        "profitability_certified": false,
+        "nse_certified": false,
+        "evidence": ".ai/raw/gate-recovery-20261026/owner-report-acceptance.json",
+        "new_paper_audited_through": 35,
+        "new_forward_decisions_matched": 5
+      }
     }
   ],
   "future_backlog": [],

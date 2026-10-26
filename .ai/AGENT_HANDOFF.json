@@ -24,7 +24,7 @@
     "overall_final_acceptance": false,
     "production_changed": false
   },
-  "next_action": "No executable task remains in this finite checkpoint. Resume on changed permitted data, authenticated local observer or hosted CI entitlement evidence. Upstox stays parked until explicit activation confirmation.",
+  "next_action": "All currently available recovery actions completed. Read external gates; resume only on changed data/authentication/CI evidence. Do not replay completed crypto validation or checkpoints through35.",
   "requires_owner": true,
   "owner_gate_reason": [
     "Permitted authenticated NSE live/historical provider data; Upstox explicitly parked.",
@@ -36,11 +36,34 @@
   "continuation_required": false,
   "owner_relay_required": false,
   "do_not_repeat": [
-    "source installation",
-    "closed deadline receipt",
-    "paper checkpoints through34",
-    "completed local regression without changed code"
+    "completed source installations",
+    "closed IPO notification receipt",
+    "paper checkpoints through35",
+    "current frozen crypto validation",
+    "unchanged full code regression"
   ],
-  "exact_head_receipt": ".ai/raw/haor-consolidation-20261026/final-acceptance.json",
-  "updated_at": "2026-10-26T11:49:30.236627+00:00"
+  "exact_head_receipt": ".ai/raw/gate-recovery-20261026/final-acceptance.json",
+  "updated_at": "2026-10-26T12:13:46.380095+00:00",
+  "latest_recovery_result": {
+    "status": "COMPLETED_OWNER_LOCAL_UNQUALIFIED",
+    "symbols": [
+      "BTCINR",
+      "ETHINR"
+    ],
+    "bars_each": 719,
+    "fixed_strategy_evaluations": 10,
+    "cost_scenarios": 30,
+    "walk_forward_evaluations": 30,
+    "holdouts": 10,
+    "source_hashes_verified": true,
+    "causality_checks_passed": true,
+    "holdout_overlap": false,
+    "owner_ui_imports_verified": true,
+    "raw_data_uploaded": false,
+    "profitability_certified": false,
+    "nse_certified": false,
+    "evidence": ".ai/raw/gate-recovery-20261026/owner-report-acceptance.json",
+    "new_paper_audited_through": 35,
+    "new_forward_decisions_matched": 5
+  }
 }

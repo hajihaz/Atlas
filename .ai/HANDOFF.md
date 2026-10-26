@@ -5,3 +5,5 @@ Verified code9346be4: 720 Python plus85 subtests, zero skips;476 JS;Ruff/mypy152
 Only new checkpoints31-34 audited;20 decisions matched, no new fills;original1860 fills/losses/risk halts preserved.
 Queue: WORK_QUEUE.json. Completion proof: raw/haor-consolidation-20261026/final-acceptance.json. TURN_GATE controls final publication verification. Read git branch tip for metadata-only final head.
 Integration71/100; overall acceptance false. No optional feature loop. Upstox parked. NSE permissions/history/PIT, strategy qualification, local OpenAlgo authentication and hosted CI remain gates.
+
+Owner-local recovery complete: BTCINR/ETHINR real-source fixed-strategy cost/walk-forward/holdout research verified in actual Mac viewer. Data/results stay local; no profitability or NSE certification. Latest paper audit through35, five new decisions matched. Evidence: raw/gate-recovery-20261026/. Source code unchanged; no repeated full suite or closed notifications. External data/authentication/CI/release gates remain.

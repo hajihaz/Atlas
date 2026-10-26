@@ -37,5 +37,28 @@
     "overall_final_acceptance": false,
     "production_changed": false
   },
-  "updated_at": "2026-10-26T11:49:30.236627+00:00"
+  "updated_at": "2026-10-26T12:13:46.380095+00:00",
+  "latest_owner_authorization": "Complete remaining possible actions on Mac; park only dependencies needing owner help.",
+  "latest_recovery": {
+    "status": "COMPLETED_OWNER_LOCAL_UNQUALIFIED",
+    "symbols": [
+      "BTCINR",
+      "ETHINR"
+    ],
+    "bars_each": 719,
+    "fixed_strategy_evaluations": 10,
+    "cost_scenarios": 30,
+    "walk_forward_evaluations": 30,
+    "holdouts": 10,
+    "source_hashes_verified": true,
+    "causality_checks_passed": true,
+    "holdout_overlap": false,
+    "owner_ui_imports_verified": true,
+    "raw_data_uploaded": false,
+    "profitability_certified": false,
+    "nse_certified": false,
+    "evidence": ".ai/raw/gate-recovery-20261026/owner-report-acceptance.json",
+    "new_paper_audited_through": 35,
+    "new_forward_decisions_matched": 5
+  }
 }

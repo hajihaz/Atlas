@@ -44,3 +44,7 @@
 - [x] New checkpoints31-34 audited without mutations.
 - [x] Draft PR52 and protected preview verified; final branch-tip receipt is stored separately.
 - Remaining external gates are authoritative in WORK_QUEUE.json; optional feature additions are outside this checkpoint.
+
+- [x] Remaining credential/OpenAlgo upstream dependency recovery investigated individually.
+- [x] Real-source owner-local crypto cost, walk-forward and holdout workflow executed and viewed; all results remain unqualified.
+- [x] Only new paper checkpoint35 audited; five decisions matched, no fills added by audit.

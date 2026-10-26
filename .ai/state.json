@@ -4,7 +4,7 @@
   "project_path": "/Users/hajihaz/projects/atlas-consolidated-20261026",
   "status": "OWNER_GATE",
   "current_task": null,
-  "next_action": "No executable task remains in this finite checkpoint. Resume on changed permitted data, authenticated local observer or hosted CI entitlement evidence. Upstox stays parked until explicit activation confirmation.",
+  "next_action": "Changed external evidence only; owner-local crypto research and new checkpoint35 are verified.",
   "blocked_reason": [
     "Permitted authenticated NSE live/historical provider data; Upstox explicitly parked.",
     "Complete rights-cleared point-in-time NSE universe and minute history with timing evidence.",
@@ -15,5 +15,5 @@
   "requires_high_reasoning": false,
   "preferred_execution": "HHC_RDC_FIRST",
   "usage_policy": "LOWEST_SUFFICIENT_MODEL",
-  "updated_at": "2026-10-26T11:49:30.236627+00:00"
+  "updated_at": "2026-10-26T12:13:46.380095+00:00"
 }
