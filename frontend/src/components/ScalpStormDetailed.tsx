@@ -3,6 +3,7 @@ import { Check, Copy, Download, ExternalLink, LockKeyhole } from 'lucide-react';
 import scalpstorm from '../data/scalpstorm-campaign.json';
 import ScalpStormAllocationPlan from './ScalpStormAllocationPlan';
 import ScalpStormLedgerPanels from './ScalpStormLedgerPanels';
+import DayTraderNSEPanel from './DayTraderNSEPanel';
 
 function exportText(name: string, value: string) {
   const url = URL.createObjectURL(new Blob([value], {type:'text/plain'}));
@@ -136,5 +137,9 @@ export default function ScalpStormDetailed() {
         remains missing, so stock selection, fills, exit prices, brokerage and net P&L are not reported.
       </p>
     </div>
+    <details className="scalp-panel">
+      <summary>Offline synthetic research sandbox · invented sessions</summary>
+      <DayTraderNSEPanel/>
+    </details>
   </section>;
 }
