@@ -54,7 +54,7 @@ No new Python dependencies or network calls are required.
 
 ## Verified and unverified
 
-Verified: research implementation and 16 Python tests, 7 focused frontend tests, 29 selected frontend regression tests, TypeScript validation, and a Vite build. The broader frontend suite had 204 passes and two existing IPO freshness/valuation expectation failures; affected IPO files and tests are identical to locally recorded origin/main, and were not modified by this work.
+Locally verified on 26 October 2026: **16/16** Day Trader Python tests using Python 3.11, **206/206** frontend Node tests, TypeScript checking, and the Vite production build. Two unrelated IPO tests previously failed because their expectations depended on the wall-clock date; the suite now injects a historical evaluation instant into a backward-compatible `recommendation(..., now)` argument. Production behavior still defaults to the real clock and retains the existing stale-source and closed-offer checks. GitHub hosted CI remains red without available job-step logs, and therefore the PR is not release-certified.
 
 Not verified: authentic NSE 1-minute/5-minute data or rights; official 2026 special sessions; point-in-time full stock universe; real exchange fees/taxes/lot sizes/corporate actions; real portfolio P/L or win probabilities; Atlas paper engine integration; release testing for trading; merge, preview or production deployment.
 
