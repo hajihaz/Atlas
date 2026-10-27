@@ -66,9 +66,7 @@ if(o.side==='SELL'&&o.kind==='ENTRY'){
  if(shortLedger.stale){await skip(db,o,now,'STALE_SHORT_VALUATION');return false;}
  if(shortLedger.exposure+notional>CAPITAL){await skip(db,o,now,'SHORT_EXPOSURE_LIMIT');return false;}
 }
-const newQty=held+(o.side==='BUY'?o.qty:-o.qty),delta=o.side==='BUY'?-cost:notional-fee,
- entry=newQty===0?null:(o.kind==='ENTRY'||held===0||Math.sign(held)!==Math.sign(newQty)?px:position?.entry_paise||px),
- intraday=newQty===0?0:Number(o.kind==='ENTRY'||position?.intraday===1),execution=crypto.randomUUID();
+const execution=crypto.randomUUID();
 const shortEntry=o.side==='SELL'&&o.kind==='ENTRY';
 const shortExposureGate=shortEntry?` AND ? + COALESCE((SELECT SUM(ABS(p.qty)*q.price_paise)
  FROM positions p JOIN quotes q ON q.symbol=p.symbol WHERE p.qty<0),0)<=?`:'';
@@ -76,13 +74,14 @@ const guard="AND COALESCE((SELECT qty FROM positions WHERE symbol=?),0)=?"+
  (o.side==='BUY'?' AND (SELECT cash_paise FROM account WHERE id=1)>=?':'')+
  " AND (SELECT observed_ms FROM quotes WHERE symbol=?)=?"+shortExposureGate;
 const guardedArgs=[o.symbol,held,...(o.side==='BUY'?[cost]:[]),o.symbol,q.observed_ms,...(shortEntry?[notional,CAPITAL]:[])];
-const eligible='EXISTS(SELECT 1 FROM orders WHERE id=? AND execution_id=? AND status=\'FILLED\')';
-await db.batch([
- db.prepare(`UPDATE orders SET status='FILLED',fill_paise=?,fee_paise=?,completed_ms=?,execution_id=? WHERE id=? AND status='QUEUED' ${guard}`).bind(px,fee,now,execution,o.id,...guardedArgs),
- db.prepare(`UPDATE account SET cash_paise=cash_paise+? WHERE id=1 AND ${eligible}`).bind(delta,o.id,execution),
- db.prepare(`INSERT INTO positions(symbol,qty,entry_paise,intraday) SELECT ?,?,?,? WHERE ${eligible} ON CONFLICT(symbol) DO UPDATE SET qty=excluded.qty,entry_paise=excluded.entry_paise,intraday=excluded.intraday`).bind(o.symbol,newQty,entry,intraday,o.id,execution),
- db.prepare(`INSERT INTO events(observed_ms,type,message) SELECT ?,'PAPER_FILL',? WHERE ${eligible}`).bind(now,`${o.side} ${o.qty} ${o.symbol} · source=${q.source}`,o.id,execution),
-]);return Boolean((await row(db,'SELECT execution_id FROM orders WHERE id=?',o.id))?.execution_id===execution);
+// D1 Free allows 50 queries per invocation: the single guarded UPDATE invokes
+// atlas_settle_paper_fill, an SQLite trigger created by schema.sql. Thus a
+// simulated fill settles its cash, position, and audit row atomically without
+// issuing four separate Worker->D1 queries for every selected stock.
+const updated=await db.prepare(`UPDATE orders SET status='FILLED',fill_paise=?,fee_paise=?,
+ completed_ms=?,execution_id=? WHERE id=? AND status='QUEUED' ${guard}
+ RETURNING execution_id`).bind(px,fee,now,execution,o.id,...guardedArgs).first();
+return updated?.execution_id===execution;
 }
 async function strategyOrder(db,day,phase,symbol,side,qty,now){if(qty<1)return;const key=`${day}-${phase}-${symbol}`;
 let o=await row(db,"INSERT OR IGNORE INTO orders(id,client_key,kind,symbol,side,qty,due_ms,created_ms) VALUES(?,?,?,?,?,?,?,?) RETURNING *",crypto.randomUUID(),key,phase,symbol,side,qty,now,now);
@@ -113,8 +112,29 @@ if(t.minute===580&&enabled){
 if(t.minute===915){const positions=await rows(db,'SELECT symbol,qty FROM positions WHERE intraday=1 AND qty!=0');for(const p of positions)await strategyOrder(db,t.day,'EXIT',p.symbol,p.qty>0?'SELL':'BUY',Math.abs(p.qty),now);
 if(!(await row(db,'SELECT 1 FROM positions WHERE intraday=1 AND qty!=0 LIMIT 1')))await db.prepare("INSERT OR IGNORE INTO runs(session,phase,status,completed_ms) VALUES(?,'EXIT','EXECUTED',?)").bind(t.day,now).run();
 }}
-async function stops(db,now){if(!session(now))return;const ps=await rows(db,'SELECT * FROM positions WHERE intraday=1 AND qty!=0');for(const p of ps){const q=await quote(db,p.symbol,now);if(!q||!p.entry_paise)continue;const adverse=p.qty>0?q.price_paise*100<=p.entry_paise*98:q.price_paise*100>=p.entry_paise*102;if(adverse)await strategyOrder(db,ist(now).day,'STOP',p.symbol,p.qty>0?'SELL':'BUY',Math.abs(p.qty),now);}}
-async function tick(env,now=Date.now()){const db=env.DB;if(!db)throw Error('D1 binding missing');const pending=await rows(db,"SELECT * FROM orders WHERE status='QUEUED' AND due_ms<=? ORDER BY due_ms,id LIMIT 100",now);
+async function stops(db,now){
+ if(!session(now))return;
+ // One D1 query screens every stop against fresh quotes, rather than doing
+ // one select for positions plus one D1 read for every held symbol.
+ const hits=await rows(db,`SELECT p.symbol,p.qty FROM positions p
+ JOIN quotes q ON q.symbol=p.symbol WHERE p.intraday=1 AND p.qty!=0
+ AND p.entry_paise IS NOT NULL AND q.exchange_open=1
+ AND q.observed_ms BETWEEN ? AND ?
+ AND ((p.qty>0 AND q.price_paise*100<=p.entry_paise*98)
+   OR (p.qty<0 AND q.price_paise*100>=p.entry_paise*102))`,now-MAX_STALENESS,now+2000);
+ for(const p of hits)await strategyOrder(db,ist(now).day,'STOP',p.symbol,
+   p.qty>0?'SELL':'BUY',Math.abs(p.qty),now);
+}
+async function tick(env,now=Date.now()){
+ const db=env.DB;if(!db)throw Error('D1 binding missing');
+ // Protect the 50-query Workers Free ceiling: stop/exit/entry work takes
+ // priority over a large owner-submitted manual queue. Backlog may be SKIPPED
+ // later; it must never be silently filled from historical quotes.
+ const minute=ist(now).minute;
+ const riskOpen=await row(db,'SELECT 1 FROM positions WHERE intraday=1 AND qty!=0 LIMIT 1');
+ const queueLimit=(minute===580||minute===915)?1:(riskOpen?5:12);
+ const pending=await rows(db,`SELECT * FROM orders WHERE status='QUEUED' AND due_ms<=?
+  ORDER BY due_ms,id LIMIT ?`,now,queueLimit);
 for(const o of pending){if(now-o.due_ms>MAX_DELAY)await skip(db,o,now,'SCHEDULE_MISSED_NO_BACKFILL');else if(!session(now))await skip(db,o,now,'MARKET_CLOSED');else await fill(db,o,now);}
 await stops(db,now);const enabled=(await row(db,"SELECT value FROM settings WHERE key='strategy_enabled'"))?.value==='1';await strategyPhases(db,now,enabled);const t=ist(now);
 if(t.weekday&&t.minute>580&&enabled)await db.prepare("INSERT OR IGNORE INTO runs(session,phase,status,reason,completed_ms) VALUES(?,'ENTRY','SKIPPED','MISSED_OR_UNVERIFIED_COVERAGE',?)").bind(t.day,now).run();

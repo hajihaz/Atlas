@@ -45,3 +45,9 @@
 - Full NSE quote ingestion was optimized to cache shared ISO/IST session checks and to pack 500–4000 records into one `json_each()` D1 statement, plus one coverage update in a transactional batch. This avoids exceeding the **50 D1 query invocations** limit; individual row-write quotas and 10 ms Workers Free CPU limit still apply.
 - The order-fill path now reads quote/position/cash via one joined query and verifies the cash, holdings, timestamp, and short-exposure preconditions in its guarded settlement transaction. Protective STOP and EXIT orders are eligible for a within-window retry if a preceding attempt skipped solely for a stale quote.
 - A local D1 fixture verified the compact `json_each` UPSERT syntax, simulated paper settlement after Cron, and exactly one recorded fill. 10/10 targeted Cloudflare tests pass. Remote CPU and end-of-day 10-position exit-load certification remain pending account access / authenticated NSE feed.
+
+### Oct 27 — single-write settlement follow-up
+
+- Cloudflare D1 schema now contains an `AFTER UPDATE` ledger trigger for `QUEUED → FILLED`, replacing the separate Worker account/position/event writes. The guarded order UPDATE is the sole state-changing settlement statement.
+- Local Wrangler D1 test confirmed fee+price cash debit exactly once and an unchanged balance/audit on repeated Cron. Independent Python SQLite regression: 3 tests for replay, paper short/cover, and negative-cash rollback passed (21 Python tests total with original engine).
+- Review trigger presence and schema migration ordering carefully: deploying Worker code against a D1 schema without the trigger would cause an unbalanced virtual ledger. Schema must be applied before the new Worker is deployed. No remote deployment has occurred.

@@ -44,3 +44,11 @@ A full-universe snapshot (500–4000 symbols) is accepted only in the 09:39–09
 ## Gate / next action
 
 Cloudflare OAuth sign-in was opened on the owner's Mac, but `wrangler whoami` still reported no authorization when last checked. A verified complete NSE feed and full-session end-to-end verification remain outstanding. Production Atlas remains unchanged, and live-money orders remain disabled.
+
+### Ledger trigger verification
+
+`schema.sql` installs an `AFTER UPDATE OF status` trigger that settles the virtual ledger **only** for `QUEUED -> FILLED` order transitions with a unique execution ID. This trigger is the only writer of settled cash/positions/fill audit; the Worker must not separately debit cash after setting `FILLED`.
+
+A local Wrangler D1 replay using test-only quotes confirmed 3 simulated BUY shares at ₹155.08 plus ₹0.47 modeled fee debit ₹465.71 exactly once, one virtual position, one fill event, and no change on a second Cron call. `tests/cloud_paper/test_cloudflare_d1_trigger.py` additionally checks duplicate-fill replay, paper short/cover, and atomic rollback on insufficient virtual cash.
+
+The cloud host, authentic NSE feed, and free-tier CPU/row quota certification remain outstanding.

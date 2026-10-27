@@ -10,3 +10,40 @@ CREATE TABLE IF NOT EXISTS positions(symbol TEXT PRIMARY KEY,qty INTEGER NOT NUL
 CREATE TABLE IF NOT EXISTS coverage(session TEXT PRIMARY KEY,eligible_count INTEGER NOT NULL,observed_ms INTEGER NOT NULL,nifty_change_bps INTEGER NOT NULL,source TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS runs(session TEXT NOT NULL,phase TEXT NOT NULL,status TEXT NOT NULL,reason TEXT,completed_ms INTEGER NOT NULL,PRIMARY KEY(session,phase));
 CREATE TABLE IF NOT EXISTS events(id INTEGER PRIMARY KEY AUTOINCREMENT,observed_ms INTEGER NOT NULL,type TEXT NOT NULL,message TEXT NOT NULL);
+
+-- D1 Free: one guarded order UPDATE settles cash/position/audit atomically.
+CREATE TRIGGER IF NOT EXISTS atlas_settle_paper_fill
+AFTER UPDATE OF status ON orders
+WHEN OLD.status='QUEUED' AND NEW.status='FILLED' AND NEW.execution_id IS NOT NULL
+BEGIN
+  UPDATE account SET cash_paise=cash_paise+
+    CASE NEW.side
+      WHEN 'BUY' THEN -(NEW.qty*NEW.fill_paise+NEW.fee_paise)
+      ELSE NEW.qty*NEW.fill_paise-NEW.fee_paise
+    END
+  WHERE id=1;
+  INSERT INTO positions(symbol,qty,entry_paise,intraday)
+  VALUES (
+    NEW.symbol,
+    COALESCE((SELECT qty FROM positions WHERE symbol=NEW.symbol),0)+
+      CASE NEW.side WHEN 'BUY' THEN NEW.qty ELSE -NEW.qty END,
+    CASE
+      WHEN COALESCE((SELECT qty FROM positions WHERE symbol=NEW.symbol),0)+
+        CASE NEW.side WHEN 'BUY' THEN NEW.qty ELSE -NEW.qty END=0 THEN NULL
+      WHEN NEW.kind='ENTRY' THEN NEW.fill_paise
+      WHEN (SELECT qty FROM positions WHERE symbol=NEW.symbol) IS NULL THEN NEW.fill_paise
+      WHEN (SELECT qty FROM positions WHERE symbol=NEW.symbol)=0 THEN NEW.fill_paise
+      ELSE COALESCE((SELECT entry_paise FROM positions WHERE symbol=NEW.symbol),NEW.fill_paise)
+    END,
+    CASE
+      WHEN COALESCE((SELECT qty FROM positions WHERE symbol=NEW.symbol),0)+
+        CASE NEW.side WHEN 'BUY' THEN NEW.qty ELSE -NEW.qty END=0 THEN 0
+      WHEN NEW.kind='ENTRY' THEN 1
+      ELSE COALESCE((SELECT intraday FROM positions WHERE symbol=NEW.symbol),0)
+    END
+  ) ON CONFLICT(symbol) DO UPDATE SET
+    qty=excluded.qty,entry_paise=excluded.entry_paise,intraday=excluded.intraday;
+  INSERT INTO events(observed_ms,type,message)
+  VALUES(NEW.completed_ms,'PAPER_FILL',NEW.side||' '||NEW.qty||' '||NEW.symbol||' source='||
+    COALESCE((SELECT source FROM quotes WHERE symbol=NEW.symbol),'UNAVAILABLE'));
+END;
