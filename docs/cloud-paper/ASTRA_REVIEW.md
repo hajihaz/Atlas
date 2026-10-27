@@ -51,3 +51,12 @@
 - Cloudflare D1 schema now contains an `AFTER UPDATE` ledger trigger for `QUEUED → FILLED`, replacing the separate Worker account/position/event writes. The guarded order UPDATE is the sole state-changing settlement statement.
 - Local Wrangler D1 test confirmed fee+price cash debit exactly once and an unchanged balance/audit on repeated Cron. Independent Python SQLite regression: 3 tests for replay, paper short/cover, and negative-cash rollback passed (21 Python tests total with original engine).
 - Review trigger presence and schema migration ordering carefully: deploying Worker code against a D1 schema without the trigger would cause an unbalanced virtual ledger. Schema must be applied before the new Worker is deployed. No remote deployment has occurred.
+
+
+### 2026-10-27 D1 free-tier transaction patch for Astra
+
+- Added `atlas_settle_paper_fill` in `deployments/cloudflare-paper/schema.sql`: `UPDATE orders ... RETURNING` must atomically fire a trigger updating cash, positions and audit events. Review the status `QUEUED` -> `FILLED` guard, unique execution ID, short-exposure guard, integer-paise arithmetic, and transaction rollback.
+- Quote ingestion uses `json_each` with bound JSON rather than hundreds of D1 statements. Verify maximum input size, provider authority, eligibility counts, 50-query free ceiling, and 10 ms CPU ceiling.
+- Verified local Wrangler D1: 600 test symbols with one insert; manual BUY fill; paper SHORT ENTRY and BUY-to-cover EXIT returned holding to zero with exact ledger fees; no real orders.
+- Cron scheduling is minute-resolution and best-effort; 2% stop signals and fills are not guarantees. Protect against delayed cron, stale quotes and skipped manual-order backlogs.
+- **Owner gate unchanged:** Cloudflare OAuth still unauthorized on last `wrangler whoami`; no live Worker deployed or authorized NSE/Nifty feed connected.

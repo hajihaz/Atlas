@@ -21,6 +21,17 @@ The 09:40 signal, any stop-loss, and 15:15 exit attempt can be delayed or skippe
 7. In Atlas Vercel project's **server-side environment variables**, set `ATLAS_PAPER_BACKEND_URL=https://<deployed-worker>.workers.dev` for the preview branch. Redeploy the preview. The existing same-origin Vercel API gateway forwards owner-authorized calls and the browser does not save its credential.
 8. Before arming strategies, attach a permitted, timestamped source of the **complete eligible NSE stock universe + Nifty change**, with exchange-open/holiday attestation and a 9:40 AM volume ranking snapshot. No such feed has been connected in this PR. Do not use unauthorized exchange scrapes or invented candles.
 
+## Free-tier query-budget patch (2026-10-27)
+
+Official Cloudflare Workers Free limits currently include **50 D1 queries per invocation**, 10 ms CPU per invocation, and 100,000 Worker requests per day. The first prototype would have exceeded that D1 ceiling with 500-4000 separate quote inserts and up to 10 individual four-statement settlement batches. The implementation now:
+
+- Writes the full authenticated eligible-stock snapshot with **one parameterized SQLite `json_each` statement**, plus one coverage record statement. A local D1 statement test inserted 600 synthetic stock rows successfully.
+- Settles one eligible paper fill with **one guarded `UPDATE ... RETURNING`** and the `atlas_settle_paper_fill` SQLite trigger, which atomically updates cash, positions, and the audit event. No double execution when the same order is claimed concurrently.
+- Screens 2% paper stops with one joined D1 query, and caps pending manual-order processing per Cron invocation to protect the query budget. Large backlogs may be missed/skipped rather than misrepresented as fills.
+- Labels 9:40 entry runs `PARTIAL` whenever fewer than ten modeled positions actually fill. Neither fills nor stop-loss executions are guaranteed.
+
+**Local integration evidence:** trigger applied to D1; a fresh manual test order yielded one `FILLED` record and matching cash/position/audit rows. A paper `ENTRY` short (SELL, 2 shares) and a later paper `EXIT` buy (2 shares) yielded a zero-position ledger, with explicit modeled slippage and fees. No external NSE data or real orders were involved. These tests do not establish Cloudflare hosted CPU compliance; production free-tier telemetry and a complete-market-session validation remain necessary.
+
 ## Free quota controls
 
 A full-universe snapshot (500–4000 symbols) is accepted only in the 09:39–09:40 IST window, once per session. The validated snapshot is persisted in one SQLite `json_each()` insert plus one coverage statement inside a single D1 transactional `batch()`: two SQL statements instead of 500+ individual D1 API calls. This reduces invocation overhead but still counts each inserted row against the daily 100,000-row write quota. Ordinary quote updates are limited to 30 symbols per batch and at most one database change per symbol per 12 seconds, reducing daily D1 writes. The collector must send just the watched/held stocks outside the opening universe. Total D1 writes and Worker CPU (10 ms per invocation on Workers Free) still require monitoring: no free plan promises infinite operations or uptime.
