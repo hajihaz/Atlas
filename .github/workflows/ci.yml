@@ -43,6 +43,8 @@ jobs:
         run: |
           python -m ruff check src tests scripts
           python -m mypy src/atlas
+      - name: Verify offline cloud paper worker contracts
+        run: PYTHONPATH=src python -m unittest discover -s tests/cloud_paper -v
       - name: Run Python and PostgreSQL integration tests
         run: python -m pytest -q --disable-warnings --strict-markers
       - name: Isolated PostgreSQL logical backup and restore drill

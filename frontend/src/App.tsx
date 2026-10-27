@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import {
   Activity, ArrowRight, ArrowUpRight, Bell, ChartNoAxesCombined,
-  ChevronLeft, ChevronRight, CircleAlert, Clock3, Command, FileClock,
+  ChevronLeft, ChevronRight, CircleAlert, Clock3, Command, FileClock, CalendarClock,
   History, Layers3, LayoutDashboard, LockKeyhole, Menu, Moon,
   MoreHorizontal, ShieldCheck, Sun, X, BarChart3, BookOpenText, TrendingUp,
 } from 'lucide-react';
@@ -9,12 +9,13 @@ import RealMarketPage from './components/RealMarketPage';
 import StrategyLabPage from './components/StrategyLabPage';
 import StockWatchPage from './components/StockWatchPage';
 import PaperTrialsPage from './components/PaperTrialsPage';
+import CloudPaperPage from './components/CloudPaperPage';
 import RiskAuditPage from './components/RiskAuditPage';
 import {usePaperTrials} from './lib/usePaperTrials';
 const LiveLabPage = lazy(() => import('./components/LiveLabPage'));
 const IPOIntelligencePage = lazy(() => import('./components/IPOIntelligencePage'));
 
-type Page='live'|'overview'|'ipo'|'markets'|'strategies'|'research'|'scalpstorm'|'risk'|'orders'|'audit';
+type Page='cloud-orders'|'live'|'overview'|'ipo'|'markets'|'strategies'|'research'|'scalpstorm'|'risk'|'orders'|'audit';
 type Theme='light'|'dark';
 const THEME_KEY='atlas.theme.preference';
 function initialTheme():Theme{
@@ -30,6 +31,7 @@ const nav=[
   {id:'research',title:'Research Lab',Icon:BookOpenText},
   {id:'scalpstorm',title:'ScalpStorm X',Icon:BarChart3},
   {id:'risk',title:'Risk Center',Icon:ShieldCheck},
+  {id:'cloud-orders',title:'Cloud Paper Orders',Icon:CalendarClock},
   {id:'orders',title:'Orders & Activity',Icon:History},
   {id:'audit',title:'Audit & Evidence',Icon:FileClock},
 ] as const;
@@ -40,7 +42,7 @@ const facts=[
   {title:'Crypto public references',status:'INDICATIVE',text:'Direct INR provider observations, not guaranteed executable prices.'},
   {title:'Independent execution gate',status:'BLOCKED',text:'This public frontend cannot place orders or enable real trading.'},
 ];
-function SimplePage({page,go}:{page:Exclude<Page,'overview'|'markets'|'live'|'ipo'>;go:(next:Page)=>void}){
+function SimplePage({page,go}:{page:Exclude<Page,'overview'|'markets'|'live'|'ipo'|'cloud-orders'>;go:(next:Page)=>void}){
   const data={
     strategies:{heading:'Strategies',desc:'Strategies require verified market data, reproducible results and risk approval.',title:'No verified live strategy results',
       detail:'Historical LEAN sample returns and illustrative portfolio simulations are no longer displayed as real performance.'},
@@ -128,6 +130,7 @@ export default function App(){
         page==='ipo'?<Suspense fallback={<div className='panel market-loading' role='status'>Loading IPO research…</div>}><IPOIntelligencePage/></Suspense>:
         page==='markets'?<StockWatchPage theme={theme} goResearch={()=>go('strategies')}/>:
         page==='strategies'||page==='research'||page==='scalpstorm'?<StrategyLabPage mode={page} goRisk={()=>go('risk')}/>:
+        page==='cloud-orders'?<CloudPaperPage/>:
         page==='orders'?<PaperTrialsPage group={paper.group} statusMessage={paper.providerMessage}
           start={paper.start} pause={paper.pause} resume={paper.resume} clear={paper.clear}
           goStrategies={()=>go('strategies')}/>:
