@@ -38,7 +38,7 @@ A full-universe snapshot (500–4000 symbols) is accepted only in the 09:39–09
 
 - `node --test test/safety.test.mjs`: 3/3 tests passed.
 - `wrangler d1 execute --local --file schema.sql`: schema created.
-- Wrangler `--local --test-scheduled` seeded **synthetic local fixtures**, invoked the scheduler, confirmed one virtual BUY fill with fee and an exact cash debit, confirmed replay did not refill it, and verified stale scheduled orders transition to `SKIPPED` with `SCHEDULE_MISSED_NO_BACKFILL`.
+- Wrangler `--local --test-scheduled` seeded **synthetic local fixtures**, invoked the scheduler, confirmed one virtual BUY fill with fee and an exact cash debit, confirmed two concurrent scheduled invocations created exactly one additional virtual fill, and verified stale scheduled orders transition to `SKIPPED` with `SCHEDULE_MISSED_NO_BACKFILL`.
 - The local fixture is not a genuine NSE market observation, not cloud-hosted, not a verified simulated performance result, and not a production trade.
 
 ## Gate / next action

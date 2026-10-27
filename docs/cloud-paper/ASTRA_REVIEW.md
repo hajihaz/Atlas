@@ -28,3 +28,14 @@
 
 ## Next safe action
 - Review patch diff and unit tests, repair any fail-closed/short-accounting bugs, validate GitHub PR preview/CI. Leave owner data-feed and persistent hosting issues visible and isolated rather than inventing availability.
+
+
+## 2026-10-27 free-cloud alternative addendum (Cloudflare)
+
+- New independent backend at `deployments/cloudflare-paper/`, standalone Worker + D1 free-tier minute Cron. Do **not** run it alongside the Python SQLite engine on the same virtual trading account. This is a deployment alternative, not an activation.
+- Schema `schema.sql`; time-zone/date validation, bearer-token owner and feed separation; exact `FEED_SOURCE_ID` attestation and mandatory complete NSE stock coverage gate; D1 transactional batch with unique execution ID and position/cash guard; skipped late orders; strategy direction and minute stop/exit checks.
+- Local Wrangler tests: 3/3 JS unit checks, live local D1 virtual fill with fee/cash accounting, stale order skip/no backfill, and two concurrent Cron invocations produced exactly one additional virtual fill. No actual cloud or source-backed test yet.
+- Quota controls: once-daily full-universe snapshot at 09:39–09:40 IST, <=30 stocks ordinary updates, 12-second minimum quote persistence gap. Free-tier D1 quotas and Workers CPU still need monitored validation.
+- Owner gate: `wrangler login` OAuth opened in the Mac browser, but CLI is **not authenticated**. D1 remote create, secret injection, and deployment cannot run without completed authorization. Do not disable any protection or invent an account.
+- Integration owner gate: licensed timestamped NSE + Nifty feed not supplied, so do not activate or advertise unattended market trading. No real broker orders.
+- Astra review should specifically inspect Cloudflare D1 `batch` atomicity, concurrent cron/update race, short exposure accounting and time-of-quote-source propagation. Minute Cron + 15-second quote TTL means missed triggers must fail closed. Review account quota/exchange holiday cases before any production release.
