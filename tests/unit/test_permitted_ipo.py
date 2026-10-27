@@ -142,7 +142,7 @@ class PermittedPublisherTests(unittest.TestCase):
     def test_cached_reuse_retains_original_observation_time(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "cache.json"
-            observed = (self.now - timedelta(minutes=10)).isoformat()
+            observed = (self.now - timedelta(minutes=2)).isoformat()
             ipo.atomic(
                 path, {"attemptedAt": observed, "observedAt": observed, "data": self.feed(self.row)}
             )

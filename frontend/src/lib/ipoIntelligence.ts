@@ -154,9 +154,8 @@ export function recommendation(i:IpoIssue,stale:boolean,now=new Date()):{label:s
   if(!f.source||!f.asOf||f.revenueGrowthPct===null||f.profitMarginPct===null||f.debtEquity===null||i.subscription.total===null){
     return {label:'INSUFFICIENT EVIDENCE',reason:'Reliable fundamentals or exchange subscription observations are incomplete.',score:null,tone:'warning'};
   }
-  // Intentionally conservative: no automated APPLY on incomplete qualitative prospectus evidence.
-  const basic = (f.revenueGrowthPct>0?18:0)+(f.profitMarginPct>0?18:0)+(f.debtEquity<1?14:0)+(i.subscription.total>=1?10:0);
-  return {label:basic<25?'HIGH CAUTION':'MANUAL REVIEW',reason:'A quantified preliminary screen only. Valuation, governance, RHP risks and loss tolerance must be checked before investing.',score:basic,tone:'neutral'};
+  // Verified inputs alone do not constitute a calibrated investment forecast.
+  return {label:'MANUAL REVIEW',reason:'Source financials are available. Valuation, governance, RHP risks and loss tolerance still require review; Atlas has no calibrated return forecast.',score:null,tone:'neutral'};
 }
 export function applicationBudgetPlan(i:IpoIssue,budgetINR:number):{
   lotValue:number;minimumLots:number;minimumCapital:number;affordableLots:number;

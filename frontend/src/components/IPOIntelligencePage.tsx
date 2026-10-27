@@ -1,7 +1,7 @@
 import BackgroundIpoAlerts from './BackgroundIpoAlerts';
 import IpoIssuerResearch from './IpoIssuerResearch';
 import {mergeIssuerReviews} from '../lib/ipoIssuerResearch';
-import {useCallback,useEffect,useMemo,useState} from 'react';
+import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowUpRight,BellRing,CalendarDays,CheckCircle2,Clock3,ExternalLink,Info,Search,ShieldAlert,TrendingUp,Wallet,X} from 'lucide-react';
 import {ApplicationState,Board,EMPTY_FEED,effectiveStatus,feedAgeMinutes,formatInr,indiaToday,issueSourceStale,issueDataFresh,subscriptionDataFresh,recentGmp,browserDeadlineCandidates,officialAllotmentLinks,IpoFeed,IpoIssue,IpoAccuracy,minimumApplication,applicationBudgetPlan,mergePrimaryResearch,recommendation,validFeed} from '../lib/ipoIntelligence';
 import '../ipo.css';
@@ -29,14 +29,15 @@ function Detail({issue,stale,tracking,setTracking,onClose}:{issue:IpoIssue;stale
   const currentGmp=recentGmp(issue,stale);
   const currentDemand=subscriptionDataFresh(issue,stale);
   const total=minimumApplication(issue);
-  const [budget,setBudget]=useState('250000');
-  const plan=applicationBudgetPlan(issue,Number(budget));
+  const [budget,setBudget]=useState('');
+  const plan=budget.trim()?applicationBudgetPlan(issue,Number(budget)):null;
   return <section className="ipo-detail panel" aria-label="IPO issue details">
     <div className="ipo-detail-top"><div><div className="ipo-eyebrow">ISSUE RESEARCH • {issue.board}</div><h2>{issue.company}</h2><p>{issue.id} · {effectiveStatus(issue)} · Opens {dateLabel(issue.openDate)} · Closes {dateLabel(issue.closeDate)}{issue.mandateDeadline?' · UPI mandate by '+new Date(issue.mandateDeadline).toLocaleTimeString('en-IN',{timeZone:'Asia/Kolkata',hour:'numeric',minute:'2-digit'} )+' IST':''}</p></div><button className="ipo-close" onClick={onClose} aria-label="Close details"><X size={20}/></button></div>
     {issue.sourceKind==='PUBLISHER_AGGREGATE'&&<p className="ipo-small-notice">Publisher calendar observed {issue.sourceObservedAt}; publisher record last modified {issue.sourceUpdatedAt||'unknown'}. Demand and GMP expire separately; this is not independent exchange verification.</p>}
     {!issueDataFresh(issue,stale)&&<div className="ipo-disclosure">This issue record was last observed on {issue.sourceObservedAt||'an earlier snapshot'}. Its source is stale or unavailable; verify directly with the exchange before acting.</div>}
     <div className="ipo-detail-stats"><div><small>Price band</small><strong>{formatInr(issue.priceMin)} – {formatInr(issue.priceMax)}</strong></div><div><small>Reported subscription</small><strong>{currentDemand?multiple(issue.subscription.total):'Stale · unavailable'}</strong></div><div><small>Minimum indicative bid</small><strong>{formatInr(total)}</strong><small>{issue.board==='SME'?'At least 2 lots, strictly above ₹2 lakh; verify issuer rules':'1 lot, verify category and broker rules'}</small></div></div>
-    <div className="ipo-recommend"><div><span>ATLAS DECISION SUPPORT</span><h3>{decision.label}</h3><p>{decision.reason}</p></div><span className="ipo-score">{decision.score===null?'NOT SCORED':decision.score+'/100'}</span></div>
+    <div className="ipo-recommend"><div><span>ATLAS DECISION SUPPORT</span><h3>{decision.label}</h3><p>{decision.reason}</p></div><span className="ipo-score">SOURCE REVIEW</span></div>
+    <div className="ipo-small-notice"><strong>Atlas expected return: unavailable.</strong> A calibrated issuer model and a forecast locked before listing are required before Atlas can quote an expected gain. GMP-implied premiums and the publisher’s reported listing outcomes are shown separately below; they are not an Atlas forecast.</div>
     <div className="ipo-details-grid"><div className="ipo-metric-box"><h3>Subscription demand</h3>{([['QIB',issue.subscription.qib],['NII',issue.subscription.nii],['Retail',issue.subscription.retail],['SME individual',issue.subscription.individual],['Total',issue.subscription.total]] as const).map(([label,val])=><div key={label}><span>{label}</span><strong>{currentDemand?multiple(val):'Stale'}</strong></div>)}</div>
     <div className="ipo-metric-box"><h3>Grey market and fundamentals</h3><div><span>Unofficial GMP</span><strong>{currentGmp?formatInr(currentGmp.gmp):issue.gmp===null?'Not quoted':'Quote stale'}</strong></div>
     <div><span>GMP timestamp</span><strong>{currentGmp?new Date(currentGmp.asOf).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',dateStyle:'short',timeStyle:'short'}):'Unavailable / expired'}</strong></div>
@@ -62,7 +63,7 @@ function Detail({issue,stale,tracking,setTracking,onClose}:{issue:IpoIssue;stale
     <div className='ipo-actions-row'>{issue.rhpUrl&&<a href={issue.rhpUrl} target='_blank' rel='noopener noreferrer' className='ipo-source-link'>Official NSE red herring prospectus <ExternalLink size={15}/></a>}{issue.priceJustificationUrl&&<a href={issue.priceJustificationUrl} target='_blank' rel='noopener noreferrer' className='ipo-source-link'>Official price justification <ExternalLink size={15}/></a>}</div>
     <section className="ipo-plan"><div><div className="ipo-eyebrow">APPLICATION PLANNER · NOT AN ORDER</div><h3>Check lot size and capital</h3><p>Models Mainboard retail or SME individual applications only. Verify lot sizes, category limits, cut-off price and current exchange rules before bidding.</p></div><div className="ipo-plan-input"><label htmlFor={'ipo-budget-'+issue.id}>Available budget (₹)</label><input id={'ipo-budget-'+issue.id} type="number" min="0" max="1000000000" step="1000" value={budget} onChange={e=>setBudget(e.target.value)}/></div>
       {plan?<div className="ipo-plan-results"><div><small>One lot (issue price upper band)</small><strong>{formatInr(plan.lotValue)}</strong></div><div><small>Indicative minimum</small><strong>{plan.minimumLots} lots · {formatInr(plan.minimumCapital)}</strong></div><div><small>{issue.board==='MAINBOARD'?'Mainboard retail lots (₹2 lakh cap)':'SME individual lots within budget'}</small><strong>{plan.affordableLots.toLocaleString('en-IN')}</strong></div><div><small>Budget test</small><strong className={plan.fitsMinimum?'ipo-gain':'ipo-loss'}>{plan.fitsMinimum?'FITS INDICATIVE MINIMUM':'BELOW INDICATIVE MINIMUM'}</strong></div></div>:<p className="ipo-small-notice">Lot size/price or budget is unavailable or invalid; Atlas cannot calculate a valid application amount.</p>}
-      {plan?.fitsMinimum&&<div className="ipo-plan-scenarios"><span>At maximum whole lots affordable: {plan.quantity.toLocaleString('en-IN')} shares, indicative blocked funds {formatInr(plan.indicativeOutlay)}.</span><span>Illustrative listing move +10%: {formatInr(plan.indicativeOutlay*0.10)} before charges; −10%: −{formatInr(plan.indicativeOutlay*0.10)}. These are scenarios, not forecasts, and assume allotment and liquidity.</span></div>}
+
       <p className="ipo-small-notice">Allotment is never guaranteed. Mainboard retail is capped at ₹2 lakh; NII/HNI bidding has different rules. More lots do not automatically improve a Mainboard retail applicant's lottery odds. Use one valid application per PAN/category, complete the UPI mandate in time, and do not use another person's identity without their authorization.</p>
     </section>
     {issue.news.length>0&&<section className="ipo-news"><div><h3>IPO news coverage</h3><p>Recent publisher headlines indexed by Google News; claims not verified by Atlas. Read the original before relying on any opinion.</p></div>{issue.news.map((story,index)=><a key={story.url+index} href={/^https:\/\/news\.google\.com\/rss\/articles\//.test(story.url)?story.url:'https://news.google.com/'} target="_blank" rel="noopener noreferrer" className="ipo-news-row"><span><strong>{story.title}</strong><small>{story.source} · {new Date(story.publishedAt).toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata',day:'numeric',month:'short',year:'numeric'})}</small></span><ExternalLink size={15}/></a>)}</section>}
@@ -82,22 +83,26 @@ export default function IPOIntelligencePage(){
   const [primaryResearch,setPrimaryResearch]=useState<unknown>(null);
   const [issuerReviews,setIssuerReviews]=useState<unknown>(null);
   const [notifications,setNotifications]=useState(typeof Notification==='undefined'?'unsupported':Notification.permission);
+  const request=useRef<AbortController|null>(null),busy=useRef(false),alive=useRef(true),hasSnapshot=useRef(false);
   const load=useCallback(async()=>{
-    setLoading(true);
+    if(busy.current||document.hidden)return;
+    busy.current=true;const controller=new AbortController();request.current=controller;
+    const timeout=window.setTimeout(()=>controller.abort(),10000);
+    if(!hasSnapshot.current)setLoading(true);
     try{
-      const candidates:IpoFeed[]=[];
-      for(const url of ['/api/ipo-feed','/ipo-feed.json']){
-        try{const response=await fetch(url+'?refresh='+Date.now(),{cache:'no-store'});if(!response.ok)continue;
-          const data:unknown=await response.json();if(validFeed(data))candidates.push(data);}catch{/* try the dated fallback */}
-      }
-      if(!candidates.length)throw new Error('IPO feed unavailable');
+      const received=await Promise.allSettled(['/api/ipo-feed','/ipo-feed.json'].map(async url=>{
+        const r=await fetch(url,{cache:'no-store',credentials:'omit',signal:controller.signal});
+        if(!r.ok)throw Error();const data:unknown=await r.json();if(!validFeed(data))throw Error();return data;
+      }));
+      const candidates=received.flatMap(r=>r.status==='fulfilled'?[r.value]:[]);
+      if(!candidates.length)throw Error('Latest update delayed; the dated snapshot remains visible.');
       const newest=candidates.sort((a,b)=>Date.parse(b.generatedAt||'')-Date.parse(a.generatedAt||''))[0];
-      setFeed(previous=>feedAgeMinutes(previous)<feedAgeMinutes(newest)?previous:newest);setError('');
-    }
-    catch(e){setError(e instanceof Error?e.message:'Cannot load IPO feed');setFeed(EMPTY_FEED);}
-    finally{setLoading(false);}
+      if(alive.current&&request.current===controller){setFeed(previous=>feedAgeMinutes(previous)<feedAgeMinutes(newest)?previous:newest);hasSnapshot.current=true;setError('');}
+    }catch(e){if(alive.current&&request.current===controller&&!controller.signal.aborted)setError(e instanceof Error?e.message:'Source update delayed.');}
+    finally{window.clearTimeout(timeout);if(request.current===controller){busy.current=false;if(alive.current)setLoading(false);}}
   },[]);
-  useEffect(()=>{void load();const id=window.setInterval(()=>void load(),10*60*1000);return()=>window.clearInterval(id);},[load]);
+  useEffect(()=>{alive.current=true;void load();const timer=window.setInterval(()=>void load(),60000);const visible=()=>{if(!document.hidden)void load();};document.addEventListener('visibilitychange',visible);
+    return()=>{alive.current=false;busy.current=false;request.current?.abort();window.clearInterval(timer);document.removeEventListener('visibilitychange',visible);};},[load]);
   useEffect(()=>{let canceled=false;(async()=>{try{const r=await fetch('/ipo-accuracy.json',{cache:'no-store'});if(!r.ok)return;const d:unknown=await r.json();if(!d||typeof d!=='object')return;const v=d as IpoAccuracy;if(v.schemaVersion!==1||v.license!=='CC BY 4.0'||!Array.isArray(v.rows)||!v.source.startsWith('https://gmptoday.in/'))return;if(!canceled)setAccuracy(v);}catch{/* optional third-party audit */}})();return()=>{canceled=true;};},[]);
   useEffect(()=>{let canceled=false;(async()=>{try{const r=await fetch('/ipo-primary-research.json',{cache:'no-store'});if(!r.ok)return;const data:unknown=await r.json();if(!canceled)setPrimaryResearch(data);}catch{/* issuer disclosure research optional */}})();return()=>{canceled=true;};},[]);
   useEffect(()=>{const controller=new AbortController();(async()=>{try{
@@ -125,14 +130,14 @@ export default function IPOIntelligencePage(){
   },[issues,notifications,stale]);
   const current=issues.find(i=>i.id===selected)||null;
   const statItems=[{count:counts.open,label:'Open for bidding',Icon:CalendarDays},{count:counts.upcoming,label:'Upcoming issues',Icon:Clock3},{count:counts.sme,label:'SME records (incl. stale)',Icon:Wallet},{count:counts.closing,label:'Closing today',Icon:BellRing}];
-  return <section className="ipo-page"><div className="ipo-hero"><div><div className="ipo-eyebrow"><TrendingUp size={15}/> ATLAS • PRIMARY MARKET INTELLIGENCE</div><h1>IPO Intelligence<span className="ipo-accent">.</span></h1><p>Track Mainboard and SME offers. See attributed calendars, reported demand, research gaps and application dates in one place.</p></div><div className="ipo-hero-tools"><button onClick={()=>void load()} type="button" className="ipo-source-link">{loading?'Refreshing…':'Refresh snapshot'} <ArrowUpRight size={15}/></button><button type="button" onClick={()=>void enableReminders()} disabled={notifications==='granted'||notifications==='unsupported'} className="ipo-alert-button"><BellRing size={16}/>{notifications==='granted'?'Browser alerts enabled':notifications==='unsupported'?'Browser alerts unavailable':'Enable browser reminders'}</button></div></div>
+  return <section className="ipo-page"><div className="ipo-hero"><div><div className="ipo-eyebrow"><TrendingUp size={15}/> ATLAS • PRIMARY MARKET INTELLIGENCE</div><h1>IPO Intelligence<span className="ipo-accent">.</span></h1><p>Track Mainboard and SME offers. See attributed calendars, reported demand, research gaps and application dates in one place.</p></div><div className="ipo-hero-tools"><span className="ipo-local-note">Updates automatically</span><button type="button" onClick={()=>void enableReminders()} disabled={notifications==='granted'||notifications==='unsupported'} className="ipo-alert-button"><BellRing size={16}/>{notifications==='granted'?'Browser alerts enabled':notifications==='unsupported'?'Browser alerts unavailable':'Enable browser reminders'}</button></div></div>
     <div className="ipo-freshness"><span className={stale?'ipo-stale':'ipo-current'}>{stale?'STALE / UNVERIFIED NOW':feed.sourceKind==='PUBLISHER_AGGREGATE'?'PUBLISHER SNAPSHOT':'EXCHANGE SNAPSHOT'}</span><span>{feed.generatedAt?new Date(feed.generatedAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',dateStyle:'medium',timeStyle:'short'})+' IST':'No verified snapshot available'}</span><span>Source: {feed.sourceName}</span><span>Browser reminders need Atlas open. Background alerts need device setup, fresh source data and the Mac online.</span></div>
-    <div className="ipo-stat-grid">{statItems.map(({count,label,Icon})=><div key={label} className="ipo-stat panel"><Icon size={20}/><strong>{error?'—':count}</strong><span>{label}</span></div>)}</div>
+    <div className="ipo-stat-grid">{statItems.map(({count,label,Icon})=><div key={label} className="ipo-stat panel"><Icon size={20}/><strong>{hasSnapshot.current?count:'—'}</strong><span>{label}</span></div>)}</div>
     {feed.sourceKind==='PUBLISHER_AGGREGATE'&&<div className="ipo-disclosure"><Info size={17}/><span>{feed.disclaimer} Calendar and demand are publisher aggregates. {feed.attributions?.map(a=><span key={a.url}><a href={a.url} target="_blank" rel="noopener noreferrer">{a.name}</a>{' · '}</span>)}{' '}Coverage is limited to tracked, dated, non-conflicted records. Exact bid and UPI cutoffs require issuer confirmation.</span></div>}
     <BackgroundIpoAlerts/>
     <QualityNote/>
     <div className="ipo-toolbar"><div><h2>IPO watchlist</h2><p>Attributed source snapshots; publisher aggregates require exchange or issuer confirmation.</p></div><div className="ipo-filters"><label className="ipo-search"><Search size={16}/><input aria-label="Search IPOs" placeholder="Search company" value={term} onChange={e=>setTerm(e.target.value)}/></label><select value={board} onChange={e=>setBoard(e.target.value as Board|'ALL')} aria-label="Filter IPO board"><option value="ALL">All boards</option><option value="MAINBOARD">Mainboard</option><option value="SME">SME</option></select><select value={status} onChange={e=>setStatus(e.target.value as typeof status)} aria-label="Filter IPO status"><option value="ALL">All stages</option><option value="OPEN">Open</option><option value="UPCOMING">Upcoming</option><option value="CLOSED">Closed</option></select></div></div>
-    {error&&<div role="alert" className="ipo-error"><ShieldAlert size={18}/> {error}. No fabricated prices or recommendations are shown.</div>}
+    {error&&<p className="ipo-small-notice" role="status">{error} The source timestamp above identifies the retained snapshot.</p>}
     <div className="ipo-list">{rows.length?rows.map(i=>{const d=recommendation(i,stale);const quote=recentGmp(i,stale);return <button type="button" key={i.id} className={'ipo-row panel '+(selected===i.id?'selected':'')} onClick={()=>setSelected(i.id)}><div className="ipo-company"><span className="ipo-company-logo">{i.company[0]}</span><div><strong>{i.company}</strong><small>{i.id} <span>•</span> {i.board==='SME'?'SME':'Mainboard'}</small></div></div><div className="ipo-cell"><small>Price band</small><strong>{i.priceMax?formatInr(i.priceMin)+' – '+formatInr(i.priceMax):'Not verified'}</strong></div><div className="ipo-cell"><small>Demand</small><strong>{subscriptionDataFresh(i,stale)?multiple(i.subscription.total):'Unavailable / stale'}</strong></div><div className="ipo-cell"><small>Unofficial GMP</small><strong>{quote?formatInr(quote.gmp)+(quote.disputed?' ⚠':''):i.gmp===null?'Not quoted':'Quote stale'}</strong></div><div className="ipo-cell"><small>Closes</small><strong>{dateLabel(i.closeDate)}</strong></div><div className="ipo-cell"><small>Atlas assessment</small><strong className="ipo-review">{d.label}</strong></div><ArrowUpRight className="ipo-list-arrow" size={17}/></button>}):<div className="ipo-empty panel"><Info size={25}/><h3>{loading?'Checking sources…':'No verified matching IPO issues'}</h3><p>{board==='SME'?'No SME issue matches this filter. BSE coverage may be delayed; verify directly on the exchange.':'Try another filter. Atlas never creates placeholder IPO records.'}</p><a href="https://www.bsesme.com/PublicIssues/PublicIssues.aspx?id=2" target="_blank" rel="noopener noreferrer">Check BSE SME official listings <ExternalLink size={14}/></a></div>}</div>
     {current&&<Detail issue={current} stale={stale} tracking={tracking[current.id]} setTracking={setTracking} onClose={()=>setSelected(null)}/>}
     <ListingAccuracy accuracy={accuracy}/>

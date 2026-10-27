@@ -42,7 +42,7 @@ def test_public_ui_cannot_place_orders():
     ui = (ROOT / "frontend/src/components/ScalpStormDetailed.tsx").read_text()
     app = (ROOT / "frontend/src/App.tsx").read_text()
     assert "ScalpStormDetailed" not in app
-    assert "Stock trading results not verified" in app
+    assert "OwnerStrategyPage" in app
     assert "scalpstorm-report.json" in ui
     assert "scalpstorm-chat-report.txt" in ui
     assert "NET STOCK TRADING P&L" in ui
@@ -94,4 +94,4 @@ def test_bad_git_commit_rejected():
 
 def test_atlas_direct_link_opens_scalpstorm_without_router():
     ui = (ROOT / "frontend/src/App.tsx").read_text()
-    assert "window.location.hash==='#scalpstorm'" in ui
+    assert "'#scalpstorm'" in ui

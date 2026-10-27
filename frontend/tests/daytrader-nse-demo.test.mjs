@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {validateDayTraderDemo} from '../src/lib/daytraderResearch.js';
 
-const fixture=JSON.parse(readFileSync(new URL('../public/daytrader-nse-demo.json',import.meta.url),'utf8'));
+const fixture=JSON.parse(readFileSync(new URL('./fixtures/archived-daytrader-nse-demo.json',import.meta.url),'utf8'));
 const modified=changes=>structuredClone({...fixture,...changes});
 
 test('offline published snapshot strictly labeled synthetic-only and exactly 20 sessions',()=>{

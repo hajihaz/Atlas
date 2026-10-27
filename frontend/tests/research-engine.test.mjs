@@ -1,6 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
 import {MODELED_CAPITAL_INR,STRATEGIES,runAllStrategies,runSimulation,decision,validateResearchBars} from '../lib/research-engine.js';
 import handler,{getLab} from '../api/strategy-lab.js';
 
@@ -52,48 +51,18 @@ test('simulation does not silently force a final liquidation or claim broker res
  assert.ok(run.equity.every(x=>Number.isFinite(x.equityINR)));
  assert.ok(run.wins<=run.closedTrades);
 });
-test('provider-backed strategy endpoint returns all strategy names and source provenance',async()=>{
- const fake=async ({symbol,range})=>({
-  schema:1,currency:'INR',symbol,range,realOrdersEnabled:false,
-  paperExecutionEnabled:false,source:'CoinDCX public INR spot candles',
-  generatedAt:'2026-10-19T12:00:00Z',earliestAvailable:'2026-10-01T00:00:00Z',
-  latestClosedAt:'2026-10-19T11:00:00Z',coverage:'provider_observations',
-  completeHistoryVerified:false,warning:'source only',candles:bars,
- });
- const result=await getLab({symbol:'BTCINR',range:'1M'},fake);
- assert.equal(result.strategies.length,5);
- assert.equal(result.simulatedCapitalINR,100000);
- assert.equal(result.currency,'INR');
- assert.equal(result.paperOrdersExecuted,false);
- assert.equal(result.paperLedgerStored,false);
- assert.equal(result.liveOrdersEnabled,false);
+test('active catalog exposes only owner protocol and never calls archived replay providers',async()=>{
+ let called=false;const result=await getLab({},async()=>{called=true;throw Error();});
+ assert.equal(called,false);assert.equal(result.strategies.length,1);
+ const rule=result.strategies[0];assert.equal(rule.id,'scalpstorm_x_0940');
+ assert.equal(rule.entryIST,'09:40');assert.equal(rule.exitIST,'15:15');
+ assert.equal(rule.results,null);assert.equal(result.realOrdersEnabled,false);
 });
-test('unavailable historical provider does not fabricate returns',async()=>{
- const fake=async ({symbol,range})=>({
-  schema:1,currency:'INR',symbol,range,realOrdersEnabled:false,
-  paperExecutionEnabled:false,source:'CoinDCX public INR spot candles',
-  generatedAt:'2026-10-19T12:00:00Z',earliestAvailable:null,latestClosedAt:null,
-  coverage:'unavailable',completeHistoryVerified:false,warning:'no bars',candles:[],
- });
- const r=await getLab({},fake);
- assert.equal(r.barCount,0);
- assert.ok(r.strategies.every(x=>x.status==='insufficient_history'));
- assert.ok(r.strategies.every(x=>x.modeledReturnPct===undefined));
-});
-test('reject untrusted input and any execution/mutation HTTP methods',async()=>{
- await assert.rejects(getLab({symbol:'NSE:RELIANCE'}),/unsupported/);
+test('retired market queries and all mutation methods are refused',async()=>{
+ await assert.rejects(getLab({symbol:'BTCINR'}),/unsupported/);
  const response={status(n){this.code=n;return this},setHeader(k,v){this[k]=v},json(x){return x}};
- const r=await handler({method:'POST',query:{symbol:'BTCINR'},body:{side:'BUY'}},response);
- assert.equal(response.code,405);assert.equal(response.Allow,'GET');
- assert.equal(r.error,'method_not_allowed');
+ const r=await handler({method:'POST',query:{},body:{side:'BUY'}},response);
+ assert.equal(response.code,405);assert.equal(response.Allow,'GET');assert.equal(r.error,'method_not_allowed');
  const r2=await handler({method:'GET',query:{symbol:'HACK'}},response);
  assert.equal(response.code,400);assert.equal(r2.error,'unsupported_market_or_period');
-});
-
-test('Strategy Lab makes incomplete provider history visible rather than claiming certification',()=>{
- const component=readFileSync(new URL('../src/components/StrategyLabPage.tsx',import.meta.url),'utf8');
- assert.match(component,/Full requested history NOT verified/);
- assert.match(component,/lab\.providerWarning/);
- assert.match(component,/missing dates,/);
- assert.match(component,/lab\.dataCompleteVerified/);
 });

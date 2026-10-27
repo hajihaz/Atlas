@@ -3,11 +3,10 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {assessPaperCadence} from '../src/lib/paperCadence.js';
 const at=x=>Date.parse(x);
-test('two new UTC candle slots are +35 and +80 minutes, without extra runs',()=>{
+test('retired comparisons have no automatic schedule; archived cadence remains inspectable',()=>{
  const workflow=readFileSync(new URL('../../.github/workflows/atlas-paper-scheduled.yml',import.meta.url),'utf8');
- assert.match(workflow,/cron:\s*'35 0-22\/2 \* \* \*'/);
- assert.match(workflow,/cron:\s*'20 1-23\/2 \* \* \*'/);
- assert.equal((workflow.match(/- cron:/g)||[]).length,2);
+ assert.doesNotMatch(workflow,/cron:/);
+ assert.match(workflow,/workflow_dispatch:/);
  const state=assessPaperCadence('2026-10-19T22:37:32Z',at('2026-10-20T00:14:00Z'));
  assert.equal(state.nextDueAt,'2026-10-20T00:35:00.000Z');
  assert.equal(state.overdue,true); // Prior +70-minute window passed without new ledger

@@ -313,7 +313,7 @@ def cached_fetch(url, cache_path, *, now=None, opener=None):
     cached = json.loads(cache_path.read_text()) if cache_path.exists() else {}
     last_attempt = stamp(cached.get("attemptedAt"))
     observed = stamp(cached.get("observedAt"))
-    if observed and 0 <= (now - observed).total_seconds() < 3600 and cached.get("data"):
+    if observed and 0 <= (now - observed).total_seconds() < 300 and cached.get("data"):
         return cached["data"], cached["observedAt"]
     if last_attempt and (now - last_attempt).total_seconds() < 60:
         if observed and 0 <= (now - observed).total_seconds() <= 3 * 3600 and cached.get("data"):

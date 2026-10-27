@@ -44,7 +44,11 @@ class PublicReportPublisherTests(unittest.TestCase):
                     self.assertRaises(ValueError),
                 ):
                     publisher.assert_approved_code()
-                with patch.object(publisher, "git", return_value="AGENTS.md\n.ai/HANDOFF.md"):
+                with patch.object(
+                    publisher,
+                    "git",
+                    return_value="AGENTS.md\n.ai/HANDOFF.md\n.ai/AGENT_HANDOFF.json",
+                ):
                     self.assertEqual(publisher.assert_approved_code(), "a" * 40)
 
     def test_unknown_push_that_reached_origin_is_reconciled_without_replay(self):
@@ -187,3 +191,28 @@ class PublicReportPublisherTests(unittest.TestCase):
         self.assertIsNotNone(
             publisher.checkpoint_plan(previous, {}, datetime(2026, 10, 25, 8, 5, tzinfo=UTC))
         )
+
+    def test_active_publisher_refreshes_ipo_without_running_retired_paper(self):
+        with tempfile.TemporaryDirectory() as folder:
+            state = Path(folder)
+            published = state / "published"
+            published.mkdir()
+            (published / "cloud-paper.json").write_text(
+                json.dumps({"lastRunAt": "2026-10-25T06:05:10Z"})
+            )
+            with (
+                patch.object(publisher, "STATE", state),
+                patch.object(publisher, "PUBLISHED", published),
+                patch.object(publisher, "prepare_state"),
+                patch.object(publisher, "assert_approved_code", return_value="a" * 40),
+                patch.object(publisher, "checkpoint_plan") as plan,
+                patch.object(publisher, "run", return_value="updated") as run,
+                patch.object(publisher, "validate_artifacts"),
+                patch.object(publisher, "publish", return_value={"status": "published"}),
+            ):
+                publisher.cycle()
+            plan.assert_not_called()
+            run.assert_called_once_with(
+                [publisher.PYTHON, str(publisher.ROOT / "scripts/update_permitted_ipo.py")],
+                timeout=45,
+            )

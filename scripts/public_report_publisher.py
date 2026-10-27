@@ -28,8 +28,8 @@ PUBLISHED = STATE / "published"
 BRANCH = "data/atlas-runtime"
 REF = "refs/heads/" + BRANCH
 NODE = "/opt/homebrew/opt/node@24/bin/node"
-PYTHON = str(ROOT / ".venv-runtime/bin/python")
-LABEL = "com.hajihaz.atlas.report-publisher"
+PYTHON = str(ROOT / ".venv/bin/python")
+LABEL = "com.hajihaz.atlas.ipo-publisher"
 PATHS = frozenset(
     {
         "frontend/public/cloud-paper.json",
@@ -90,7 +90,7 @@ def assert_approved_code():
     if approval.get("codeSha") != head or approval.get("branch") != BRANCH:
         raise ValueError("Publisher code changed; exact-head verification required")
     dirty = git("diff", "--name-only", head).splitlines()
-    if set(dirty) - {"AGENTS.md", ".ai/HANDOFF.md"}:
+    if set(dirty) - {"AGENTS.md", ".ai/HANDOFF.md", ".ai/AGENT_HANDOFF.json"}:
         raise ValueError("Tracked application changes require verification before publication")
     return head
 
@@ -274,7 +274,7 @@ def checkpoint_plan(previous, schedule, now):
     return {"windowClosedAt": window, "attempts": attempts + 1, "lastAttemptAt": now.isoformat()}
 
 
-def cycle():
+def cycle(*, include_retired_paper=False):
     prepare_state()
     lock_path = STATE / "report-publisher.lock"
     if lock_path.is_symlink():
@@ -293,7 +293,9 @@ def cycle():
         if schedule_path.is_symlink():
             raise ValueError("Unsafe checkpoint attempt journal")
         schedule = json.loads(schedule_path.read_text()) if schedule_path.exists() else {}
-        plan = checkpoint_plan(old, schedule, datetime.now(UTC))
+        # The active owner service refreshes IPO research only. Old comparison
+        # checkpoints remain available to explicitly invoked archived research.
+        plan = checkpoint_plan(old, schedule, datetime.now(UTC)) if include_retired_paper else None
         if plan:
             # Reserve before network I/O; restarts cannot create a retry burst.
             atomic(schedule_path, plan)
@@ -325,7 +327,7 @@ def install(verified_sha):
     if verified_sha != code_head() or len(verified_sha) != 40:
         raise ValueError("Verified exact code SHA is required")
     dirty = git("diff", "--name-only", verified_sha).splitlines()
-    if set(dirty) - {"AGENTS.md", ".ai/HANDOFF.md"}:
+    if set(dirty) - {"AGENTS.md", ".ai/HANDOFF.md", ".ai/AGENT_HANDOFF.json"}:
         raise ValueError("Commit and verify application changes before installing")
     atomic(
         STATE / "publisher-approval.json",
