@@ -14,10 +14,10 @@ The 09:40 signal, any stop-loss, and 15:15 exit attempt can be delayed or skippe
 
 1. Open a free Cloudflare account, complete `npx wrangler login`, and verify `npx wrangler whoami`. This account was **not** connected when this implementation was prepared.
 2. From `deployments/cloudflare-paper`, run `npx wrangler d1 create atlas-free-cloud-paper` on the free tier. Inspect any displayed pricing **before provisioning**. Do not purchase upgrades.
-3. Add a `[[d1_databases]]` block in `wrangler.toml` using the returned UUID, with `binding = "DB"` and `database_name = "atlas-free-cloud-paper"`.
-4. Run `npx wrangler d1 execute atlas-free-cloud-paper --remote --file schema.sql` to install the D1 schema.
+3. The remote D1 binding now exists in `wrangler.toml` (`binding = "DB"`, APAC database); keep the stable UUID in source control, not credentials.
+4. The remote D1 schema has been installed and verified, using `npx wrangler d1 execute atlas-free-cloud-paper --remote --file schema.sql`.
 5. Provision two different randomly generated >=32-character secrets with `npx wrangler secret put OWNER_TOKEN` and `npx wrangler secret put FEED_TOKEN`. Add `npx wrangler secret put FEED_SOURCE_ID` only for the exact validated, licensed NSE feed adapter. **Never** store these in Git, frontend bundles, chat, or screenshots.
-6. Run `npx wrangler deploy`, then read `/healthz`. Confirm `/api/cloud-paper/state` without authorization returns 401. Cloudflare runs the `* * * * *` cron server-side. Inspect usage limits and pause if daily capacity would be exceeded.
+6. `npx wrangler deploy` has published the Worker and `* * * * *` Cron. Confirm `/healthz` and `/api/cloud-paper/state` externally after network propagation, then inspect free-tier usage. Do not arm until a licensed source is present.
 7. In Atlas Vercel project's **server-side environment variables**, set `ATLAS_PAPER_BACKEND_URL=https://<deployed-worker>.workers.dev` for the preview branch. Redeploy the preview. The existing same-origin Vercel API gateway forwards owner-authorized calls and the browser does not save its credential.
 8. Before arming strategies, attach a permitted, timestamped source of the **complete eligible NSE stock universe + Nifty change**, with exchange-open/holiday attestation and a 9:40 AM volume ranking snapshot. No such feed has been connected in this PR. Do not use unauthorized exchange scrapes or invented candles.
 
@@ -55,7 +55,7 @@ A full-universe snapshot (500–4000 symbols) is accepted only in the 09:39–09
 
 ## Gate / next action
 
-Cloudflare OAuth sign-in was opened on the owner's Mac, but `wrangler whoami` still reported no authorization when last checked. A verified complete NSE feed and full-session end-to-end verification remain outstanding. Production Atlas remains unchanged, and live-money orders remain disabled.
+Cloudflare Wrangler OAuth was authorized on 2026-10-27. The D1 database was created in APAC, migrated, and the free Worker deployed to `https://atlas-free-cloud-paper.kuddosahib.workers.dev` with minute Cron. The protected API still needs separately provisioned owner/feed secrets and an authorized, timestamped NSE/Nifty source; the Upstox app page currently requires owner OTP login. Hosted authenticated endpoint and full NSE-market-session checks remain pending. Atlas production remains unchanged; live-money orders are never enabled.
 
 ### Ledger trigger verification
 

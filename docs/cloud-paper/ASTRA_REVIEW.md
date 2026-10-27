@@ -72,3 +72,13 @@ Added pure `deployments/cloudflare-paper/src/upstox-adapter.js` to map one authe
 - `deployments/cloudflare-paper/src/index.js` now prevents treating proceeds from paper short sales as spendable buying power for unrelated BUYs; reserved gross short entry proceeds are checked in the same atomic guarded settlement update as the cash balance. Short-covering BUYs remain possible; an order trying to reverse a short into a long is rejected.
 - SQLite-backed Node tests in `deployments/cloudflare-paper/test/short-collateral.test.mjs` verify overspend SKIPPED, short cover, reversal denial, normal buy, complete ten-stock 09:40 long and short strategies, a 15:15 short cover, and per-invocation D1 query budget. All values are synthetic.
 - Note: Reserved entry-price proceeds do **not** equal real brokerage margin, and the price/adverse gap risk remains; do not treat this ledger as an exchange-certified trading simulator. The free Cron service is still undeployed until Cloudflare OAuth and licensed NSE/Nifty feed gates are cleared.
+
+
+## 2026-10-27 Cloudflare deployment status (public Worker, no feed)
+
+- Authenticated Wrangler using official Cloudflare device OAuth; credentials stored encrypted with key in macOS Keychain.
+- Created Cloudflare Free D1 in APAC, deployed `schema.sql` (8 tables) with no orders, and published `atlas-free-cloud-paper` on `kuddosahib.workers.dev` with once-per-minute Cron. D1 binding UUID tracked in `wrangler.toml`; there are **no hard-coded credentials**.
+- Required `OWNER_TOKEN` and `FEED_TOKEN` Worker secrets were **not configured** during this run. Treat all protected API routes as unavailable; do not enable strategy until secure tokens, host reachability, and authorized NSE/Nifty feed are proven.
+- Upstox Developer Apps redirected to mobile OTP login; do not bypass login or claim market-data rights. Official Upstox V3 quote API requires a bearer token, maximum 500 instrument keys per request, and standard tokens expire at 03:30 IST the following day. Atlas provider adapter remains unconnected.
+- Cloudflare Worker endpoint did not pass HTTPS handshake from the connected Mac at initial smoke; inspect propagation and external connectivity before calling it healthy. Vercel backend URL is scoped to the Atlas PR Preview environment only, not Production.
+- No real-money orders, live market quotes, purchases, or billing-plan upgrades. GitHub Actions still have external billing gating.
