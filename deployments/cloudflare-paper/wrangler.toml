@@ -1,0 +1,11 @@
+name = "atlas-free-cloud-paper"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+# Bind an actual D1 database after Cloudflare owner login and database creation:
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "atlas-free-cloud-paper"
+# database_id = "<from wrangler d1 create>"
+[triggers]
+crons = ["* * * * *"]
