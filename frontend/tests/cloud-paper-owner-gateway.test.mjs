@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import handler from '../api/cloud-paper/[...segments].js';
+import handler from '../api/cloud-paper.js';
 const reply=()=>({headers:{},statusCode:200,setHeader(k,v){this.headers[k]=v;return this},
  status(n){this.statusCode=n;return this},json(data){this.body=data;return this}});
-const req=(segments,method='GET',authorization='')=>({query:{segments},method,
+const req=(segments,method='GET',authorization='')=>({query:{action:Array.isArray(segments)?segments.join('/'):segments},method,
  headers:{authorization,'content-type':'application/json'},body:{enabled:true}});
 
 test('gateway unconfigured status remains visibly disabled',async()=>{

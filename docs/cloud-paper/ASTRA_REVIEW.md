@@ -3,7 +3,7 @@
 ## Objective and current evidence
 - Owner approved persistent Groww-style scheduled **paper** orders with independent 24/7 worker and 09:40 IST NSE volume strategy. Real-money brokerage routes stay categorically disabled.
 - Implementation branch: `haor/atlas-offline-cloud-paper-20261027`, forked from `origin/main` (56a4095). Existing Atlas main and other in-flight worktrees untouched.
-- Source: `src/atlas/cloud_paper/{engine,server}.py`, authenticated same-origin owner proxy at `frontend/api/cloud-paper/[...segments].js`, UI `frontend/src/components/CloudPaperPage.tsx`, persistent-container build `deployments/cloud-paper/Dockerfile`.
+- Source: `src/atlas/cloud_paper/{engine,server}.py`, authenticated same-origin owner proxy at `frontend/api/cloud-paper.js`, UI `frontend/src/components/CloudPaperPage.tsx`, persistent-container build `deployments/cloud-paper/Dockerfile`.
 - Owner-only API requires distinct secret tokens for order control and private quote ingestion. Credentials are not bundled or stored by the browser. Owner-token proxy deliberately cannot ingest quotes.
 - SQLite WAL + BEGIN IMMEDIATE serializes work and survives process restarts on a **persistent** volume; scheduled single-shot orders have client idempotency keys. Skip, never backfill stale/missed orders.
 - Verified gates: dated ISO-8601 schedule, market hours, fresh trusted source quote <=15 s, full authenticated 500+ eligible stock snapshot before ranked entries, Nifty directional signal ±0.2%, neutral no trade, 10 positions with ₹10k each notional, 2% stop, exits at 15:15 IST, no synthetic pricing in production, source-gated INR mark-to-market, integer paise + modeled 10 bps fees / 5 bps adverse slippage.

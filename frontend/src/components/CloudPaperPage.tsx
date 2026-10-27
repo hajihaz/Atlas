@@ -31,7 +31,7 @@ export default function CloudPaperPage(){
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),12000);
   try{
-   const response=await fetch(`${API}/${path}`,{
+   const response=await fetch(CUSTOM_API?`${API}/${path}`:`${API}?action=${encodeURIComponent(path)}`,{
     method,mode:'cors',cache:'no-store',credentials:'omit',signal:controller.signal,
     headers:{'Authorization':`Bearer ${token}`,...(body?{'Content-Type':'application/json'}:{})},
     ...(body?{body:JSON.stringify(body)}:{})
@@ -44,7 +44,7 @@ export default function CloudPaperPage(){
  useEffect(()=>{
   if(CUSTOM_API)return;
   let current=true;
-  fetch('/api/cloud-paper/status',{cache:'no-store',credentials:'omit'})
+  fetch('/api/cloud-paper?action=status',{cache:'no-store',credentials:'omit'})
    .then(async r=>r.ok?await r.json():null)
    .then(data=>{if(current)setConfigured(data?.mode==='PAPER_ONLY' && data?.realOrdersEnabled===false && data?.configured===true)})
    .catch(()=>{if(current)setConfigured(false)});

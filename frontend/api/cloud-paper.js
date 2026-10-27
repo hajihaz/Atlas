@@ -13,8 +13,9 @@ function baseURL() {
 export default async function handler(req,res) {
   res.setHeader('Cache-Control','private, no-store, max-age=0');
   res.setHeader('X-Content-Type-Options','nosniff');
-  const value=req.query?.segments;
-  const path=Array.isArray(value)?value.join('/'):value;
+  // Static Vite projects on Vercel use /api/cloud-paper.js as the Function;
+  // subpath wildcard functions are not registered in this deployment layout.
+  const path=req.query?.action;
   if(!Object.hasOwn(allowed,path))return res.status(404).json({error:'not_found'});
   if(!allowed[path].includes(req.method)){
     res.setHeader('Allow',allowed[path].join(', '));
