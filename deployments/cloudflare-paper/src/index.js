@@ -44,7 +44,12 @@ if(cv)statements.push(db.prepare(`INSERT INTO coverage(session,eligible_count,ob
  ist(normalized[0].observed).day,normalized.length,normalized[0].observed,cv.nifty_change_bps,sourceName));
 await db.batch(statements);
 return {accepted:normalized.length,realOrdersEnabled:false};}
-async function skip(db,order,now,reason){await db.batch([db.prepare("UPDATE orders SET status='SKIPPED',completed_ms=?,reason=? WHERE id=? AND status='QUEUED'").bind(now,reason,order.id),log(db,now,'SKIP',`${order.id} ${reason}`)]);}
+async function skip(db,order,now,reason){
+// The D1 trigger writes the SKIP event only when the guarded state transition
+// succeeds. Competing cron invocations cannot generate duplicate skip audits.
+await db.prepare("UPDATE orders SET status='SKIPPED',completed_ms=?,reason=? WHERE id=? AND status='QUEUED'")
+ .bind(now,reason,order.id).run();
+}
 async function fill(db,o,now){if(o.status!=='QUEUED')return false;
 // One joined D1 read gives source, position and cash snapshot; the UPDATE guard
 // below re-checks these values atomically so concurrent cron jobs cannot double-fill.

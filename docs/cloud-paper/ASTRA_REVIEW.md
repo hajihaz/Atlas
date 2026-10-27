@@ -60,3 +60,8 @@
 - Verified local Wrangler D1: 600 test symbols with one insert; manual BUY fill; paper SHORT ENTRY and BUY-to-cover EXIT returned holding to zero with exact ledger fees; no real orders.
 - Cron scheduling is minute-resolution and best-effort; 2% stop signals and fills are not guarantees. Protect against delayed cron, stale quotes and skipped manual-order backlogs.
 - **Owner gate unchanged:** Cloudflare OAuth still unauthorized on last `wrangler whoami`; no live Worker deployed or authorized NSE/Nifty feed connected.
+
+
+## Upstox provider candidate (2026-10-27)
+
+Added pure `deployments/cloudflare-paper/src/upstox-adapter.js` to map one authenticated V3 500-equity snapshot + Nifty quote to D1 ingest. Fails closed for missing instrument, old source timestamps, stale top-10 price trades, unverified access, or Nifty benchmark mismatch. Only a nominated 500-stock eligible subset, NOT the entire NSE market, may be ranked. No token, live quote access or trading API has been connected. V3 provider limit is 500/request. Before activation, audit data redistribution/contractual use, provider token refresh, full eligible-universe selection, quote receipt timing vs last-trade timing, and holidays.

@@ -47,3 +47,13 @@ BEGIN
   VALUES(NEW.completed_ms,'PAPER_FILL',NEW.side||' '||NEW.qty||' '||NEW.symbol||' source='||
     COALESCE((SELECT source FROM quotes WHERE symbol=NEW.symbol),'UNAVAILABLE'));
 END;
+
+-- Exactly one SKIP audit entry for each QUEUED -> SKIPPED transition,
+-- even when multiple cron invocations concurrently inspect the same order.
+CREATE TRIGGER IF NOT EXISTS atlas_record_paper_skip
+AFTER UPDATE OF status ON orders
+WHEN OLD.status='QUEUED' AND NEW.status='SKIPPED'
+BEGIN
+  INSERT INTO events(observed_ms,type,message)
+  VALUES(NEW.completed_ms,'SKIP',NEW.id||' '||COALESCE(NEW.reason,'UNSPECIFIED'));
+END;

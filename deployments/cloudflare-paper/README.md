@@ -63,3 +63,11 @@ Cloudflare OAuth sign-in was opened on the owner's Mac, but `wrangler whoami` st
 A local Wrangler D1 replay using test-only quotes confirmed 3 simulated BUY shares at ₹155.08 plus ₹0.47 modeled fee debit ₹465.71 exactly once, one virtual position, one fill event, and no change on a second Cron call. `tests/cloud_paper/test_cloudflare_d1_trigger.py` additionally checks duplicate-fill replay, paper short/cover, and atomic rollback on insufficient virtual cash.
 
 The cloud host, authentic NSE feed, and free-tier CPU/row quota certification remain outstanding.
+
+## Optional Upstox V3 quote normalization (no live connection)
+
+`src/upstox-adapter.js` is a tested pure transformation of one already-authorized Upstox V3 `GET /v3/market-quote/quotes` response of exactly **500** eligible NSE equities plus a separately sourced Nifty 50 quote. It verifies exact instrument-token matches, source timestamps, complete universe, fresh top-10 last trades, prices/volume, and benchmark direction before emitting the existing Atlas D1 feed schema. No bearer token, API calls, actual quote data, licensed rights, or feed credentials have been added.
+
+The upstream API returns at most 500 instruments per request. Consequently this first adapter only supports a *declared 500-stock eligible universe*, **not all listed NSE stocks**; it must never be presented as an exchange-wide ranking. `observed_at` is the authenticated collector's common receipt time for that one snapshot, not the exchange's last-trade timestamp, and recent last-trade times are validated separately for ranked candidates. An authorized collector must verify NSE market status/holidays and contractual permission to use market data for this independent paper system.
+
+Official API: https://upstox.com/developer/api-documentation/get-full-market-quote-v3/ . Run `node --test test/*.test.mjs`. More comprehensive market coverage would require rights-approved multi-batch aggregation and audited timestamp-skew gating before enabling automated entries.
