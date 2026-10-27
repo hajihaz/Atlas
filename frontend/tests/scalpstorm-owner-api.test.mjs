@@ -48,3 +48,17 @@ test('private owner reports refuse public permissions and symlink replacements',
  await rm(file);await writeFile(file,JSON.stringify(report()),{mode:0o600});await chmod(folder,0o755);
  assert.equal((await fetch(base+'/api/scalpstorm-owner')).status,503);
 });
+
+test('independent audit remains private, dated and read-only',async t=>{
+ const {base,folder}=await fixture(t);
+ const audit={schema:'atlas.scalpstorm-audit.v1',strategyId:'scalpstorm_x_0940',
+  paperOnly:true,realOrdersEnabled:false,actualCapitalINR:0,
+  accountingVerified:true,sessionAccepted:false,openPositions:5};
+ await writeFile(path.join(folder,'scalpstorm-audit.json'),JSON.stringify(audit),{mode:0o600});
+ const r=await fetch(base+'/api/scalpstorm-audit',{headers:{Origin:base}});
+ assert.equal(r.status,200);assert.equal(r.headers.get('cache-control'),'no-store');
+ assert.equal((await r.json()).sessionAccepted,false);
+ assert.equal((await fetch(base+'/api/scalpstorm-audit',{headers:{Origin:'https://example.org'}})).status,403);
+ assert.equal((await fetch(base+'/api/scalpstorm-audit',{method:'POST'})).status,405);
+ assert.equal((await fetch(base+'/api/scalpstorm-audit?date=../../x')).status,400);
+});

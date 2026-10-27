@@ -82,6 +82,7 @@ export function createLocalApiServer({serveBuild=false,readOnly=false,
     }
     if(rawPath==='/api/scalpstorm-owner'){await handleOwnerStrategy(request,response,ownerRoot);return;}
     if(rawPath==='/api/scalpstorm-history'){await handleOwnerStrategy(request,response,ownerRoot,'history');return;}
+    if(rawPath==='/api/scalpstorm-audit'){await handleOwnerStrategy(request,response,ownerRoot,'audit');return;}
     if(rawPath==='/api/nse-market'){await handleNseMarket(request,response,ownerRoot);return;}
     if(rawPath==='/api/nse-paper'){await handleNsePaper(request,response,ownerRoot);return;}
     if(rawPath==='/api/ipo-push'){

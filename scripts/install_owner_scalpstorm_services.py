@@ -89,6 +89,11 @@ def main() -> int:
             True,
         ),
         (
+            "com.hajihaz.atlas.scalpstorm-audit",
+            [python, str(ROOT / "scripts/audit_scalpstorm_session.py"), "--state-dir", str(state)],
+            False,
+        ),
+        (
             "com.hajihaz.atlas.ipo-source",
             [python, str(ROOT / "scripts/update_permitted_ipo.py")],
             False,
@@ -139,7 +144,11 @@ def main() -> int:
         if label.endswith("scalpstorm-history"):
             job["StartCalendarInterval"] = {"Hour": 8, "Minute": 30}
         else:
-            job.update({"KeepAlive": True} if keep else {"StartInterval": 300})
+            job.update(
+                {"KeepAlive": True}
+                if keep
+                else {"StartInterval": 60 if label.endswith("scalpstorm-audit") else 300}
+            )
         path.write_bytes(plistlib.dumps(job))
         path.chmod(0o600)
         launch("enable", domain + "/" + label)

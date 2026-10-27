@@ -38,6 +38,23 @@ def archive_input(state_dir: Path, inp: dict, ranking_saved: set[str]) -> None:
     save_snapshot(folder / (str(stamp) + ".json"), receipt)
 
 
+def archive_processing(state_dir: Path, inp: dict, now: int, before_head: str) -> None:
+    if not inp.get("market", {}).get("marketOpen"):
+        return
+    folder = state_dir / "scalpstorm-processing" / inp["observedAt"][:10]
+    private_directory(folder)
+    save_snapshot(
+        folder / (str(now) + ".json"),
+        {
+            "schema": "atlas.scalpstorm-processing.v1",
+            "processedAt": now,
+            "beforeLedgerHead": before_head,
+            "sourceObservedAt": inp["observedAt"],
+            "inputSHA256": digest(inp),
+        },
+    )
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--state-dir", type=Path, required=True)
@@ -68,6 +85,7 @@ def main() -> int:
                     inp = json.loads(file.read_text())
                     if inp.get("observedAt") != last_archived:
                         archive_input(args.state_dir, inp, ranking_saved)
+                        archive_processing(args.state_dir, inp, now, store.load()[1])
                         last_archived = inp.get("observedAt")
                     store.advance(inp, now)
                 except (ValueError, KeyError, TypeError, OSError):

@@ -29,11 +29,13 @@ export async function handleOwnerStrategy(req,res,root,kind='strategy'){
   const directory=await lstat(folder);
   if(!directory.isDirectory()||directory.isSymbolicLink()||(directory.mode&0o077)||directory.uid!==process.getuid())throw Error();
   const file=kind==='history'?path.join(folder,'scalpstorm-history.json'):
+    kind==='audit'?(date?path.join(folder,'scalpstorm-audits',date+'.json'):path.join(folder,'scalpstorm-audit.json')):
     date?path.join(folder,'scalpstorm-days',date+'.json'):path.join(folder,'scalpstorm-owner.json');
   const data=await privateOwnerJson(file);
-  const expected=kind==='history'?'atlas.scalpstorm-history.v1':'atlas.scalpstorm-owner-report.v1';
+  const expected=kind==='history'?'atlas.scalpstorm-history.v1':kind==='audit'?'atlas.scalpstorm-audit.v1':'atlas.scalpstorm-owner-report.v1';
   if(data.schema!==expected||data.realOrdersEnabled!==false||data.actualCapitalINR!==0)throw Error();
-  if(kind!=='history'&&(data.strategyId!=='scalpstorm_x_0940'||data.paperOnly!==true||data.ledgerVerified!==true||!Array.isArray(data.days)||!Array.isArray(data.positions)))throw Error();
+  if(kind==='audit'&&(data.strategyId!=='scalpstorm_x_0940'||data.paperOnly!==true||typeof data.accountingVerified!=='boolean'||typeof data.sessionAccepted!=='boolean'))throw Error();
+  if(kind==='strategy'&&(data.strategyId!=='scalpstorm_x_0940'||data.paperOnly!==true||data.ledgerVerified!==true||!Array.isArray(data.days)||!Array.isArray(data.positions)))throw Error();
   res.end(JSON.stringify(data));
  }catch{end(503,{error:kind==='history'?'owner_history_unavailable':'owner_strategy_unavailable'});}
 }

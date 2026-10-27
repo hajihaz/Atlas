@@ -43,3 +43,13 @@ Atlas expected returns and numerical confidence are unavailable without a calibr
 The IPO-only publisher defaults to no retired comparison checkpoints and requires an exact verified application commit before installation. The data branch has bounded public artifacts and disables Vercel builds.
 
 Production remains gated on actual required hosted CI at the exact release commit. Local tests and preview checks do not substitute for those checks. Do not upgrade billing, weaken protection or forge CI status to pass the gate.
+
+## Independent session acceptance
+
+The read-only `audit_scalpstorm_session.py` job independently replays cash, fees, collateral, locked proceeds and positions from a consistent SQLite snapshot. It cannot submit orders or change the account. The native audit job runs once per minute while the Mac is awake and online.
+
+Before an open-market paper mutation, the worker saves a processing receipt binding the exact source-input hash, processing time and preceding ledger head. The auditor checks source class, fresh subsequent trades, spread, visible liquidity capacity, modeled execution price, entry allocation, timed full-universe ranking and frozen Nifty direction.
+
+Session acceptance requires a flat starting account, genuine entries and matching exits, a completed session, and valid source receipts for every decision/fill group. Accounting verification alone is insufficient. Operational acceptance does not qualify profitability. The private Risk & Sources view shows the independent result.
+
+Missing receipts from the first session remain missing permanently. Closed-market quotes cannot close unresolved positions, and the audit job cannot manufacture a source book or a fill. The existing engine retries remaining positions only in its permitted genuine-market exit windows.
