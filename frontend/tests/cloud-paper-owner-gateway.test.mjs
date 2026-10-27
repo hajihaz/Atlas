@@ -42,3 +42,23 @@ test('gateway forwards only authorized private owner calls over configured HTTPS
  }finally{globalThis.fetch=saved;if(old===undefined)delete process.env.ATLAS_PAPER_BACKEND_URL;
   else process.env.ATLAS_PAPER_BACKEND_URL=old}
 });
+
+test('gateway verifies live worker readiness rather than URL alone',async()=>{
+ const previous=process.env.ATLAS_PAPER_BACKEND_URL,oldFetch=globalThis.fetch;
+ process.env.ATLAS_PAPER_BACKEND_URL='https://paper.example';
+ let calls=0;
+ globalThis.fetch=async (url)=>{
+  calls++;assert.equal(url,'https://paper.example/healthz');
+  return {ok:true,headers:{get:()=> 'application/json'},json:async()=>({
+   mode:'PAPER_ONLY',realOrdersEnabled:false,backendConnected:true,configured:false,feedSourceConfigured:false})};
+ };
+ try{
+  const res=reply();await handler(req('status'),res);
+  assert.equal(res.statusCode,200);assert.equal(res.body.backendConnected,true);
+  assert.equal(res.body.configured,false);assert.equal(res.body.realOrdersEnabled,false);
+  assert.equal(calls,1);
+ }finally{globalThis.fetch=oldFetch;
+  if(previous===undefined)delete process.env.ATLAS_PAPER_BACKEND_URL;
+  else process.env.ATLAS_PAPER_BACKEND_URL=previous;
+ }
+});

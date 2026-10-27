@@ -22,7 +22,19 @@ export default async function handler(req,res) {
     return res.status(405).json({error:'method_not_allowed'});
   }
   const base=baseURL();
-  if(path==='status')return res.status(200).json({configured:base!==null,mode:'PAPER_ONLY',realOrdersEnabled:false});
+  if(path==='status'){
+    const safe={configured:false,backendConnected:false,feedSourceConfigured:false,
+      mode:'PAPER_ONLY',realOrdersEnabled:false};
+    if(base===null)return res.status(200).json(safe);
+    try{
+      const health=await fetch(base+'/healthz',{cache:'no-store',redirect:'error',signal:AbortSignal.timeout(5000)});
+      if(!health.ok||!health.headers.get('content-type')?.startsWith('application/json'))return res.status(200).json(safe);
+      const data=await health.json();
+      if(data.mode!=='PAPER_ONLY'||data.realOrdersEnabled!==false)return res.status(200).json(safe);
+      return res.status(200).json({...safe,backendConnected:data.backendConnected===true,
+        feedSourceConfigured:data.feedSourceConfigured===true,configured:data.configured===true&&data.backendConnected===true});
+    }catch{return res.status(200).json(safe)}
+  }
   if(base===null)return res.status(503).json({error:'cloud_paper_not_configured'});
   if(typeof req.headers.authorization!=='string'||!/^Bearer [^\s]{32,256}$/.test(req.headers.authorization))
     return res.status(401).json({error:'unauthorized'});

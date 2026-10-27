@@ -27,6 +27,7 @@ export default function CloudPaperPage(){
  const [notice,setNotice]=useState('');
  const [error,setError]=useState('');
  const [configured,setConfigured]=useState(Boolean(CUSTOM_API));
+ const [backendConnected,setBackendConnected]=useState(false);
  const request=useCallback(async (path:string,method:'GET'|'POST'='GET',body?:object)=>{
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),12000);
@@ -46,7 +47,7 @@ export default function CloudPaperPage(){
   let current=true;
   fetch('/api/cloud-paper?action=status',{cache:'no-store',credentials:'omit'})
    .then(async r=>r.ok?await r.json():null)
-   .then(data=>{if(current)setConfigured(data?.mode==='PAPER_ONLY' && data?.realOrdersEnabled===false && data?.configured===true)})
+   .then(data=>{if(current){setConfigured(data?.mode==='PAPER_ONLY' && data?.realOrdersEnabled===false && data?.configured===true);setBackendConnected(data?.backendConnected===true)}})
    .catch(()=>{if(current)setConfigured(false)});
   return ()=>{current=false};
  },[]);
@@ -98,7 +99,7 @@ export default function CloudPaperPage(){
    <strong>PAPER ONLY · ZERO BROKER ORDERS</strong>
    <p>Automatic simulated fills require fresh, source-timestamped NSE quotes and an authenticated server. Missed schedules are skipped, never backfilled. No fabricated profits.</p>
   </div></div>
-  {!configured?<div className="panel cloud-paper-unavailable"><Cloud size={30}/><h2>Cloud worker not connected to this deployment</h2>
+  {!configured?<div className="panel cloud-paper-unavailable"><Cloud size={30}/><h2>{backendConnected?'Cloud worker hosted — private activation pending':'Cloud worker not connected to this deployment'}</h2>
    <p>Infrastructure and verified NSE market-data access must be configured. This public dashboard does not pretend to execute unattended orders.</p>
    <span className="cloud-paper-pill">DEPLOYMENT GATE · PRIVATE CLOUD WORKER + VERIFIED NSE FEED</span></div>:
   !connected?<div className="panel cloud-paper-connect"><LockKeyhole size={26}/><h2>Private paper account</h2>

@@ -73,3 +73,18 @@ test('portfolio overview aggregates 75 symbols within Workers Free query budget'
  assert.equal(state.equity_paise,10750000);
  assert.ok(queries<=10,`Queried D1 ${queries} times; Free quota is 50`);
 });
+
+test('hosted D1 without owner/feed secrets is not ready for paper orders',async()=>{
+ const a=await worker.fetch(new Request('https://paper.example/healthz'),{DB:{}});
+ const status=await a.json();
+ assert.equal(status.backendConnected,true);
+ assert.equal(status.configured,false);
+ assert.equal(status.feedSourceConfigured,false);
+ assert.equal(status.realOrdersEnabled,false);
+ const b=await worker.fetch(new Request('https://paper.example/healthz'),{
+  DB:{},OWNER_TOKEN:'O'.repeat(64),FEED_TOKEN:'F'.repeat(64),FEED_SOURCE_ID:'LICENSED_FIXTURE'});
+ const enabled=await b.json();
+ assert.equal(enabled.configured,true);
+ assert.equal(enabled.feedSourceConfigured,true);
+ assert.equal(enabled.realOrdersEnabled,false);
+});

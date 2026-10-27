@@ -180,7 +180,10 @@ if(t.weekday&&t.minute>915&&await row(db,'SELECT 1 FROM positions WHERE intraday
 return {processed:pending.length,strategy_enabled:enabled,realOrdersEnabled:false};}
 export const testing={ist,session,parseDate,tick,schedule,ingest,overview,strategyPhases,fill};
 export default {
- async fetch(req,env){const path=new URL(req.url).pathname,now=Date.now();if(path==='/healthz')return reply({mode:'PAPER_ONLY',service:'atlas-free-cloud-paper',configured:Boolean(env.DB)});if(!env.DB)return reply({error:'D1_NOT_CONNECTED'},503);
+ async fetch(req,env){const path=new URL(req.url).pathname,now=Date.now();if(path==='/healthz')return reply({mode:'PAPER_ONLY',service:'atlas-free-cloud-paper',
+ realOrdersEnabled:false,backendConnected:Boolean(env.DB),
+ configured:Boolean(env.DB&&typeof env.OWNER_TOKEN==='string'&&env.OWNER_TOKEN.length>=32&&typeof env.FEED_TOKEN==='string'&&env.FEED_TOKEN.length>=32),
+ feedSourceConfigured:Boolean(env.FEED_SOURCE_ID)});if(!env.DB)return reply({error:'D1_NOT_CONNECTED'},503);
  const actions={'/api/cloud-paper/state':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/strategy':'POST','/api/cloud-paper/quotes':'POST'};
  if(!Object.hasOwn(actions,path))return reply({error:'NOT_FOUND'},404);if(req.method!==actions[path])return reply({error:'METHOD_NOT_ALLOWED'},405);
  if(!authorized(req,path.endsWith('/quotes')?env.FEED_TOKEN:env.OWNER_TOKEN))return reply({error:'UNAUTHORIZED'},401);
