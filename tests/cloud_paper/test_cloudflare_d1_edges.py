@@ -14,7 +14,8 @@ class D1SettlementAdditionalEdgeTests(unittest.TestCase):
         self.db = sqlite3.connect(":memory:")
         self.db.executescript(SCHEMA.read_text())
         self.db.execute(
-            """INSERT INTO quotes(symbol,price_paise,cumulative_volume,observed_ms,source,exchange_open)
+            """INSERT INTO quotes(symbol,price_paise,cumulative_volume,observed_ms,
+               source,exchange_open)
                VALUES('TESTNSE',10000,5000,1000000,'UNIT_TEST_ONLY',1)"""
         )
 

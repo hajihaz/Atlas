@@ -51,3 +51,25 @@ test('reject stale, forged-source and partial large-universe snapshots before SQ
  await assert.rejects(testing.ingest(db,{quotes:qs},now,'AUTHORIZED_FEED'),/capped at 30/);
  assert.equal(writes,0);
 });
+
+test('portfolio overview aggregates 75 symbols within Workers Free query budget', async()=>{
+ const now=ist('2026-10-27','10:01:00');
+ const positions=Array.from({length:75},(_,i)=>({symbol:`ST${String(i).padStart(4,'0')}`,qty:1}));
+ let queries=0;
+ const db={prepare(sql){queries++;return {bind(){return this},async all(){
+   if(sql.includes('FROM orders'))return {results:[]};
+   if(sql.includes('FROM events'))return {results:[]};
+   if(sql.includes('FROM positions'))return {results:positions};
+   throw Error(`Unexpected overview list query: ${sql}`);
+ },async first(){
+   if(sql.includes('FROM account'))return {cash_paise:10000000};
+   if(sql.includes('FROM settings'))return {value:'0'};
+   if(sql.includes('FROM runs'))return null;
+   if(sql.includes('SUM(p.qty*q.price_paise)'))return {holdings_paise:750000,stale_count:0};
+   throw Error(`Unexpected overview read: ${sql}`);
+ }}}};
+ const state=await testing.overview(db,now);
+ assert.equal(state.positions.length,75);
+ assert.equal(state.equity_paise,10750000);
+ assert.ok(queries<=10,`Queried D1 ${queries} times; Free quota is 50`);
+});

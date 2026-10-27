@@ -13,9 +13,27 @@ function parseDate(text){if(typeof text!=='string'||!/^\d{4}-\d\d-\d\dT/.test(te
 function authorized(req,token){if(typeof token!=='string'||token.length<32)return false;const a=new TextEncoder().encode(req.headers.get('Authorization')||''),b=new TextEncoder().encode('Bearer '+token);if(a.length!==b.length)return false;let n=0;for(let i=0;i<a.length;i++)n|=a[i]^b[i];return n===0;}
 async function readBody(req){if(req.headers.get('content-type')?.split(';')[0]!=='application/json')throw Error('JSON content-type required');const text=await req.text();if(text.length>2000000)throw Error('body too large');const payload=JSON.parse(text);if(!payload||typeof payload!=='object'||Array.isArray(payload))throw Error('invalid JSON object');return payload;}
 function fresh(q,now){return q&&q.exchange_open===1&&session(now)&&q.observed_ms<=now+2000&&now-q.observed_ms<=MAX_STALENESS;}
-const quote=(db,s,now)=>row(db,'SELECT * FROM quotes WHERE symbol=?',s).then(q=>fresh(q,now)?q:null);
-async function overview(db,now){const account=await row(db,'SELECT cash_paise FROM account WHERE id=1');const orders=await rows(db,'SELECT id,kind,symbol,side,qty,due_ms,status,fill_paise,fee_paise,reason FROM orders ORDER BY created_ms DESC,id DESC LIMIT 100');const positions=await rows(db,'SELECT symbol,qty FROM positions WHERE qty!=0 ORDER BY symbol');const events=await rows(db,'SELECT * FROM events ORDER BY id DESC LIMIT 40');const strategy=(await row(db,"SELECT value FROM settings WHERE key='strategy_enabled'"))?.value==='1';const phase=await row(db,'SELECT * FROM runs ORDER BY completed_ms DESC LIMIT 1');let equity=account.cash_paise;for(const p of positions){const q=await quote(db,p.symbol,now);if(!q){equity=null;break;}equity+=p.qty*q.price_paise;}
-return {mode:'PAPER_ONLY',realOrdersEnabled:false,cash_paise:account.cash_paise,equity_paise:equity,positions,orders:orders.map(o=>({...o,due_at:dateStr(o.due_ms)})),events:events.map(e=>({...e,observed_at:dateStr(e.observed_ms)})),strategy_enabled:strategy,strategy:'NSE_TOP_VOLUME_0940_EXIT_1515',last_strategy_phase:phase?{status:phase.status,reason:phase.reason,completed_at:dateStr(phase.completed_ms)}:null,server_time:dateStr(now),market_session:session(now)};}
+async function overview(db,now){
+ const account=await row(db,'SELECT cash_paise FROM account WHERE id=1');
+ const orders=await rows(db,'SELECT id,kind,symbol,side,qty,due_ms,status,fill_paise,fee_paise,reason FROM orders ORDER BY created_ms DESC,id DESC LIMIT 100');
+ const positions=await rows(db,'SELECT symbol,qty FROM positions WHERE qty!=0 ORDER BY symbol');
+ const events=await rows(db,'SELECT * FROM events ORDER BY id DESC LIMIT 40');
+ const strategy=(await row(db,"SELECT value FROM settings WHERE key='strategy_enabled'"))?.value==='1';
+ const phase=await row(db,'SELECT * FROM runs ORDER BY completed_ms DESC LIMIT 1');
+ // One aggregate query prices every holding, even if an owner has >50 symbols;
+ // D1 Free must never issue a separate quote query per holding.
+ const valuation=await row(db,`SELECT COALESCE(SUM(p.qty*q.price_paise),0) holdings_paise,
+ COALESCE(SUM(CASE WHEN q.symbol IS NULL OR q.exchange_open!=1
+ OR q.observed_ms<? OR q.observed_ms>? THEN 1 ELSE 0 END),0) stale_count
+ FROM positions p LEFT JOIN quotes q ON q.symbol=p.symbol WHERE p.qty!=0`,now-MAX_STALENESS,now+2000);
+ const equity=positions.length&&(!session(now)||valuation.stale_count>0)?null:account.cash_paise+valuation.holdings_paise;
+ return {mode:'PAPER_ONLY',realOrdersEnabled:false,cash_paise:account.cash_paise,equity_paise:equity,
+  positions,orders:orders.map(o=>({...o,due_at:dateStr(o.due_ms)})),
+  events:events.map(e=>({...e,observed_at:dateStr(e.observed_ms)})),
+  strategy_enabled:strategy,strategy:'NSE_TOP_VOLUME_0940_EXIT_1515',
+  last_strategy_phase:phase?{status:phase.status,reason:phase.reason,completed_at:dateStr(phase.completed_ms)}:null,
+  server_time:dateStr(now),market_session:session(now)};
+}
 async function schedule(db,data,now){if(typeof data.symbol!=='string'||!SYMBOL.test(data.symbol)||!['BUY','SELL'].includes(data.side)||!Number.isSafeInteger(data.quantity)||data.quantity<=0||data.quantity>100000)throw Error('invalid order');const due=parseDate(data.scheduled_at);if(due<now||due>now+30*86400000||!session(due))throw Error('invalid market schedule');const key=data.idempotency_key;if(typeof key!=='string'||!/^[A-Za-z0-9_-]{12,80}$/.test(key))throw Error('invalid idempotency key');await db.prepare("INSERT OR IGNORE INTO orders(id,client_key,kind,symbol,side,qty,due_ms,created_ms) VALUES(?,?,'MANUAL',?,?,?,?,?)").bind(crypto.randomUUID(),key,data.symbol,data.side,data.quantity,due,now).run();const existing=await row(db,'SELECT * FROM orders WHERE client_key=?',key);if(existing.symbol!==data.symbol||existing.side!==data.side||existing.qty!==data.quantity||existing.due_ms!==due)throw Error('idempotency conflict');return {id:existing.id,status:existing.status,realOrdersEnabled:false};}
 async function cancel(db,id,now){if(typeof id!=='string')throw Error('invalid id');const result=await db.prepare("UPDATE orders SET status='CANCELLED',completed_ms=? WHERE id=? AND kind='MANUAL' AND status='QUEUED'").bind(now,id).run();if(result.meta.changes!==1)throw Error('order no longer cancellable');return {id,status:'CANCELLED'};}
 async function setStrategy(db,enabled,now){if(typeof enabled!=='boolean')throw Error('enabled must be boolean');await db.batch([db.prepare("UPDATE settings SET value=? WHERE key='strategy_enabled'").bind(enabled?'1':'0'),log(db,now,'STRATEGY',enabled?'Enabled':'Disabled')]);return {enabled,realOrdersEnabled:false};}
@@ -63,22 +81,22 @@ if(o.side==='SELL'&&o.kind!=='ENTRY'&&held<o.qty){await skip(db,o,now,'INSUFFICI
 const slip=Math.ceil(q.price_paise*5/10000),px=o.side==='BUY'?q.price_paise+slip:Math.max(1,q.price_paise-slip),notional=o.qty*px,fee=Math.ceil(notional*10/10000),cost=notional+fee;
 if(!Number.isSafeInteger(cost)){await skip(db,o,now,'AMOUNT_OVERFLOW');return false;}
 if(o.side==='BUY'&&q.cash_paise<cost){await skip(db,o,now,'INSUFFICIENT_CASH');return false;}
-if(o.side==='SELL'&&o.kind==='ENTRY'){
- const shortLedger=await row(db,`SELECT COALESCE(SUM(ABS(p.qty)*q.price_paise),0) AS exposure,
- COALESCE(SUM(CASE WHEN q.observed_ms<? OR q.observed_ms>? OR q.exchange_open!=1
- OR q.symbol IS NULL THEN 1 ELSE 0 END),0) AS stale
- FROM positions p LEFT JOIN quotes q ON q.symbol=p.symbol WHERE p.qty<0`,now-MAX_STALENESS,now+2000);
- if(shortLedger.stale){await skip(db,o,now,'STALE_SHORT_VALUATION');return false;}
- if(shortLedger.exposure+notional>CAPITAL){await skip(db,o,now,'SHORT_EXPOSURE_LIMIT');return false;}
-}
+// A snapshot of the current short book is evaluated *inside* the guarded
+// settlement UPDATE below. Do not issue an extra D1 read per short entry:
+// ten selections otherwise exceed the 50-query Workers Free invocation cap.
+
 const execution=crypto.randomUUID();
 const shortEntry=o.side==='SELL'&&o.kind==='ENTRY';
-const shortExposureGate=shortEntry?` AND ? + COALESCE((SELECT SUM(ABS(p.qty)*q.price_paise)
+const shortExposureGate=shortEntry?` AND NOT EXISTS (
+ SELECT 1 FROM positions p LEFT JOIN quotes q ON q.symbol=p.symbol
+ WHERE p.qty<0 AND (q.symbol IS NULL OR q.exchange_open!=1
+   OR q.observed_ms<? OR q.observed_ms>?))
+ AND ? + COALESCE((SELECT SUM(ABS(p.qty)*q.price_paise)
  FROM positions p JOIN quotes q ON q.symbol=p.symbol WHERE p.qty<0),0)<=?`:'';
 const guard="AND COALESCE((SELECT qty FROM positions WHERE symbol=?),0)=?"+
  (o.side==='BUY'?' AND (SELECT cash_paise FROM account WHERE id=1)>=?':'')+
  " AND (SELECT observed_ms FROM quotes WHERE symbol=?)=?"+shortExposureGate;
-const guardedArgs=[o.symbol,held,...(o.side==='BUY'?[cost]:[]),o.symbol,q.observed_ms,...(shortEntry?[notional,CAPITAL]:[])];
+const guardedArgs=[o.symbol,held,...(o.side==='BUY'?[cost]:[]),o.symbol,q.observed_ms,...(shortEntry?[now-MAX_STALENESS,now+2000,notional,CAPITAL]:[])];
 // D1 Free allows 50 queries per invocation: the single guarded UPDATE invokes
 // atlas_settle_paper_fill, an SQLite trigger created by schema.sql. Thus a
 // simulated fill settles its cash, position, and audit row atomically without
@@ -86,7 +104,14 @@ const guardedArgs=[o.symbol,held,...(o.side==='BUY'?[cost]:[]),o.symbol,q.observ
 const updated=await db.prepare(`UPDATE orders SET status='FILLED',fill_paise=?,fee_paise=?,
  completed_ms=?,execution_id=? WHERE id=? AND status='QUEUED' ${guard}
  RETURNING execution_id`).bind(px,fee,now,execution,o.id,...guardedArgs).first();
-return updated?.execution_id===execution;
+// Failed optimistic guards are visible SKIPPED attempts, not silent queued
+// orders. Concurrent winners are already FILLED and the guarded skip does
+// nothing, so their one-and-only settlement remains intact.
+if(updated?.execution_id!==execution){
+ await skip(db,o,now,'STATE_OR_RISK_GUARD_FAILED');
+ return false;
+}
+return true;
 }
 async function strategyOrder(db,day,phase,symbol,side,qty,now){if(qty<1)return;const key=`${day}-${phase}-${symbol}`;
 let o=await row(db,"INSERT OR IGNORE INTO orders(id,client_key,kind,symbol,side,qty,due_ms,created_ms) VALUES(?,?,?,?,?,?,?,?) RETURNING *",crypto.randomUUID(),key,phase,symbol,side,qty,now,now);
@@ -137,7 +162,7 @@ async function tick(env,now=Date.now()){
  // later; it must never be silently filled from historical quotes.
  const minute=ist(now).minute;
  const riskOpen=await row(db,'SELECT 1 FROM positions WHERE intraday=1 AND qty!=0 LIMIT 1');
- const queueLimit=(minute===580||minute===915)?1:(riskOpen?5:12);
+ const queueLimit=(minute===580||minute===915)?1:(riskOpen?2:12);
  const pending=await rows(db,`SELECT * FROM orders WHERE status='QUEUED' AND due_ms<=?
   ORDER BY due_ms,id LIMIT ?`,now,queueLimit);
 for(const o of pending){if(now-o.due_ms>MAX_DELAY)await skip(db,o,now,'SCHEDULE_MISSED_NO_BACKFILL');else if(!session(now))await skip(db,o,now,'MARKET_CLOSED');else await fill(db,o,now);}
