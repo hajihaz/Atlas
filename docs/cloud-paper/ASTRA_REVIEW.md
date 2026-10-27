@@ -65,3 +65,10 @@
 ## Upstox provider candidate (2026-10-27)
 
 Added pure `deployments/cloudflare-paper/src/upstox-adapter.js` to map one authenticated V3 500-equity snapshot + Nifty quote to D1 ingest. Fails closed for missing instrument, old source timestamps, stale top-10 price trades, unverified access, or Nifty benchmark mismatch. Only a nominated 500-stock eligible subset, NOT the entire NSE market, may be ranked. No token, live quote access or trading API has been connected. V3 provider limit is 500/request. Before activation, audit data redistribution/contractual use, provider token refresh, full eligible-universe selection, quote receipt timing vs last-trade timing, and holidays.
+
+
+## NPWWMI paper collateral safety verification (2026-10-27)
+
+- `deployments/cloudflare-paper/src/index.js` now prevents treating proceeds from paper short sales as spendable buying power for unrelated BUYs; reserved gross short entry proceeds are checked in the same atomic guarded settlement update as the cash balance. Short-covering BUYs remain possible; an order trying to reverse a short into a long is rejected.
+- SQLite-backed Node tests in `deployments/cloudflare-paper/test/short-collateral.test.mjs` verify overspend SKIPPED, short cover, reversal denial, normal buy, complete ten-stock 09:40 long and short strategies, a 15:15 short cover, and per-invocation D1 query budget. All values are synthetic.
+- Note: Reserved entry-price proceeds do **not** equal real brokerage margin, and the price/adverse gap risk remains; do not treat this ledger as an exchange-certified trading simulator. The free Cron service is still undeployed until Cloudflare OAuth and licensed NSE/Nifty feed gates are cleared.

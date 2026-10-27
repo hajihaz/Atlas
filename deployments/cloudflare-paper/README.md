@@ -40,6 +40,7 @@ A full-universe snapshot (500–4000 symbols) is accepted only in the 09:39–09
 
 - Only the owner bearer token can view or schedule/cancel/arm orders. Only a distinct feed token can submit quotes. An additional exact feed-source identifier must be provisioned before quote ingestion can succeed.
 - Idempotent schedule keys; serialized D1 batch for fills; integer paise; no margin borrowing by manual orders; an internal paper-only short ledger for the directional strategy; 10 bps assumed fee and adverse 5 bps slippage. No funding account and no live broker endpoint exist.
+- Short proceeds are **reserved simulated collateral**, not free capital for unrelated BUY orders; BUYs that only cover an existing short may draw on that short’s cash ledger. Buying more than the short quantity is rejected instead of silently reversing into a new long. Both checks execute inside the guarded D1 settlement statement.
 - ₹1,00,000 simulated cash. Paper orders can miss a due minute when Cloudflare Cron is late; the job skips orders >90 seconds old. The 09:40 opening strategy only runs within that IST minute on a complete fresh eligible universe. It will not manufacture trades or backfill.
 - If the exit has no fresh quote or the short-covering cash requirement cannot be met, the virtual position can remain open. The audit displays `PARTIAL` / unresolved risk; paper stop-loss/close are not assured.
 - A private API token grants direct account access; do not share it. D1 free backups/time-travel are subject to Cloudflare's feature limits.

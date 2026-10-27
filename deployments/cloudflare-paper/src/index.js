@@ -78,6 +78,9 @@ if(!fresh(q,now)){await skip(db,o,now,'MISSING_OR_STALE_MARKET_QUOTE');return fa
 const position={qty:q.held_qty,entry_paise:q.entry_paise,intraday:q.intraday},held=q.held_qty;
 if(o.kind==='ENTRY'&&held!==0){await skip(db,o,now,'EXISTING_POSITION');return false;}
 if(o.side==='SELL'&&o.kind!=='ENTRY'&&held<o.qty){await skip(db,o,now,'INSUFFICIENT_HOLDINGS');return false;}
+// A manual BUY may cover an existing short, but must never reverse it
+// into an untracked long in the same simulated settlement.
+if(o.side==='BUY'&&held<0&&o.qty>-held){await skip(db,o,now,'SHORT_REVERSAL_NOT_ALLOWED');return false;}
 const slip=Math.ceil(q.price_paise*5/10000),px=o.side==='BUY'?q.price_paise+slip:Math.max(1,q.price_paise-slip),notional=o.qty*px,fee=Math.ceil(notional*10/10000),cost=notional+fee;
 if(!Number.isSafeInteger(cost)){await skip(db,o,now,'AMOUNT_OVERFLOW');return false;}
 if(o.side==='BUY'&&q.cash_paise<cost){await skip(db,o,now,'INSUFFICIENT_CASH');return false;}
@@ -87,16 +90,19 @@ if(o.side==='BUY'&&q.cash_paise<cost){await skip(db,o,now,'INSUFFICIENT_CASH');r
 
 const execution=crypto.randomUUID();
 const shortEntry=o.side==='SELL'&&o.kind==='ENTRY';
+const reservesRequired=o.side==='BUY'&&held>=0; // Covering a paper short releases its own proceeds.
 const shortExposureGate=shortEntry?` AND NOT EXISTS (
  SELECT 1 FROM positions p LEFT JOIN quotes q ON q.symbol=p.symbol
  WHERE p.qty<0 AND (q.symbol IS NULL OR q.exchange_open!=1
    OR q.observed_ms<? OR q.observed_ms>?))
  AND ? + COALESCE((SELECT SUM(ABS(p.qty)*q.price_paise)
  FROM positions p JOIN quotes q ON q.symbol=p.symbol WHERE p.qty<0),0)<=?`:'';
+const collateralGate=reservesRequired?` AND (SELECT cash_paise FROM account WHERE id=1)-
+ COALESCE((SELECT SUM(ABS(qty)*COALESCE(entry_paise,0)) FROM positions WHERE qty<0),0)>=?`:'';
 const guard="AND COALESCE((SELECT qty FROM positions WHERE symbol=?),0)=?"+
  (o.side==='BUY'?' AND (SELECT cash_paise FROM account WHERE id=1)>=?':'')+
- " AND (SELECT observed_ms FROM quotes WHERE symbol=?)=?"+shortExposureGate;
-const guardedArgs=[o.symbol,held,...(o.side==='BUY'?[cost]:[]),o.symbol,q.observed_ms,...(shortEntry?[now-MAX_STALENESS,now+2000,notional,CAPITAL]:[])];
+ " AND (SELECT observed_ms FROM quotes WHERE symbol=?)=?"+shortExposureGate+collateralGate;
+const guardedArgs=[o.symbol,held,...(o.side==='BUY'?[cost]:[]),o.symbol,q.observed_ms,...(shortEntry?[now-MAX_STALENESS,now+2000,notional,CAPITAL]:[]),...(reservesRequired?[cost]:[])];
 // D1 Free allows 50 queries per invocation: the single guarded UPDATE invokes
 // atlas_settle_paper_fill, an SQLite trigger created by schema.sql. Thus a
 // simulated fill settles its cash, position, and audit row atomically without
