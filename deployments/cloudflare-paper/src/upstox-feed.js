@@ -7,6 +7,8 @@ import {normalizeUpstoxV3} from './upstox-adapter.js';
 const MIS_URL='https://assets.upstox.com/market-quote/instruments/exchange/NSE_MIS.json.gz';
 const QUOTE_URL='https://api.upstox.com/v3/market-quote/quotes';
 const INDEX_KEY='NSE_INDEX|Nifty 50';
+// Official Upstox V3 docs publish the NHPC instrument-key example; diagnostic only.
+const DIAGNOSTIC_EQUITY_KEY='NSE_EQ|INE848E01016';
 const NSE_STOCK=/^(?=.{1,30}$)(?=.*[A-Z])[A-Z0-9&-]+$/;
 const NSE_INSTRUMENT=/^NSE_EQ\|[A-Z0-9]{8,20}$/;
 const MAX_SOURCE_MS=24*3600*1000;
@@ -115,9 +117,14 @@ export async function collectWatchedQuotes(env,symbols,now=Date.now(),fetcher=fe
 export async function verifyAnalyticsFeed(env,fetcher=fetch,clock=()=>Date.now()){
  const token=env.UPSTOX_ANALYTICS_TOKEN;
  if(typeof token!=='string'||token.length<100||env.UPSTOX_FEED_ENABLED!=='true')fail('Analytics credential missing');
- const response=await quotes(fetcher,token,[INDEX_KEY],clock);
+ const response=await quotes(fetcher,token,[INDEX_KEY,DIAGNOSTIC_EQUITY_KEY],clock);
  const nifty=response.data?.data?.['NSE_INDEX:Nifty 50'];
  if(!nifty||nifty.instrument_token!==INDEX_KEY||!Number.isFinite(Number(nifty.last_price))||Number(nifty.last_price)<=0)fail('Nifty market quote cannot be verified');
+ const stock=response.data?.data?.['NSE_EQ:NHPC'];
+ if(!stock||stock.instrument_token!==DIAGNOSTIC_EQUITY_KEY||stock.symbol!=='NHPC'||
+   !Number.isFinite(Number(stock.last_price))||Number(stock.last_price)<=0)fail('official NSE equity quote cannot be verified');
+ const stockTrade=Number(stock.last_trade_time);
+ if(!Number.isSafeInteger(stockTrade)||stockTrade<=0||stockTrade>response.receivedAt+2000)fail('NSE equity last trade timestamp invalid');
  const lastTrade=Number(nifty.last_trade_time);
  if(!Number.isSafeInteger(lastTrade)||lastTrade<=0||lastTrade>response.receivedAt+2000)fail('Nifty last trade timestamp invalid');
  return {mode:'PAPER_ONLY',realOrdersEnabled:false,readOnly:true,authenticated:true,
@@ -125,5 +132,7 @@ export async function verifyAnalyticsFeed(env,fetcher=fetch,clock=()=>Date.now()
   quote_received_at:new Date(response.receivedAt).toISOString(),
   last_trade_at:new Date(lastTrade).toISOString(),
   data_current:response.receivedAt-lastTrade<=15000,
+  stock_verified:true,stock_symbol:'NHPC',stock_last_trade_at:new Date(stockTrade).toISOString(),
+  stock_data_current:response.receivedAt-stockTrade<=15000,
  };
 }

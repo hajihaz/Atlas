@@ -28,7 +28,10 @@ function fetchFixture(data,opts={}){
   assert.ok(keys.length<=500);
   const items={};
   for(const k of keys){
-   if(k==='NSE_INDEX|Nifty 50'){
+   if(k==='NSE_EQ|INE848E01016'){
+     items['NSE_EQ:NHPC']={instrument_token:k,symbol:'NHPC',timestamp:new Date(at).toISOString(),
+       last_trade_time:String(at),last_price:90.25,volume:120000};
+   }else if(k==='NSE_INDEX|Nifty 50'){
     items['NSE_INDEX:Nifty 50']={instrument_token:k,timestamp:new Date(at).toISOString(),
      last_trade_time:String(at),last_price:24870,prev_close_price:24700};
    }else{
@@ -113,6 +116,7 @@ test('owner-only Analytics diagnostics prove GET scope without sending brokerage
  assert.equal(check.readOnly,true);
  assert.equal(check.realOrdersEnabled,false);
  assert.equal(check.data_current,true);
+ assert.equal(check.stock_verified,true);assert.equal(check.stock_symbol,'NHPC');assert.equal(check.stock_data_current,true);
  assert.equal(f.calls(),1,'diagnostic must request Nifty only');
  assert.equal(JSON.stringify(check).includes(token),false);
 });
