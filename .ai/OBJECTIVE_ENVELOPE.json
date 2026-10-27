@@ -1,153 +1,112 @@
 {
-  "objective": "Upstox-only private NSE paper-trading pilot: persistent five-strategy, ten-stock equal-allocation comparison, historical reports and Mac/ChatGPT read-only output",
-  "scope_hash": "254c762934b413e0e73bca6760b66c19d781606086bffda190b169991c37b4f5",
+  "objective_id": "atlas-owner-primary-0940-20261027",
+  "objective": "Remove active demo/testing figures and five comparison strategies; implement the owner ScalpStorm X top-volume 09:40-to-15:15 NSE paper strategy, truthful historical coverage and seamless IPO research updates",
+  "scope_hash": "13de8016958f6ae3b2d7dc607b9eb757f2c807b3e98c2b77358744898f7cc530",
   "constraints": [
     "zero new spend",
-    "no real broker order authority",
-    "no raw broker data in Git/Vercel",
-    "no edits to unrelated AGENTS.md or original crypto ledger",
-    "no fabricated certified ScalpStorm results",
-    "no optional provider work or repeated completed audits"
+    "paper only; no broker order calls",
+    "preserve old audit journals and unrelated dirty AGENTS.md",
+    "no synthetic performance or fake return/confidence numbers",
+    "SGX/GIFT strategy deferred",
+    "normal production release only after actual required hosted CI"
   ],
-  "approval": "Haji explicitly said start all procedure using existing Upstox, target95+ this work session; FYERS/OpenAlgo optional",
+  "approval": {
+    "status": "APPROVED",
+    "source": "Owner explicit instruction and correction to09:40; continuation does not reopen preflight",
+    "owner_workspace_accepted": true,
+    "normal_release_authorized_after_required_hosted_ci": true
+  },
+  "strategy": {
+    "id": "scalpstorm_x_0940",
+    "entryIST": "09:40",
+    "exitIST": "15:15",
+    "virtualCapitalINR": 100000,
+    "stockSlots": 10,
+    "targetPerStockINR": 10000,
+    "wholeShares": true,
+    "leverage": 1,
+    "universe": "Eligible regular-lot NSE cash equities from fresh provider instrument master; all-NSE ranking, not fixed Nifty50 constituents",
+    "ranking": "Descending cumulative same-session share volume using only pre-entry observations; deterministic ties by symbol",
+    "niftySignalTimeIST": "09:30",
+    "niftyDirectionRule": ">+0.2% bullish BUY; [-0.2%,+0.2%] moderate BUY; <-0.2% bearish paper SELL, per retrieved original owner rule",
+    "niftyReference": "Source-reported previous close; freeze before stock entry",
+    "sellAccounting": "Fully cash-collateralized virtual short; sale proceeds unavailable for reinvestment; no actual borrowing",
+    "unconfirmedOldAssistantDefaults": [
+      "2% stock stop-loss",
+      "+/-0.15% Nifty threshold"
+    ],
+    "forwardExecution": "Only fresh subsequent observed trades with bid/ask and liquidity; missing data prevents fills",
+    "history": "Real source prices; no future full-day ranking or fabricated historical point-in-time universe"
+  },
   "milestones": [
     {
-      "name": "validated source and pilot universe",
-      "weight": 20,
-      "earned": 20
+      "name": "scope and verified source limits",
+      "weight": 10,
+      "status": "verified",
+      "earned": 10
     },
     {
-      "name": "strategy execution and causal fills",
-      "weight": 20,
-      "earned": 20
+      "name": "primary source engine and durable accounting",
+      "weight": 25,
+      "status": "verified",
+      "earned": 25
     },
     {
-      "name": "durable accounting and risk",
-      "weight": 20,
-      "earned": 20
-    },
-    {
-      "name": "historical and owner reports",
-      "weight": 20,
-      "earned": 20
-    },
-    {
-      "name": "regression,deployment,autostart acceptance",
+      "name": "honest price history and strategy coverage",
       "weight": 15,
+      "status": "verified_with_explicit_source_limits",
       "earned": 15
     },
     {
-      "name": "genuine open-session forward evidence",
+      "name": "professional active UI without test strategies",
+      "weight": 15,
+      "status": "verified",
+      "earned": 15
+    },
+    {
+      "name": "seamless source-backed IPO research",
+      "weight": 15,
+      "status": "verified",
+      "earned": 15
+    },
+    {
+      "name": "regression and private preview acceptance",
+      "weight": 10,
+      "status": "verified",
+      "earned": 10
+    },
+    {
+      "name": "genuine market-session acceptance",
       "weight": 5,
+      "status": "time_gate",
+      "earned": 0
+    },
+    {
+      "name": "hosted CI and production acceptance",
+      "weight": 5,
+      "status": "free_quota_gate",
       "earned": 0
     }
   ],
-  "progress_basis": "Separate Upstox-only paper-pilot acceptance; old10-component integration score76 is retained without rebasing",
-  "prior_integration_score": 76,
-  "status": "VERIFYING_APPROVED_NONMARKET_ACCEPTANCE",
-  "future_backlog": [
-    "FYERS comparison",
-    "OpenAlgo connection",
-    "full historical market-wide ScalpStorm qualification"
-  ],
-  "latest_evidence": {
-    "sourceBars": 75000,
-    "independentHistoricalFillsReconciled": 1574,
-    "targetedJSChecks": 36,
-    "sourceChecks": 35,
-    "zeroFillDayPages": 84,
-    "pythonTests": 766,
-    "pythonSubtests": 85,
-    "javascriptTests": 523,
-    "allDayApiPages": 100,
-    "ownerBrowser": true,
-    "allEightServicesRunning": true,
-    "serviceSoakPassed": true,
-    "previewExactCode": "ec72371b8e7db5ba128dde6de1c58e256b84e46f",
-    "previewAssetMatches": true,
-    "privateCloudApiHTTP": 404,
-    "originalServicesChanged": false,
-    "regressionNoSkips": true,
-    "validationBars": 18750,
-    "validationEvents": 91548,
-    "validationFills": 1432,
-    "validationDayReports": 25,
-    "validationIndependentAudit": true,
-    "ownerReviewAccepted": true
-  },
-  "objective_id": "atlas-upstox-only-paper-pilot-20261026",
-  "updated_at": "2026-10-26T18:24:56.989737+00:00",
   "progress": {
-    "score": 95,
+    "score": 90,
     "maximum": 100,
-    "basis": "Frozen pilot weights; 95 verified readiness points, 5 genuine open-session points remain"
+    "basis": "Owner-primary milestone weights; genuine session5 and hostedCI/production5 remain unearned"
   },
-  "session_target": 95,
-  "session_target_verified": true,
-  "full_pilot_acceptance": false,
-  "broader_atlas_completion": "Not rescored; prior broader ten-component checkpoint76 is retained as dated history",
-  "prior_scope_archive": ".ai/history/atlas-integration-before-nse-pilot-20261026.json",
+  "progress_basis": ".ai/OWNER_PRIMARY_OBJECTIVE_20261027.json",
+  "status": "VERIFYING_FINAL_PUBLISHER_LIFECYCLE",
   "owner_input_required_now": false,
-  "release_requires_owner_review": false,
-  "next_action": "Verify final non-market publication receipt against current HEAD; then continue GitHub billing authentication/entitlement recovery and normal release once actual required CI passes. Workspace review is already accepted; market-open evidence is explicitly deferred.",
-  "owner_workspace_acceptance": "ACCEPTED_BY_OWNER",
-  "owner_acceptance_record": ".ai/OWNER_ACCEPTANCE_20261026.json",
-  "nonmarket_review": {
-    "updatedAt": "2026-10-26T18:24:56.989737+00:00",
-    "status": "ALL_FEASIBLE_NONMARKET_REVIEWS_COMPLETED",
-    "ownerWorkspaceAccepted": true,
-    "additionalWorkspaceApprovalRequired": false,
-    "normalReleaseAuthorizedAfterRequiredCI": true,
-    "currentCode": "ec72371b8e7db5ba128dde6de1c58e256b84e46f",
-    "javascriptTests": 523,
-    "javascriptFiles": 79,
-    "typescript": true,
-    "frontendBuild": true,
-    "governanceChecks": 3,
-    "lastUnchangedPythonFullSuite": {
-      "passed": 766,
-      "subtests": 85,
-      "skipped": 0
-    },
-    "ciCoverageRepaired": true,
-    "GitHubHostedRunnerPreserved": true,
-    "CIProtectionWeakened": false,
-    "sourceBarsAddedForSeparateValidation": 18750,
-    "validationDates": 5,
-    "validationEvents": 91548,
-    "validationFills": 1432,
-    "validationDayReports": 25,
-    "independentCostScenarios": 4,
-    "validationReviewResult": "ALL_FIVE_NOT_QUALIFIED; losses and risk halts preserved",
-    "blindHoldoutClaimed": false,
-    "parameterTuning": false,
-    "historicalEvidenceReview": "COMPLETED; required original artifacts remain missing",
-    "originalScalpStormCertifiedSessions": 0,
-    "newSubscriptionsINR": 0,
-    "realOrdersSubmitted": 0,
-    "rawDataUploaded": false,
-    "privateCloudValidationHTTP": 404,
-    "preview": {
-      "passed": true,
-      "head": "ec72371b8e7db5ba128dde6de1c58e256b84e46f",
-      "deploymentId": "dpl_6Fpb152JsHeWCCzMnKHJEinP4cBY",
-      "url": "https://atlas-control-center-2b7d2yz9k-kuddosahib-8503s-projects.vercel.app",
-      "ready": true,
-      "rootHTTP": 200,
-      "assetPath": "/assets/index-e3_xAzO7.js",
-      "assetSHA256": "10fa28bf92cc909117a795aec67b594e6633e2873fcbc52482be1c1345a58661",
-      "privateValidationHTTP": 404,
-      "strategyHTTP": 200,
-      "strategies": 5,
-      "sourceBars": 719,
-      "liveOrdersEnabled": false,
-      "realBrokerOrders": 0,
-      "paperOrdersExecuted": false,
-      "paperLedgerStored": false
-    }
-  },
+  "owner_relay_required": false,
+  "full_objective_acceptance": false,
+  "prior_scope_archive": ".ai/raw/owner-primary-strategy-20261027/superseded-OBJECTIVE_ENVELOPE.json",
+  "latest_evidence": ".ai/raw/owner-primary-strategy-20261027/final-acceptance.json",
+  "next_action": "Verify publisher lifecycle repair, publish final source checkpoint, then only actual entitlement recovery and a complete independently auditable genuine session remain.",
   "remaining_release_gates": [
-    "GitHub account entitlement and exact-head required CI success"
+    "Genuine complete auditable market session; today five unresolved exits and missing fill-time source-book receipts",
+    "GitHub Free Actions2000/2000 consumed; verify actual entitlement recovery before reserved run"
   ],
-  "external_historical_evidence_gate": "Original historical full-universe/publication/actions/independent-permission artifacts remain absent"
+  "future_backlog": [
+    "Second strategy using SGX/GIFT Nifty, pending owner discussion"
+  ],
+  "updated_at": "2026-10-27T10:57:07.506008+00:00"
 }

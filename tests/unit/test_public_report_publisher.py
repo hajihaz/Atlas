@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -47,7 +48,10 @@ class PublicReportPublisherTests(unittest.TestCase):
                 with patch.object(
                     publisher,
                     "git",
-                    return_value="AGENTS.md\n.ai/HANDOFF.md\n.ai/AGENT_HANDOFF.json",
+                    return_value=(
+                        "AGENTS.md\n.ai/HANDOFF.md\n.ai/AGENT_HANDOFF.json\n"
+                        ".ai/OBJECTIVE_ENVELOPE.json\n.ai/SURFACE_HANDOFF.json"
+                    ),
                 ):
                     self.assertEqual(publisher.assert_approved_code(), "a" * 40)
 
@@ -216,3 +220,30 @@ class PublicReportPublisherTests(unittest.TestCase):
                 [publisher.PYTHON, str(publisher.ROOT / "scripts/update_permitted_ipo.py")],
                 timeout=45,
             )
+
+    def test_publisher_waits_for_launchd_to_release_the_previous_service(self):
+        with (
+            patch.object(
+                publisher.subprocess,
+                "run",
+                side_effect=[
+                    subprocess.CompletedProcess([], 0),
+                    subprocess.CompletedProcess([], 113),
+                ],
+            ) as run,
+            patch.object(publisher.time, "sleep") as pause,
+        ):
+            publisher.wait_for_service_removal("gui/501", publisher.LABEL)
+        self.assertEqual(run.call_count, 2)
+        pause.assert_called_once_with(0.1)
+
+    def test_stuck_previous_publisher_is_a_bounded_failure(self):
+        with (
+            patch.object(
+                publisher.subprocess, "run", return_value=subprocess.CompletedProcess([], 0)
+            ) as run,
+            patch.object(publisher.time, "sleep"),
+            self.assertRaisesRegex(RuntimeError, "still stopping"),
+        ):
+            publisher.wait_for_service_removal("gui/501", publisher.LABEL)
+        self.assertEqual(run.call_count, 50)

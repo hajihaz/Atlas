@@ -17,6 +17,7 @@ import signal
 import subprocess
 import tempfile
 import threading
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -90,7 +91,13 @@ def assert_approved_code():
     if approval.get("codeSha") != head or approval.get("branch") != BRANCH:
         raise ValueError("Publisher code changed; exact-head verification required")
     dirty = git("diff", "--name-only", head).splitlines()
-    if set(dirty) - {"AGENTS.md", ".ai/HANDOFF.md", ".ai/AGENT_HANDOFF.json"}:
+    if set(dirty) - {
+        "AGENTS.md",
+        ".ai/HANDOFF.md",
+        ".ai/AGENT_HANDOFF.json",
+        ".ai/OBJECTIVE_ENVELOPE.json",
+        ".ai/SURFACE_HANDOFF.json",
+    }:
         raise ValueError("Tracked application changes require verification before publication")
     return head
 
@@ -322,12 +329,33 @@ def cycle(*, include_retired_paper=False):
         return result
 
 
+def wait_for_service_removal(domain, label):
+    # bootout can return before launchd has released the label. Never bootstrap
+    # a second publisher while the previous service is still registered.
+    for _ in range(50):
+        status = subprocess.run(  # noqa: S603 - fixed local launchd service
+            ["/bin/launchctl", "print", domain + "/" + label],
+            capture_output=True,
+            check=False,
+        )
+        if status.returncode != 0:
+            return
+        time.sleep(0.1)
+    raise RuntimeError("Previous publisher service is still stopping")
+
+
 def install(verified_sha):
     prepare_state()
     if verified_sha != code_head() or len(verified_sha) != 40:
         raise ValueError("Verified exact code SHA is required")
     dirty = git("diff", "--name-only", verified_sha).splitlines()
-    if set(dirty) - {"AGENTS.md", ".ai/HANDOFF.md", ".ai/AGENT_HANDOFF.json"}:
+    if set(dirty) - {
+        "AGENTS.md",
+        ".ai/HANDOFF.md",
+        ".ai/AGENT_HANDOFF.json",
+        ".ai/OBJECTIVE_ENVELOPE.json",
+        ".ai/SURFACE_HANDOFF.json",
+    }:
         raise ValueError("Commit and verify application changes before installing")
     atomic(
         STATE / "publisher-approval.json",
@@ -346,6 +374,7 @@ def install(verified_sha):
         subprocess.run(  # noqa: S603 - fixed owner LaunchAgent label
             ["/bin/launchctl", "bootout", domain + "/" + LABEL], capture_output=True, check=False
         )
+        wait_for_service_removal(domain, LABEL)
     payload = {
         "Label": LABEL,
         "ProgramArguments": [PYTHON, str(Path(__file__).resolve()), "--loop"],
