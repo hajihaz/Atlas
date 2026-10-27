@@ -130,6 +130,13 @@ export default function CloudPaperPage(){
      <p>Activation does not override coverage checks, capital limits, feed availability or market closures.</p>
      <button type="button" className={state?.strategy_enabled?'secondary-button':'primary-button'} disabled={loading||!state} onClick={()=>void update('strategy',{enabled:!state?.strategy_enabled},state?.strategy_enabled?'Cloud strategy disabled.':'Strategy armed; waiting for a certified NSE session.')}>{state?.strategy_enabled?'Disable autonomous paper strategy':'Arm autonomous paper strategy'}</button>
      <button className="cloud-paper-refresh" type="button" onClick={()=>void refresh()}><RefreshCcw size={15}/> Refresh server records</button>
+     <button className="cloud-paper-refresh" type="button" disabled={loading} onClick={()=>{
+      setLoading(true);setNotice('');setError('');
+      void request('feed-check').then(result=>setNotice(result.authenticated&&result.readOnly?
+       `Upstox Analytics read-only API verified. Nifty quote ${result.data_current?'current':'not current (market may be closed)'}. Last market trade: ${displayTime(result.last_trade_at)}.`:
+       'Read-only feed unavailable.')).catch(e=>setError(e instanceof Error?e.message:'Feed verification failed'))
+       .finally(()=>setLoading(false));
+     }}><ShieldCheck size={15}/> Verify Upstox read-only feed</button>
     </div>
    </div>
    <div className="panel cloud-paper-table"><h2>Order book</h2>{state?.orders.length?<div className="cloud-paper-scroll"><table><thead><tr><th>Schedule (IST)</th><th>Stock</th><th>Side</th><th>Shares</th><th>Modeled price</th><th>Status</th><th></th></tr></thead>

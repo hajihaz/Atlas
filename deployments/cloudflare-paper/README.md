@@ -72,3 +72,20 @@ The cloud host, authentic NSE feed, and free-tier CPU/row quota certification re
 The upstream API returns at most 500 instruments per request. Consequently this first adapter only supports a *declared 500-stock eligible universe*, **not all listed NSE stocks**; it must never be presented as an exchange-wide ranking. `observed_at` is the authenticated collector's common receipt time for that one snapshot, not the exchange's last-trade timestamp, and recent last-trade times are validated separately for ranked candidates. An authorized collector must verify NSE market status/holidays and contractual permission to use market data for this independent paper system.
 
 Official API: https://upstox.com/developer/api-documentation/get-full-market-quote-v3/ . Run `node --test test/*.test.mjs`. More comprehensive market coverage would require rights-approved multi-batch aggregation and audited timestamp-skew gating before enabling automated entries.
+
+## Official Upstox Analytics Token (owner-only; no daily OAuth renewal)
+
+Upstox confirms the **Analytics Token** is free, read-only, lasts one year, supports Market Quote/Websocket without a static IP, and cannot place/modify/cancel broker orders. In the owner's authenticated Upstox Apps > Analytics screen, the token was generated on 25 Oct 2026 and shows expiry 25 Oct 2027. Official docs: https://upstox.com/developer/api-documentation/analytics-token/ and https://upstox.com/developer/api-documentation/get-full-market-quote-v3/.
+
+**No Upstox token was copied into Git or chat.** The remote Worker has not been provided that private credential yet. To install it securely, from your own Mac Terminal (not a chat):
+
+```sh
+cd /Users/hajihaz/projects/atlas-cloud-paper-20261027/deployments/cloudflare-paper
+./setup-secure-readonly.zsh
+```
+
+This opens Wrangler's private token prompt. Click the **copy** icon beside your existing Upstox Analytics Token in your signed-in Upstox page, paste directly into the prompt, and submit. The helper also creates a separate Atlas paper-desk token stored in your macOS Keychain and encrypted Worker secret storage. Neither value is printed by the helper or committed. Read the key locally from your Keychain only when connecting the private Atlas preview desk. The feed will remain inert until a verified token is installed, and the strategy itself is disabled until deliberately armed.
+
+The cloud Worker uses Upstox's official daily [NSE MIS JSON BOD catalog](https://assets.upstox.com/market-quote/instruments/exchange/NSE_MIS.json.gz) as its intraday-eligible NSE EQ universe: around 1,369 listings on 27 Oct 2026 (with one identical duplicate). Catalog date and keys are validated every fetch. Complete 09:40 IST quotes are fetched in batches of at most 500 instruments and one Nifty 50 index quote, ranked by cumulative volume across **all** MIS candidates, not 500 arbitrary equities. Snapshots with missing instruments, inaccurate timestamps, a collection interval over eight seconds, or stale global top-ten last trades are rejected. During other minutes only held and imminently queued positions (max 30) are refreshed. No trading or quotes are fabricated when the feed is unavailable. Upstox MIS eligibility is not necessarily every NSE listing, and cannot guarantee real-world short-sale borrowability, order fills, or a 2% exit.
+
+The owner's same-origin Vercel preview offers **Verify Upstox read-only feed** after private desk sign-in. This performs one authenticated GET on `NSE_INDEX|Nifty 50`, returning only authorization/provenance/freshness metadata; it never places an order or persists a quote. After-market quotes may be authenticated yet not current. Full paper-session certification remains a separate gate. Live capital integration remains prohibited.

@@ -82,7 +82,7 @@ test('hosted D1 without owner/feed secrets is not ready for paper orders',async(
  assert.equal(status.feedSourceConfigured,false);
  assert.equal(status.realOrdersEnabled,false);
  const b=await worker.fetch(new Request('https://paper.example/healthz'),{
-  DB:{},OWNER_TOKEN:'O'.repeat(64),FEED_TOKEN:'F'.repeat(64),FEED_SOURCE_ID:'LICENSED_FIXTURE'});
+  DB:{},OWNER_TOKEN:'O'.repeat(64),FEED_SOURCE_ID:'UPSTOX_ANALYTICS_READONLY_V3',UPSTOX_FEED_ENABLED:'true',UPSTOX_ANALYTICS_TOKEN:'T'.repeat(120)});
  const enabled=await b.json();
  assert.equal(enabled.configured,true);
  assert.equal(enabled.feedSourceConfigured,true);

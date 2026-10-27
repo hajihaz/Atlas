@@ -1,6 +1,7 @@
 /* Atlas independent free-tier cloud paper worker. NEVER routes real orders. */
+import {collectMisSnapshot,collectWatchedQuotes,verifyAnalyticsFeed} from './upstox-feed.js';
 const MAX_DELAY=90000,MAX_STALENESS=15000,CAPITAL=10000000;
-const SYMBOL=/^[A-Z][A-Z0-9&-]{0,29}$/;
+const SYMBOL=/^(?=.{1,30}$)(?=.*[A-Z])[A-Z0-9&-]+$/;
 const IST_FORMATTER = new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit',weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
 const reply=(v,status=200)=>new Response(JSON.stringify(v),{status,headers:{'content-type':'application/json','cache-control':'no-store','x-content-type-options':'nosniff'}});
 const row=(db,sql,...args)=>db.prepare(sql).bind(...args).first();
@@ -40,7 +41,7 @@ async function setStrategy(db,enabled,now){if(typeof enabled!=='boolean')throw E
 async function ingest(db,body,now,sourceName){if(!sourceName||typeof sourceName!=='string')throw Error('verified feed source not configured');if(!Array.isArray(body.quotes)||body.quotes.length<1||body.quotes.length>4000)throw Error('invalid quote batch');const seen=new Set(),normalized=[],observedSessionCache=new Map();for(const q of body.quotes){if(!q||typeof q.symbol!=='string'||!SYMBOL.test(q.symbol)||seen.has(q.symbol)||!Number.isSafeInteger(q.price_paise)||q.price_paise<=0||!Number.isSafeInteger(q.cumulative_volume)||q.cumulative_volume<0||q.source!==sourceName||q.exchange_open!==true)throw Error('invalid source quote');const observed=parseDate(q.observed_at);if(!observedSessionCache.has(observed))observedSessionCache.set(observed,session(observed));if(!observedSessionCache.get(observed)||observed>now+2000||now-observed>MAX_STALENESS)throw Error('stale source quote');seen.add(q.symbol);normalized.push({...q,observed});}
 const cv=body.coverage;if(!cv&&normalized.length>30)throw Error('intraday quote batch capped at 30 symbols without coverage');
 if(cv&&![579,580].includes(ist(now).minute))throw Error('full-universe snapshots only accepted at the 09:39–09:40 entry window');
-if(cv!==undefined&&(cv?.complete!==true||!Number.isSafeInteger(cv.eligible_count)||cv.eligible_count!==normalized.length||normalized.length<500||!Number.isSafeInteger(cv.nifty_change_bps)||Math.abs(cv.nifty_change_bps)>10000||new Set(normalized.map(x=>x.observed)).size!==1))throw Error('invalid complete NSE universe');if(cv&&await row(db,'SELECT 1 FROM coverage WHERE session=?',ist(normalized[0].observed).day))throw Error('full-universe daily quota already consumed');
+if(cv!==undefined&&(cv?.complete!==true||!Number.isSafeInteger(cv.eligible_count)||cv.eligible_count!==normalized.length||normalized.length<500||!Number.isSafeInteger(cv.nifty_change_bps)||Math.abs(cv.nifty_change_bps)>10000||Math.max(...normalized.map(x=>x.observed))-Math.min(...normalized.map(x=>x.observed))>8000))throw Error('invalid complete NSE universe');if(cv&&await row(db,'SELECT 1 FROM coverage WHERE session=?',ist(normalized[0].observed).day))throw Error('full-universe daily quota already consumed');
 // On Workers Free, D1 permits only 50 queries per invocation. A single bound JSON
 // array + SQLite json_each inserts the whole point-in-time quote snapshot in one
 // SQL statement, rather than 500-4000 individual D1 queries.
@@ -59,7 +60,7 @@ if(cv)statements.push(db.prepare(`INSERT INTO coverage(session,eligible_count,ob
  VALUES(?,?,?,?,?) ON CONFLICT(session) DO UPDATE SET eligible_count=excluded.eligible_count,
  observed_ms=excluded.observed_ms,nifty_change_bps=excluded.nifty_change_bps,
  source=excluded.source WHERE excluded.observed_ms>coverage.observed_ms`).bind(
- ist(normalized[0].observed).day,normalized.length,normalized[0].observed,cv.nifty_change_bps,sourceName));
+ ist(normalized[0].observed).day,normalized.length,Math.max(...normalized.map(x=>x.observed)),cv.nifty_change_bps,sourceName));
 await db.batch(statements);
 return {accepted:normalized.length,realOrdersEnabled:false};}
 async function skip(db,order,now,reason){
@@ -163,6 +164,33 @@ async function stops(db,now){
  for(const p of hits)await strategyOrder(db,ist(now).day,'STOP',p.symbol,
    p.qty>0?'SELL':'BUY',Math.abs(p.qty),now);
 }
+// Upstox official read-only quote collector is opt-in and cannot send orders.
+// The Cron feed is entirely server-side, independent of owner's Mac/browser.
+async function sourceTick(env,now=Date.now(),collectFull=collectMisSnapshot,collectWatched=collectWatchedQuotes,clock=()=>Date.now()){
+ if(env.UPSTOX_FEED_ENABLED!=='true'||typeof env.UPSTOX_ANALYTICS_TOKEN!=='string'||env.UPSTOX_ANALYTICS_TOKEN.length<100||
+    env.FEED_SOURCE_ID!=='UPSTOX_ANALYTICS_READONLY_V3'||!session(now))return {sourceEnabled:false};
+ const d=env.DB,t=ist(now);
+ // At 09:40 fetch all official NSE MIS stocks in multiple 500-instrument
+ // requests plus Nifty 50. Do not rank fabricated or partial universes.
+ const armed=(await row(d,"SELECT value FROM settings WHERE key='strategy_enabled'"))?.value==='1';
+ if(t.minute===580&&armed){
+  if(await row(d,'SELECT 1 FROM coverage WHERE session=?',t.day))return {sourceEnabled:true,quotes:0,kind:'ALREADY_SNAPSHOTTED'};
+  const full=await collectFull(env,now);
+  await ingest(d,full,clock(),env.FEED_SOURCE_ID);
+  return {sourceEnabled:true,quotes:full.quotes.length,kind:'FULL_MIS'};
+ }
+ // During the remainder of a session request only watched positions and
+ // orders coming due soon (<=30), keeping D1 Free writes well below quota.
+ const watch=await rows(d,`SELECT DISTINCT symbol FROM (
+ SELECT symbol FROM positions WHERE qty!=0
+ UNION ALL SELECT symbol FROM orders WHERE status='QUEUED' AND due_ms BETWEEN ? AND ?
+ ) ORDER BY symbol LIMIT 31`,now-90000,now+90000);
+ if(watch.length>30)throw Error('UPSTOX_COLLECTOR_BLOCKED: more than 30 risk symbols');
+ if(!watch.length)return {sourceEnabled:true,quotes:0,kind:'IDLE'};
+ const recent=await collectWatched(env,watch.map(x=>x.symbol),now);
+ if(recent.quotes.length)await ingest(d,recent,clock(),env.FEED_SOURCE_ID);
+ return {sourceEnabled:true,quotes:recent.quotes.length,kind:'WATCHED'};
+}
 async function tick(env,now=Date.now()){
  const db=env.DB;if(!db)throw Error('D1 binding missing');
  // Protect the 50-query Workers Free ceiling: stop/exit/entry work takes
@@ -178,19 +206,24 @@ await stops(db,now);const enabled=(await row(db,"SELECT value FROM settings WHER
 if(t.weekday&&t.minute>580&&enabled)await db.prepare("INSERT OR IGNORE INTO runs(session,phase,status,reason,completed_ms) VALUES(?,'ENTRY','SKIPPED','MISSED_OR_UNVERIFIED_COVERAGE',?)").bind(t.day,now).run();
 if(t.weekday&&t.minute>915&&await row(db,'SELECT 1 FROM positions WHERE intraday=1 AND qty!=0'))await db.prepare("INSERT OR IGNORE INTO runs(session,phase,status,reason,completed_ms) VALUES(?,'EXIT','PARTIAL','UNRESOLVED_POSITIONS',?)").bind(t.day,now).run();
 return {processed:pending.length,strategy_enabled:enabled,realOrdersEnabled:false};}
-export const testing={ist,session,parseDate,tick,schedule,ingest,overview,strategyPhases,fill};
+export const testing={ist,session,parseDate,tick,schedule,ingest,overview,strategyPhases,fill,sourceTick};
 export default {
  async fetch(req,env){const path=new URL(req.url).pathname,now=Date.now();if(path==='/healthz')return reply({mode:'PAPER_ONLY',service:'atlas-free-cloud-paper',
  realOrdersEnabled:false,backendConnected:Boolean(env.DB),
- configured:Boolean(env.DB&&typeof env.OWNER_TOKEN==='string'&&env.OWNER_TOKEN.length>=32&&typeof env.FEED_TOKEN==='string'&&env.FEED_TOKEN.length>=32),
- feedSourceConfigured:Boolean(env.FEED_SOURCE_ID)});if(!env.DB)return reply({error:'D1_NOT_CONNECTED'},503);
- const actions={'/api/cloud-paper/state':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/strategy':'POST','/api/cloud-paper/quotes':'POST'};
+ configured:Boolean(env.DB&&typeof env.OWNER_TOKEN==='string'&&env.OWNER_TOKEN.length>=32&&env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100),
+ feedSourceConfigured:Boolean(env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100)});if(!env.DB)return reply({error:'D1_NOT_CONNECTED'},503);
+ const actions={'/api/cloud-paper/state':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/strategy':'POST','/api/cloud-paper/quotes':'POST'};
  if(!Object.hasOwn(actions,path))return reply({error:'NOT_FOUND'},404);if(req.method!==actions[path])return reply({error:'METHOD_NOT_ALLOWED'},405);
  if(!authorized(req,path.endsWith('/quotes')?env.FEED_TOKEN:env.OWNER_TOKEN))return reply({error:'UNAUTHORIZED'},401);
- try {if(path.endsWith('/state'))return reply(await overview(env.DB,now));const p=await readBody(req);
+ try {if(path.endsWith('/state'))return reply(await overview(env.DB,now));
+ if(path.endsWith('/feed-check'))return reply(await verifyAnalyticsFeed(env));
+ const p=await readBody(req);
  if(path.endsWith('/orders'))return reply(await schedule(env.DB,p,now));if(path.endsWith('/cancel'))return reply(await cancel(env.DB,p.id,now));if(path.endsWith('/strategy'))return reply(await setStrategy(env.DB,p.enabled,now));return reply(await ingest(env.DB,p,now,env.FEED_SOURCE_ID));
  }catch(e){if(e instanceof SyntaxError||/(invalid|required|stale|conflict|cancellable|timestamp|JSON|timezone|schedule|source|body|boolean)/i.test(e?.message||''))return reply({error:String(e.message).slice(0,140)},400);
  console.error('paper worker error:',e?.name);return reply({error:'PAPER_SERVICE_UNAVAILABLE'},503);}
  },
- async scheduled(_event,env,ctx){ctx.waitUntil(tick(env).catch(e=>console.error('scheduled paper tick error:',e?.name)));},
+ async scheduled(_event,env,ctx){ctx.waitUntil((async()=>{
+   try{await sourceTick(env);}catch(e){console.error('read-only Upstox feed unavailable:',e?.name)}
+   await tick(env);
+  })().catch(e=>console.error('scheduled paper tick error:',e?.name)));},
 };

@@ -5,7 +5,7 @@
  * authenticated collector's single-response receipt time, not trade time.
  * This supports exactly one <=500-stock eligible universe per REST snapshot.
  */
-const SYMBOL=/^[A-Z][A-Z0-9&-]{0,29}$/;
+const SYMBOL=/^(?=.{1,30}$)(?=.*[A-Z])[A-Z0-9&-]+$/;
 const MAX_SOURCE_AGE=60000;
 const MAX_TOP10_TRADE_AGE=15000;
 const ISO=/^\d{4}-\d\d-\d\dT.+(?:Z|[+-]\d\d:\d\d)$/;
@@ -37,11 +37,12 @@ function pricePaise(value){
  *  input.authorized: must be true after validating API entitlement/terms
  */
 export function normalizeUpstoxV3(input){
-  const {payload,universe,receivedAt,index,sourceId,authorized}=input??{};
+  const {payload,universe,receivedAt,index,sourceId,authorized,allowPartialBatch=false,skipNifty=false,
+  deferTopTenFreshness=false,includeTradeTimestamp=false}=input??{};
   if(authorized!==true)fail('provider account and license not verified');
   if(!Number.isSafeInteger(receivedAt)||receivedAt<=0)fail('invalid collector receipt clock');
   if(typeof sourceId!=='string'||sourceId.length<3||sourceId.length>100)fail('configured source required');
-  if(!Array.isArray(universe)||universe.length!==500)fail('strict 500-instrument eligible universe required');
+  if(!Array.isArray(universe)||(allowPartialBatch?(universe.length<1||universe.length>500):universe.length!==500))fail('strict 500-instrument eligible universe required');
   if(payload?.status!=='success'||!payload?.data||typeof payload.data!=='object')fail('Upstox market response incomplete');
   const symbols=new Set(),tokens=new Set(),quotes=[];
   for(const item of universe){
@@ -52,7 +53,7 @@ export function normalizeUpstoxV3(input){
     const returned=payload.data[`NSE_EQ:${item.symbol}`];
     if(!returned||returned.symbol!==item.symbol||returned.instrument_token!==item.instrument_token)fail('missing or mismatched NSE instrument');
     validTime(returned.timestamp,receivedAt,MAX_SOURCE_AGE);
-    const lastTrade=validTime(returned.last_trade_time,receivedAt,24*3600000);
+    const lastTrade=validTime(returned.last_trade_time,receivedAt,14*24*3600000);
     const volume=returned.volume;
     if(!Number.isSafeInteger(volume)||volume<0)fail('invalid total daily volume');
     quotes.push({symbol:item.symbol,price_paise:pricePaise(returned.last_price),
@@ -62,8 +63,10 @@ export function normalizeUpstoxV3(input){
       _last_trade_ms:lastTrade});
   }
   if(Object.keys(payload.data).length!==universe.length)fail('unrecognized instruments in quote response');
-  const winners=[...quotes].sort((a,b)=>b.cumulative_volume-a.cumulative_volume||a.symbol.localeCompare(b.symbol)).slice(0,10);
-  if(winners.length!==10||winners.some(q=>receivedAt-q._last_trade_ms>MAX_TOP10_TRADE_AGE))fail('stale trade price among top-volume candidates');
+  const winners=skipNifty?quotes:[...quotes].sort((a,b)=>b.cumulative_volume-a.cumulative_volume||a.symbol.localeCompare(b.symbol)).slice(0,10);
+  if(!deferTopTenFreshness&&(winners.length!==(skipNifty?universe.length:Math.min(10,universe.length))||winners.some(q=>receivedAt-q._last_trade_ms>MAX_TOP10_TRADE_AGE)))fail('stale trade price among top-volume candidates');
+  const projected=()=>includeTradeTimestamp?quotes:quotes.map(({_last_trade_ms,...q})=>q);
+  if(skipNifty)return {quotes:projected()};
   if(index?.status!=='success'||!index?.data||typeof index.data!=='object')fail('Nifty index source missing');
   const nifty=index.data['NSE_INDEX:Nifty 50'];
   if(!nifty||nifty.instrument_token!=='NSE_INDEX|Nifty 50')fail('Nifty instrument mismatch');
@@ -74,7 +77,7 @@ export function normalizeUpstoxV3(input){
   const nifty_change_bps=Math.round((nowPrice-prev)/prev*10000);
   if(!Number.isSafeInteger(nifty_change_bps)||Math.abs(nifty_change_bps)>10000)fail('Nifty change out of range');
   return {
-    quotes:quotes.map(({_last_trade_ms,...q})=>q),
+    quotes:projected(),
     coverage:{complete:true,eligible_count:universe.length,nifty_change_bps},
   };
 }
