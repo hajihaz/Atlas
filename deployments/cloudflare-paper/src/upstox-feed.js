@@ -35,13 +35,15 @@ export function selectMisUniverse(items,modifiedAt,now){
  return [...bySymbol].map(([symbol,instrument_token])=>({symbol,instrument_token})).sort((a,b)=>a.symbol.localeCompare(b.symbol));
 }
 async function jsonBody(res,maxBytes){
+ if(res.status>=300&&res.status<400)fail('official provider redirect refused');
  if(!res.ok)fail('official provider HTTP '+res.status);
  if(Number(res.headers.get('content-length'))>maxBytes)fail('provider response too large');
  const text=await res.text();if(text.length>maxBytes)fail('provider response too large');
  try{return JSON.parse(text)}catch{fail('provider response was not valid JSON')}
 }
 async function nseMaster(fetcher,now){
- const res=await fetcher(MIS_URL,{method:'GET',redirect:'error',signal:AbortSignal.timeout(7000)});
+ const res=await fetcher(MIS_URL,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(7000)});
+ if(res.status>=300&&res.status<400)fail('official MIS master redirect refused');
  if(!res.ok)fail('official MIS master HTTP '+res.status);
  const length=Number(res.headers.get('content-length'));
  if(length>MAX_BOD_BYTES)fail('official MIS master is unusually large');
@@ -61,7 +63,7 @@ async function quotes(fetcher,token,keys,receiptClock=()=>Date.now()){
  if(keys.length<1||keys.length>500)fail('provider quote request outside 500-instrument limit');
  const u=new URL(QUOTE_URL);u.searchParams.set('instrument_key',keys.join(','));
  const res=await fetcher(u.toString(),{
-  method:'GET',redirect:'error',signal:AbortSignal.timeout(7000),
+  method:'GET',redirect:'manual',signal:AbortSignal.timeout(7000),
   headers:{Authorization:'Bearer '+token,Accept:'application/json'},
  });
  const data=await jsonBody(res,MAX_QUOTE_BYTES);

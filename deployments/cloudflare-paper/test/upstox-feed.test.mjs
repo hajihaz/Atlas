@@ -123,3 +123,18 @@ test('owner-only Analytics diagnostics cannot authenticate without a token',asyn
  await assert.rejects(verifyAnalyticsFeed({...env,UPSTOX_ANALYTICS_TOKEN:null},async()=>{calls++}),/credential missing/);
  assert.equal(calls,0);
 });
+
+
+test('Cloudflare Workers-compatible fetch redirects stay manual and never follow credential leaks',async()=>{
+ const f=fetchFixture(500),calls=[];
+ const guarded=async(url,opts)=>{
+  calls.push({url:String(url),redirect:opts.redirect,method:opts.method});
+  return f.fetch(url,opts);
+ };
+ await collectMisSnapshot(env,now,guarded,()=>at);
+ assert.equal(calls.length,3);
+ assert.ok(calls.every(x=>x.redirect==='manual'&&x.method==='GET'));
+ const deny=async(url,opts)=>{if(String(url).includes('NSE_MIS'))return f.fetch(url,opts);
+   return new Response(null,{status:302,headers:{location:'https://untrusted.example/steal-token'}});};
+ await assert.rejects(collectMisSnapshot(env,now,deny,()=>at),/provider redirect refused/);
+});
