@@ -39,3 +39,9 @@
 - Owner gate: `wrangler login` OAuth opened in the Mac browser, but CLI is **not authenticated**. D1 remote create, secret injection, and deployment cannot run without completed authorization. Do not disable any protection or invent an account.
 - Integration owner gate: licensed timestamped NSE + Nifty feed not supplied, so do not activate or advertise unattended market trading. No real broker orders.
 - Astra review should specifically inspect Cloudflare D1 `batch` atomicity, concurrent cron/update race, short exposure accounting and time-of-quote-source propagation. Minute Cron + 15-second quote TTL means missed triggers must fail closed. Review account quota/exchange holiday cases before any production release.
+
+### Oct 27 — targeted free-tier efficiency patch
+
+- Full NSE quote ingestion was optimized to cache shared ISO/IST session checks and to pack 500–4000 records into one `json_each()` D1 statement, plus one coverage update in a transactional batch. This avoids exceeding the **50 D1 query invocations** limit; individual row-write quotas and 10 ms Workers Free CPU limit still apply.
+- The order-fill path now reads quote/position/cash via one joined query and verifies the cash, holdings, timestamp, and short-exposure preconditions in its guarded settlement transaction. Protective STOP and EXIT orders are eligible for a within-window retry if a preceding attempt skipped solely for a stale quote.
+- A local D1 fixture verified the compact `json_each` UPSERT syntax, simulated paper settlement after Cron, and exactly one recorded fill. 10/10 targeted Cloudflare tests pass. Remote CPU and end-of-day 10-position exit-load certification remain pending account access / authenticated NSE feed.

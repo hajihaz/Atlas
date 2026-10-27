@@ -23,7 +23,7 @@ The 09:40 signal, any stop-loss, and 15:15 exit attempt can be delayed or skippe
 
 ## Free quota controls
 
-A full-universe snapshot (500–4000 symbols) is accepted only in the 09:39–09:40 IST window, once per session. Ordinary quote updates are limited to 30 symbols per batch and at most one database change per symbol per 12 seconds, reducing daily D1 writes. The collector must send just the watched/held stocks outside the opening universe. Total D1 writes and Worker CPU still require monitoring: no free plan promises infinite operations or uptime.
+A full-universe snapshot (500–4000 symbols) is accepted only in the 09:39–09:40 IST window, once per session. The validated snapshot is persisted in one SQLite `json_each()` insert plus one coverage statement inside a single D1 transactional `batch()`: two SQL statements instead of 500+ individual D1 API calls. This reduces invocation overhead but still counts each inserted row against the daily 100,000-row write quota. Ordinary quote updates are limited to 30 symbols per batch and at most one database change per symbol per 12 seconds, reducing daily D1 writes. The collector must send just the watched/held stocks outside the opening universe. Total D1 writes and Worker CPU (10 ms per invocation on Workers Free) still require monitoring: no free plan promises infinite operations or uptime.
 
 ## Security/accuracy contract
 
@@ -36,7 +36,7 @@ A full-universe snapshot (500–4000 symbols) is accepted only in the 09:39–09
 
 ## Verification already performed (local only)
 
-- `node --test test/safety.test.mjs`: 3/3 tests passed.
+- `node --test test/*.test.mjs`: 10/10 tests passed (timezones, auth, full-universe packing, source/coverage gates and freshness).
 - `wrangler d1 execute --local --file schema.sql`: schema created.
 - Wrangler `--local --test-scheduled` seeded **synthetic local fixtures**, invoked the scheduler, confirmed one virtual BUY fill with fee and an exact cash debit, confirmed two concurrent scheduled invocations created exactly one additional virtual fill, and verified stale scheduled orders transition to `SKIPPED` with `SCHEDULE_MISSED_NO_BACKFILL`.
 - The local fixture is not a genuine NSE market observation, not cloud-hosted, not a verified simulated performance result, and not a production trade.
