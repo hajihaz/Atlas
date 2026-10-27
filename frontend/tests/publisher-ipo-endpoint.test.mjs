@@ -52,6 +52,8 @@ test('untrusted refs and absent credentials fail before making any request',asyn
  await assert.rejects(getPrivateIpoSnapshot({now,fetcher}));
 });
 test('only the reviewed preview may read the Mac report branch',()=>{
+ assert.equal(APPROVED_PREVIEW_REF,'haor/atlas-consolidated-20261026');
+ assert.equal(configuredArtifactRef({VERCEL_ENV:'preview',VERCEL_GIT_COMMIT_REF:'haor/atlas-runtime-completion-20261024'}),'main');
  assert.equal(configuredArtifactRef({VERCEL_ENV:'production',VERCEL_GIT_COMMIT_REF:APPROVED_PREVIEW_REF}),'main');
  assert.equal(configuredArtifactRef({VERCEL_ENV:'preview',VERCEL_GIT_COMMIT_REF:'unrelated'}),'main');
  assert.equal(configuredArtifactRef({VERCEL_ENV:'preview',VERCEL_GIT_COMMIT_REF:APPROVED_PREVIEW_REF}),RUNTIME_DATA_REF);

@@ -1,5 +1,5 @@
 // Fixed public-research artifacts only. Credentials never leave this server-side module.
-export const APPROVED_PREVIEW_REF='haor/atlas-runtime-completion-20261024';
+export const APPROVED_PREVIEW_REF='haor/atlas-consolidated-20261026';
 export const RUNTIME_DATA_REF='data/atlas-runtime';
 const PATHS=Object.freeze({
  paper:'frontend/public/cloud-paper.json',
