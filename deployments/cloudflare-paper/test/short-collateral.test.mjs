@@ -118,3 +118,13 @@ test('short-direction 09:40 entry and 15:15 cover stay within D1 Free query budg
  assert.equal(f.value("SELECT status FROM runs WHERE phase='EXIT'"),'EXECUTED');
  assert.ok(f.queries-before<=50,`15:15 cover tick exceeds Workers Free: ${f.queries-before} queries`);
 });
+
+
+test('unknown short entry price fails closed instead of releasing collateral',async()=>{
+ const f=fixture();f.quote('LONGX',10000);
+ f.sqlite.prepare('INSERT INTO positions(symbol,qty,entry_paise,intraday) VALUES(?,?,NULL,1)')
+  .run('UNKNOWN',-5);
+ assert.equal(await testing.fill(f.d1,f.order('nullreserve','LONGX','BUY',2),now),false);
+ assert.equal(f.value("SELECT status FROM orders WHERE id='nullreserve'"),'SKIPPED');
+ assert.equal(f.value("SELECT COUNT(*) FROM positions WHERE symbol='LONGX'"),0);
+});

@@ -97,8 +97,10 @@ const shortExposureGate=shortEntry?` AND NOT EXISTS (
    OR q.observed_ms<? OR q.observed_ms>?))
  AND ? + COALESCE((SELECT SUM(ABS(p.qty)*q.price_paise)
  FROM positions p JOIN quotes q ON q.symbol=p.symbol WHERE p.qty<0),0)<=?`:'';
-const collateralGate=reservesRequired?` AND (SELECT cash_paise FROM account WHERE id=1)-
- COALESCE((SELECT SUM(ABS(qty)*COALESCE(entry_paise,0)) FROM positions WHERE qty<0),0)>=?`:'';
+const collateralGate=reservesRequired?` AND NOT EXISTS (
+ SELECT 1 FROM positions WHERE qty<0 AND (entry_paise IS NULL OR entry_paise<=0))
+ AND (SELECT cash_paise FROM account WHERE id=1)-
+ COALESCE((SELECT SUM(ABS(qty)*entry_paise) FROM positions WHERE qty<0),0)>=?`:'';
 const guard="AND COALESCE((SELECT qty FROM positions WHERE symbol=?),0)=?"+
  (o.side==='BUY'?' AND (SELECT cash_paise FROM account WHERE id=1)>=?':'')+
  " AND (SELECT observed_ms FROM quotes WHERE symbol=?)=?"+shortExposureGate+collateralGate;
