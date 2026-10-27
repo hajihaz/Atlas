@@ -1,0 +1,10 @@
+{
+  "status": "FINAL_MECHANICAL_CHECKPOINT",
+  "preferred_executor": "HHC",
+  "owner_relay_required": false,
+  "premium_value_work_remaining": false,
+  "objective_id": "atlas-owner-primary-0940-20261027",
+  "progress": 90,
+  "next_action": "Verify publisher lifecycle repair, publish final source checkpoint, then only actual entitlement recovery and a complete independently auditable genuine session remain.",
+  "state_authority": ".ai/OWNER_PRIMARY_OBJECTIVE_20261027.json"
+}

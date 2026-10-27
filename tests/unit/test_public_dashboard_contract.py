@@ -39,9 +39,10 @@ def test_frontend_has_no_broker_backend_or_vite_secret_env():
     # Archived fixture values remain auditable, not rendered as current portfolio figures.
     assert "import snapshot" not in ui
     assert "historicalInitialCapital" not in ui
-    assert "Live-capital authorization" in ui
-    assert "No verified order records connected" in ui
-    assert "RealMarketPage" in ui
+    assert "Broker orders remain disabled" in ui
+    assert "OwnerStrategyPage" in ui
+    assert "RealMarketPage" not in ui
+    assert "OwnerEvidencePage" in ui
     assert not any(
         secret in ui
         for secret in (

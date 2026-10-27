@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Check, Copy, Download, ExternalLink, LockKeyhole } from 'lucide-react';
 import scalpstorm from '../data/scalpstorm-campaign.json';
+import ScalpStormAllocationPlan from './ScalpStormAllocationPlan';
 import ScalpStormLedgerPanels from './ScalpStormLedgerPanels';
+import DayTraderNSEPanel from './DayTraderNSEPanel';
 
 function exportText(name: string, value: string) {
   const url = URL.createObjectURL(new Blob([value], {type:'text/plain'}));
@@ -19,6 +21,13 @@ export default function ScalpStormDetailed() {
   const [copied, setCopied] = useState(false);
   const days = scalpstorm.days.filter(d => filter === 'ALL' || d.indexSignal === filter);
   const day = scalpstorm.days.find(d => d.date === selectedDay) ?? scalpstorm.days[0];
+  function selectFilter(next: Filter) {
+    setFilter(next);
+    if (next !== 'ALL' && day.indexSignal !== next) {
+      const first = scalpstorm.days.find(d => d.indexSignal === next);
+      if (first) setSelectedDay(first.date);
+    }
+  }
   const publicUrl = window.location.origin + '/scalpstorm-report.json';
   const digest = [
     'ATLAS / SCALPSTORM X — historical report',
@@ -51,6 +60,7 @@ export default function ScalpStormDetailed() {
       reconstructed from a third-party community index archive, not authenticated Groww rankings.
       This view has no brokerage trading controls.
     </span></div>
+    <ScalpStormAllocationPlan/>
     <div className="scalp-summary">
       <div className="panel"><small>VIRTUAL CAPITAL</small><strong>₹{scalpstorm.capitalINR.toLocaleString('en-IN')}</strong><span>Paper only · 1x gross cap</span></div>
       <div className="panel"><small>NIFTY SOURCE BARS</small><strong>{scalpstorm.indexSignalSessionsValidated} / 20</strong><span>375 minute candles / day</span></div>
@@ -60,7 +70,7 @@ export default function ScalpStormDetailed() {
     <div className="scalp-signal-grid">
       {(['BUY','SELL','NO_TRADE'] as const).map(direction=>
         <button type="button" key={direction} className={'panel scalp-signal-card '+(filter===direction?'scalp-active':'')}
-          onClick={()=>setFilter(filter===direction?'ALL':direction)}>
+          onClick={()=>selectFilter(filter===direction?'ALL':direction)}>
           <small>{direction==='NO_TRADE'?'NO TRADE':direction}</small><strong>{scalpstorm.signalCounts[direction]}</strong>
           <span>Index classifications</span>
         </button>
@@ -74,7 +84,7 @@ export default function ScalpStormDetailed() {
       </div><span className="tag tag-gold">NOT EXCHANGE ATTESTED</span></div>
       <div className="scalp-controls">
         {(['ALL','BUY','SELL','NO_TRADE'] as const).map(d=>
-          <button key={d} type="button" className={filter===d?'active':''} onClick={()=>setFilter(d)}>
+          <button key={d} type="button" className={filter===d?'active':''} onClick={()=>selectFilter(d)}>
             {d==='ALL'?'All 20':d==='NO_TRADE'?'No trade':d}
           </button>
         )}
@@ -127,5 +137,9 @@ export default function ScalpStormDetailed() {
         remains missing, so stock selection, fills, exit prices, brokerage and net P&L are not reported.
       </p>
     </div>
+    <details className="scalp-panel">
+      <summary>Offline synthetic research sandbox · invented sessions</summary>
+      <DayTraderNSEPanel/>
+    </details>
   </section>;
 }

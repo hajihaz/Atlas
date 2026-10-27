@@ -5,6 +5,7 @@ import {planScalpStormEqualWeights} from '../../scripts/prototypes/scalpstorm_eq
 const read=p=>readFileSync(new URL(p,import.meta.url),'utf8');
 const panel=read('../src/components/ScalpStormAllocationPlan.tsx');
 const lab=read('../src/components/StrategyLabPage.tsx');
+const detailed=read('../src/components/ScalpStormDetailed.tsx');
 const styles=read('../src/strategy.css');
 test('ScalpStorm dashboard exposes ten equal planned slots, virtual-only',()=>{
  assert.match(panel,/VIRTUAL_CAPITAL_INR=100000/);
@@ -15,7 +16,11 @@ test('ScalpStorm dashboard exposes ten equal planned slots, virtual-only',()=>{
  assert.match(panel,/not invested capital/);
  assert.match(panel,/18 September/);
  assert.match(panel,/16 October 2026/);
- assert.match(lab,/mode==='scalpstorm'&&<ScalpStormAllocationPlan\/>/);
+ assert.match(lab,/<OwnerStrategyPage\/>/);
+ assert.doesNotMatch(lab,/ScalpStormDetailed|ScalpStormAllocationPlan/);
+ assert.match(detailed,/<ScalpStormAllocationPlan\/>/);
+ assert.match(detailed,/Historical stock data missing/);
+ assert.match(detailed,/Unavailable; not ₹0/);
  assert.match(styles,/@media\(max-width:640px\)/);
 });
 test('capital split is exactly ₹10k each, with zero fictitious orders',()=>{

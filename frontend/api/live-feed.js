@@ -10,6 +10,10 @@ function unavailable(symbol, reason = 'unavailable') {
   return { symbol, currency: 'INR', price: null, bid: null, ask: null,
     sourceAt: null, ageSeconds: null, status: reason, provider: 'CoinDCX public ticker' };
 }
+function feedStatus(quotes) {
+  const recent = quotes.filter(q => q.status === 'recent_provider_snapshot' && q.price !== null).length;
+  return recent === MARKETS.length ? 'RECENT' : recent ? 'DEGRADED' : 'DISCONNECTED';
+}
 export function normalizeTickers(payload, now = Date.now()) {
   if (!Array.isArray(payload)) throw new Error('Invalid market-data payload');
   const rows = new Map();
@@ -47,22 +51,22 @@ export async function getLiveFeed(fetcher = fetch, now = Date.now()) {
         ? { ...q, price: null, bid: null, ask: null, ageSeconds, status: 'stale_or_future' }
         : { ...q, ageSeconds };
     });
-    return { ...cached, quotes };
+    return { ...cached, feedStatus: feedStatus(quotes), quotes };
   }
   let quotes;
-  let feedStatus;
+  let status;
   try {
     const response = await fetcher(URL, { headers: { accept: 'application/json' },
       signal: AbortSignal.timeout(8000) });
     if (!response.ok) throw new Error('Provider unavailable');
     quotes = normalizeTickers(await response.json(), now);
-    feedStatus = quotes.every(q=>q.status==='recent_provider_snapshot') ? 'RECENT' : 'DEGRADED';
+    status = feedStatus(quotes);
   } catch {
     quotes = MARKETS.map(m=>unavailable(m));
-    feedStatus = 'DISCONNECTED';
+    status = 'DISCONNECTED';
   }
   cached = { schema: 1, observedAt: new Date(now).toISOString(),
-    source: 'CoinDCX public ticker', feedStatus, mode: 'PUBLIC_MARKET_OBSERVATION',
+    source: 'CoinDCX public ticker', feedStatus: status, mode: 'PUBLIC_MARKET_OBSERVATION',
     paperExecutionEnabled: false, realOrdersEnabled: false, currency: 'INR',
     quotes };
   cacheAt = now;

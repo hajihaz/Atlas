@@ -1,0 +1,6 @@
+# Isolated offline research tools; never imported by production adapters.
+# Upstream: DuckDB MIT, bt MIT, skfolio BSD-3-Clause, pip-audit Apache-2.0.
+duckdb==2.0.0
+bt==1.4.1
+skfolio==1.11.0
+pip-audit==2.10.1

@@ -17,7 +17,6 @@ SOURCE_URL = "https://api.coindcx.com/exchange/ticker"
 
 
 def fetch_quotes(now: int | None = None) -> list[dict[str, Any]]:
-    now = int(time.time()) if now is None else now
     req = urllib.request.Request(
         SOURCE_URL,
         headers={"Accept": "application/json", "User-Agent": "AtlasPaperResearch/1.0"},
@@ -28,4 +27,6 @@ def fetch_quotes(now: int | None = None) -> list[dict[str, Any]]:
         body = response.read(5_000_001)
         if len(body) > 5_000_000:
             raise ValueError("provider payload too large")
-    return decode_tickers(json.loads(body), now)
+    # Validate against actual response receipt, not the clock before network latency.
+    received_at = int(time.time()) if now is None else now
+    return decode_tickers(json.loads(body), received_at)

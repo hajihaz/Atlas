@@ -262,6 +262,12 @@ class IpoFeedTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Untrusted IPO provider URL"):
                 ipo.get_json(url)
 
+    def test_nse_website_policy_blocks_collection_before_network(self):
+        with patch.object(ipo.urllib.request, "urlopen") as network:
+            with self.assertRaisesRegex(ValueError, "NSE website collection is disabled"):
+                ipo.get_json("https://www.nseindia.com/api/all-upcoming-issues?category=ipo")
+            network.assert_not_called()
+
     def test_provider_failure_does_not_erase_previous_snapshot(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "ipo-feed.json"

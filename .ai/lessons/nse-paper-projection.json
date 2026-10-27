@@ -1,0 +1,5 @@
+{
+  "context": "A sanitized financial API response is validated again in the browser",
+  "lesson": "Preserve every evidence field required by the schema; verify projection idempotence using filled accounts, not only empty ledgers",
+  "verified_episode": "../episodes/nse-paper-pilot-20261026.json"
+}

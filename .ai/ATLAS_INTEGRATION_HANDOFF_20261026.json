@@ -1,0 +1,198 @@
+{
+  "project": "Atlas",
+  "branch": "haor/atlas-consolidated-20261026",
+  "pr": 52,
+  "cost_incurred_in_new_subscriptions": "\u20b90",
+  "summary": "Consolidated research/runtime plus an Upstox-only private five-strategy NSE paper pilot",
+  "repo_main_untouched": true,
+  "live_money_enabled": false,
+  "hosted_ci": "Included minutes exhausted; no manual retries or bypass.",
+  "preview": "https://atlas-control-center-2b7d2yz9k-kuddosahib-8503s-projects.vercel.app",
+  "external_gates": [
+    "GitHub account CI-start restriction",
+    "Original ScalpStorm historical evidence absent",
+    "Genuine market session explicitly deferred"
+  ],
+  "owner_decision_needed": [],
+  "time": "2026-10-26",
+  "historical_test_baseline": {
+    "python_full_pre_backfill": "585/585 full Python test suite passed, zero skips, with temporary local PostgreSQL+LEAN fixtures; cleaned",
+    "backfill_selected": "9 passed",
+    "javascript": "314 passed",
+    "ruff_mypy_typescript": "Ruff pass; 137-source-file mypy pass; TypeScript/Vite pass"
+  },
+  "tests": {
+    "code_commit": "3ae496f75e5d4c471992938eb384e4ef8dbc09b1",
+    "python": "766 passed;85 subtests passed;zero skips",
+    "javascript": "519 passed across78 files",
+    "ruff": "passed",
+    "mypy": "passed;157 source files",
+    "typescript": "passed",
+    "frontend_build": "passed",
+    "owner_browser": "five strategies, ten filled/zero-fill selections, mobile390px,dark theme and mode switching passed",
+    "all_day_api_reports": 100,
+    "service_soak": "five samples over80s;two genuine source observations;eight stable services",
+    "owner_ui": "http://127.0.0.1:4310/#nse-paper",
+    "preview": {
+      "passed": true,
+      "codeCommit": "3ae496f75e5d4c471992938eb384e4ef8dbc09b1",
+      "deploymentId": "dpl_EK1K8FrTq8CbKFu2R8fuYisnX2zA",
+      "previewURL": "https://atlas-control-center-a9zgccejn-kuddosahib-8503s-projects.vercel.app",
+      "ready": true,
+      "rootHTTP": 200,
+      "privateNseHTTP": 404,
+      "assetPath": "/assets/index-Cbi2LDL9.js",
+      "assetSHA256": "70f0a21d01c6fea23a645c2a21ce385862434eddf7ee949edbba9669b3df0a5d",
+      "matchesLocalBuild": true,
+      "strategyHTTP": 200,
+      "strategyBars": 719,
+      "strategies": 5,
+      "liveOrdersEnabled": false,
+      "realBrokerOrders": 0,
+      "paperOrdersExecuted": false,
+      "paperLedgerStored": false,
+      "productionChanged": false
+    },
+    "paper_pilot_readiness": 95,
+    "paper_pilot_fully_accepted": false,
+    "production_changed": false
+  },
+  "next_action": "Verify final non-market publication receipt against current HEAD; then continue GitHub billing authentication/entitlement recovery and normal release once actual required CI passes. Workspace review is already accepted; market-open evidence is explicitly deferred.",
+  "updated_at": "2026-10-26T18:24:56.989737+00:00",
+  "source_prs": [
+    49,
+    50,
+    51
+  ],
+  "latest_recovery": {
+    "status": "COMPLETED_OWNER_LOCAL_UNQUALIFIED",
+    "symbols": [
+      "BTCINR",
+      "ETHINR"
+    ],
+    "bars_each": 719,
+    "fixed_strategy_evaluations": 10,
+    "cost_scenarios": 30,
+    "walk_forward_evaluations": 30,
+    "holdouts": 10,
+    "source_hashes_verified": true,
+    "causality_checks_passed": true,
+    "holdout_overlap": false,
+    "owner_ui_imports_verified": true,
+    "raw_data_uploaded": false,
+    "profitability_certified": false,
+    "nse_certified": false,
+    "evidence": ".ai/raw/gate-recovery-20261026/owner-report-acceptance.json",
+    "new_paper_audited_through": 35,
+    "new_forward_decisions_matched": 5
+  },
+  "latest_upstox_recovery": {
+    "status": "VERIFIED_READ_ONLY_UPSTOX_RECOVERY",
+    "analytics_access_verified": true,
+    "upstox_parked": false,
+    "target_window": "2026-09-18..2026-10-16",
+    "history_bars_each": 7500,
+    "instruments": [
+      "NSE_INDEX|Nifty 50",
+      "NSE_EQ|INE002A01018"
+    ],
+    "exact_existing_campaign_grid_matched": true,
+    "historical_receipt_batches": 4,
+    "owner_local_parquet_verified": true,
+    "fixed_reliance_sma_smoke": "Existing9/21 defaults;409 hypothetical orders; unqualified; report owner-only",
+    "rest_observer": "1s NORMAL_OPEN;60s after hours; pinned GET only; genuine exchange/quote times",
+    "owner_ui": "http://127.0.0.1:4310/#markets",
+    "new_services": [
+      "nse-observer",
+      "nse-owner-ui"
+    ],
+    "in_session_forward_validation": false,
+    "certified_scalpstorm_sessions": 0,
+    "paper_orders_enabled": false,
+    "real_orders_enabled": false,
+    "new_subscription_cost_inr": 0,
+    "storage_policy": {
+      "scope": "OWNER_LOCAL",
+      "file_mode": "0600",
+      "version_controlled": false,
+      "explicit_opt_in": true
+    },
+    "notice": "Historical access checkpoint; current pilot supersedes observer-only status"
+  },
+  "paper_pilot_readiness": 95,
+  "prior_broader_integration_checkpoint": 76,
+  "future_backlog": [
+    {
+      "id": "fyers_comparison",
+      "required_for_pilot": false,
+      "status": "optional_future"
+    },
+    {
+      "id": "openalgo_bridge",
+      "required_for_pilot": false,
+      "status": "optional_future"
+    },
+    {
+      "id": "original_scalpstorm_qualification",
+      "required_for_pilot": false,
+      "status": "broader_objective_deferred",
+      "reason": "Historical market-wide PIT universe, top-volume, corporate-action/timing/rights evidence and real cost/holdout/forward qualification remain separate"
+    }
+  ],
+  "owner_workspace_accepted": true,
+  "normal_release_authorized_after_required_ci": true,
+  "nonmarket_review": {
+    "updatedAt": "2026-10-26T18:24:56.989737+00:00",
+    "status": "ALL_FEASIBLE_NONMARKET_REVIEWS_COMPLETED",
+    "ownerWorkspaceAccepted": true,
+    "additionalWorkspaceApprovalRequired": false,
+    "normalReleaseAuthorizedAfterRequiredCI": true,
+    "currentCode": "ec72371b8e7db5ba128dde6de1c58e256b84e46f",
+    "javascriptTests": 523,
+    "javascriptFiles": 79,
+    "typescript": true,
+    "frontendBuild": true,
+    "governanceChecks": 3,
+    "lastUnchangedPythonFullSuite": {
+      "passed": 766,
+      "subtests": 85,
+      "skipped": 0
+    },
+    "ciCoverageRepaired": true,
+    "GitHubHostedRunnerPreserved": true,
+    "CIProtectionWeakened": false,
+    "sourceBarsAddedForSeparateValidation": 18750,
+    "validationDates": 5,
+    "validationEvents": 91548,
+    "validationFills": 1432,
+    "validationDayReports": 25,
+    "independentCostScenarios": 4,
+    "validationReviewResult": "ALL_FIVE_NOT_QUALIFIED; losses and risk halts preserved",
+    "blindHoldoutClaimed": false,
+    "parameterTuning": false,
+    "historicalEvidenceReview": "COMPLETED; required original artifacts remain missing",
+    "originalScalpStormCertifiedSessions": 0,
+    "newSubscriptionsINR": 0,
+    "realOrdersSubmitted": 0,
+    "rawDataUploaded": false,
+    "privateCloudValidationHTTP": 404,
+    "preview": {
+      "passed": true,
+      "head": "ec72371b8e7db5ba128dde6de1c58e256b84e46f",
+      "deploymentId": "dpl_6Fpb152JsHeWCCzMnKHJEinP4cBY",
+      "url": "https://atlas-control-center-2b7d2yz9k-kuddosahib-8503s-projects.vercel.app",
+      "ready": true,
+      "rootHTTP": 200,
+      "assetPath": "/assets/index-e3_xAzO7.js",
+      "assetSHA256": "10fa28bf92cc909117a795aec67b594e6633e2873fcbc52482be1c1345a58661",
+      "privateValidationHTTP": 404,
+      "strategyHTTP": 200,
+      "strategies": 5,
+      "sourceBars": 719,
+      "liveOrdersEnabled": false,
+      "realBrokerOrders": 0,
+      "paperOrdersExecuted": false,
+      "paperLedgerStored": false
+    }
+  }
+}

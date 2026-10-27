@@ -38,11 +38,15 @@ jobs:
       - name: Upgrade audited packaging tooling
         run: python -m pip install --upgrade 'setuptools>=83.0.0'
       - name: Install Atlas and development tooling
-        run: python -m pip install -e '.[dev]'
+        run: python -m pip install -e '.[dev,integrations]'
+      - name: Install hash-pinned optional research runtime
+        run: python -m pip install --require-hashes -r requirements/runtime.lock
       - name: Lint and strict type check
         run: |
           python -m ruff check src tests scripts
           python -m mypy src/atlas
+      - name: Verify owner-local MCP transport with artificial records
+        run: PYTHONPATH=src python scripts/verify_owner_mcp.py
       - name: Run Python and PostgreSQL integration tests
         run: python -m pytest -q --disable-warnings --strict-markers
       - name: Isolated PostgreSQL logical backup and restore drill

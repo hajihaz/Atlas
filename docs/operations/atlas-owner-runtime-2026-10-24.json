@@ -1,0 +1,181 @@
+{
+  "schema": "atlas.owner-runtime-acceptance.v1",
+  "recordedAt": "2026-10-24T17:01:25.756540+00:00",
+  "scope": "Local implementation verified; full eight-goal acceptance remains externally gated",
+  "baseHead": "75fe72cd98e31b4916670e4e6fd3056203e7bff2",
+  "python": {
+    "passed": 595,
+    "skipped": 1,
+    "subtestsPassed": 29,
+    "database": "Disposable PostgreSQL17 UTF8, stopped after tests",
+    "missingSample": "LEAN sample cohort data"
+  },
+  "node": {
+    "passed": 424,
+    "skipped": 0,
+    "runtime": "Node24"
+  },
+  "strictTyping": {
+    "modules": 136,
+    "passed": true
+  },
+  "lint": {
+    "ruff": true
+  },
+  "browser": {
+    "ownerChecks": [
+      "actual source accounting and risk halt",
+      "mutation, foreign Origin and rebinding Host rejected",
+      "private files and order routes inaccessible",
+      "push setup contains public key only; unpaired mutation denied",
+      "UI renders actual risk-halted accounts, monthly totals and verified day trade records",
+      "installed chart renders provider-shaped artificial OHLC; no invented market claim",
+      "320px layout has no page overflow",
+      "installed service worker serves app shell offline",
+      "no financial JSON, API or subscription material cached"
+    ],
+    "runtimeErrors": [],
+    "accessibilityStates": 40,
+    "automatedA11yPass": true,
+    "fullWcagCertification": false,
+    "manualReviewRequired": true,
+    "sourceFingerprint": "6ba42e5978818f9fc15babc6427c07368cc0f91a412f999c51501da3dcffe832"
+  },
+  "secrets": {
+    "newFindings": 0,
+    "existingNonsecretHashFields": [
+      {
+        "field": "indexSource.commit",
+        "hexLength": 40
+      },
+      {
+        "field": "indexSource.files.0.sha256",
+        "hexLength": 64
+      },
+      {
+        "field": "indexSource.files.1.sha256",
+        "hexLength": 64
+      }
+    ]
+  },
+  "dependencies": {
+    "compatibilityVerified": true,
+    "knownVulnerabilitiesReported": 0,
+    "inventory": {
+      "python": [
+        {
+          "package": "upstox-python-sdk",
+          "version": "2.30.0",
+          "license": "MIT"
+        },
+        {
+          "package": "ccxt",
+          "version": "4.5.90",
+          "license": "MIT"
+        },
+        {
+          "package": "quantstats",
+          "version": "0.0.86",
+          "license": "Apache-2.0"
+        },
+        {
+          "package": "optuna",
+          "version": "5.0.0",
+          "license": null
+        },
+        {
+          "package": "APScheduler",
+          "version": "3.11.3",
+          "license": "MIT"
+        },
+        {
+          "package": "mcp",
+          "version": "1.30.0",
+          "license": "MIT"
+        }
+      ],
+      "node": [
+        {
+          "name": "lightweight-charts",
+          "version": "5.2.1",
+          "license": "Apache-2.0"
+        },
+        {
+          "name": "web-push",
+          "version": "3.6.7",
+          "license": "MPL-2.0"
+        }
+      ]
+    }
+  },
+  "services": {
+    "labels": [
+      "com.hajihaz.atlas.owner-ui",
+      "com.hajihaz.atlas.owner-observer"
+    ],
+    "loopbackUrl": "http://127.0.0.1:4300",
+    "controlledRestartVerified": true,
+    "originalRecorderRestarted": false,
+    "observerSnapshots": [
+      {
+        "status": "accounting_verified_source_stale",
+        "accountingVerified": true,
+        "sourceFresh": false,
+        "sourceFeedStatus": "DISCONNECTED",
+        "asOf": "2026-10-24T17:00:33+00:00",
+        "accounts": 2,
+        "realOrdersEnabled": false
+      },
+      {
+        "status": "accounting_verified_source_stale",
+        "accountingVerified": true,
+        "sourceFresh": false,
+        "sourceFeedStatus": "DISCONNECTED",
+        "asOf": "2026-10-24T17:00:54+00:00",
+        "accounts": 2,
+        "realOrdersEnabled": false
+      }
+    ]
+  },
+  "publicReference": {
+    "verified": true,
+    "observation": {
+      "symbol": "BTC/USD",
+      "currency": "USD",
+      "price": 79781.2,
+      "sourceAtMs": 1792860351311,
+      "provider": "Kraken public trades via CCXT",
+      "realOrdersEnabled": false,
+      "paperExecutionEnabled": false,
+      "inrConversionApplied": false
+    }
+  },
+  "safety": {
+    "actualCapitalINR": 0,
+    "realOrdersEnabled": false,
+    "sourceFillsBeforeRiskEnforcement": 1860,
+    "sourceFillsAfterRiskEnforcement": 1860,
+    "riskThresholdPercent": 25,
+    "riskHalted": [
+      "atlas-btc-sma",
+      "atlas-eth-momentum"
+    ],
+    "paperRealizedPnlINR": {
+      "atlas-btc-sma": -25475.06,
+      "atlas-eth-momentum": -37286.91
+    }
+  },
+  "externalGates": [
+    "Exact-head hosted GitHub checks cannot start; prior account billing/spending annotation",
+    "Narrow server-only private-ledger credential absent",
+    "Approved NSE/IPO access and authentic point-in-time history unavailable; 0/20 NSE sessions certified",
+    "Browser one-second stream not verified; legitimate Engine.IO3 and4 probes failed",
+    "CoinDCX source timestamps stale at latest observation; bounded REST recheck timed out",
+    "Push source approval, owner device permission and actual delivery test absent; sender disabled",
+    "ChatGPT remote authenticated connector not registered; local MCP stdio only",
+    "Time and valid out-of-sample observations still required for dependable strategy selection"
+  ],
+  "mainMergePerformed": false,
+  "productionDeployPerformed": false,
+  "additionalSpendINR": 0
+}
