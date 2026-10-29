@@ -2,13 +2,12 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import {
   Activity, ArrowRight, ArrowUpRight, Bell, ChartNoAxesCombined,
   ChevronLeft, ChevronRight, CircleAlert, Clock3, Command, FileClock,
-  History, Layers3, LayoutDashboard, LockKeyhole, Menu, Moon,
-  MoreHorizontal, ShieldCheck, Sun, X, BarChart3, BookOpenText, TrendingUp,
+  History, LayoutDashboard, LockKeyhole, Menu, Moon,
+  MoreHorizontal, ShieldCheck, Sun, X, BarChart3, TrendingUp,
 } from 'lucide-react';
 import RealMarketPage from './components/RealMarketPage';
 import StrategyLabPage from './components/StrategyLabPage';
 import StockWatchPage from './components/StockWatchPage';
-import PaperTrialsPage from './components/PaperTrialsPage';
 import RiskAuditPage from './components/RiskAuditPage';
 import {usePaperTrials} from './lib/usePaperTrials';
 const LiveLabPage = lazy(() => import('./components/LiveLabPage'));
@@ -26,8 +25,6 @@ const nav=[
   {id:'overview',title:'Overview',Icon:LayoutDashboard},
   {id:'markets',title:'Market Watch',Icon:ChartNoAxesCombined},
   {id:'ipo',title:'IPO Intelligence',Icon:TrendingUp},
-  {id:'strategies',title:'Strategies',Icon:Layers3},
-  {id:'research',title:'Research Lab',Icon:BookOpenText},
   {id:'scalpstorm',title:'ScalpStorm X',Icon:BarChart3},
   {id:'risk',title:'Risk Center',Icon:ShieldCheck},
   {id:'orders',title:'Orders & Activity',Icon:History},
@@ -128,9 +125,7 @@ export default function App(){
         page==='ipo'?<Suspense fallback={<div className='panel market-loading' role='status'>Loading IPO research…</div>}><IPOIntelligencePage/></Suspense>:
         page==='markets'?<StockWatchPage theme={theme} goResearch={()=>go('strategies')}/>:
         page==='strategies'||page==='research'||page==='scalpstorm'?<StrategyLabPage mode={page} goRisk={()=>go('risk')}/>:
-        page==='orders'?<PaperTrialsPage group={paper.group} statusMessage={paper.providerMessage}
-          start={paper.start} pause={paper.pause} resume={paper.resume} clear={paper.clear}
-          goStrategies={()=>go('strategies')}/>:
+        page==='orders'?<SimplePage page='orders' go={go}/>:
         page==='risk'||page==='audit'?<RiskAuditPage mode={page} group={paper.group}
           openPaper={()=>go('orders')} openResearch={()=>go('strategies')}/>:
         <SimplePage page={page} go={go}/>}

@@ -12,12 +12,12 @@ test('active app has no simulated equity, frozen financial figures or dollar cur
   assert.doesNotMatch(app,/snapshot\.json|historicalInitialCapital|Archived replay equity|finalEquity|usd\(|currency:\s*'USD'/);
   assert.doesNotMatch(market,/currency:\s*'USD'|\$102,536|\$100,000|459|\+2\.54%/);
   assert.doesNotMatch(app,/ScalpStormDetailed/);
-  assert.match(market,/5 named models/);
-  assert.match(market,/Ready to start/);
+  assert.match(market,/1 strategy/);
+  assert.match(market,/ScalpStorm X only/);
   assert.match(market,/currency:'INR'/);
 });
 test('all existing sections remain reachable without demonstrative trades',()=>{
-  for(const id of ['overview','markets','strategies','research','scalpstorm','risk','orders','audit'])
+  for(const id of ['overview','markets','scalpstorm','risk','orders','audit'])
     assert.match(app,new RegExp("id:'"+id+"'"));
   assert.match(app,/function SimplePage/);
   assert.match(app,/No verified order records connected/);
@@ -42,9 +42,9 @@ test('premium styling persists with new responsive rupee-only dashboard',()=>{
   assert.match(app,/aria-pressed=\{theme === 'dark'\}/);
 });
 test('only read-only indicative values are permitted in financial cards',()=>{
-  assert.match(market,/Virtual paper trials/);
-  assert.match(market,/Five source-driven virtual accounts/);
-  assert.match(market,/real historical INR backtests/);
+  assert.match(market,/Paper journal/);
+  assert.match(market,/Retired comparisons no longer execute/);
+  assert.match(market,/unverified stock P&amp;L stays unavailable/);
   assert.match(market,/All money values in Indian rupees/);
   assert.match(app,/No verified broker portfolio/);
 });

@@ -1,32 +1,14 @@
-name: atlas-paper-scheduled
+name: atlas-retired-comparison-paper
+# Owner decision 2026-10-29: ScalpStorm X is the only Atlas strategy.
+# This archival workflow no longer runs five-strategy virtual trading.
 on:
-  schedule:
-    # Two attempts per completed even-UTC two-hour bar: +35 and +80m.
-    # Same 24/day budget; hedge both early and delayed source publication.
-    - cron: '35 0-22/2 * * *'
-    - cron: '20 1-23/2 * * *'
   workflow_dispatch:
 permissions:
-  contents: write
-concurrency:
-  group: atlas-paper-scheduled
-  cancel-in-progress: false
+  contents: read
 jobs:
-  virtual-checkpoint:
+  retired:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
-    env:
-      ATLAS_EXECUTION_MODE: PAPER_ONLY
+    timeout-minutes: 1
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: true
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Guard against accidental live trading
-        run: |
-          test "${ATLAS_EXECUTION_MODE}" = "PAPER_ONLY"
-          test ! -f frontend/public/real-orders.json
-      - name: Source-revalidated forward checkpoint with bounded conflict recovery
-        run: bash scripts/publish_scheduled_paper.sh
+      - name: Refuse retired comparison strategy execution
+        run: echo "Atlas five-strategy schedule retired. ScalpStorm X only; no paper simulation or trading performed."

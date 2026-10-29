@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "node ../scripts/build_cloud_paper_daybook.mjs && tsc -b && vite build",
+    "build": "tsc -b && vite build && node ../scripts/prune_retired_public_assets.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "check": "tsc --noEmit"
   },
