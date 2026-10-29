@@ -92,7 +92,7 @@ export default function RealMarketPage({variant='overview',paperGroup,onNavigate
         <p>All money values in Indian rupees. Provider-backed crypto references, honest NSE connectivity and no fictional profits.</p>
         <div className="real-hero-buttons">
           <button className="primary-button" type="button" onClick={()=>onNavigate?.('strategies')}>
-            Explore 5 strategies <ArrowRight size={16}/>
+            Explore ScalpStorm X <ArrowRight size={16}/>
           </button>
           {variant==='overview'&&<button className="premium-outline-button" onClick={()=>onNavigate?.('markets')} type="button">
             Live crypto charts <ArrowRight size={15}/>
@@ -107,7 +107,7 @@ export default function RealMarketPage({variant='overview',paperGroup,onNavigate
       </div>
     </div>
     <div className="real-market-note"><Activity size={16}/>
-      <span>Free public INR observations, live crypto charts and source-based strategy experiments.
+      <span>Free public INR observations, live crypto charts and ScalpStorm X paper research.
         NSE stock charts use TradingView; real-capital orders remain disabled.</span>
     </div>
     <div className="real-section-title"><div><span className="premium-kicker">SOURCE-VERIFIED DISPLAY</span>
@@ -118,14 +118,14 @@ export default function RealMarketPage({variant='overview',paperGroup,onNavigate
     {error&&<p className="real-error" role="alert">{error}. Real values are hidden until the source reconnects.</p>}
     <div className="real-stats-grid">
       <button type="button" className="panel real-stat real-stat-action" onClick={()=>onNavigate?.('strategies')}>
-        <span className="real-stat-label">Research strategies <TrendingUp size={18}/></span>
-        <strong>5 named models</strong>
-        <small>Click for real historical INR backtests and modeled P&amp;L</small>
+        <span className="real-stat-label">ScalpStorm X <TrendingUp size={18}/></span>
+        <strong>1 strategy</strong>
+        <small>NSE top-volume intraday plan; unverified stock P&amp;L stays unavailable</small>
       </button>
       <button type="button" className="panel real-stat real-stat-action" onClick={()=>onNavigate?.('orders')}>
-        <span className="real-stat-label">Virtual paper trials <Wallet size={18}/></span>
-        <strong>{paperGroup?paperGroup.sessions.filter(x=>x.status==='running').length+' / 5 running':'Ready to start'}</strong>
-        <small>Five source-driven virtual accounts, local to this browser</small>
+        <span className="real-stat-label">Paper journal <Wallet size={18}/></span>
+        <strong>ScalpStorm X only</strong>
+        <small>Retired comparisons no longer execute; account history is preserved</small>
       </button>
       <button type="button" className="panel real-stat real-stat-action" onClick={()=>onNavigate?.('markets')}>
         <span className="real-stat-label">Indian stock viewing <CalendarClock size={18}/></span>

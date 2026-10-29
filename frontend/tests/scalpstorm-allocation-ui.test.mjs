@@ -15,7 +15,8 @@ test('ScalpStorm dashboard exposes ten equal planned slots, virtual-only',()=>{
  assert.match(panel,/not invested capital/);
  assert.match(panel,/18 September/);
  assert.match(panel,/16 October 2026/);
- assert.match(lab,/mode==='scalpstorm'&&<ScalpStormAllocationPlan\/>/);
+ assert.match(lab,/<ScalpStormDetailed\/>/);
+ assert.match(lab,/<ScalpStormAllocationPlan\/>/);
  assert.match(styles,/@media\(max-width:640px\)/);
 });
 test('capital split is exactly ₹10k each, with zero fictitious orders',()=>{
