@@ -21,6 +21,15 @@ test('seven isolated accounts are created once with zero fills',async()=>{
  await ensureSevenAccounts(db,T+1000);
  assert.equal((await listSevenAccounts(db)).accounts.length,7);
 });
+test('retired empty research accounts remain archived outside the approved seven',async()=>{
+ const {sqlite,db}=fixture();
+ sqlite.prepare('INSERT INTO seven_paper_accounts(strategy_id,revision,state_json,updated_ms) VALUES(?,?,?,?)')
+  .run('sma_9_21',0,JSON.stringify({legacy:true,note:'Retained only as an audit record of an earlier empty research strategy account; never shown in the approved catalog.'}),T);
+ const current=await ensureSevenAccounts(db,T);
+ assert.equal(current.accounts.length,7);
+ assert.ok(current.accounts.every(x=>x.strategyId!=='sma_9_21'));
+ assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM seven_paper_accounts').get().n,8);
+});
 test('revision CAS prevents replaying stale paper-account writes',async()=>{
  const {db}=fixture();await ensureSevenAccounts(db,T);
  const before=await loadSevenAccount(db,'scalpstorm_x');

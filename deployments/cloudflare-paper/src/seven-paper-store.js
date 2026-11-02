@@ -31,7 +31,11 @@ export async function saveSevenAccount(db,previous,next,now){
 }
 export async function listSevenAccounts(db){
  if(!db)fail('store');
- const result=await db.prepare('SELECT strategy_id,revision,state_json,updated_ms FROM seven_paper_accounts ORDER BY strategy_id LIMIT 8').all();
+ // Earlier unarmed research accounts remain in D1 as an audit trail. Only
+ // identities in the owner-approved seven-rule catalog belong to this view.
+ const ids=SEVEN_STRATEGIES.map(x=>x.id);
+ const result=await db.prepare('SELECT strategy_id,revision,state_json,updated_ms FROM seven_paper_accounts WHERE strategy_id IN (?,?,?,?,?,?,?) ORDER BY strategy_id')
+  .bind(...ids).all();
  const rows=result.results;if(rows.length!==7)fail('incomplete seven accounts');
  const seen=new Set();
  return {schema:'atlas.seven-paper-accounts.v1',paperOnly:true,realOrdersEnabled:false,
