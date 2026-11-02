@@ -67,7 +67,8 @@ function openingRange(bars){
 }
 function confirmedBreak(bars,side,from=29){
   const range=openingRange(bars);
-  for(let end=from;end<355;end+=5){
+  const firstEnd=Math.max(29,4+5*Math.ceil((from-4)/5));
+  for(let end=firstEnd;end<355;end+=5){
     const first=end-4;
     if(side==='BUY'&&bars[end].close>range.high&&bars[end].close>bars[first].open)return end;
     if(side==='SELL'&&bars[end].close<range.low&&bars[end].close<bars[first].open)return end;
@@ -97,7 +98,9 @@ export function intradaySignal(id,bars,context={}){
        !['BUY','SELL'].includes(news.direction)||!Number.isFinite(ms(news.publishedAt))||
        ms(news.publishedAt)>bars[354].time||ms(news.publishedAt)<Date.parse(day+'T00:00:00Z'))fail('verified dated news missing');
     if(!Number.isSafeInteger(context.liquidityVolume)||context.liquidityVolume<10000)fail('liquidity evidence missing');
-    const end=confirmedBreak(bars,news.direction);
+    // Confirm with a complete candle that began after the news was published.
+    const newsEnd=4+5*Math.ceil((ms(news.publishedAt)-bars[0].time)/300000);
+    const end=confirmedBreak(bars,news.direction,Math.max(29,newsEnd));
     return end===null?noTrade('NO_PRICE_CONFIRMATION'):signal(news.direction,end,'VERIFIED_NEWS_AND_PRICE',{bars});
   }
   const niftyBps=verifyNifty(bars,context.niftyBars);

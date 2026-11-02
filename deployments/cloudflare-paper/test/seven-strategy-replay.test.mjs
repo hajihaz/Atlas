@@ -58,6 +58,15 @@ test('X3 needs verified dated news and liquidity before a signal',()=>{
  c.news.verified=false;
  assert.throws(()=>intradaySignal('scalpstorm_x3',bars(),c),/news missing/);
 });
+test('X3 never uses a breakout that happened before the news was published',()=>{
+ const c=context();c.news.publishedAt=DAY+'T05:00:00Z'; // 10:30 IST
+ const later=intradaySignal('scalpstorm_x3',bars(),c);
+ assert.equal(later.status,'SIGNAL');
+ assert.ok(later.signalBarTime>=START+79*60000);
+ const onlyEarly=bars();
+ for(let i=30;i<onlyEarly.length;i++)onlyEarly[i]={...onlyEarly[i],close:100,high:101};
+ assert.equal(intradaySignal('scalpstorm_x3',onlyEarly,c).status,'NO_TRADE');
+});
 test('Xtreme and VWAP require their distinct source evidence',()=>{
  const c=context();
  assert.ok(['SIGNAL','NO_TRADE'].includes(intradaySignal('scalpstorm_xtreme',bars(),c).status));
