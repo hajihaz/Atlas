@@ -1,6 +1,6 @@
 // Same-origin authenticated owner gateway. No broker routes; no stored tokens.
 // Upstream must be a separately hosted, persistent cloud paper worker.
-const allowed = Object.freeze({status: ['GET'], state: ['GET'], daybook: ['GET'], 'seven-strategies': ['GET'], 'seven-accounts': ['GET'], 'strategy-replay': ['GET'], 'daily-cohort': ['GET'], 'period-rank': ['GET'], 'feed-check': ['GET'], orders: ['POST'], cancel: ['POST'], strategy: ['POST']});
+const allowed = Object.freeze({status: ['GET'], state: ['GET'], daybook: ['GET'], 'seven-strategies': ['GET'], 'seven-accounts': ['GET'], 'strategy-replay': ['GET'], 'daily-cohort': ['GET'], 'period-rank': ['GET'], 'feed-check': ['GET'], orders: ['POST'], cancel: ['POST']});
 function baseURL() {
   try {
     const raw=process.env.ATLAS_PAPER_BACKEND_URL || '';

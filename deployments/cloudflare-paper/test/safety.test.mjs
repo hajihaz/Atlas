@@ -21,6 +21,11 @@ test('always advertises paper-only and never exposes owner state',async()=>{
  const no=await worker.fetch(new Request('http://x/api/cloud-paper/state'),{});
  assert.equal(no.status,503);
 });
+test('retired automatic strategy cannot be rearmed through the Worker',async()=>{
+ const req=new Request('https://paper.example/api/cloud-paper/strategy',{method:'POST',headers:{Authorization:'Bearer '+'O'.repeat(64),'Content-Type':'application/json'},body:JSON.stringify({enabled:true})});
+ const res=await worker.fetch(req,{DB:{},OWNER_TOKEN:'O'.repeat(64)});
+ assert.equal(res.status,404);
+});
 
 test('full NSE snapshot uses three bounded D1 statements instead of one per stock', async()=>{
  const now=ist('2026-10-27','09:40:02');

@@ -23,6 +23,7 @@ test('gateway refuses arbitrary and quote routes',async()=>{
  const a=reply();await handler(req(['quotes'],'POST'),a);assert.equal(a.statusCode,404);
  const b=reply();await handler(req(['state','..','admin']),b);assert.equal(b.statusCode,404);
  const c=reply();await handler(req(['status'],'POST'),c);assert.equal(c.statusCode,405);
+ const d=reply();await handler(req(['strategy'],'POST','Bearer '+'X'.repeat(64)),d);assert.equal(d.statusCode,404);
 });
 
 test('gateway forwards only authorized private owner calls over configured HTTPS',async()=>{

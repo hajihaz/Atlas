@@ -111,7 +111,7 @@ export default function CloudPaperPage({initialToken=''}:{initialToken?:string})
    <div className="cloud-paper-stats">
     <div className="panel"><small>Virtual cash</small><strong>{state?inr(state.cash_paise):'—'}</strong><span>Auditable integer-paise ledger</span></div>
     <div className="panel"><small>Virtual equity</small><strong>{state?.equity_paise!=null?inr(state.equity_paise):'Unavailable'}</strong><span>Unpriced when quotes are stale</span></div>
-    <div className="panel"><small>Automated 9:40 strategy</small><strong>{state?.strategy_enabled?'Armed':'Disabled'}</strong><span>Exits targeted for 3:15 PM IST</span></div>
+    <div className="panel"><small>Retired 9:40 rule</small><strong>{state?.strategy_enabled?'Needs review':'Entry disabled'}</strong><span>Existing positions still receive cloud exit checks</span></div>
    </div>
    <div className="cloud-paper-two">
     <form className="panel cloud-paper-ticket" onSubmit={e=>void submit(e)}>
@@ -124,11 +124,9 @@ export default function CloudPaperPage({initialToken=''}:{initialToken?:string})
      <button type="submit" className="primary-button" disabled={loading||!state}>Schedule virtual order</button>
     </form>
     <div className="panel cloud-paper-strategy">
-     <div className="cloud-paper-heading"><Cloud size={19}/><h2>Autonomous intraday runner</h2></div>
-     <div className="cloud-paper-strategy-badge">NSE TOP VOLUME · 09:40 → 15:15 IST</div>
-     <p>At 9:40 AM, consider the ten highest-volume stocks from the provider-attested full eligible universe. Nifty direction sets simulated BUY or short SELL; neutral means no trade. Model ₹10,000 maximum exposure per stock, 2% protective stop and 3:15 PM exit.</p>
-     <p>Activation does not override coverage checks, capital limits, feed availability or market closures.</p>
-     <button type="button" className={state?.strategy_enabled?'secondary-button':'primary-button'} disabled={loading||!state} onClick={()=>void update('strategy',{enabled:!state?.strategy_enabled},state?.strategy_enabled?'Cloud strategy disabled.':'Strategy armed; waiting for a certified NSE session.')}>{state?.strategy_enabled?'Disable autonomous paper strategy':'Arm autonomous paper strategy'}</button>
+     <div className="cloud-paper-heading"><Cloud size={19}/><h2>Existing position recovery</h2></div>
+     <div className="cloud-paper-strategy-badge">RETIRED ENTRY RULE · CLOUD EXIT CHECKS</div>
+     <p>The old automatic entry rule is retired. Its existing virtual positions still receive fresh-quote stop, exit and carryover recovery checks in the cloud.</p>
      <button className="cloud-paper-refresh" type="button" onClick={()=>void refresh()}><RefreshCcw size={15}/> Refresh server records</button>
      <button className="cloud-paper-refresh" type="button" disabled={loading} onClick={()=>{
       setLoading(true);setNotice('');setError('');
