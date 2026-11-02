@@ -20,7 +20,12 @@ function fetchFixture(data,opts={}){
  return {calls:()=>calls,fetch:async(url,config)=>{
   calls++;
   const str=String(url);
-  if(str.includes('NSE_MIS.json.gz'))return new Response(gz,{headers:{'last-modified':'Tue, 27 Oct 2026 03:00:05 GMT','content-length':String(gz.length)}});
+  if(str.includes('NSE_MIS.json.gz')){
+   assert.equal(config?.method,'GET');assert.equal(config?.redirect,'manual');
+   assert.equal(config?.headers?.Accept,'application/gzip');
+   assert.equal(config?.headers?.['User-Agent'],'AtlasPrivateResearch/1.0');
+   return new Response(gz,{headers:{'last-modified':'Tue, 27 Oct 2026 03:00:05 GMT','content-length':String(gz.length)}});
+  }
   if(!str.startsWith('https://api.upstox.com/v3/market-quote/quotes?'))throw Error('unexpected outbound provider');
   assert.equal(config?.headers?.Authorization,`Bearer ${token}`);
   assert.equal(config?.method,'GET');
@@ -82,6 +87,13 @@ test('watched 2-stock quote feed does not require an index and makes 2 HTTP requ
  assert.deepEqual(result.quotes.map(q=>q.symbol).sort(),expected);
 });
 
+test('stale watched trade is excluded without blocking fresh held symbols',async()=>{
+ const f=fetchFixture(1369,{staleAt:'MISTEST0001'});
+ const result=await collectWatchedQuotes(env,['MISTEST0001','MISTEST0033'],now,f.fetch,()=>at);
+ assert.deepEqual(result.quotes.map(q=>q.symbol),['MISTEST0033']);
+ assert.equal(f.calls(),2);
+});
+
 test('no user-provided Analytics token: Collector fails closed with no requests',async()=>{
  let calls=0;
  await assert.rejects(collectMisSnapshot({...env,UPSTOX_ANALYTICS_TOKEN:null},now,async()=>{calls++}),/not explicitly enabled/);
@@ -117,7 +129,10 @@ test('owner-only Analytics diagnostics prove GET scope without sending brokerage
  assert.equal(check.realOrdersEnabled,false);
  assert.equal(check.data_current,true);
  assert.equal(check.stock_verified,true);assert.equal(check.stock_symbol,'NHPC');assert.equal(check.stock_data_current,true);
- assert.equal(f.calls(),1,'diagnostic must request Nifty only');
+ assert.equal(f.calls(),1,'diagnostic must request one bounded quote request');
+ assert.deepEqual(check.benchmark_field_status,{
+  last_price:'positive',prev_close_price:'positive',net_change:'missing',
+  ohlc_close:'missing',derived_prev_from_net_change:'invalid'});
  assert.equal(JSON.stringify(check).includes(token),false);
 });
 

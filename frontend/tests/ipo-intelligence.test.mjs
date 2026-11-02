@@ -6,8 +6,9 @@ const page=readFileSync(new URL('../src/components/IPOIntelligencePage.tsx',impo
 const logic=readFileSync(new URL('../src/lib/ipoIntelligence.ts',import.meta.url),'utf8');
 const snapshot=JSON.parse(readFileSync(new URL('../public/ipo-feed.json',import.meta.url),'utf8'));
 test('IPO has a navigable read-only page',()=>{
-  assert.match(app,/id:'ipo',title:'IPO Intelligence'/);
-  assert.match(app,/page==='ipo'/);
+  assert.match(app,/type Page='paper'\|'markets'\|'schedule'\|'ipo'/);
+  assert.match(app,/IPOIntelligencePage/);
+  assert.match(app,/onClick=\{\(\)=>go\('ipo'\)\}/);
   assert.doesNotMatch(page,/fetch\(['"]\/api\/(?:trade|order|bid|broker)/);
   assert.match(page,/No IPO bid is placed here/);
 });

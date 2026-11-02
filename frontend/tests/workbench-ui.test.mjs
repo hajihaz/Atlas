@@ -3,63 +3,36 @@ import {readFileSync} from 'node:fs';
 import test from 'node:test';
 const read=p=>readFileSync(new URL(p,import.meta.url),'utf8');
 const app=read('../src/App.tsx');
-const strat=read('../src/components/StrategyLabPage.tsx');
-const paper=read('../src/components/PaperTrialsPage.tsx');
-const stock=read('../src/components/StockWatchPage.tsx');
-const main=read('../src/main.tsx');
-const css=read('../src/strategy.css');
-const vercel=JSON.parse(read('../vercel.json'));
-test('all formerly placeholder pages route to active source-backed functionality',()=>{
- for(const route of ['strategies','research','scalpstorm','orders','risk','audit','markets'])
-  assert.ok(app.includes("page==='"+route+"'"));
- assert.match(app,/<StrategyLabPage mode=\{page\}/);
- assert.match(app,/<PaperTrialsPage group=\{paper\.group\}/);
- assert.match(app,/<StockWatchPage theme=\{theme\}/);
- assert.match(app,/<RiskAuditPage mode=\{page\}/);
+const paper=read('../src/components/PaperTestingPage.tsx');
+const market=read('../src/components/MarketEvidencePage.tsx');
+const schedule=read('../src/components/CloudPaperPage.tsx');
+const rules=read('../src/data/atlasSeven.ts');
+const gateway=read('../api/cloud-paper.js');
+test('the seven owner-defined rules are the only active strategy catalog in the UI',()=>{
+ for(const name of ['ScalpStorm X','ScalpStorm X2','ScalpStorm X3','ScalpStorm Xtreme',
+  'VWAP Precision','RSI-2 Snapback','Dual Momentum Rotation'])assert.ok(rules.includes(name),name);
+ for(const old of ['SMA 9/21 Crossover','EMA 12/26 Momentum','RSI 14 Mean Reversion',
+  '20-Bar Breakout','SPS Swing Pullback'])assert.ok(!rules.includes(old),old);
+ assert.match(paper,/ATLAS_RULES\.map/);
+ assert.match(paper,/setSelected\(x\.id\)/);
 });
-test('strategy page lists every strategy, shows simulated metrics and real provider candle provenance',()=>{
- assert.match(strat,/s\.name/);
- assert.match(strat,/modeledReturnPct/);
- assert.match(strat,/maxDrawdownPct/);
- assert.match(strat,/closedTrades/);
- assert.match(strat,/HISTORICAL_HYPOTHETICAL_REPLAY/);
- assert.match(strat,/Provider has too few completed candles/);
- assert.match(strat,/realizedPnlINR/);
- assert.doesNotMatch(strat,/\$100,000/);
+test('paper status and market watch use owner-only cloud reads',()=>{
+ assert.match(paper,/cloudPaperRequest<Catalog>\(ownerToken,'seven-strategies'\)/);
+ assert.match(paper,/cloudPaperRequest<State>\(ownerToken,'state'\)/);
+ assert.match(market,/cloudPaperRequest<Daybook>\(ownerToken,'daybook',\{day\}\)/);
+ assert.match(gateway,/'seven-strategies': \['GET'\]/);
+ assert.match(gateway,/daybook: \['GET'\]/);
+ assert.match(gateway,/Authorization:req\.headers\.authorization/);
 });
-test('paper sessions are virtual and explicit, with stop/resume, audited local records',()=>{
- assert.match(paper,/Start 5 forward paper trials/);
- assert.match(paper,/window\.confirm/);
- assert.match(paper,/VIRTUAL_SOURCE_SNAPSHOT|Virtual realized P\/L|Virtual change/);
- assert.match(paper,/Runs only while Atlas is open in this browser/);
- assert.match(app,/usePaperTrials\(\)/);
+test('scheduled paper orders remain a distinct working page',()=>{
+ assert.match(app,/page==='schedule'\?<CloudPaperPage/);
+ assert.match(schedule,/idempotency_key:crypto\.randomUUID/);
+ assert.match(schedule,/Schedule a paper order/);
+ assert.match(schedule,/fresh, source-timestamped NSE quotes/);
+ assert.doesNotMatch(schedule,/place_order\(|broker\.submit/);
 });
-test('free Indian equities have a vendor-attributed chart, not a scraped API',()=>{
- assert.match(stock,/embed-widget-advanced-chart\.js/);
- assert.match(stock,/BSE:RELIANCE/);
- assert.match(stock,/TradingView/);
- assert.match(stock,/Some fake regex that will not be used|last trade time|CoinDCX public ticker/);
- assert.match(vercel.headers[0].headers.find(x=>x.key==='Content-Security-Policy').value,
-   /https:\/\/s3\.tradingview\.com/);
- assert.ok(!app.includes('place_order('));
-});
-test('mobile responsive safe styles are loaded after existing themes',()=>{
- assert.match(main,/import '\.\/strategy\.css';/);
- assert.match(css,/@media\(max-width:640px\)/);
- assert.match(css,/prefers-reduced-motion/);
- assert.match(stock,/theme:'light'\|'dark'/);
-});
-
-test('six research roles are rendered from selected source-backed historical results',()=>{
- const council=read('../src/components/AgentCouncilPanel.tsx');
- const engine=read('../src/lib/councilEngine.js');
- assert.match(strat,/AgentCouncilPanel lab=\{lab\} strategyId=\{item\?\.id\?\?selected\}/);
- assert.match(council,/evaluateCouncil\(lab,strategyId\)/);
- for(const name of ['Scout','News','Sentiment','Charts','Risk','Decision'])
-   assert.ok(council.includes(name));
- assert.match(engine,/paperOrdersExecuted===false/);
- assert.match(engine,/liveOrdersEnabled:false/);
- assert.match(engine,/outcome=!measured\|\|overLimit\?'SKIP':'WAIT'/);
- assert.match(css,/\.council-grid/);
- assert.match(css,/@media\(max-width:640px\)/);
+test('market watch does not show incomplete ranks as verified',()=>{
+ assert.match(market,/complete_0940_snapshot/);
+ assert.match(market,/A complete ranked universe is not verified/);
+ assert.match(market,/realOrdersEnabled!==false/);
 });

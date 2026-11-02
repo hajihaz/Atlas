@@ -28,7 +28,7 @@ test('Full universe of 500 stamped NSE fixture quotes is accepted in the 09:39 w
   quotes:full(),coverage:{complete:true,eligible_count:500,nifty_change_bps:45}
  },now,SOURCE);
  assert.equal(result.accepted,500);assert.equal(result.realOrdersEnabled,false);
- assert.equal(storage.batchCount,1);assert.equal(storage.statements,2);
+ assert.equal(storage.batchCount,1);assert.equal(storage.statements,3);
 });
 
 test('Missing source entitlement / wrong source fails closed',async()=>{

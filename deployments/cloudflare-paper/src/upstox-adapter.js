@@ -9,7 +9,7 @@ const SYMBOL=/^(?=.{1,30}$)(?=.*[A-Z])[A-Z0-9&-]+$/;
 const MAX_SOURCE_AGE=60000;
 const MAX_TOP10_TRADE_AGE=15000;
 const ISO=/^\d{4}-\d\d-\d\dT.+(?:Z|[+-]\d\d:\d\d)$/;
-const fail=reason=>{throw Error(`UPSTOX_FEED_BLOCKED: ${reason}`);};
+const fail=reason=>{const e=Error(`UPSTOX_FEED_BLOCKED: ${reason}`);e.atlasDiagnostic=reason;throw e;};
 const millis=x=>{
   if(typeof x==='number'&&Number.isSafeInteger(x))return x;
   if(typeof x==='string'&&/^\d{13}$/.test(x))return Number(x);
@@ -45,6 +45,7 @@ export function normalizeUpstoxV3(input){
   if(!Array.isArray(universe)||(allowPartialBatch?(universe.length<1||universe.length>500):universe.length!==500))fail('strict 500-instrument eligible universe required');
   if(payload?.status!=='success'||!payload?.data||typeof payload.data!=='object')fail('Upstox market response incomplete');
   const symbols=new Set(),tokens=new Set(),quotes=[];
+  const observedAt=new Date(receivedAt).toISOString();
   for(const item of universe){
     if(!item||typeof item.symbol!=='string'||!SYMBOL.test(item.symbol)||
       typeof item.instrument_token!=='string'||!item.instrument_token.startsWith('NSE_EQ|')||
@@ -59,11 +60,11 @@ export function normalizeUpstoxV3(input){
     quotes.push({symbol:item.symbol,price_paise:pricePaise(returned.last_price),
       cumulative_volume:volume,source:sourceId,exchange_open:true,
       // One authenticated HTTP full-quotes snapshot; *not* exchange tick time.
-      observed_at:new Date(receivedAt).toISOString(),
+      observed_at:observedAt,
       _last_trade_ms:lastTrade});
   }
   if(Object.keys(payload.data).length!==universe.length)fail('unrecognized instruments in quote response');
-  const winners=skipNifty?quotes:[...quotes].sort((a,b)=>b.cumulative_volume-a.cumulative_volume||a.symbol.localeCompare(b.symbol)).slice(0,10);
+  const winners=skipNifty||deferTopTenFreshness?quotes:[...quotes].sort((a,b)=>b.cumulative_volume-a.cumulative_volume||a.symbol.localeCompare(b.symbol)).slice(0,10);
   if(!deferTopTenFreshness&&(winners.length!==(skipNifty?universe.length:Math.min(10,universe.length))||winners.some(q=>receivedAt-q._last_trade_ms>MAX_TOP10_TRADE_AGE)))fail('stale trade price among top-volume candidates');
   const projected=()=>includeTradeTimestamp?quotes:quotes.map(({_last_trade_ms,...q})=>q);
   if(skipNifty)return {quotes:projected()};
@@ -72,8 +73,20 @@ export function normalizeUpstoxV3(input){
   if(!nifty||nifty.instrument_token!=='NSE_INDEX|Nifty 50')fail('Nifty instrument mismatch');
   validTime(nifty.timestamp,receivedAt,MAX_SOURCE_AGE);
   validTime(nifty.last_trade_time,receivedAt,MAX_TOP10_TRADE_AGE);
-  const nowPrice=Number(nifty.last_price),prev=Number(nifty.prev_close_price);
-  if(!Number.isFinite(nowPrice)||!Number.isFinite(prev)||nowPrice<=0||prev<=0)fail('Nifty benchmark price invalid');
+  const nowPrice=Number(nifty.last_price);
+  if(!Number.isFinite(nowPrice)||nowPrice<=0)fail('Nifty benchmark price invalid');
+  const declaredPrev=Number(nifty.prev_close_price);
+  const hasDeclaredPrev=nifty.prev_close_price!==undefined&&nifty.prev_close_price!==null&&
+   Number.isFinite(declaredPrev)&&declaredPrev>0;
+  const net=Number(nifty.net_change);
+  const hasNet=nifty.net_change!==undefined&&nifty.net_change!==null&&Number.isFinite(net);
+  // Upstox V3's index response may omit prev_close_price even though the
+  // signed net_change is present. The provider defines net_change as the
+  // difference from the prior close; never use today's OHLC close as fallback.
+  const prev=hasDeclaredPrev?declaredPrev:hasNet?nowPrice-net:NaN;
+  if(!Number.isFinite(prev)||prev<=0)fail('Nifty benchmark price invalid');
+  if(hasDeclaredPrev&&hasNet&&Math.abs((nowPrice-prev)-net)>0.5)
+   fail('Nifty benchmark fields disagree');
   const nifty_change_bps=Math.round((nowPrice-prev)/prev*10000);
   if(!Number.isSafeInteger(nifty_change_bps)||Math.abs(nifty_change_bps)>10000)fail('Nifty change out of range');
   return {

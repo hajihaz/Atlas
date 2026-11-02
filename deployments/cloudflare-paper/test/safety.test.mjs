@@ -22,7 +22,7 @@ test('always advertises paper-only and never exposes owner state',async()=>{
  assert.equal(no.status,503);
 });
 
-test('full NSE snapshot uses two D1 queries instead of exceeding Workers Free limits', async()=>{
+test('full NSE snapshot uses three bounded D1 statements instead of one per stock', async()=>{
  const now=ist('2026-10-27','09:40:02');
  const observed=new Date(now).toISOString();
  const quotes=Array.from({length:800},(_,i)=>({symbol:`STOCK${String(i).padStart(4,'0')}`,price_paise:10000+i,
@@ -34,10 +34,11 @@ test('full NSE snapshot uses two D1 queries instead of exceeding Workers Free li
  };
  const res=await testing.ingest(db,{quotes,coverage:{complete:true,eligible_count:800,nifty_change_bps:35}},now,'VERIFIED_FIXTURE_ONLY');
  assert.equal(res.accepted,800);
- assert.equal(sent.length,2,'Cloudflare Free cannot accept one D1 query per stock');
+ assert.equal(sent.length,3,'Cloudflare Free cannot accept one D1 query per stock');
  assert.match(sent[0].sql,/json_each\(\?\)/);
  assert.equal(JSON.parse(sent[0].params[0]).length,800);
  assert.match(sent[1].sql,/INSERT INTO coverage/);
+ assert.match(sent[2].sql,/INSERT OR IGNORE INTO entry_snapshots/);
 });
 
 test('reject stale, forged-source and partial large-universe snapshots before SQL', async()=>{
@@ -72,6 +73,18 @@ test('portfolio overview aggregates 75 symbols within Workers Free query budget'
  assert.equal(state.positions.length,75);
  assert.equal(state.equity_paise,10750000);
  assert.ok(queries<=10,`Queried D1 ${queries} times; Free quota is 50`);
+});
+
+test('private session daybook is never public',async()=>{
+ const res=await worker.fetch(new Request('https://paper.example/api/cloud-paper/daybook?day=2026-10-30'),
+  {DB:{},OWNER_TOKEN:'O'.repeat(64)});
+ assert.equal(res.status,401);
+ assert.equal((await res.json()).error,'UNAUTHORIZED');
+ for(const method of ['GET','POST']){
+  const req=new Request('https://paper.example/api/cloud-paper/nse-reference?day=2026-10-29&kind=eod',{method});
+  const denied=await worker.fetch(req,{DB:{},OWNER_TOKEN:'O'.repeat(64)});
+  assert.equal(denied.status,401);
+ }
 });
 
 test('hosted D1 without owner/feed secrets is not ready for paper orders',async()=>{

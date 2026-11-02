@@ -1,50 +1,40 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {readFileSync} from 'node:fs';
 import test from 'node:test';
-const read = p => readFileSync(new URL(p, import.meta.url),'utf8');
+const read=p=>readFileSync(new URL(p,import.meta.url),'utf8');
 const app=read('../src/App.tsx');
-const market=read('../src/components/RealMarketPage.tsx');
+const paper=read('../src/components/PaperTestingPage.tsx');
+const market=read('../src/components/MarketEvidencePage.tsx');
+const css=read('../src/styles.css');
 const main=read('../src/main.tsx');
-const css=read('../src/real.css');
-const theme=read('../src/premium.css');
-
-test('active app has no simulated equity, frozen financial figures or dollar currency',()=>{
-  assert.doesNotMatch(app,/snapshot\.json|historicalInitialCapital|Archived replay equity|finalEquity|usd\(|currency:\s*'USD'/);
-  assert.doesNotMatch(market,/currency:\s*'USD'|\$102,536|\$100,000|459|\+2\.54%/);
-  assert.doesNotMatch(app,/ScalpStormDetailed/);
-  assert.match(market,/5 named models/);
-  assert.match(market,/Ready to start/);
-  assert.match(market,/currency:'INR'/);
+test('paper-first navigation has three primary pages and no generic strategy screen',()=>{
+ for(const id of ['paper','markets','schedule'])assert.match(app,new RegExp("id:'"+id+"'"));
+ for(const old of ["id:'strategies'","id:'research'","id:'scalpstorm'"])
+  assert.doesNotMatch(app,new RegExp(old));
+ assert.match(app,/PaperTestingPage/);
+ assert.match(app,/MarketEvidencePage/);
+ assert.match(app,/CloudPaperPage/);
 });
-test('all existing sections remain reachable without demonstrative trades',()=>{
-  for(const id of ['overview','markets','strategies','research','scalpstorm','risk','orders','audit'])
-    assert.match(app,new RegExp("id:'"+id+"'"));
-  assert.match(app,/function SimplePage/);
-  assert.match(app,/No verified order records connected/);
-  assert.match(app,/Stock trading results not verified/);
-  assert.match(app,/Live-capital authorization/);
+test('all shown controls have actions and private owner token remains in memory',()=>{
+ assert.match(app,/onClick=\{\(\)=>go\(id\)\}/);
+ assert.match(app,/onClick=\{\(\)=>setTheme/);
+ assert.match(paper,/onClick=\{\(\)=>void refresh\(\)\}/);
+ assert.match(paper,/onClick=\{\(\)=>setSelected\(x\.id\)\}/);
+ assert.match(market,/onClick=\{\(\)=>void refresh\(\)\}/);
+ assert.doesNotMatch(app,/localStorage\.setItem\([^,]*token|sessionStorage\.setItem\([^,]*token/i);
 });
-test('source and stale controls prevent fabricated references',()=>{
-  assert.match(market,/Date\.parse\(data\.retrievedAt\)>90000/);
-  assert.match(market,/item\.price!==null&&!stale/);
-  assert.match(market,/setInterval\(\(\)=>setRefresh\(v=>v\+1\),60000\)/);
-  assert.match(market,/last trade time not provided/);
-  assert.match(market,/BSE stock charts on TradingView/);
+test('UI reports missing evidence rather than invented strategy performance',()=>{
+ assert.match(paper,/SIGNAL_ONLY_UNARMED/);
+ assert.match(paper,/Not verified/);
+ assert.match(paper,/No result is assumed/);
+ assert.match(market,/complete_0940_snapshot/);
+ assert.match(market,/full eligible universe/);
+ assert.doesNotMatch(app,/place_order\(|enableLiveMode/);
 });
-test('premium styling persists with new responsive rupee-only dashboard',()=>{
-  assert.ok(main.indexOf("import './premium.css';")<main.indexOf("import './real.css';"));
-  assert.match(css,/\.real-hero/);
-  assert.match(css,/\.real-crypto-grid/);
-  assert.match(css,/@media\(max-width:620px\)/);
-  assert.match(theme,/prefers-reduced-motion/);
-  assert.match(css,/prefers-reduced-motion/);
-  assert.match(app,/window\.localStorage\.setItem\(THEME_KEY, theme\)/);
-  assert.match(app,/aria-pressed=\{theme === 'dark'\}/);
-});
-test('only read-only indicative values are permitted in financial cards',()=>{
-  assert.match(market,/Virtual paper trials/);
-  assert.match(market,/Five source-driven virtual accounts/);
-  assert.match(market,/real historical INR backtests/);
-  assert.match(market,/All money values in Indian rupees/);
-  assert.match(app,/No verified broker portfolio/);
+test('simple workspace is responsive and keeps the existing accessible theme',()=>{
+ assert.match(main,/styles\.css/);
+ assert.match(css,/\.atlas-strategy-layout/);
+ assert.match(css,/@media\(max-width:800px\)/);
+ assert.match(app,/aria-label=\{theme==='light'/);
+ assert.match(app,/window\.localStorage\.setItem\('atlas\.theme\.preference',theme\)/);
 });

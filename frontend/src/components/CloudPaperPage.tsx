@@ -15,8 +15,8 @@ const API=CUSTOM_API?`${CUSTOM_API}/api/cloud-paper`:'/api/cloud-paper';
 const inr=(paise:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}).format(paise/100);
 const displayTime=(date:string)=>new Date(date).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true});
 
-export default function CloudPaperPage(){
- const [token,setToken]=useState('');
+export default function CloudPaperPage({initialToken=''}:{initialToken?:string}){
+ const [token,setToken]=useState(initialToken);
  const [connected,setConnected]=useState(false);
  const [state,setState]=useState<PaperState|null>(null);
  const [symbol,setSymbol]=useState('');

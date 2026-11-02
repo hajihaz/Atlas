@@ -15,8 +15,24 @@ const MAX_SOURCE_MS=24*3600*1000;
 const MAX_RECEIPT_SKEW_MS=8000;
 const MAX_BOD_BYTES=1500000;
 const MAX_QUOTE_BYTES=3500000;
-const fail=reason=>{throw Error('UPSTOX_COLLECTOR_BLOCKED: '+reason);};
+const fail=reason=>{const e=Error('UPSTOX_COLLECTOR_BLOCKED: '+reason);e.atlasDiagnostic=reason;throw e;};
+const fieldStatus=value=>value===undefined||value===null?'missing':typeof value!=='number'||!Number.isFinite(value)?'invalid':value===0?'zero':value>0?'positive':'negative';
 const sameIstDay=(a,b)=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(a)===new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(b);
+/** Owner-only public-source reachability probe. No quote token or catalog body leaves the Worker. */
+export async function verifyMisSourceReachability(profile='plain',fetcher=fetch){
+ if(!['plain','identified','parsed'].includes(profile))fail('invalid MIS probe profile');
+ if(profile==='parsed'){
+  const universe=await nseMaster(fetcher,Date.now());
+  return {source:'UPSTOX_PUBLIC_MIS',profile,http_status:200,eligible_count:universe.length,
+   first_symbol:universe[0].symbol,last_symbol:universe.at(-1).symbol};
+ }
+ const headers=profile==='identified'?{Accept:'application/gzip','User-Agent':'AtlasPrivateResearch/1.0'}:undefined;
+ const res=await fetcher(MIS_URL,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(7000),...(headers?{headers}:{})});
+ const result={source:'UPSTOX_PUBLIC_MIS',profile,http_status:res.status,content_type:res.headers.get('content-type'),
+  last_modified:res.headers.get('last-modified'),content_length:res.headers.get('content-length')};
+ await res.body?.cancel();
+ return result;
+}
 export function selectMisUniverse(items,modifiedAt,now){
  if(!Array.isArray(items))fail('invalid official MIS catalog');
  const time=Date.parse(modifiedAt);
@@ -44,7 +60,8 @@ async function jsonBody(res,maxBytes){
  try{return JSON.parse(text)}catch{fail('provider response was not valid JSON')}
 }
 async function nseMaster(fetcher,now){
- const res=await fetcher(MIS_URL,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(7000)});
+ const res=await fetcher(MIS_URL,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(7000),
+  headers:{Accept:'application/gzip','User-Agent':'AtlasPrivateResearch/1.0'}});
  if(res.status>=300&&res.status<400)fail('official MIS master redirect refused');
  if(!res.ok)fail('official MIS master HTTP '+res.status);
  const length=Number(res.headers.get('content-length'));
@@ -109,8 +126,12 @@ export async function collectWatchedQuotes(env,symbols,now=Date.now(),fetcher=fe
  const watched=unique.map(s=>map.get(s));if(watched.some(x=>!x))fail('a watched stock is not in current official intraday universe');
  const response=await quotes(fetcher,env.UPSTOX_ANALYTICS_TOKEN,watched.map(x=>x.instrument_token),receiptClock);
  const normal=normalizeUpstoxV3({payload:response.data,universe:watched,receivedAt:response.receivedAt,
-  index:null,sourceId:env.FEED_SOURCE_ID,authorized:true,allowPartialBatch:true,skipNifty:true});
- return {quotes:normal.quotes};
+  index:null,sourceId:env.FEED_SOURCE_ID,authorized:true,allowPartialBatch:true,skipNifty:true,
+  deferTopTenFreshness:true,includeTradeTimestamp:true});
+ // A stale last trade for one held symbol must not prevent fresh held symbols
+ // from receiving their own paper exit quote. Never use the stale price.
+ return {quotes:normal.quotes.filter(q=>response.receivedAt-q._last_trade_ms<=15000)
+  .map(({_last_trade_ms,...q})=>q)};
 }
 
 /** Authenticated owner-only diagnostic. Makes one GET; never ingests or trades. */
@@ -134,5 +155,13 @@ export async function verifyAnalyticsFeed(env,fetcher=fetch,clock=()=>Date.now()
   data_current:response.receivedAt-lastTrade<=15000,
   stock_verified:true,stock_symbol:'NHPC',stock_last_trade_at:new Date(stockTrade).toISOString(),
   stock_data_current:response.receivedAt-stockTrade<=15000,
+  // Owner-only shape diagnostic; never return quote values or credentials.
+  benchmark_field_status:{
+   last_price:fieldStatus(nifty.last_price),
+   prev_close_price:fieldStatus(nifty.prev_close_price),
+   net_change:fieldStatus(nifty.net_change),
+   ohlc_close:fieldStatus(nifty.ohlc?.close),
+   derived_prev_from_net_change:fieldStatus(Number(nifty.last_price)-Number(nifty.net_change)),
+  },
  };
 }

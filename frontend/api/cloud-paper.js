@@ -1,6 +1,6 @@
 // Same-origin authenticated owner gateway. No broker routes; no stored tokens.
 // Upstream must be a separately hosted, persistent cloud paper worker.
-const allowed = Object.freeze({status: ['GET'], state: ['GET'], 'feed-check': ['GET'], orders: ['POST'], cancel: ['POST'], strategy: ['POST']});
+const allowed = Object.freeze({status: ['GET'], state: ['GET'], daybook: ['GET'], 'seven-strategies': ['GET'], 'seven-accounts': ['GET'], 'strategy-replay': ['GET'], 'daily-cohort': ['GET'], 'period-rank': ['GET'], 'feed-check': ['GET'], orders: ['POST'], cancel: ['POST'], strategy: ['POST']});
 function baseURL() {
   try {
     const raw=process.env.ATLAS_PAPER_BACKEND_URL || '';
@@ -46,7 +46,12 @@ export default async function handler(req,res) {
     if(body.length>20_000)return res.status(413).json({error:'request_too_large'});
   }
   try{
-    const upstream=await fetch(base+'/api/cloud-paper/'+path,{
+    const query=new URLSearchParams();
+    for(const key of ['day','symbol','strategy','source_day','as_of_day']){
+      const value=req.query?.[key];
+      if(typeof value==='string'&&value.length<=80)query.set(key,value);
+    }
+    const upstream=await fetch(base+'/api/cloud-paper/'+path+(query.size?'?'+query.toString():''),{
       method:req.method,
       headers:{Authorization:req.headers.authorization,...(body?{'Content-Type':'application/json'}:{})},
       body,redirect:'error',cache:'no-store',signal:AbortSignal.timeout(8000)

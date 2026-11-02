@@ -1,5 +1,15 @@
 /* Atlas independent free-tier cloud paper worker. NEVER routes real orders. */
-import {collectMisSnapshot,collectWatchedQuotes,verifyAnalyticsFeed} from './upstox-feed.js';
+import {collectMisSnapshot,collectWatchedQuotes,verifyAnalyticsFeed,verifyMisSourceReachability} from './upstox-feed.js';
+import {archiveHistoryPilot,readHistoryPilot} from './upstox-history-pilot.js';
+import {archiveHistoryCohort,archiveScheduledCohortStep,readHistoryCohort} from './upstox-history-cohort.js';
+import {readCohortBacktest} from './history-backtest.js';
+import {catalog as sevenStrategyCatalog} from './seven-strategy-replay.js';
+import {readIntradayStrategyReplay} from './strategy-replay-reader.js';
+import {archiveDailyCohort,readDailyCohort,scheduledDailyCohortStep,verifyDailySource} from './upstox-daily-cohort.js';
+import {readFastPeriodRank} from './fast-period-rank.js';
+import {listSevenAccounts} from './seven-paper-store.js';
+import {verifyNseSourceReachability} from './nse-source-probe.js';
+import {archiveNseReference,verifyNseReference,scheduledNseReferenceStep} from './nse-reference-archive.js';
 const MAX_DELAY=90000,MAX_STALENESS=15000,CAPITAL=10000000;
 const SYMBOL=/^(?=.{1,30}$)(?=.*[A-Z])[A-Z0-9&-]+$/;
 const IST_FORMATTER = new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit',weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
@@ -35,6 +45,26 @@ async function overview(db,now){
   last_strategy_phase:phase?{status:phase.status,reason:phase.reason,completed_at:dateStr(phase.completed_ms)}:null,
   server_time:dateStr(now),market_session:session(now)};
 }
+async function daybook(db,day,now){
+ if(typeof day!=='string'||!/^\d{4}-\d\d-\d\d$/.test(day)||
+  !Number.isFinite(Date.parse(day+'T00:00:00Z'))||new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day)
+  throw Error('invalid session date');
+ const coverage=await row(db,'SELECT eligible_count,observed_ms,nifty_change_bps,source FROM coverage WHERE session=?',day);
+ const count=await row(db,'SELECT COUNT(*) AS n FROM entry_snapshots WHERE session=?',day);
+ const top=await rows(db,'SELECT symbol,price_paise,cumulative_volume,observed_ms,source FROM entry_snapshots WHERE session=? ORDER BY cumulative_volume DESC,symbol ASC LIMIT 10',day);
+ const phases=await rows(db,'SELECT phase,status,reason,completed_ms FROM runs WHERE session=? ORDER BY completed_ms',day);
+ const strategyOrders=await rows(db,"SELECT kind,status,COUNT(*) AS count FROM orders WHERE client_key LIKE ? GROUP BY kind,status ORDER BY kind,status",day+'-%');
+ const account=await row(db,'SELECT cash_paise FROM account WHERE id=1');
+ const positions=await rows(db,'SELECT symbol,qty FROM positions WHERE qty!=0 ORDER BY symbol');
+ return {mode:'PAPER_ONLY',realOrdersEnabled:false,session:day,
+  coverage:coverage?{...coverage,received_at:dateStr(coverage.observed_ms)}:null,
+  entry_snapshot_count:count?.n||0,
+  complete_0940_snapshot:Boolean(coverage&&count?.n===coverage.eligible_count&&count.n>=500),
+  top_volume:top.map(q=>({...q,received_at:dateStr(q.observed_ms)})),
+  phases:phases.map(p=>({...p,completed_at:dateStr(p.completed_ms)})),
+  strategy_orders:strategyOrders,
+  current_virtual_ledger:{cash_paise:account.cash_paise,positions,as_of:dateStr(now)}};
+}
 async function schedule(db,data,now){if(typeof data.symbol!=='string'||!SYMBOL.test(data.symbol)||!['BUY','SELL'].includes(data.side)||!Number.isSafeInteger(data.quantity)||data.quantity<=0||data.quantity>100000)throw Error('invalid order');const due=parseDate(data.scheduled_at);if(due<now||due>now+30*86400000||!session(due))throw Error('invalid market schedule');const key=data.idempotency_key;if(typeof key!=='string'||!/^[A-Za-z0-9_-]{12,80}$/.test(key))throw Error('invalid idempotency key');await db.prepare("INSERT OR IGNORE INTO orders(id,client_key,kind,symbol,side,qty,due_ms,created_ms) VALUES(?,?,'MANUAL',?,?,?,?,?)").bind(crypto.randomUUID(),key,data.symbol,data.side,data.quantity,due,now).run();const existing=await row(db,'SELECT * FROM orders WHERE client_key=?',key);if(existing.symbol!==data.symbol||existing.side!==data.side||existing.qty!==data.quantity||existing.due_ms!==due)throw Error('idempotency conflict');return {id:existing.id,status:existing.status,realOrdersEnabled:false};}
 async function cancel(db,id,now){if(typeof id!=='string')throw Error('invalid id');const result=await db.prepare("UPDATE orders SET status='CANCELLED',completed_ms=? WHERE id=? AND kind='MANUAL' AND status='QUEUED'").bind(now,id).run();if(result.meta.changes!==1)throw Error('order no longer cancellable');return {id,status:'CANCELLED'};}
 async function setStrategy(db,enabled,now){if(typeof enabled!=='boolean')throw Error('enabled must be boolean');await db.batch([db.prepare("UPDATE settings SET value=? WHERE key='strategy_enabled'").bind(enabled?'1':'0'),log(db,now,'STRATEGY',enabled?'Enabled':'Disabled')]);return {enabled,realOrdersEnabled:false};}
@@ -56,11 +86,19 @@ const quoteStatement=db.prepare(`INSERT INTO quotes(symbol,price_paise,cumulativ
  source=excluded.source,exchange_open=1
  WHERE excluded.observed_ms>=quotes.observed_ms+12000`).bind(rowsJson);
 const statements=[quoteStatement];
-if(cv)statements.push(db.prepare(`INSERT INTO coverage(session,eligible_count,observed_ms,nifty_change_bps,source)
+if(cv){
+ const day=ist(normalized[0].observed).day;
+ statements.push(db.prepare(`INSERT INTO coverage(session,eligible_count,observed_ms,nifty_change_bps,source)
  VALUES(?,?,?,?,?) ON CONFLICT(session) DO UPDATE SET eligible_count=excluded.eligible_count,
  observed_ms=excluded.observed_ms,nifty_change_bps=excluded.nifty_change_bps,
  source=excluded.source WHERE excluded.observed_ms>coverage.observed_ms`).bind(
- ist(normalized[0].observed).day,normalized.length,Math.max(...normalized.map(x=>x.observed)),cv.nifty_change_bps,sourceName));
+ day,normalized.length,Math.max(...normalized.map(x=>x.observed)),cv.nifty_change_bps,sourceName));
+ // Preserve the exact accepted 09:40 cohort before later watched quotes replace
+ // the rolling quote table. A single bound JSON statement stays within D1 Free.
+ statements.push(db.prepare(`INSERT OR IGNORE INTO entry_snapshots(session,symbol,price_paise,cumulative_volume,observed_ms,source)
+ SELECT ?,json_extract(value,'$[0]'),json_extract(value,'$[1]'),json_extract(value,'$[2]'),
+        json_extract(value,'$[3]'),json_extract(value,'$[4]') FROM json_each(?)`).bind(day,rowsJson));
+}
 await db.batch(statements);
 return {accepted:normalized.length,realOrdersEnabled:false};}
 async function skip(db,order,now,reason){
@@ -125,32 +163,56 @@ return true;
 async function strategyOrder(db,day,phase,symbol,side,qty,now){if(qty<1)return;const key=`${day}-${phase}-${symbol}`;
 let o=await row(db,"INSERT OR IGNORE INTO orders(id,client_key,kind,symbol,side,qty,due_ms,created_ms) VALUES(?,?,?,?,?,?,?,?) RETURNING *",crypto.randomUUID(),key,phase,symbol,side,qty,now,now);
 if(!o)o=await row(db,'SELECT * FROM orders WHERE client_key=?',key);
-if((phase==='STOP'||phase==='EXIT')&&o.status==='SKIPPED'&&o.reason==='MISSING_OR_STALE_MARKET_QUOTE'){
+if((phase==='STOP'||phase==='EXIT'||phase==='RECOVERY')&&o.status==='SKIPPED'&&o.reason==='MISSING_OR_STALE_MARKET_QUOTE'){
   await db.prepare("UPDATE orders SET status='QUEUED',reason=NULL,completed_ms=NULL WHERE id=? AND status='SKIPPED' AND reason='MISSING_OR_STALE_MARKET_QUOTE'").bind(o.id).run();
   o=await row(db,'SELECT * FROM orders WHERE client_key=?',key);
 }
 if(o.status==='QUEUED')await fill(db,o,now);}
 
 async function strategyPhases(db,now,enabled){const t=ist(now);if(!session(now))return;
-if(t.minute===580&&enabled){
- if(await row(db,"SELECT 1 FROM runs WHERE session=? AND phase='ENTRY'",t.day))return;
- if(await row(db,'SELECT 1 FROM positions WHERE intraday=1 AND qty!=0 LIMIT 1'))return;
- const c=await row(db,'SELECT * FROM coverage WHERE session=?',t.day);
- if(!c||!fresh({exchange_open:1,observed_ms:c.observed_ms},now))return;
- const count=await row(db,'SELECT COUNT(*) AS n FROM quotes WHERE observed_ms BETWEEN ? AND ? AND exchange_open=1',now-MAX_STALENESS,now+2000);
- if(count.n!==c.eligible_count||count.n<500)return;
- if(Math.abs(c.nifty_change_bps)<20){await db.prepare("INSERT OR IGNORE INTO runs(session,phase,status,reason,completed_ms) VALUES(?,'ENTRY','NO_TRADE','NEUTRAL_NIFTY',?)").bind(t.day,now).run();return;}
- const side=c.nifty_change_bps>=20?'BUY':'SELL',cash=(await row(db,'SELECT cash_paise FROM account WHERE id=1')).cash_paise,alloc=Math.floor(Math.min(cash,CAPITAL)/10);
- const top=await rows(db,'SELECT symbol,price_paise FROM quotes WHERE observed_ms BETWEEN ? AND ? ORDER BY cumulative_volume DESC,symbol ASC LIMIT 10',now-MAX_STALENESS,now+2000);
- for(const q of top){const qty=Math.floor((alloc*995/1000)/q.price_paise);await strategyOrder(db,t.day,'ENTRY',q.symbol,side,qty,now);}
- const filled=await row(db,"SELECT COUNT(*) AS n FROM orders WHERE kind='ENTRY' AND client_key LIKE ? AND status='FILLED'",`${t.day}-ENTRY-%`);
- const actual=filled?.n||0;
- await db.prepare("INSERT OR IGNORE INTO runs(session,phase,status,reason,completed_ms) VALUES(?,'ENTRY',?,?,?)")
-  .bind(t.day,actual===10?'EXECUTED':'PARTIAL',actual===10?null:`FILLED_${actual}_OF_10`,now).run();
+ // Prior-session paper positions are a failed exit, not a fresh intraday entry.
+ // Try bounded, time-stamped recovery at each premarket minute. Four attempts
+ // per Cron stay inside the Workers Free D1 query limit, even for stale quotes.
+ if(t.minute<580){
+  const carry=await rows(db,`SELECT p.symbol,p.qty FROM positions p LEFT JOIN quotes q ON q.symbol=p.symbol
+   WHERE p.intraday=1 AND p.qty!=0 ORDER BY q.observed_ms DESC,p.symbol LIMIT 4`);
+  if(carry.length){
+   await db.prepare("INSERT OR IGNORE INTO runs(session,phase,status,reason,completed_ms) VALUES(?,'ENTRY','SKIPPED','CARRYOVER_RECOVERY',?)").bind(t.day,now).run();
+   for(const p of carry)await strategyOrder(db,t.day,'RECOVERY',p.symbol,p.qty>0?'SELL':'BUY',Math.abs(p.qty),now);
+  }
+  return;
+ }
+ if(t.minute===580&&enabled){
+  if(await row(db,"SELECT 1 FROM runs WHERE session=? AND phase='ENTRY'",t.day))return;
+  if(await row(db,'SELECT 1 FROM positions WHERE intraday=1 AND qty!=0 LIMIT 1'))return;
+  const c=await row(db,'SELECT * FROM coverage WHERE session=?',t.day);
+  if(!c||!fresh({exchange_open:1,observed_ms:c.observed_ms},now))return;
+  const count=await row(db,'SELECT COUNT(*) AS n FROM quotes WHERE observed_ms BETWEEN ? AND ? AND exchange_open=1',now-MAX_STALENESS,now+2000);
+  if(count.n!==c.eligible_count||count.n<500)return;
+  if(Math.abs(c.nifty_change_bps)<20){await db.prepare("INSERT OR IGNORE INTO runs(session,phase,status,reason,completed_ms) VALUES(?,'ENTRY','NO_TRADE','NEUTRAL_NIFTY',?)").bind(t.day,now).run();return;}
+  const side=c.nifty_change_bps>=20?'BUY':'SELL',cash=(await row(db,'SELECT cash_paise FROM account WHERE id=1')).cash_paise,alloc=Math.floor(Math.min(cash,CAPITAL)/10);
+  const top=await rows(db,'SELECT symbol,price_paise FROM quotes WHERE observed_ms BETWEEN ? AND ? ORDER BY cumulative_volume DESC,symbol ASC LIMIT 10',now-MAX_STALENESS,now+2000);
+  for(const q of top){const qty=Math.floor((alloc*995/1000)/q.price_paise);await strategyOrder(db,t.day,'ENTRY',q.symbol,side,qty,now);}
+  const filled=await row(db,"SELECT COUNT(*) AS n FROM orders WHERE kind='ENTRY' AND client_key LIKE ? AND status='FILLED'",`${t.day}-ENTRY-%`);
+  const actual=filled?.n||0;
+  await db.prepare("INSERT OR IGNORE INTO runs(session,phase,status,reason,completed_ms) VALUES(?,'ENTRY',?,?,?)")
+   .bind(t.day,actual===10?'EXECUTED':'PARTIAL',actual===10?null:`FILLED_${actual}_OF_10`,now).run();
+ }
+ if(t.minute>=915){
+  const limit=t.minute===915?30:4;
+  const positions=await rows(db,`SELECT p.symbol,p.qty FROM positions p LEFT JOIN quotes q ON q.symbol=p.symbol
+   WHERE p.intraday=1 AND p.qty!=0 ORDER BY q.observed_ms DESC,p.symbol LIMIT ?`,limit);
+  for(const p of positions)await strategyOrder(db,t.day,'EXIT',p.symbol,p.qty>0?'SELL':'BUY',Math.abs(p.qty),now);
+  const unresolved=await row(db,'SELECT 1 FROM positions WHERE intraday=1 AND qty!=0 LIMIT 1');
+  if(unresolved){
+   await db.prepare("INSERT OR IGNORE INTO runs(session,phase,status,reason,completed_ms) VALUES(?,'EXIT','PARTIAL','UNRESOLVED_POSITIONS',?)").bind(t.day,now).run();
+  }else if(t.minute===915){
+   await db.prepare("INSERT OR IGNORE INTO runs(session,phase,status,completed_ms) VALUES(?,'EXIT','EXECUTED',?)").bind(t.day,now).run();
+  }else{
+   await db.prepare("UPDATE runs SET status='LATE_EXECUTED',reason='LATE_AFTER_STALE_QUOTE',completed_ms=? WHERE session=? AND phase='EXIT' AND status='PARTIAL'").bind(now,t.day).run();
+  }
+ }
 }
-if(t.minute===915){const positions=await rows(db,'SELECT symbol,qty FROM positions WHERE intraday=1 AND qty!=0');for(const p of positions)await strategyOrder(db,t.day,'EXIT',p.symbol,p.qty>0?'SELL':'BUY',Math.abs(p.qty),now);
-if(!(await row(db,'SELECT 1 FROM positions WHERE intraday=1 AND qty!=0 LIMIT 1')))await db.prepare("INSERT OR IGNORE INTO runs(session,phase,status,completed_ms) VALUES(?,'EXIT','EXECUTED',?)").bind(t.day,now).run();
-}}
 async function stops(db,now){
  if(!session(now))return;
  // One D1 query screens every stop against fresh quotes, rather than doing
@@ -172,8 +234,9 @@ async function sourceTick(env,now=Date.now(),collectFull=collectMisSnapshot,coll
  const d=env.DB,t=ist(now);
  // At 09:40 fetch all official NSE MIS stocks in multiple 500-instrument
  // requests plus Nifty 50. Do not rank fabricated or partial universes.
- const armed=(await row(d,"SELECT value FROM settings WHERE key='strategy_enabled'"))?.value==='1';
- if(t.minute===580&&armed){
+ // Archive the full dated roster even while the retired paper entry rule is off.
+ // The strategy gate is enforced separately by strategyPhases before any fill.
+ if(t.minute===580){
   if(await row(d,'SELECT 1 FROM coverage WHERE session=?',t.day))return {sourceEnabled:true,quotes:0,kind:'ALREADY_SNAPSHOTTED'};
   const full=await collectFull(env,now);
   await ingest(d,full,clock(),env.FEED_SOURCE_ID);
@@ -206,24 +269,61 @@ await stops(db,now);const enabled=(await row(db,"SELECT value FROM settings WHER
 if(t.weekday&&t.minute>580&&enabled)await db.prepare("INSERT OR IGNORE INTO runs(session,phase,status,reason,completed_ms) VALUES(?,'ENTRY','SKIPPED','MISSED_OR_UNVERIFIED_COVERAGE',?)").bind(t.day,now).run();
 if(t.weekday&&t.minute>915&&await row(db,'SELECT 1 FROM positions WHERE intraday=1 AND qty!=0'))await db.prepare("INSERT OR IGNORE INTO runs(session,phase,status,reason,completed_ms) VALUES(?,'EXIT','PARTIAL','UNRESOLVED_POSITIONS',?)").bind(t.day,now).run();
 return {processed:pending.length,strategy_enabled:enabled,realOrdersEnabled:false};}
-export const testing={ist,session,parseDate,tick,schedule,ingest,overview,strategyPhases,fill,sourceTick};
+function safeDiagnostic(error){
+ const type=typeof error?.name==='string'&&/^[A-Za-z][A-Za-z0-9]{0,39}$/.test(error.name)?error.name:'Error';
+ // Only our collector/adapter sets this field. Never log arbitrary fetch or D1 errors.
+ const detail=typeof error?.atlasDiagnostic==='string'?error.atlasDiagnostic:'';
+ const safe=/^[A-Za-z0-9][A-Za-z0-9 ,.<>=-]{0,119}$/.test(detail)?detail:'[unclassified]';
+ return {type,message:safe};
+}
+export const testing={ist,session,parseDate,tick,schedule,ingest,overview,daybook,strategyPhases,fill,sourceTick,safeDiagnostic};
 export default {
  async fetch(req,env){const path=new URL(req.url).pathname,now=Date.now();if(path==='/healthz')return reply({mode:'PAPER_ONLY',service:'atlas-free-cloud-paper',
  realOrdersEnabled:false,backendConnected:Boolean(env.DB),
  configured:Boolean(env.DB&&typeof env.OWNER_TOKEN==='string'&&env.OWNER_TOKEN.length>=32&&env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100),
  feedSourceConfigured:Boolean(env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100)});if(!env.DB)return reply({error:'D1_NOT_CONNECTED'},503);
- const actions={'/api/cloud-paper/state':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/strategy':'POST','/api/cloud-paper/quotes':'POST'};
- if(!Object.hasOwn(actions,path))return reply({error:'NOT_FOUND'},404);if(req.method!==actions[path])return reply({error:'METHOD_NOT_ALLOWED'},405);
+ const actions={'/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/strategy':'POST','/api/cloud-paper/quotes':'POST'};
+ if(!Object.hasOwn(actions,path))return reply({error:'NOT_FOUND'},404);if(req.method!==actions[path]&&!(path.endsWith('/history-pilot')&&req.method==='POST')&&!(path.endsWith('/history-cohort')&&req.method==='POST')&&!(path.endsWith('/daily-cohort')&&req.method==='POST')&&!(path.endsWith('/nse-reference')&&req.method==='POST'))return reply({error:'METHOD_NOT_ALLOWED'},405);
  if(!authorized(req,path.endsWith('/quotes')?env.FEED_TOKEN:env.OWNER_TOKEN))return reply({error:'UNAUTHORIZED'},401);
  try {if(path.endsWith('/state'))return reply(await overview(env.DB,now));
+ if(path.endsWith('/daybook'))return reply(await daybook(env.DB,new URL(req.url).searchParams.get('day')||ist(now).day,now));
  if(path.endsWith('/feed-check'))return reply(await verifyAnalyticsFeed(env));
+ if(path.endsWith('/mis-source-check'))return reply(await verifyMisSourceReachability(new URL(req.url).searchParams.get('profile')||'plain'));
+ if(path.endsWith('/nse-source-check'))return reply(await verifyNseSourceReachability(new URL(req.url).searchParams.get('kind')));
+ if(path.endsWith('/nse-reference')){const query=req.method==='POST'?await readBody(req):Object.fromEntries(new URL(req.url).searchParams);return reply(req.method==='POST'?await archiveNseReference(env,query):await verifyNseReference(env,query.day,query.kind));}
+ if(path.endsWith('/history-pilot'))return reply(req.method==='POST'?await archiveHistoryPilot(env):await readHistoryPilot(env));
+ if(path.endsWith('/history-cohort'))return reply(req.method==='POST'?await archiveHistoryCohort(env,await readBody(req)):await readHistoryCohort(env,new URL(req.url).searchParams.get('day')));
+ if(path.endsWith('/history-backtest'))return reply(await readCohortBacktest(env,new URL(req.url).searchParams.get('day')));
+ if(path.endsWith('/seven-strategies'))return reply(sevenStrategyCatalog());
+ if(path.endsWith('/strategy-replay')){const q=new URL(req.url).searchParams;return reply(await readIntradayStrategyReplay(env,{day:q.get('day'),symbol:q.get('symbol'),strategyId:q.get('strategy')}));}
+ if(path.endsWith('/daily-cohort'))return reply(req.method==='POST'?await archiveDailyCohort(env,await readBody(req)):await readDailyCohort(env,new URL(req.url).searchParams.get('day')));
+ if(path.endsWith('/daily-source-check')){const q=new URL(req.url).searchParams;return reply(await verifyDailySource(env,{day:q.get('day'),symbol:q.get('symbol'),kind:q.get('kind')}));}
+ if(path.endsWith('/period-rank')){const q=new URL(req.url).searchParams;return reply(await readFastPeriodRank(env,{sourceDay:q.get('source_day'),asOfDay:q.get('as_of_day'),strategyId:q.get('strategy')}));}
+ if(path.endsWith('/seven-accounts'))return reply(await listSevenAccounts(env.DB));
  const p=await readBody(req);
  if(path.endsWith('/orders'))return reply(await schedule(env.DB,p,now));if(path.endsWith('/cancel'))return reply(await cancel(env.DB,p.id,now));if(path.endsWith('/strategy'))return reply(await setStrategy(env.DB,p.enabled,now));return reply(await ingest(env.DB,p,now,env.FEED_SOURCE_ID));
- }catch(e){if(e instanceof SyntaxError||/(invalid|required|stale|conflict|cancellable|timestamp|JSON|timezone|schedule|source|body|boolean)/i.test(e?.message||''))return reply({error:String(e.message).slice(0,140)},400);
+ }catch(e){if(typeof e?.atlasDiagnostic==='string'){
+  const d=safeDiagnostic(e);
+  console.error('paper worker source error:',d.type,d.message);
+  return reply({error:'PAPER_SERVICE_UNAVAILABLE',diagnostic:d.message},503);
+ }
+ if(e instanceof SyntaxError||/(invalid|required|stale|conflict|cancellable|timestamp|JSON|timezone|schedule|source|body|boolean)/i.test(e?.message||''))return reply({error:String(e.message).slice(0,140)},400);
  console.error('paper worker error:',e?.name);return reply({error:'PAPER_SERVICE_UNAVAILABLE'},503);}
  },
- async scheduled(_event,env,ctx){ctx.waitUntil((async()=>{
-   try{await sourceTick(env);}catch(e){console.error('read-only Upstox feed unavailable:',e?.name)}
+  async scheduled(event,env,ctx){ctx.waitUntil((async()=>{
+   if(event.cron==='0-6 2,3 * * 1-5'){
+    try{await scheduledNseReferenceStep(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('private NSE reference archive unavailable:',d.type,d.message)}
+    return;
+   }
+   if(event.cron==='0-9 11,12,13 * * 1-5'){
+    if(new Date(event.scheduledTime).getUTCHours()===12){
+      try{await scheduledDailyCohortStep(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only daily cohort unavailable:',d.type,d.message)}
+    }else{
+      try{await archiveScheduledCohortStep(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only historical cohort unavailable:',d.type,d.message)}
+    }
+    return;
+   }
+   try{await sourceTick(env);}catch(e){const d=safeDiagnostic(e);console.error('read-only Upstox feed unavailable:',d.type,d.message)}
    await tick(env);
   })().catch(e=>console.error('scheduled paper tick error:',e?.name)));},
 };

@@ -44,10 +44,26 @@ test('invalid benchmark rejects direction rather than inventing Nifty signal',()
  assert.throws(()=>normalizeUpstoxV3(input),/benchmark price invalid/);
 });
 
+test('index without prev_close_price derives prior close from signed Upstox net_change',()=>{
+ const rising=fixture();delete rising.index.data['NSE_INDEX:Nifty 50'].prev_close_price;
+ rising.index.data['NSE_INDEX:Nifty 50'].net_change=150;
+ assert.equal(normalizeUpstoxV3(rising).coverage.nifty_change_bps,60);
+ const falling=fixture();const q=falling.index.data['NSE_INDEX:Nifty 50'];
+ delete q.prev_close_price;q.last_price=24900;q.net_change=-100;
+ assert.equal(normalizeUpstoxV3(falling).coverage.nifty_change_bps,-40);
+});
+test('benchmark rejects absent or contradictory previous-close evidence',()=>{
+ const missing=fixture();const q=missing.index.data['NSE_INDEX:Nifty 50'];
+ delete q.prev_close_price;q.ohlc={close:25150};
+ assert.throws(()=>normalizeUpstoxV3(missing),/benchmark price invalid/);
+ const conflicting=fixture();conflicting.index.data['NSE_INDEX:Nifty 50'].net_change=100;
+ assert.throws(()=>normalizeUpstoxV3(conflicting),/benchmark fields disagree/);
+});
+
 test('Upstox normalized full snapshot passes Atlas fail-closed D1 ingestion contract',async()=>{
  const input=fixture();const normalized=normalizeUpstoxV3(input);let statementCount=0;
  const d1={prepare(){return {bind(){return {first:async()=>null,run:async()=>({meta:{changes:0}})}}}},
   async batch(statements){statementCount=statements.length;}};
  const outcome=await testing.ingest(d1,normalized,now,'SYNTHETIC_TEST_ONLY');
- assert.equal(outcome.accepted,500);assert.equal(statementCount,2);
+ assert.equal(outcome.accepted,500);assert.equal(statementCount,3);
 });

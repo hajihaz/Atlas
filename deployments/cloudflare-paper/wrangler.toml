@@ -7,6 +7,15 @@ workers_dev = true
 binding = "DB"
 database_name = "atlas-free-cloud-paper"
 database_id = "3a93fdfb-4136-4ed5-b19d-57318f3e766e"
+# Separate private sample archive; cannot fill or block the paper ledger D1.
+[[d1_databases]]
+binding = "HISTORY_DB"
+database_name = "atlas-free-history-pilot"
+database_id = "387b2c68-482a-490a-97fc-40633652f502"
+[[kv_namespaces]]
+binding = "NSE_REFERENCE_ARCHIVE"
+id = "8d8e1f507d2942c1832c3107d0b150a6"
+
 [vars]
 # Official market-data source only. The real Analytics Token must be set with
 # `wrangler secret put UPSTOX_ANALYTICS_TOKEN` and is never stored in this file.
@@ -15,4 +24,16 @@ FEED_SOURCE_ID = "UPSTOX_ANALYTICS_READONLY_V3"
 UPSTOX_FEED_ENABLED = "true"
 
 [triggers]
-crons = ["* * * * *"]
+crons = ["* * * * *", "0-9 11,12,13 * * 1-5", "0-6 2,3 * * 1-5"]
+
+# Keep free Worker invocation logs across Wrangler deployments.
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+persist = true
+
+[observability.traces]
+enabled = false
+head_sampling_rate = 1
+persist = true
