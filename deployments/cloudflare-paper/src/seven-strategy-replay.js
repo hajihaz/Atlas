@@ -41,8 +41,8 @@ function validateMinuteBars(bars){
   return day;
 }
 function verifyNifty(bars,nifty){
-  if(!Array.isArray(nifty)||nifty.length<25)fail('Nifty morning receipt missing');
-  for(let i=0;i<25;i++){
+  if(!Array.isArray(nifty)||nifty.length<15)fail('Nifty morning receipt missing');
+  for(let i=0;i<15;i++){
     const n=nifty[i];
     if(!n||n.time!==bars[i].time||!Number.isFinite(n.open)||!Number.isFinite(n.close)||n.open<=0||n.close<=0)fail('Nifty timestamp or price');
   }

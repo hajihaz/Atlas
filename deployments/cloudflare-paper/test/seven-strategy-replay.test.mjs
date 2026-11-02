@@ -40,6 +40,8 @@ test('ScalpStorm X waits for completed 5-minute breakout and next-minute entry',
  assert.equal(result.side,'BUY');
  assert.equal(result.signalBarTime,START+29*60000);
  assert.equal(result.nextOpenTime,START+30*60000);
+ const opening=context();opening.niftyBars=opening.niftyBars.slice(0,15);
+ assert.equal(intradaySignal('scalpstorm_x',bars(),opening).status,'SIGNAL');
  const replay=replayIntradayDay('scalpstorm_x',bars(),{context:context()});
  assert.equal(replay.fills.length,0);
  assert.equal(replay.realizedPaise,null);
