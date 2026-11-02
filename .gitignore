@@ -60,3 +60,4 @@ lean-adapter/obj/
 # LEAN standalone smoke compiled binaries and NuGet caches
 /scripts/lean-smoke/bin/
 /scripts/lean-smoke/obj/
+.vercel/
