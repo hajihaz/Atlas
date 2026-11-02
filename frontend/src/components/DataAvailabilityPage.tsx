@@ -3,6 +3,8 @@ import {Database,RefreshCcw} from 'lucide-react';
 import {cloudPaperRequest} from '../lib/cloudPaperRead';
 type Day={day:string;symbols?:number;min_bars?:number;max_bars?:number;files?:number;eligible?:number;captured?:number;bars?:number};
 type Group={days:number;dates:Day[]};
+type EodStock={rank:number;symbol:string;isin:string;volumeShares:number;open:number;high:number;low:number;close:number;turnoverRupees:number;tradeCount:number};
+type EodTop={schema:string;mode:string;realOrdersEnabled:boolean;sourceDate:string;evidenceClass:string;sourceSha256:string;sourcePublishedAt:string;totalEqStocks:number;top:EodStock[]};
 export type Availability={mode:string;realOrdersEnabled:boolean;as_of:string;minute:Group;daily:Group;nse_reference:Group;full_0940:Group;nifty_open:Group;note:string};
 const groups:[keyof Pick<Availability,'minute'|'daily'|'nse_reference'|'full_0940'|'nifty_open'>,string,string][]=[
  ['minute','Minute bars','Ten-stock dated OHLCV samples'],
@@ -13,6 +15,7 @@ const groups:[keyof Pick<Availability,'minute'|'daily'|'nse_reference'|'full_094
 ];
 export default function DataAvailabilityPage({ownerConnected,goPaper}:{ownerConnected:boolean;goPaper:()=>void}){
  const [data,setData]=useState<Availability|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const [eodTop,setEodTop]=useState<EodTop|null>(null),[eodBusy,setEodBusy]=useState(false),[eodError,setEodError]=useState('');
  async function refresh(){
   if(!ownerConnected){setError('Connect on the Paper Trading page first.');return;}
   setBusy(true);setError('');
@@ -21,7 +24,16 @@ export default function DataAvailabilityPage({ownerConnected,goPaper}:{ownerConn
    setData(result);
   }catch(e){setError(e instanceof Error?e.message:'Data unavailable');}finally{setBusy(false);}
  }
- useEffect(()=>{if(ownerConnected)void refresh();else setData(null);},[ownerConnected]);
+ async function loadEodTop(day:string){
+  setEodBusy(true);setEodError('');setEodTop(null);
+  try{const result=await cloudPaperRequest<EodTop>('','nse-eod-top',{day});
+   if(result.schema!=='atlas.nse-eod-top.v1'||result.mode!=='PAPER_ONLY'||result.realOrdersEnabled!==false||
+    result.sourceDate!==day||result.evidenceClass!=='OFFICIAL_NSE_END_OF_DAY_EQ_SERIES_NOT_0940_AND_NOT_NORMAL_MASTER_QUALIFIED'||
+    !/^[a-f0-9]{64}$/.test(result.sourceSha256)||result.top.length!==20)throw Error('Invalid whole-day source result');
+   setEodTop(result);
+  }catch(e){setEodError(e instanceof Error?e.message:'Whole-day ranking unavailable');}finally{setEodBusy(false);}
+ }
+ useEffect(()=>{if(ownerConnected)void refresh();else {setData(null);setEodTop(null);}},[ownerConnected]);
  return <section className="atlas-data-page"><div className="sub-page-header"><div className="breadcrumb">ATLAS / DATA</div><h1>Available market data<span className="period">.</span></h1>
   <p>Counted from private cloud receipts. Historical samples, daily files and 9:40 universes are separate evidence.</p></div>
   <div className="panel atlas-owner-connect"><div><h2>Private data inventory</h2><p>Choose a category below to see every captured date and its coverage.</p></div>
@@ -30,7 +42,15 @@ export default function DataAvailabilityPage({ownerConnected,goPaper}:{ownerConn
    {error&&<p className="atlas-simple-error" role="alert">{error}</p>}</div>
   {data&&<><div className="atlas-data-grid">{groups.map(([key,title,description])=><div className="panel atlas-data-card" key={key}><Database size={21}/><small>{title}</small><strong>{data[key].days} dates</strong><span>{description}</span></div>)}</div>
    {groups.map(([key,title])=><details className="panel atlas-data-detail" key={key}><summary>{title} · {data[key].days} dates</summary>
-    <div className="atlas-data-dates">{data[key].dates.map(x=><div key={x.day}><strong>{x.day}</strong><span>{x.bars!=null?`${x.bars} source candles`:x.symbols!=null?`${x.symbols} symbols · ${x.min_bars}–${x.max_bars} bars`:x.files!=null?`${x.files} source files`:`${x.captured}/${x.eligible} symbols`}</span></div>)}</div></details>)}
+    {key==='nse_reference'&&<p>Choose a date to view the 20 highest-volume EQ stocks from the complete official end-of-day file. These are whole-day rankings, not stocks known at 09:40.</p>}
+    <div className="atlas-data-dates">{data[key].dates.map(x=><div key={x.day}><strong>{x.day}</strong><span>{x.bars!=null?`${x.bars} source candles`:x.symbols!=null?`${x.symbols} symbols · ${x.min_bars}–${x.max_bars} bars`:x.files!=null?`${x.files} source files`:`${x.captured}/${x.eligible} symbols`}</span>
+     {key==='nse_reference'&&x.files===2&&<button type="button" className="secondary-button" disabled={eodBusy} onClick={()=>void loadEodTop(x.day)}>View top volume</button>}</div>)}</div></details>)}
+   {eodBusy&&<p role="status">Checking official whole-day source…</p>}{eodError&&<p className="atlas-simple-error" role="alert">{eodError}</p>}
+   {eodTop&&<div className="panel atlas-data-detail"><h2>{eodTop.sourceDate} · Whole-day top volume</h2>
+    <p>Official NSE EQ series: {eodTop.totalEqStocks.toLocaleString('en-IN')} stocks in the verified file. Selection uses the full trading day and must not be used as a 09:40 signal.</p>
+    <div className="atlas-eod-table-wrap"><table className="atlas-eod-table"><thead><tr><th>Rank</th><th>Stock</th><th>Shares traded</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Trades</th></tr></thead><tbody>
+     {eodTop.top.map(stock=><tr key={stock.isin}><td>{stock.rank}</td><th scope="row">{stock.symbol}</th><td>{stock.volumeShares.toLocaleString('en-IN')}</td><td>₹{stock.open.toFixed(2)}</td><td>₹{stock.high.toFixed(2)}</td><td>₹{stock.low.toFixed(2)}</td><td>₹{stock.close.toFixed(2)}</td><td>{stock.tradeCount.toLocaleString('en-IN')}</td></tr>)}
+    </tbody></table></div><p className="atlas-simple-note">Official file published: {new Date(eodTop.sourcePublishedAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})} IST · SHA-256: <code>{eodTop.sourceSha256}</code></p></div>}
    <p className="atlas-simple-note">{data.note}</p></>}
  </section>;
 }

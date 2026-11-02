@@ -44,6 +44,25 @@ test('gateway forwards only authorized private owner calls over configured HTTPS
   else process.env.ATLAS_PAPER_BACKEND_URL=old}
 });
 
+test('dated NSE history remains private and forwards only its bounded day parameter',async()=>{
+ const old=process.env.ATLAS_PAPER_BACKEND_URL,saved=globalThis.fetch;
+ process.env.ATLAS_PAPER_BACKEND_URL='https://paper.example';
+ let calls=0;
+ globalThis.fetch=async (url,opts)=>{
+  calls++;assert.equal(url,'https://paper.example/api/cloud-paper/nse-eod-top?day=2026-10-19');
+  assert.equal(opts.headers.Authorization,'Bearer '+'X'.repeat(64));
+  return {status:200,headers:{get:()=> 'application/json'},json:async()=>({schema:'atlas.nse-eod-top.v1',sourceDate:'2026-10-19'})};
+ };
+ try{
+  const unauth=reply();await handler({...req('nse-eod-top'),query:{action:'nse-eod-top',day:'2026-10-19'}},unauth);
+  assert.equal(unauth.statusCode,401);assert.equal(calls,0);
+  const input=req('nse-eod-top','GET','Bearer '+'X'.repeat(64));
+  input.query={action:'nse-eod-top',day:'2026-10-19',admin:'true'};
+  const output=reply();await handler(input,output);assert.equal(output.statusCode,200);
+  assert.equal(output.body.sourceDate,'2026-10-19');assert.equal(calls,1);
+ }finally{globalThis.fetch=saved;if(old===undefined)delete process.env.ATLAS_PAPER_BACKEND_URL;else process.env.ATLAS_PAPER_BACKEND_URL=old;}
+});
+
 test('gateway verifies live worker readiness rather than URL alone',async()=>{
  const previous=process.env.ATLAS_PAPER_BACKEND_URL,oldFetch=globalThis.fetch;
  process.env.ATLAS_PAPER_BACKEND_URL='https://paper.example';

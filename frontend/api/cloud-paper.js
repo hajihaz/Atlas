@@ -1,6 +1,6 @@
 // Same-origin authenticated owner gateway. Browser receives only an HttpOnly session cookie.
 // Upstream must be a separately hosted, persistent cloud paper worker.
-const allowed = Object.freeze({status: ['GET'], session: ['GET','POST','DELETE'], state: ['GET'], daybook: ['GET'], 'data-availability': ['GET'], 'market-replay': ['GET'], 'top-volume-history': ['GET'], 'nifty-opening': ['GET'], 'seven-strategies': ['GET'], 'seven-accounts': ['GET'], 'strategy-replay': ['GET'], 'daily-cohort': ['GET'], 'period-rank': ['GET'], 'feed-check': ['GET'], orders: ['POST'], cancel: ['POST']});
+const allowed = Object.freeze({status: ['GET'], session: ['GET','POST','DELETE'], state: ['GET'], daybook: ['GET'], 'data-availability': ['GET'], 'market-replay': ['GET'], 'top-volume-history': ['GET'], 'nifty-opening': ['GET'], 'nse-eod-top': ['GET'], 'seven-strategies': ['GET'], 'seven-accounts': ['GET'], 'strategy-replay': ['GET'], 'daily-cohort': ['GET'], 'period-rank': ['GET'], 'feed-check': ['GET'], orders: ['POST'], cancel: ['POST']});
 function sessionCookie(raw){
  if(typeof raw!=='string'||raw.length>4096)return null;
  return raw.match(/(?:^|;\s*)(atlas_owner_session=[a-zA-Z0-9._-]{40,180})(?:;|$)/)?.[1]??null;
