@@ -71,7 +71,15 @@ export async function verifyNiftyHistoricalSource(env,day,fetcher=fetch,clock=()
  if(Number(res.headers.get('content-length'))>500000)fail('dated provider response too large');
  const body=await res.text();if(body.length>500000)fail('dated provider response too large');
  let parsed;try{parsed=JSON.parse(body)}catch{fail('dated provider JSON')}
- const proof=validateHistoricalCandles(parsed,day);
- return {mode:'PAPER_ONLY',realOrdersEnabled:false,readOnly:true,sourceDate:day,
-  instrumentKey:KEY,candleCount:proof.candle_count,firstMinute:proof.first_minute,lastMinute:proof.last_minute};
+ const candles=parsed?.data?.candles;
+ if(parsed?.status!=='success'||!Array.isArray(candles))fail('dated provider response shape');
+ const first=candles.at(-1)?.[0],last=candles[0]?.[0];
+ const shape={mode:'PAPER_ONLY',realOrdersEnabled:false,readOnly:true,sourceDate:day,
+  instrumentKey:KEY,candleCount:candles.length,
+  firstMinute:typeof first==='string'&&first.startsWith(day)?first:null,
+  lastMinute:typeof last==='string'&&last.startsWith(day)?last:null,
+  volumeType:typeof candles[0]?.[5]};
+ try{const proof=validateHistoricalCandles(parsed,day);
+  return {...shape,valid:true,candleCount:proof.candle_count,firstMinute:proof.first_minute,lastMinute:proof.last_minute};
+ }catch{return {...shape,valid:false}}
 }

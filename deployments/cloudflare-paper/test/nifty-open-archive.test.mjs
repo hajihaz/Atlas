@@ -49,6 +49,7 @@ test('dated source probe returns only bounded candle metadata',async()=>{
   return new Response(JSON.stringify(priorBars),{headers:{'content-type':'application/json'}});
  },()=>at);
  assert.equal(result.candleCount,16);
+ assert.equal(result.valid,true);
  assert.equal(result.realOrdersEnabled,false);
  assert.equal(JSON.stringify(result).includes('25000'),false);
 });
