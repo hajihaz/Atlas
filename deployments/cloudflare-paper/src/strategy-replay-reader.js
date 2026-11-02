@@ -26,6 +26,8 @@ async function validatedMinuteSource(env,{day,symbol}){
  let parsed;try{parsed=JSON.parse(row.response_body)}catch{fail('source JSON')}
  const proof=validateHistoricalCandles(parsed,day);
  if(proof.candle_count!==row.candle_count||proof.first_minute!==row.first_minute||proof.last_minute!==row.last_minute)fail('source metadata mismatch');
+ if(coverage==='COMPLETE_0940_TOP_VOLUME_STOCK_MINUTE_HISTORY'&&
+  (proof.candle_count!==375||!proof.first_minute.includes('T09:15:')||!proof.last_minute.includes('T15:29:')))fail('top-volume minute session incomplete');
  const bars=parsed.data.candles.map(c=>({time:Date.parse(c[0]),open:c[1],high:c[2],low:c[3],close:c[4],volume:c[5]})).sort((a,b)=>a.time-b.time);
  return {spec,row,bars,coverage};
 }

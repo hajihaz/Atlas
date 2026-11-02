@@ -12,6 +12,7 @@ const STOCKS=['AXISBANK','BHARTIARTL','HDFCBANK','ICICIBANK','INFY','ITC','NHPC'
 const money=(n:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}).format(n);
 const amount=(n:number)=>new Intl.NumberFormat('en-IN').format(n);
 const clock=(n:number)=>new Date(n).toLocaleTimeString('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',hour12:true});
+const marker=(n:number)=>new Date(n).toLocaleTimeString('en-GB',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',hour12:false});
 
 export default function MarketReplayPage({ownerConnected,goPaper}:{ownerConnected:boolean;goPaper:()=>void}){
  const [inventory,setInventory]=useState<Availability|null>(null),[day,setDay]=useState(''),[symbol,setSymbol]=useState('RELIANCE');
@@ -60,7 +61,7 @@ export default function MarketReplayPage({ownerConnected,goPaper}:{ownerConnecte
   if(!replay?.bars.length)return null;
   const shown=replay.bars.slice(0,cursor+1),low=Math.min(...shown.map(x=>x.low)),high=Math.max(...shown.map(x=>x.high));
   const range=Math.max(.01,high-low),width=940,height=260;
-  const x=(i:number)=>35+(i/(replay.bars.length-1))*870;
+  const x=(i:number)=>35+(i/Math.max(1,replay.bars.length-1))*870;
   const y=(price:number)=>20+(1-(price-low)/range)*170;
   const path=shown.map((bar,i)=>`${i?'L':'M'}${x(i).toFixed(1)},${y(bar.close).toFixed(1)}`).join(' ');
   const maxVolume=Math.max(1,...shown.map(x=>x.volume));
@@ -84,7 +85,7 @@ export default function MarketReplayPage({ownerConnected,goPaper}:{ownerConnecte
      <div className="atlas-replay-source"><span>{cursor+1} / {replay.bars.length} minutes</span><span>Archived {new Date(replay.sourceKnownAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})} IST</span></div></div>
     <svg className="atlas-replay-chart" viewBox="0 0 940 260" role="img" aria-label={`${symbol} price and volume through ${clock(current.time)} IST`}>
      <line x1="35" y1="20" x2="35" y2="232" className="atlas-chart-axis"/><line x1="35" y1="232" x2="905" y2="232" className="atlas-chart-axis"/>
-     {[25,360].filter(i=>i<=cursor&&i<replay.bars.length).map(i=><g key={i}><line x1={chart.x(i)} y1="20" x2={chart.x(i)} y2="232" className="atlas-chart-marker"/><text x={chart.x(i)+4} y="34" className="atlas-chart-label">{i===25?'09:40':'15:15'}</text></g>)}
+     {chart.shown.map((bar,i)=>({i,at:marker(bar.time)})).filter(x=>['09:40','15:15'].includes(x.at)).map(x=><g key={x.i}><line x1={chart.x(x.i)} y1="20" x2={chart.x(x.i)} y2="232" className="atlas-chart-marker"/><text x={chart.x(x.i)+4} y="34" className="atlas-chart-label">{x.at}</text></g>)}
      {chart.shown.map((bar,i)=><rect key={bar.time} x={chart.x(i)-1} y={232-(bar.volume/chart.maxVolume)*32} width="2" height={(bar.volume/chart.maxVolume)*32} className="atlas-chart-volume"/>)}
      <path d={chart.path} fill="none" className="atlas-chart-price"/><circle cx={chart.x(cursor)} cy={chart.y(current.close)} r="5" className="atlas-chart-point"/>
      <text x="40" y="17" className="atlas-chart-label">{money(chart.high)}</text><text x="40" y="204" className="atlas-chart-label">{money(chart.low)}</text>

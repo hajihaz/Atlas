@@ -4,6 +4,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import {archiveTopVolumeStep,readTopVolumeHistory,topVolumeRoster} from '../src/top-volume-history.js';
 import {readMarketReplay} from '../src/strategy-replay-reader.js';
+import {createHash} from 'node:crypto';
 
 const day='2026-11-03',at=Date.parse(day+'T09:40:00+05:30');
 function wrapped(sql){return {prepare(query){return {bind(...args){return {
@@ -54,4 +55,16 @@ test('missing identity, incomplete source and incomplete session fail closed',as
  const incomplete=candles();incomplete.data.candles.pop();
  await assert.rejects(archiveTopVolumeStep(f.env,slot,async()=>new Response(JSON.stringify(incomplete),{headers:{'content-type':'application/json'}}),()=>slot+60000),/minute session incomplete/);
  assert.equal(f.history.prepare('SELECT COUNT(*) n FROM history_samples').get().n,0);
+});
+test('a preexisting partial same-key sample cannot be certified as complete top-volume history',async()=>{
+ const f=fixture(),slot=Date.parse(day+'T13:00:00Z'),short=candles();short.data.candles.pop();
+ const body=JSON.stringify(short),key='NSE_EQ|INE000000499';
+ f.history.prepare('INSERT INTO history_samples VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(
+  key,day,'https://api.upstox.com/v3/historical-candle/intraday/'+encodeURIComponent(key)+'/minutes/1',
+  day+'T11:01:00Z',createHash('sha256').update(body).digest('hex'),Buffer.byteLength(body),374,
+  day+'T09:15:00+05:30',day+'T15:28:00+05:30',body,'FIXED_SAMPLE');
+ const listing=await readTopVolumeHistory(f.env,day);
+ assert.equal(listing.stocks[0].archived,false);
+ await assert.rejects(archiveTopVolumeStep(f.env,slot,async()=>{throw Error('provider called')},()=>slot+60000),/stored minute session incomplete/);
+ await assert.rejects(readMarketReplay(f.env,{day,symbol:'TST0499'}),/top-volume minute session incomplete/);
 });
