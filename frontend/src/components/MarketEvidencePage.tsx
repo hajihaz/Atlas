@@ -15,23 +15,24 @@ function todayIST(){
 }
 const time=(value:string)=>new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true}).format(new Date(value))+' IST';
 const number=(value:number)=>new Intl.NumberFormat('en-IN').format(value);
-export default function MarketEvidencePage({ownerToken,goPaper}:{ownerToken:string;goPaper:()=>void}){
+export default function MarketEvidencePage({ownerConnected,goPaper}:{ownerConnected:boolean;goPaper:()=>void}){
  const [day,setDay]=useState(todayIST);
  const [book,setBook]=useState<Daybook|null>(null);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
  useEffect(()=>{setBook(null);},[day]);
  async function refresh(){
-  if(ownerToken.length<32){setError('Connect your private paper account on the Paper Trading page.');return;}
+  if(!ownerConnected){setError('Connect your private paper account on the Paper Trading page.');return;}
   setBusy(true);setError('');
   try{
-   const next=await cloudPaperRequest<Daybook>(ownerToken,'daybook',{day});
+   const next=await cloudPaperRequest<Daybook>('','daybook',{day});
    if(next.mode!=='PAPER_ONLY'||next.realOrdersEnabled!==false||next.session!==day||!Array.isArray(next.top_volume))
     throw Error('Untrusted daybook response');
    setBook(next);
   }catch(e){setBook(null);setError(e instanceof Error?e.message:'Market evidence unavailable');}
   finally{setBusy(false);}
  }
+ useEffect(()=>{if(ownerConnected)void refresh();else setBook(null);},[ownerConnected,day]);
  return <section className="atlas-market-evidence">
   <div className="sub-page-header"><div className="breadcrumb">ATLAS / NSE MARKET WATCH</div>
    <h1>Market watch<span className="period">.</span></h1>
@@ -40,12 +41,12 @@ export default function MarketEvidencePage({ownerToken,goPaper}:{ownerToken:stri
    <p>Atlas marks a session incomplete when the full eligible universe or source time is missing. A missing price is never guessed.</p></div></div>
   <div className="panel atlas-evidence-controls"><label htmlFor="atlas-market-day">NSE session</label>
    <input id="atlas-market-day" type="date" value={day} max={todayIST()} onChange={e=>setDay(e.target.value)}/>
-   <button className="primary-button" type="button" disabled={busy||ownerToken.length<32} onClick={()=>void refresh()}><RefreshCcw size={16}/>{busy?'Checking…':'Check cloud receipt'}</button>
-   {ownerToken.length<32&&<button className="secondary-button" type="button" onClick={goPaper}>Connect owner account <ArrowRight size={16}/></button>}
+   <button className="primary-button" type="button" disabled={busy||!ownerConnected} onClick={()=>void refresh()}><RefreshCcw size={16}/>{busy?'Checking…':'Check cloud receipt'}</button>
+   {!ownerConnected&&<button className="secondary-button" type="button" onClick={goPaper}>Connect owner account <ArrowRight size={16}/></button>}
   </div>
   {error&&<div className="panel atlas-simple-error" role="alert">{error}</div>}
   {!book?<div className="panel atlas-evidence-empty" role="status">
-   <Clock3 size={21}/><div><strong>No session receipt loaded</strong><p>Choose a date and check the cloud. Market watch needs the private owner token.</p></div>
+   <Clock3 size={21}/><div><strong>No session receipt loaded</strong><p>Choose a date and check the cloud. Connect your private account first.</p></div>
   </div>:<>
    <div className="atlas-simple-grid">
     <div className="panel atlas-simple-card"><small>9:40 universe</small><strong>{book.complete_0940_snapshot?'Complete':'Incomplete'}</strong>

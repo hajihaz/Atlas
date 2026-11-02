@@ -10,22 +10,22 @@ const groups:[keyof Pick<Availability,'minute'|'daily'|'nse_reference'|'full_094
  ['nse_reference','NSE daily files','Official EOD and security master receipts'],
  ['full_0940','9:40 universe','Captured full-universe ranking sessions']
 ];
-export default function DataAvailabilityPage({ownerToken,setOwnerToken}:{ownerToken:string;setOwnerToken:(v:string)=>void}){
+export default function DataAvailabilityPage({ownerConnected,goPaper}:{ownerConnected:boolean;goPaper:()=>void}){
  const [data,setData]=useState<Availability|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  async function refresh(){
-  if(ownerToken.length<32){setError('Enter your private owner token.');return;}
+  if(!ownerConnected){setError('Connect on the Paper Trading page first.');return;}
   setBusy(true);setError('');
-  try{const result=await cloudPaperRequest<Availability>(ownerToken,'data-availability');
+  try{const result=await cloudPaperRequest<Availability>('','data-availability');
    if(result.mode!=='PAPER_ONLY'||result.realOrdersEnabled!==false)throw Error('Invalid cloud data response');
    setData(result);
   }catch(e){setError(e instanceof Error?e.message:'Data unavailable');}finally{setBusy(false);}
  }
- useEffect(()=>{if(ownerToken.length>=32)void refresh();},[]);
+ useEffect(()=>{if(ownerConnected)void refresh();else setData(null);},[ownerConnected]);
  return <section className="atlas-data-page"><div className="sub-page-header"><div className="breadcrumb">ATLAS / DATA</div><h1>Available market data<span className="period">.</span></h1>
   <p>Counted from private cloud receipts. Historical samples, daily files and 9:40 universes are separate evidence.</p></div>
   <div className="panel atlas-owner-connect"><div><h2>Private data inventory</h2><p>Choose a category below to see every captured date and its coverage.</p></div>
-   <div className="atlas-owner-row"><label htmlFor="data-token">Owner token</label><input id="data-token" type="password" autoComplete="off" value={ownerToken} onChange={e=>setOwnerToken(e.target.value)}/>
-    <button type="button" className="primary-button" disabled={busy||ownerToken.length<32} onClick={()=>void refresh()}><RefreshCcw size={16}/> Refresh</button></div>
+   <div className="atlas-owner-row">{!ownerConnected&&<button type="button" className="secondary-button" onClick={goPaper}>Connect private account</button>}
+    <button type="button" className="primary-button" disabled={busy||!ownerConnected} onClick={()=>void refresh()}><RefreshCcw size={16}/> Refresh</button></div>
    {error&&<p className="atlas-simple-error" role="alert">{error}</p>}</div>
   {data&&<><div className="atlas-data-grid">{groups.map(([key,title,description])=><div className="panel atlas-data-card" key={key}><Database size={21}/><small>{title}</small><strong>{data[key].days} dates</strong><span>{description}</span></div>)}</div>
    {groups.map(([key,title])=><details className="panel atlas-data-detail" key={key}><summary>{title} · {data[key].days} dates</summary>

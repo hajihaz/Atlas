@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useState} from 'react';
 import {CalendarClock, Cloud, Clock3, LockKeyhole, RefreshCcw, ShieldCheck, XCircle} from 'lucide-react';
+import {ownerSession} from '../lib/cloudPaperRead';
 
 type PaperOrder={id:string;kind:string;symbol:string;side:string;qty:number;due_at:string;
  status:string;reason:string|null;fill_paise:number|null;fee_paise:number|null;
@@ -16,7 +17,7 @@ const API=CUSTOM_API?`${CUSTOM_API}/api/cloud-paper`:'/api/cloud-paper';
 const inr=(paise:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}).format(paise/100);
 const displayTime=(date:string)=>new Date(date).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true});
 
-export default function CloudPaperPage({initialToken='',setOwnerToken}:{initialToken?:string;setOwnerToken?:(token:string)=>void}){
+export default function CloudPaperPage({initialToken='',setOwnerToken,ownerConnected,setOwnerConnected}:{initialToken?:string;setOwnerToken?:(token:string)=>void;ownerConnected:boolean;setOwnerConnected:(connected:boolean)=>void}){
  const [token,setToken]=useState(initialToken);
  const [connected,setConnected]=useState(false);
  const [state,setState]=useState<PaperState|null>(null);
@@ -38,15 +39,19 @@ export default function CloudPaperPage({initialToken='',setOwnerToken}:{initialT
   const timer=setTimeout(()=>controller.abort(),12000);
   try{
    const response=await fetch(CUSTOM_API?`${API}/${path}`:`${API}?action=${encodeURIComponent(path)}`,{
-    method,mode:'cors',cache:'no-store',credentials:'omit',signal:controller.signal,
-    headers:{'Authorization':`Bearer ${token}`,...(body?{'Content-Type':'application/json'}:{})},
+    method,mode:'cors',cache:'no-store',credentials:CUSTOM_API?'omit':'same-origin',signal:controller.signal,
+    headers:{...(token&&!ownerConnected?{'Authorization':`Bearer ${token}`}:{}) ,...(body?{'Content-Type':'application/json'}:{})},
     ...(body?{body:JSON.stringify(body)}:{})
    });
    const data=await response.json();
-   if(!response.ok)throw Error(data.error||`Service error ${response.status}`);
+   if(!response.ok){
+    if(response.status===401&&!CUSTOM_API){setConnected(false);setOwnerConnected(false);}
+    throw Error(data.error||`Service error ${response.status}`);
+   }
    return data;
   }finally{clearTimeout(timer)}
- },[token]);
+ },[token,ownerConnected]);
+ useEffect(()=>{if(ownerConnected)setConnected(true);},[ownerConnected]);
  useEffect(()=>{
   if(CUSTOM_API)return;
   let current=true;
@@ -73,9 +78,15 @@ export default function CloudPaperPage({initialToken='',setOwnerToken}:{initialT
  async function connect(){
   setLoading(true);setError('');
   try{
+   if(!CUSTOM_API){
+    if(!await ownerSession('POST',token))throw Error('Owner token was not accepted.');
+   }
    const result=await request('state');
    if(result.mode!=='PAPER_ONLY'||result.realOrdersEnabled!==false)throw Error('Paper safety handshake failed');
-   setState(result);setConnected(true);setOwnerToken?.(token);setNotice('Private paper service connected. Token remains in browser memory only.');
+   if(!CUSTOM_API)setOwnerConnected(true);
+   setState(result);setConnected(true);setOwnerToken?.(CUSTOM_API?token:'');
+   if(!CUSTOM_API)setToken('');
+   setNotice('Private paper service connected. This browser reconnects securely on return.');
   }catch(e){setConnected(false);setError(e instanceof Error?e.message:'Unable to connect');}
   finally{setLoading(false)}
  }
@@ -121,7 +132,7 @@ export default function CloudPaperPage({initialToken='',setOwnerToken}:{initialT
    <p>Infrastructure and verified NSE market-data access must be configured. This public dashboard does not pretend to execute unattended orders.</p>
    <span className="cloud-paper-pill">DEPLOYMENT GATE · PRIVATE CLOUD WORKER + VERIFIED NSE FEED</span></div>:
   !connected?<div className="panel cloud-paper-connect"><LockKeyhole size={26}/><h2>Private paper account</h2>
-   <p>Authenticate to manage your scheduled virtual orders. Your token is kept only in this browser tab's memory—not in localStorage or source code.</p>
+   <p>Enter the owner token once. A protected browser session reconnects on return; the token is not saved in browser storage.</p>
    <form onSubmit={e=>{e.preventDefault();void connect()}}><label htmlFor="cloud-token">Owner access token</label>
     <input id="cloud-token" type="password" autoComplete="off" minLength={32} required value={token} onChange={e=>setToken(e.target.value)} placeholder="Private owner token"/>
     <button type="submit" className="primary-button" disabled={loading||token.length<32}>Connect cloud paper desk</button></form></div>:
@@ -163,7 +174,7 @@ export default function CloudPaperPage({initialToken='',setOwnerToken}:{initialT
     <tbody>{state.orders.map(o=><tr key={o.id}><td>{displayTime(o.due_at)}</td><td>{o.symbol}</td><td>{o.side}</td><td>{o.qty}</td><td>{o.kind==='PRICE_TRIGGER'?`${o.trigger_condition==='AT_OR_ABOVE'?'≥':'≤'} ${o.trigger_price_paise!=null?inr(o.trigger_price_paise):'—'} · expires ${o.expires_at?displayTime(o.expires_at):'—'}`:'Set time'}</td><td>{o.fill_paise!=null?inr(o.fill_paise):'—'}</td><td title={o.reason||undefined}>{o.status}{o.reason?` · ${o.reason.replaceAll('_',' ').toLowerCase()}`:''}</td><td>{['MANUAL','PRICE_TRIGGER'].includes(o.kind)&&o.status==='QUEUED'?<button type="button" className="cloud-paper-cancel" disabled={loading} aria-label={`Cancel ${o.symbol} scheduled order`} onClick={()=>void update('cancel',{id:o.id},'Queued order cancelled.')}><XCircle size={16}/></button>:null}</td></tr>)}</tbody></table></div>:<p className="cloud-paper-empty">No server-side orders yet. Nothing has been simulated.</p>}</div>
    <div className="panel cloud-paper-table"><h2>Virtual positions & audit events</h2><p>Held positions: {state?.positions.length?state.positions.map(p=>`${p.symbol} ${p.qty} shares`).join(' · '):'None recorded'}</p>
     <div className="cloud-paper-audit">{state?.events.slice(0,12).map(e=><div key={e.id}><span>{displayTime(e.observed_at)}</span><strong>{e.type}</strong><span>{e.message}</span></div>)}</div></div>
-   <button type="button" className="cloud-paper-disconnect" onClick={()=>{setConnected(false);setState(null);setToken('');setOwnerToken?.('');setNotice('');}}>Disconnect & forget token</button>
+   <button type="button" className="cloud-paper-disconnect" onClick={()=>{void (CUSTOM_API?Promise.resolve(false):ownerSession('DELETE')).then(()=>{setConnected(false);setOwnerConnected(false);setState(null);setToken('');setOwnerToken?.('');setNotice('');}).catch(e=>setError(e instanceof Error?e.message:'Unable to disconnect'));}}>Disconnect this browser</button>
   </div>}
   {error&&<div className="cloud-paper-message cloud-paper-error" role="alert">{error}</div>}
   {notice&&<div className="cloud-paper-message" role="status">{notice}</div>}

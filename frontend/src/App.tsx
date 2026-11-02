@@ -1,10 +1,11 @@
-import {lazy,Suspense,useEffect,useState} from 'react';
+import {lazy,Suspense,useEffect,useRef,useState} from 'react';
 import {Activity,Bitcoin,CalendarClock,ChartNoAxesCombined,Database,Menu,Moon,ShieldCheck,Sun,X} from 'lucide-react';
 import CloudPaperPage from './components/CloudPaperPage';
 import PaperTestingPage from './components/PaperTestingPage';
 import MarketEvidencePage from './components/MarketEvidencePage';
 import DataAvailabilityPage from './components/DataAvailabilityPage';
 import CryptoPricesPage from './components/CryptoPricesPage';
+import {ownerSession} from './lib/cloudPaperRead';
 import './styles.css';
 const IPOIntelligencePage=lazy(()=>import('./components/IPOIntelligencePage'));
 
@@ -31,6 +32,18 @@ export default function App(){
  const [theme,setTheme]=useState<Theme>(initialTheme);
  const [mobileOpen,setMobileOpen]=useState(false);
  const [ownerToken,setOwnerToken]=useState('');
+ const [ownerConnected,setOwnerConnected]=useState(false);
+ const sessionEpoch=useRef(0);
+ function updateOwnerConnected(value:boolean){sessionEpoch.current++;setOwnerConnected(value);}
+ useEffect(()=>{
+  let active=true;
+  const check=()=>{const epoch=sessionEpoch.current;void ownerSession('GET').then(ok=>{if(active&&epoch===sessionEpoch.current)setOwnerConnected(ok);}).catch(()=>{/* retain state during a temporary network outage */});};
+  const visible=()=>{if(document.visibilityState==='visible')check();};
+  check();
+  const timer=setInterval(check,6*60*60*1000);
+  document.addEventListener('visibilitychange',visible);
+  return ()=>{active=false;clearInterval(timer);document.removeEventListener('visibilitychange',visible);};
+ },[]);
  useEffect(()=>{
   document.documentElement.dataset.theme=theme;
   document.documentElement.style.colorScheme=theme;
@@ -68,10 +81,10 @@ export default function App(){
     {mobileOpen&&<button type="button" className="icon-button" aria-label="Close menu" onClick={()=>setMobileOpen(false)}><X size={18}/></button>}
    </div></header>
    <main className="main-content premium-page-view">
-    {page==='paper'?<PaperTestingPage ownerToken={ownerToken} setOwnerToken={setOwnerToken} goMarket={()=>go('markets')} goSchedule={()=>go('schedule')}/>:
-     page==='markets'?<MarketEvidencePage ownerToken={ownerToken} goPaper={()=>go('paper')}/>:
-     page==='data'?<DataAvailabilityPage ownerToken={ownerToken} setOwnerToken={setOwnerToken}/>:
-     page==='schedule'?<CloudPaperPage initialToken={ownerToken} setOwnerToken={setOwnerToken}/>:
+    {page==='paper'?<PaperTestingPage ownerToken={ownerToken} setOwnerToken={setOwnerToken} ownerConnected={ownerConnected} setOwnerConnected={updateOwnerConnected} goMarket={()=>go('markets')} goSchedule={()=>go('schedule')}/>:
+     page==='markets'?<MarketEvidencePage ownerConnected={ownerConnected} goPaper={()=>go('paper')}/>:
+     page==='data'?<DataAvailabilityPage ownerConnected={ownerConnected} goPaper={()=>go('paper')}/>:
+     page==='schedule'?<CloudPaperPage initialToken={ownerToken} setOwnerToken={setOwnerToken} ownerConnected={ownerConnected} setOwnerConnected={updateOwnerConnected}/>:
      page==='crypto'?<CryptoPricesPage/>:
      <Suspense fallback={<div className="panel" role="status">Loading IPO research…</div>}><IPOIntelligencePage/></Suspense>}
     <footer className="app-footer"><span>© 2026 ATLAS</span><div>₹ virtual capital · Source-qualified evidence · Real broker orders disabled · <button type="button" className="atlas-footer-link" onClick={()=>go('ipo')}>IPO research</button></div></footer>

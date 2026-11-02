@@ -17,12 +17,12 @@ test('the seven owner-defined rules are the only active strategy catalog in the 
  assert.match(paper,/setSelected\(x\.id\)/);
 });
 test('paper status and market watch use owner-only cloud reads',()=>{
- assert.match(paper,/cloudPaperRequest<Catalog>\(ownerToken,'seven-strategies'\)/);
- assert.match(paper,/cloudPaperRequest<State>\(ownerToken,'state'\)/);
- assert.match(market,/cloudPaperRequest<Daybook>\(ownerToken,'daybook',\{day\}\)/);
+ assert.match(paper,/cloudPaperRequest<Catalog>\(auth,'seven-strategies'\)/);
+ assert.match(paper,/cloudPaperRequest<State>\(auth,'state'\)/);
+ assert.match(market,/cloudPaperRequest<Daybook>\('','daybook',\{day\}\)/);
  assert.match(gateway,/'seven-strategies': \['GET'\]/);
  assert.match(gateway,/daybook: \['GET'\]/);
- assert.match(gateway,/Authorization:req\.headers\.authorization/);
+ assert.match(gateway,/Authorization:bearer/);
 });
 test('scheduled paper orders remain a distinct working page',()=>{
  assert.match(app,/page==='schedule'\?<CloudPaperPage/);

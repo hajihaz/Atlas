@@ -9,6 +9,7 @@ import {archiveDailyCohort,readDailyCohort,scheduledDailyCohortStep,verifyDailyS
 import {readFastPeriodRank} from './fast-period-rank.js';
 import {listSevenAccounts} from './seven-paper-store.js';
 import {verifyNseSourceReachability} from './nse-source-probe.js';
+import {ownerSessionValid,createOwnerSession,clearOwnerSession} from './owner-session.js';
 import {archiveNseReference,verifyNseReference,scheduledNseReferenceStep} from './nse-reference-archive.js';
 const MAX_DELAY=90000,MAX_STALENESS=15000,CAPITAL=10000000;
 const SYMBOL=/^(?=.{1,30}$)(?=.*[A-Z])[A-Z0-9&-]+$/;
@@ -343,9 +344,21 @@ export default {
  realOrdersEnabled:false,backendConnected:Boolean(env.DB),
  configured:Boolean(env.DB&&typeof env.OWNER_TOKEN==='string'&&env.OWNER_TOKEN.length>=32&&env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100),
  feedSourceConfigured:Boolean(env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100)});if(!env.DB)return reply({error:'D1_NOT_CONNECTED'},503);
- const actions={'/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/data-availability':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/quotes':'POST'};
- if(!Object.hasOwn(actions,path))return reply({error:'NOT_FOUND'},404);if(req.method!==actions[path]&&!(path.endsWith('/history-pilot')&&req.method==='POST')&&!(path.endsWith('/history-cohort')&&req.method==='POST')&&!(path.endsWith('/daily-cohort')&&req.method==='POST')&&!(path.endsWith('/nse-reference')&&req.method==='POST'))return reply({error:'METHOD_NOT_ALLOWED'},405);
- if(!authorized(req,path.endsWith('/quotes')?env.FEED_TOKEN:env.OWNER_TOKEN))return reply({error:'UNAUTHORIZED'},401);
+ const actions={'/api/cloud-paper/session':'SESSION','/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/data-availability':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/quotes':'POST'};
+ if(!Object.hasOwn(actions,path))return reply({error:'NOT_FOUND'},404);
+ if(path.endsWith('/session')){
+  if(!['GET','POST','DELETE'].includes(req.method))return reply({error:'METHOD_NOT_ALLOWED'},405);
+  if(req.method==='DELETE'){const result=reply({connected:false,realOrdersEnabled:false});result.headers.set('Set-Cookie',clearOwnerSession());return result;}
+  const allowed=req.method==='POST'?authorized(req,env.OWNER_TOKEN):await ownerSessionValid(req,env.OWNER_TOKEN,now);
+  if(!allowed)return reply({error:'UNAUTHORIZED'},401);
+  const session=await createOwnerSession(env.OWNER_TOKEN,now);
+  const result=reply({connected:true,mode:'PAPER_ONLY',realOrdersEnabled:false,expiresAt:session.expiresAt});
+  result.headers.set('Set-Cookie',session.cookie);return result;
+ }
+ if(req.method!==actions[path]&&!(path.endsWith('/history-pilot')&&req.method==='POST')&&!(path.endsWith('/history-cohort')&&req.method==='POST')&&!(path.endsWith('/daily-cohort')&&req.method==='POST')&&!(path.endsWith('/nse-reference')&&req.method==='POST'))return reply({error:'METHOD_NOT_ALLOWED'},405);
+ const allowed=path.endsWith('/quotes')?authorized(req,env.FEED_TOKEN):
+  authorized(req,env.OWNER_TOKEN)||await ownerSessionValid(req,env.OWNER_TOKEN,now);
+ if(!allowed)return reply({error:'UNAUTHORIZED'},401);
  try {if(path.endsWith('/state'))return reply(await overview(env.DB,now));
  if(path.endsWith('/daybook'))return reply(await daybook(env.DB,new URL(req.url).searchParams.get('day')||ist(now).day,now));
  if(path.endsWith('/data-availability'))return reply(await dataAvailability(env));

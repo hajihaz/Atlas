@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,CheckCircle2,Cloud,Database,LockKeyhole,RefreshCcw,ShieldCheck} from 'lucide-react';
 import {ATLAS_RULES} from '../data/atlasSeven';
-import {cloudPaperRequest} from '../lib/cloudPaperRead';
+import {cloudPaperRequest,cloudPaperUsesGateway,ownerSession} from '../lib/cloudPaperRead';
 import type {Availability} from './DataAvailabilityPage';
 type CloudStatus={mode:string;realOrdersEnabled:boolean;backendConnected:boolean;configured:boolean;feedSourceConfigured:boolean};
 type Catalog={schema:string;paperOnly:boolean;realOrdersEnabled:boolean;executionStatus:string;strategies:{id:string;name:string}[]};
@@ -11,8 +11,8 @@ type State={mode:string;realOrdersEnabled:boolean;strategy_enabled:boolean;strat
 type Replay={status:string;sourceDate:string;symbol:string;sourceSha256:string;sourceKnownAt:string;minuteBars:number;required:string[];result:null};
 const COHORT=['AXISBANK','BHARTIARTL','HDFCBANK','ICICIBANK','INFY','ITC','NHPC','RELIANCE','SBIN','TCS'];
 const inr=(n:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}).format(n);
-export default function PaperTestingPage({ownerToken,setOwnerToken,goMarket,goSchedule}:{
- ownerToken:string;setOwnerToken:(v:string)=>void;goMarket:()=>void;goSchedule:()=>void;
+export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnected,setOwnerConnected,goMarket,goSchedule}:{
+ ownerToken:string;setOwnerToken:(v:string)=>void;ownerConnected:boolean;setOwnerConnected:(v:boolean)=>void;goMarket:()=>void;goSchedule:()=>void;
 }){
  const [selected,setSelected]=useState(ATLAS_RULES[0].id);
  const [status,setStatus]=useState<CloudStatus|null>(null);
@@ -37,13 +37,18 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,goMarket,goSc
   return ()=>{current=false;};
  },[]);
  async function refresh(){
-  if(ownerToken.length<32){setError('Enter the private owner token to view paper results.');return;}
+  if(!ownerConnected&&ownerToken.length<32){setError('Enter the private owner token once to connect.');return;}
   setBusy(true);setError('');setAccountNotice('');
   try{
+   if(!ownerConnected&&cloudPaperUsesGateway){
+    if(!await ownerSession('POST',ownerToken))throw Error('Owner token was not accepted.');
+    setOwnerConnected(true);setOwnerToken('');
+   }
+   const auth=cloudPaperUsesGateway?'':ownerToken;
    const [nextCatalog,nextState,nextAvailability]=await Promise.all([
-    cloudPaperRequest<Catalog>(ownerToken,'seven-strategies'),
-    cloudPaperRequest<State>(ownerToken,'state'),
-    cloudPaperRequest<Availability>(ownerToken,'data-availability')
+    cloudPaperRequest<Catalog>(auth,'seven-strategies'),
+    cloudPaperRequest<State>(auth,'state'),
+    cloudPaperRequest<Availability>(auth,'data-availability')
    ]);
    const expected=ATLAS_RULES.map(x=>x.id).join('|');
    if(nextCatalog.paperOnly!==true||nextCatalog.realOrdersEnabled!==false||
@@ -53,7 +58,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,goMarket,goSc
    setCatalog(nextCatalog);setState(nextState);setAvailability(nextAvailability);
    setSampleDay(v=>v||nextAvailability.minute.dates[0]?.day||'');
    try{
-    const nextAccounts=await cloudPaperRequest<Accounts>(ownerToken,'seven-accounts');
+    const nextAccounts=await cloudPaperRequest<Accounts>(auth,'seven-accounts');
     if(nextAccounts.paperOnly!==true||nextAccounts.realOrdersEnabled!==false)throw Error('Invalid account response');
     setAccounts(nextAccounts);
     if(ATLAS_RULES.some(x=>!nextAccounts.accounts.some(a=>a.strategyId===x.id)))
@@ -70,15 +75,16 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,goMarket,goSc
   const serial=++replaySerial.current;
   setReplay(null);setReplayError('');
   if(!sampleDay){setReplayError('No dated minute receipt is available.');return;}
-  try{const result=await cloudPaperRequest<Replay>(ownerToken,'strategy-replay',{day:sampleDay,symbol:sampleSymbol,strategy:selected});
+  try{const result=await cloudPaperRequest<Replay>(cloudPaperUsesGateway?'':ownerToken,'strategy-replay',{day:sampleDay,symbol:sampleSymbol,strategy:selected});
    if(serial===replaySerial.current)setReplay(result);
   }catch(e){if(serial===replaySerial.current)setReplayError(e instanceof Error?e.message:'Replay unavailable');}
  }
  useEffect(()=>{
   replaySerial.current++;
   setReplay(null);setReplayError('');
-  if(rule.cadence==='Intraday'&&sampleDay&&ownerToken.length>=32&&availability)void loadReplay();
- },[selected,sampleDay,sampleSymbol,ownerToken,availability]);
+  if(rule.cadence==='Intraday'&&sampleDay&&(ownerConnected||ownerToken.length>=32)&&availability)void loadReplay();
+ },[selected,sampleDay,sampleSymbol,ownerToken,ownerConnected,availability]);
+ useEffect(()=>{if(ownerConnected&&!catalog)void refresh();},[ownerConnected]);
  return <section className="atlas-paper-home">
   <div className="sub-page-header"><div className="breadcrumb">ATLAS / PAPER TRADING</div>
    <h1>Test seven strategies<span className="period">.</span></h1>
@@ -95,10 +101,11 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,goMarket,goSc
   </div>
   <div className="panel atlas-data-home"><Database size={20}/><div><strong>Available market data</strong><p>{availability?`${availability.minute.days} minute dates · ${availability.daily.days} daily-bar dates · ${availability.nse_reference.days} NSE reference dates · ${availability.full_0940.days} full 9:40 dates`:'Connect to see exact cloud archive counts.'}</p></div><a href="#data">See every date</a></div>
   <div className="panel atlas-owner-connect">
-   <div><h2>Private paper results</h2><p>Connect to see cloud accounts and the existing paper ledger. The token stays in this browser tab’s memory.</p></div>
-   <div className="atlas-owner-row"><label htmlFor="atlas-owner-token">Owner token</label>
-    <input id="atlas-owner-token" type="password" autoComplete="off" value={ownerToken} onChange={e=>setOwnerToken(e.target.value)} placeholder="Private owner token"/>
-    <button className="primary-button" type="button" disabled={busy||ownerToken.length<32} onClick={()=>void refresh()}><RefreshCcw size={16}/>{catalog?'Refresh':'Connect'}</button>
+   <div><h2>Private paper results</h2><p>{ownerConnected?'Connected securely. This browser will reconnect on return.':'Enter your owner token once. Atlas keeps a protected browser session; the token is not saved in browser storage.'}</p></div>
+   <div className="atlas-owner-row">{!ownerConnected&&<><label htmlFor="atlas-owner-token">Owner token</label>
+    <input id="atlas-owner-token" type="password" autoComplete="off" value={ownerToken} onChange={e=>setOwnerToken(e.target.value)} placeholder="Private owner token"/></>}
+    <button className="primary-button" type="button" disabled={busy||(!ownerConnected&&ownerToken.length<32)} onClick={()=>void refresh()}><RefreshCcw size={16}/>{ownerConnected?'Refresh':'Connect'}</button>
+    {ownerConnected&&<button type="button" className="secondary-button" onClick={()=>{void ownerSession('DELETE').then(()=>{setOwnerConnected(false);setOwnerToken('');setCatalog(null);setState(null);setAccounts(null);setAvailability(null);}).catch(()=>setError('Unable to disconnect. Try again.'));}}>Disconnect</button>}
    </div>
    {error&&<p role="alert" className="atlas-simple-error">{error}</p>}
    {accountNotice&&<p role="status" className="atlas-simple-note">{accountNotice}</p>}
@@ -126,7 +133,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,goMarket,goSc
     <div className="atlas-rule-evidence"><h3>Historical evidence</h3><p>{rule.cadence==='Intraday'?`${availability?.minute.days??0} dated minute cohorts available. These ten-stock samples are not a full top-volume history.`:`${availability?.daily.days??0} ten-stock daily sample dates available. Required adjusted ETF history is missing.`}</p>
      {rule.cadence==='Intraday'&&<div className="atlas-replay-controls"><label>Session<select value={sampleDay} onChange={e=>setSampleDay(e.target.value)}>{availability?.minute.dates.map(x=><option key={x.day} value={x.day}>{x.day} · {x.symbols} stocks</option>)}</select></label>
       <label>Stock<select value={sampleSymbol} onChange={e=>setSampleSymbol(e.target.value)}>{COHORT.map(x=><option key={x}>{x}</option>)}</select></label>
-      <button type="button" className="secondary-button" disabled={!sampleDay||ownerToken.length<32} onClick={()=>void loadReplay()}>Inspect source</button></div>}
+      <button type="button" className="secondary-button" disabled={!sampleDay||(!ownerConnected&&ownerToken.length<32)} onClick={()=>void loadReplay()}>Inspect source</button></div>}
      {replayError&&<p role="alert" className="atlas-simple-error">{replayError}</p>}
      {replay&&<div className="atlas-replay-proof"><strong>{replay.status.replaceAll('_',' ')}</strong><span>{replay.symbol} · {replay.sourceDate} · {replay.minuteBars} minute bars</span><span>Published {new Date(replay.sourceKnownAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})} IST</span><code title={replay.sourceSha256}>SHA-256 {replay.sourceSha256.slice(0,16)}…</code><p>Profit and win rate: unavailable until all rule inputs and entry/exit settings are qualified.</p></div>}
     </div>
