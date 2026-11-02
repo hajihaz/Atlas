@@ -5,6 +5,7 @@ import {archiveHistoryCohort,archiveScheduledCohortStep,readHistoryCohort} from 
 import {readCohortBacktest} from './history-backtest.js';
 import {catalog as sevenStrategyCatalog} from './seven-strategy-replay.js';
 import {readIntradayStrategyReplay,readMarketReplay} from './strategy-replay-reader.js';
+import {archiveTopVolumeStep,readTopVolumeHistory} from './top-volume-history.js';
 import {archiveDailyCohort,readDailyCohort,scheduledDailyCohortStep,verifyDailySource} from './upstox-daily-cohort.js';
 import {readFastPeriodRank} from './fast-period-rank.js';
 import {listSevenAccounts} from './seven-paper-store.js';
@@ -115,7 +116,9 @@ if(cv!==undefined&&(cv?.complete!==true||!Number.isSafeInteger(cv.eligible_count
 // On Workers Free, D1 permits only 50 queries per invocation. A single bound JSON
 // array + SQLite json_each inserts the whole point-in-time quote snapshot in one
 // SQL statement, rather than 500-4000 individual D1 queries.
-const rowsJson=JSON.stringify(normalized.map(q=>[q.symbol,q.price_paise,q.cumulative_volume,q.observed,sourceName]));
+if(cv&&normalized.some(q=>typeof q.instrument_key!=='string'||!/^NSE_EQ\|[A-Z0-9]{8,20}$/.test(q.instrument_key)))throw Error('full-universe instrument identity missing');
+if(cv&&new Set(normalized.map(q=>q.instrument_key)).size!==normalized.length)throw Error('duplicate full-universe instrument identity');
+const rowsJson=JSON.stringify(normalized.map(q=>[q.symbol,q.price_paise,q.cumulative_volume,q.observed,sourceName,q.instrument_key??null]));
 if(rowsJson.length>1600000)throw Error('quote batch too large for free worker');
 const quoteStatement=db.prepare(`INSERT INTO quotes(symbol,price_paise,cumulative_volume,observed_ms,source,exchange_open)
  SELECT json_extract(value,'$[0]'),json_extract(value,'$[1]'),json_extract(value,'$[2]'),
@@ -135,9 +138,9 @@ if(cv){
  day,normalized.length,Math.max(...normalized.map(x=>x.observed)),cv.nifty_change_bps,sourceName));
  // Preserve the exact accepted 09:40 cohort before later watched quotes replace
  // the rolling quote table. A single bound JSON statement stays within D1 Free.
- statements.push(db.prepare(`INSERT OR IGNORE INTO entry_snapshots(session,symbol,price_paise,cumulative_volume,observed_ms,source)
+ statements.push(db.prepare(`INSERT OR IGNORE INTO entry_snapshots(session,symbol,price_paise,cumulative_volume,observed_ms,source,instrument_key)
  SELECT ?,json_extract(value,'$[0]'),json_extract(value,'$[1]'),json_extract(value,'$[2]'),
-        json_extract(value,'$[3]'),json_extract(value,'$[4]') FROM json_each(?)`).bind(day,rowsJson));
+        json_extract(value,'$[3]'),json_extract(value,'$[4]'),json_extract(value,'$[5]') FROM json_each(?)`).bind(day,rowsJson));
 }
 await db.batch(statements);
 return {accepted:normalized.length,realOrdersEnabled:false};}
@@ -344,7 +347,7 @@ export default {
  realOrdersEnabled:false,backendConnected:Boolean(env.DB),
  configured:Boolean(env.DB&&typeof env.OWNER_TOKEN==='string'&&env.OWNER_TOKEN.length>=32&&env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100),
  feedSourceConfigured:Boolean(env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100)});if(!env.DB)return reply({error:'D1_NOT_CONNECTED'},503);
- const actions={'/api/cloud-paper/session':'SESSION','/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/data-availability':'GET','/api/cloud-paper/market-replay':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/quotes':'POST'};
+ const actions={'/api/cloud-paper/session':'SESSION','/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/data-availability':'GET','/api/cloud-paper/market-replay':'GET','/api/cloud-paper/top-volume-history':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/quotes':'POST'};
  if(!Object.hasOwn(actions,path))return reply({error:'NOT_FOUND'},404);
  if(path.endsWith('/session')){
   if(!['GET','POST','DELETE'].includes(req.method))return reply({error:'METHOD_NOT_ALLOWED'},405);
@@ -363,6 +366,7 @@ export default {
  if(path.endsWith('/daybook'))return reply(await daybook(env.DB,new URL(req.url).searchParams.get('day')||ist(now).day,now));
  if(path.endsWith('/data-availability'))return reply(await dataAvailability(env));
  if(path.endsWith('/market-replay')){const q=new URL(req.url).searchParams;return reply(await readMarketReplay(env,{day:q.get('day'),symbol:q.get('symbol')}));}
+ if(path.endsWith('/top-volume-history'))return reply(await readTopVolumeHistory(env,new URL(req.url).searchParams.get('day')));
  if(path.endsWith('/feed-check'))return reply(await verifyAnalyticsFeed(env));
  if(path.endsWith('/mis-source-check'))return reply(await verifyMisSourceReachability(new URL(req.url).searchParams.get('profile')||'plain'));
  if(path.endsWith('/nse-source-check'))return reply(await verifyNseSourceReachability(new URL(req.url).searchParams.get('kind')));
@@ -395,7 +399,8 @@ export default {
     if(new Date(event.scheduledTime).getUTCHours()===12){
       try{await scheduledDailyCohortStep(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only daily cohort unavailable:',d.type,d.message)}
     }else{
-      try{await archiveScheduledCohortStep(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only historical cohort unavailable:',d.type,d.message)}
+      try{if(new Date(event.scheduledTime).getUTCHours()===13)await archiveTopVolumeStep(env,event.scheduledTime);
+       else await archiveScheduledCohortStep(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only minute archive unavailable:',d.type,d.message)}
     }
     return;
    }

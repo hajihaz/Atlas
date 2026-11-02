@@ -20,7 +20,7 @@ function fixture(){
  const env={DB:db,UPSTOX_FEED_ENABLED:'true',UPSTOX_ANALYTICS_TOKEN:'T'.repeat(120),FEED_SOURCE_ID:'UPSTOX_ANALYTICS_READONLY_V3'};
  const full={quotes:Array.from({length:1357},(_,i)=>({symbol:`MIS${String(i).padStart(4,'0')}`,
  price_paise:15000+i,cumulative_volume:100000+i,observed_at:new Date(now-1000).toISOString(),
- source:env.FEED_SOURCE_ID,exchange_open:true})),coverage:{complete:true,eligible_count:1357,nifty_change_bps:35}};
+ source:env.FEED_SOURCE_ID,exchange_open:true,instrument_key:`NSE_EQ|INE${String(i).padStart(9,'0')}`})),coverage:{complete:true,eligible_count:1357,nifty_change_bps:35}};
  return {sql,db,env,full,get queries(){return queries}};
 }
 
@@ -35,6 +35,7 @@ test('free Cron ingests authenticated read-only MIS fixture, then paper-fills on
  assert.equal(f.sql.prepare("SELECT COUNT(*) AS n FROM events WHERE type='PAPER_FILL'").get().n,10);
  assert.equal(f.sql.prepare('SELECT COUNT(*) AS n FROM coverage').get().n,1);
  assert.equal(f.sql.prepare('SELECT COUNT(*) AS n FROM entry_snapshots').get().n,1357);
+ assert.equal(f.sql.prepare("SELECT instrument_key FROM entry_snapshots WHERE symbol='MIS1356'").get().instrument_key,'NSE_EQ|INE000001356');
  assert.equal(f.sql.prepare("SELECT symbol FROM entry_snapshots ORDER BY cumulative_volume DESC,symbol ASC LIMIT 1").get().symbol,'MIS1356');
  assert.ok(f.queries<=50,`combined collector+simulation D1 queries ${f.queries}>50`);
  const report=await testing.daybook(f.db,'2026-10-27',now);

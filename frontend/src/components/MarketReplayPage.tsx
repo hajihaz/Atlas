@@ -7,6 +7,7 @@ import type {Availability} from './DataAvailabilityPage';
 type Bar={time:number;open:number;high:number;low:number;close:number;volume:number};
 type Replay={schema:string;sourceDate:string;symbol:string;sourceSha256:string;sourceKnownAt:string;
  coverage:string;bars:Bar[];mode:string;realOrdersEnabled:boolean};
+type TopVolume={sourceDate:string;stocks:{rank:number;symbol:string;archived:boolean;minuteBars:number;volumeAt0940:number}[];realOrdersEnabled:boolean};
 const STOCKS=['AXISBANK','BHARTIARTL','HDFCBANK','ICICIBANK','INFY','ITC','NHPC','RELIANCE','SBIN','TCS'];
 const money=(n:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}).format(n);
 const amount=(n:number)=>new Intl.NumberFormat('en-IN').format(n);
@@ -15,6 +16,7 @@ const clock=(n:number)=>new Date(n).toLocaleTimeString('en-IN',{timeZone:'Asia/K
 export default function MarketReplayPage({ownerConnected,goPaper}:{ownerConnected:boolean;goPaper:()=>void}){
  const [inventory,setInventory]=useState<Availability|null>(null),[day,setDay]=useState(''),[symbol,setSymbol]=useState('RELIANCE');
  const [replay,setReplay]=useState<Replay|null>(null),[cursor,setCursor]=useState(0),[playing,setPlaying]=useState(false);
+ const [topVolume,setTopVolume]=useState<TopVolume|null>(null);
  const [speed,setSpeed]=useState(1),[ruleId,setRuleId]=useState(ATLAS_RULES[0].id),[error,setError]=useState('');
  const serial=useRef(0);
  const rule=ATLAS_RULES.find(x=>x.id===ruleId)??ATLAS_RULES[0];
@@ -28,6 +30,14 @@ export default function MarketReplayPage({ownerConnected,goPaper}:{ownerConnecte
   }).catch(e=>{if(live)setError(e instanceof Error?e.message:'History unavailable');});
   return ()=>{live=false;};
  },[ownerConnected]);
+ useEffect(()=>{
+  setTopVolume(null);if(!ownerConnected||!day)return;
+  let active=true;
+  cloudPaperRequest<TopVolume>('','top-volume-history',{day}).then(value=>{
+   if(active&&value.realOrdersEnabled===false&&value.sourceDate===day)setTopVolume(value);
+  }).catch(()=>{ /* Older dates have no immutable 09:40 instrument keys. */ });
+  return ()=>{active=false;};
+ },[ownerConnected,day]);
  useEffect(()=>{
   const id=++serial.current;setReplay(null);setPlaying(false);setCursor(0);setError('');
   if(!ownerConnected||!day)return;
@@ -60,11 +70,13 @@ export default function MarketReplayPage({ownerConnected,goPaper}:{ownerConnecte
   <h1>Market replay<span className="period">.</span></h1>
   <p>Play recorded one-minute candles in order. The chart reveals only bars reached by the playhead.</p></div>
   <div className="panel atlas-simple-status"><ShieldCheck size={21}/><div><strong>Private, source-verified history</strong>
-   <p>Available dates cover a fixed ten-stock sample. This is a market playback, not a certified seven-strategy backtest or full 9:40 universe history.</p></div></div>
+   <p>Replay recorded minute bars. Where a complete 09:40 ranking exists, the actual top-volume stocks appear below. Older dates retain the fixed ten-stock sample. This is not a certified seven-strategy backtest.</p></div></div>
   {!ownerConnected?<div className="panel atlas-replay-empty"><h2>Connect to view private history</h2><p>One owner login gives this browser a protected session.</p><button className="primary-button" onClick={goPaper}>Go to Paper Trading</button></div>:
   <><div className="panel atlas-replay-toolbar"><label>Session<select value={day} onChange={e=>setDay(e.target.value)}>{inventory?.minute.dates.map(x=><option key={x.day} value={x.day}>{x.day} · {x.symbols} stocks</option>)}</select></label>
-    <label>Stock<select value={symbol} onChange={e=>setSymbol(e.target.value)}>{STOCKS.map(x=><option key={x}>{x}</option>)}</select></label>
+    <label>Stock<select value={symbol} onChange={e=>setSymbol(e.target.value)}>{topVolume?.stocks.map(x=><option key={x.symbol} value={x.symbol}>{x.rank}. {x.symbol} · {x.archived?`${x.minuteBars} bars`:'capture pending'}</option>)}
+     {STOCKS.filter(x=>!topVolume?.stocks.some(v=>v.symbol===x)).map(x=><option key={x} value={x}>{x} · fixed sample</option>)}</select></label>
     <span>{inventory?.minute.days??0} recorded dates</span></div>
+   {topVolume&&<div className="panel atlas-simple-status"><strong>09:40 top volume:</strong> {topVolume.stocks.filter(x=>x.archived).length}/10 archived for {day}. Choose a stock to replay its dated minute bars.</div>}
    {error&&<div className="panel atlas-simple-error" role="alert">{error}</div>}
    {!replay&&!error?<div className="panel atlas-replay-empty" role="status">Loading verified minute history…</div>:null}
    {replay&&current&&chart&&<div className="panel atlas-replay-player">

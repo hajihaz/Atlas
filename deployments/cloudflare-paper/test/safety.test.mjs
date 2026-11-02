@@ -31,7 +31,8 @@ test('full NSE snapshot uses three bounded D1 statements instead of one per stoc
  const now=ist('2026-10-27','09:40:02');
  const observed=new Date(now).toISOString();
  const quotes=Array.from({length:800},(_,i)=>({symbol:`STOCK${String(i).padStart(4,'0')}`,price_paise:10000+i,
-   cumulative_volume:100000+i,observed_at:observed,source:'VERIFIED_FIXTURE_ONLY',exchange_open:true}));
+   cumulative_volume:100000+i,observed_at:observed,source:'VERIFIED_FIXTURE_ONLY',exchange_open:true,
+   instrument_key:`NSE_EQ|INE${String(i).padStart(9,'0')}`}));
  let sent=[];
  const db={
   prepare(sql){return {bind(...params){return {sql,params,first:async()=>null}}}},

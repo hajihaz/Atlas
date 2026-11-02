@@ -71,9 +71,11 @@ test('signed Analytics token uses official 500-instrument REST batches for 1369 
  assert.equal(result.quotes.length,1369);
  assert.equal(result.coverage.complete,true);
  assert.equal(result.quotes[0].source,'UPSTOX_ANALYTICS_READONLY_V3');
+ assert.equal(result.quotes[0].instrument_key,sourceKey(result.quotes[0].symbol));
  assert.equal(result.coverage.nifty_change_bps,69);
  assert.ok(result.quotes.every(x=>x.exchange_open===true&&x.observed_at===new Date(at).toISOString()));
 });
+const sourceKey=symbol=>`NSE_EQ|INE${String(Number(symbol.slice(7))).padStart(9,'0')}`;
 
 test('missing one broker quote rejects entire full-universe signal',async()=>{
  const f=fetchFixture(1001,{omitOneQuote:true});

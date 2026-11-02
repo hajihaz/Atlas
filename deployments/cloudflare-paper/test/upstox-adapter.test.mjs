@@ -62,6 +62,8 @@ test('benchmark rejects absent or contradictory previous-close evidence',()=>{
 
 test('Upstox normalized full snapshot passes Atlas fail-closed D1 ingestion contract',async()=>{
  const input=fixture();const normalized=normalizeUpstoxV3(input);let statementCount=0;
+ const keys=new Map(input.universe.map(x=>[x.symbol,x.instrument_token]));
+ normalized.quotes=normalized.quotes.map(x=>({...x,instrument_key:keys.get(x.symbol)}));
  const d1={prepare(){return {bind(){return {first:async()=>null,run:async()=>({meta:{changes:0}})}}}},
   async batch(statements){statementCount=statements.length;}};
  const outcome=await testing.ingest(d1,normalized,now,'SYNTHETIC_TEST_ONLY');

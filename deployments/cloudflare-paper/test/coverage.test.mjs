@@ -10,6 +10,7 @@ const full=()=>Array.from({length:500},(_,i)=>({
  symbol:`TEST${String(i).padStart(4,'0')}`,price_paise:10000,
  cumulative_volume:10000+i,source:SOURCE,exchange_open:true,
  observed_at:new Date(stamp).toISOString(),
+ instrument_key:`NSE_EQ|INE${String(i).padStart(9,'0')}`,
 }));
 function memoryD1(){
  const storage={batchCount:0,prepared:0};

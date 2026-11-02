@@ -109,11 +109,13 @@ export async function collectMisSnapshot(env,now=Date.now(),fetcher=fetch,receip
   nifty=batch.coverage.nifty_change_bps;all.push(...batch.quotes);
  }
  if(all.length!==universe.length)fail('Upstox universe missing quotes');
+ const keys=new Map(universe.map(x=>[x.symbol,x.instrument_token]));
+ if(keys.size!==all.length||all.some(q=>!keys.has(q.symbol)))fail('quoted universe identity mismatch');
  // Compare volumes across ALL NSE intraday candidates, not independently per
  // API batch. Only the global top-ten must have traded within 15 seconds.
  const top=[...all].sort((a,b)=>b.cumulative_volume-a.cumulative_volume||a.symbol.localeCompare(b.symbol)).slice(0,10);
  if(top.length!==10||top.some(q=>finalTime-q._last_trade_ms>15000||q._last_trade_ms>finalTime+2000))fail('stale global top-ten market trades');
- return {quotes:all.map(({_last_trade_ms,...q})=>q),coverage:{complete:true,eligible_count:all.length,nifty_change_bps:nifty},
+ return {quotes:all.map(({_last_trade_ms,...q})=>({...q,instrument_key:keys.get(q.symbol)})),coverage:{complete:true,eligible_count:all.length,nifty_change_bps:nifty},
   source:'UPSTOX_ANALYTICS_READONLY_V3',snapshot_end_ms:finalTime};
 }
 
