@@ -2,7 +2,8 @@ import {useCallback, useEffect, useState} from 'react';
 import {CalendarClock, Cloud, Clock3, LockKeyhole, RefreshCcw, ShieldCheck, XCircle} from 'lucide-react';
 
 type PaperOrder={id:string;kind:string;symbol:string;side:string;qty:number;due_at:string;
- status:string;reason:string|null;fill_paise:number|null;fee_paise:number|null};
+ status:string;reason:string|null;fill_paise:number|null;fee_paise:number|null;
+ trigger_condition:string|null;trigger_price_paise:number|null;expires_at:string|null};
 type PaperState={mode:'PAPER_ONLY';realOrdersEnabled:false;strategy_enabled:boolean;
  strategy:string;cash_paise:number;equity_paise:number|null;
  positions:{symbol:string;qty:number}[];orders:PaperOrder[];
@@ -23,6 +24,10 @@ export default function CloudPaperPage({initialToken=''}:{initialToken?:string})
  const [side,setSide]=useState<'BUY'|'SELL'>('BUY');
  const [quantity,setQuantity]=useState('1');
  const [schedule,setSchedule]=useState('');
+ const [orderMode,setOrderMode]=useState<'TIME'|'PRICE'>('TIME');
+ const [condition,setCondition]=useState<'AT_OR_ABOVE'|'AT_OR_BELOW'>('AT_OR_ABOVE');
+ const [triggerPrice,setTriggerPrice]=useState('');
+ const [expiry,setExpiry]=useState('');
  const [loading,setLoading]=useState(false);
  const [notice,setNotice]=useState('');
  const [error,setError]=useState('');
@@ -87,9 +92,22 @@ export default function CloudPaperPage({initialToken=''}:{initialToken?:string})
   if(!schedule){setError('Select an IST date and time');return;}
   const ts=new Date(`${schedule}:00+05:30`);
   if(Number.isNaN(ts.getTime())){setError('Invalid scheduled time');return;}
+ const price=triggerPrice.trim();
+ if(orderMode==='PRICE'&&!/^(?:0*[1-9]\d*|0*\.\d*[1-9]\d*)(?:\.\d{1,2})?$/.test(price)){
+  setError('Enter a positive trigger price with at most two decimals.');return;
+ }
+ const pricePaise=orderMode==='PRICE'?Math.round(Number(price)*100):null;
+ if(orderMode==='PRICE'&&(pricePaise===null||!Number.isSafeInteger(pricePaise)||pricePaise<=0||!expiry)){
+  setError('Enter a valid trigger price and expiry time.');return;
+ }
+ const expiresAt=orderMode==='PRICE'?new Date(`${expiry}:00+05:30`):null;
+ if(expiresAt&&(!Number.isFinite(expiresAt.getTime())||expiresAt<=ts)){
+  setError('Expiry must be after activation.');return;
+ }
   await update('orders',{symbol:symbol.trim().toUpperCase(),side,quantity:Number(quantity),
-   scheduled_at:ts.toISOString(),idempotency_key:crypto.randomUUID().replaceAll('-','')},
-   'Scheduled paper order saved on the cloud worker. Execution requires a fresh verified quote.');
+   scheduled_at:ts.toISOString(),idempotency_key:crypto.randomUUID().replaceAll('-',''),
+   ...(orderMode==='PRICE'?{trigger:{condition,price_paise:pricePaise},expires_at:expiresAt!.toISOString()}:{} )},
+   orderMode==='PRICE'?'Price-trigger paper order saved. Cloud checks fresh quotes while active.':'Scheduled paper order saved on the cloud worker. Execution requires a fresh verified quote.');
  }
  return <section className="cloud-paper-screen">
   <div className="sub-page-header"><div className="breadcrumb">ATLAS / CLOUD PAPER DESK</div>
@@ -119,7 +137,11 @@ export default function CloudPaperPage({initialToken=''}:{initialToken?:string})
      <label htmlFor="cloud-symbol">NSE equity symbol</label><input id="cloud-symbol" value={symbol} onChange={e=>setSymbol(e.target.value)} required maxLength={30} placeholder="e.g. INFY" autoComplete="off"/>
      <div className="cloud-paper-form-row"><div><label htmlFor="cloud-side">Side</label><select id="cloud-side" value={side} onChange={e=>setSide(e.target.value as 'BUY'|'SELL')}><option value="BUY">BUY</option><option value="SELL">SELL</option></select></div>
       <div><label htmlFor="cloud-quantity">Shares</label><input id="cloud-quantity" type="number" min={1} max={100000} step={1} value={quantity} onChange={e=>setQuantity(e.target.value)} required/></div></div>
-     <label htmlFor="cloud-schedule">Scheduled date & time (IST)</label><input id="cloud-schedule" type="datetime-local" value={schedule} onChange={e=>setSchedule(e.target.value)} required/>
+     <label htmlFor="cloud-order-mode">When to simulate</label><select id="cloud-order-mode" value={orderMode} onChange={e=>setOrderMode(e.target.value as 'TIME'|'PRICE')}><option value="TIME">At a set time</option><option value="PRICE">When price reaches a level</option></select>
+     <label htmlFor="cloud-schedule">{orderMode==='PRICE'?'Activate from (IST)':'Scheduled date & time (IST)'}</label><input id="cloud-schedule" type="datetime-local" value={schedule} onChange={e=>setSchedule(e.target.value)} required/>
+     {orderMode==='PRICE'&&<><label htmlFor="cloud-condition">Price condition</label><select id="cloud-condition" value={condition} onChange={e=>setCondition(e.target.value as 'AT_OR_ABOVE'|'AT_OR_BELOW')}><option value="AT_OR_ABOVE">At or above</option><option value="AT_OR_BELOW">At or below</option></select>
+      <label htmlFor="cloud-trigger-price">Target price (₹)</label><input id="cloud-trigger-price" inputMode="decimal" value={triggerPrice} onChange={e=>setTriggerPrice(e.target.value)} required placeholder="250.00"/>
+      <label htmlFor="cloud-expiry">Stop checking after (IST)</label><input id="cloud-expiry" type="datetime-local" value={expiry} onChange={e=>setExpiry(e.target.value)} required/></>}
      <p className="cloud-paper-helper"><Clock3 size={14}/> NSE 9:15 AM–3:30 PM, weekdays. Holiday/feed proof remains mandatory at execution.</p>
      <button type="submit" className="primary-button" disabled={loading||!state}>Schedule virtual order</button>
     </form>
@@ -137,8 +159,8 @@ export default function CloudPaperPage({initialToken=''}:{initialToken?:string})
      }}><ShieldCheck size={15}/> Verify Upstox read-only feed</button>
     </div>
    </div>
-   <div className="panel cloud-paper-table"><h2>Order book</h2>{state?.orders.length?<div className="cloud-paper-scroll"><table><thead><tr><th>Schedule (IST)</th><th>Stock</th><th>Side</th><th>Shares</th><th>Modeled price</th><th>Status</th><th></th></tr></thead>
-    <tbody>{state.orders.map(o=><tr key={o.id}><td>{displayTime(o.due_at)}</td><td>{o.symbol}</td><td>{o.side}</td><td>{o.qty}</td><td>{o.fill_paise!=null?inr(o.fill_paise):'—'}</td><td title={o.reason||undefined}>{o.status}{o.reason?` · ${o.reason.replaceAll('_',' ').toLowerCase()}`:''}</td><td>{o.kind==='MANUAL'&&o.status==='QUEUED'?<button type="button" className="cloud-paper-cancel" disabled={loading} aria-label={`Cancel ${o.symbol} scheduled order`} onClick={()=>void update('cancel',{id:o.id},'Queued order cancelled.')}><XCircle size={16}/></button>:null}</td></tr>)}</tbody></table></div>:<p className="cloud-paper-empty">No server-side orders yet. Nothing has been simulated.</p>}</div>
+   <div className="panel cloud-paper-table"><h2>Order book</h2>{state?.orders.length?<div className="cloud-paper-scroll"><table><thead><tr><th>Activation (IST)</th><th>Stock</th><th>Side</th><th>Shares</th><th>Trigger</th><th>Modeled price</th><th>Status</th><th></th></tr></thead>
+    <tbody>{state.orders.map(o=><tr key={o.id}><td>{displayTime(o.due_at)}</td><td>{o.symbol}</td><td>{o.side}</td><td>{o.qty}</td><td>{o.kind==='PRICE_TRIGGER'?`${o.trigger_condition==='AT_OR_ABOVE'?'≥':'≤'} ${o.trigger_price_paise!=null?inr(o.trigger_price_paise):'—'} · expires ${o.expires_at?displayTime(o.expires_at):'—'}`:'Set time'}</td><td>{o.fill_paise!=null?inr(o.fill_paise):'—'}</td><td title={o.reason||undefined}>{o.status}{o.reason?` · ${o.reason.replaceAll('_',' ').toLowerCase()}`:''}</td><td>{['MANUAL','PRICE_TRIGGER'].includes(o.kind)&&o.status==='QUEUED'?<button type="button" className="cloud-paper-cancel" disabled={loading} aria-label={`Cancel ${o.symbol} scheduled order`} onClick={()=>void update('cancel',{id:o.id},'Queued order cancelled.')}><XCircle size={16}/></button>:null}</td></tr>)}</tbody></table></div>:<p className="cloud-paper-empty">No server-side orders yet. Nothing has been simulated.</p>}</div>
    <div className="panel cloud-paper-table"><h2>Virtual positions & audit events</h2><p>Held positions: {state?.positions.length?state.positions.map(p=>`${p.symbol} ${p.qty} shares`).join(' · '):'None recorded'}</p>
     <div className="cloud-paper-audit">{state?.events.slice(0,12).map(e=><div key={e.id}><span>{displayTime(e.observed_at)}</span><strong>{e.type}</strong><span>{e.message}</span></div>)}</div></div>
    <button type="button" className="cloud-paper-disconnect" onClick={()=>{setConnected(false);setState(null);setToken('');setNotice('');}}>Disconnect & forget token</button>

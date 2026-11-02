@@ -1,12 +1,15 @@
 import {useEffect,useState} from 'react';
-import {ArrowRight,CheckCircle2,Cloud,LockKeyhole,RefreshCcw,ShieldCheck} from 'lucide-react';
+import {ArrowRight,CheckCircle2,Cloud,Database,LockKeyhole,RefreshCcw,ShieldCheck} from 'lucide-react';
 import {ATLAS_RULES} from '../data/atlasSeven';
 import {cloudPaperRequest} from '../lib/cloudPaperRead';
+import type {Availability} from './DataAvailabilityPage';
 type CloudStatus={mode:string;realOrdersEnabled:boolean;backendConnected:boolean;configured:boolean;feedSourceConfigured:boolean};
 type Catalog={schema:string;paperOnly:boolean;realOrdersEnabled:boolean;executionStatus:string;strategies:{id:string;name:string}[]};
 type Account={strategyId:string;cashINR:number;realizedPnlINR:number;positionCount:number;pendingCount:number;paperFills:number};
 type Accounts={paperOnly:boolean;realOrdersEnabled:boolean;executionStatus:string;accounts:Account[]};
 type State={mode:string;realOrdersEnabled:boolean;strategy_enabled:boolean;strategy:string;cash_paise:number;positions:{symbol:string;qty:number}[];last_strategy_phase:{status:string;reason:string|null}|null};
+type Replay={status:string;sourceDate:string;symbol:string;sourceSha256:string;sourceKnownAt:string;minuteBars:number;required:string[];result:null};
+const COHORT=['AXISBANK','BHARTIARTL','HDFCBANK','ICICIBANK','INFY','ITC','NHPC','RELIANCE','SBIN','TCS'];
 const inr=(n:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}).format(n);
 export default function PaperTestingPage({ownerToken,setOwnerToken,goMarket,goSchedule}:{
  ownerToken:string;setOwnerToken:(v:string)=>void;goMarket:()=>void;goSchedule:()=>void;
@@ -16,6 +19,11 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,goMarket,goSc
  const [catalog,setCatalog]=useState<Catalog|null>(null);
  const [accounts,setAccounts]=useState<Accounts|null>(null);
  const [state,setState]=useState<State|null>(null);
+ const [availability,setAvailability]=useState<Availability|null>(null);
+ const [sampleDay,setSampleDay]=useState('');
+ const [sampleSymbol,setSampleSymbol]=useState('RELIANCE');
+ const [replay,setReplay]=useState<Replay|null>(null);
+ const [replayError,setReplayError]=useState('');
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
  const [accountNotice,setAccountNotice]=useState('');
@@ -31,16 +39,18 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,goMarket,goSc
   if(ownerToken.length<32){setError('Enter the private owner token to view paper results.');return;}
   setBusy(true);setError('');setAccountNotice('');
   try{
-   const [nextCatalog,nextState]=await Promise.all([
+   const [nextCatalog,nextState,nextAvailability]=await Promise.all([
     cloudPaperRequest<Catalog>(ownerToken,'seven-strategies'),
-    cloudPaperRequest<State>(ownerToken,'state')
+    cloudPaperRequest<State>(ownerToken,'state'),
+    cloudPaperRequest<Availability>(ownerToken,'data-availability')
    ]);
    const expected=ATLAS_RULES.map(x=>x.id).join('|');
    if(nextCatalog.paperOnly!==true||nextCatalog.realOrdersEnabled!==false||
       nextCatalog.strategies.map(x=>x.id).join('|')!==expected||
       nextState.mode!=='PAPER_ONLY'||nextState.realOrdersEnabled!==false)
       throw Error('Cloud strategy version does not match this paper-only screen.');
-   setCatalog(nextCatalog);setState(nextState);
+   setCatalog(nextCatalog);setState(nextState);setAvailability(nextAvailability);
+   setSampleDay(v=>v||nextAvailability.minute.dates[0]?.day||'');
    try{
     const nextAccounts=await cloudPaperRequest<Accounts>(ownerToken,'seven-accounts');
     if(nextAccounts.paperOnly!==true||nextAccounts.realOrdersEnabled!==false)throw Error('Invalid account response');
@@ -51,10 +61,18 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,goMarket,goSc
     setAccounts(null);setAccountNotice('New strategy account status is unavailable. No result is assumed.');
    }
   }catch(cause){
-   setCatalog(null);setState(null);setAccounts(null);
+   setCatalog(null);setState(null);setAccounts(null);setAvailability(null);
    setError(cause instanceof Error?cause.message:'Unable to connect');
   }finally{setBusy(false);}
  }
+ async function loadReplay(){
+  setReplay(null);setReplayError('');
+  if(!sampleDay){setReplayError('No dated minute receipt is available.');return;}
+  try{const result=await cloudPaperRequest<Replay>(ownerToken,'strategy-replay',{day:sampleDay,symbol:sampleSymbol,strategy:selected});
+   setReplay(result);
+  }catch(e){setReplayError(e instanceof Error?e.message:'Replay unavailable');}
+ }
+ useEffect(()=>{setReplay(null);setReplayError('');},[selected,sampleDay,sampleSymbol]);
  return <section className="atlas-paper-home">
   <div className="sub-page-header"><div className="breadcrumb">ATLAS / PAPER TRADING</div>
    <h1>Test seven strategies<span className="period">.</span></h1>
@@ -69,6 +87,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,goMarket,goSc
    <div className="panel atlas-simple-card"><small>New strategy set</small><strong>7 defined</strong><span>5 intraday · 1 swing · 1 monthly</span></div>
    <div className="panel atlas-simple-card"><small>Automatic paper testing</small><strong>{catalog?.executionStatus==='SIGNAL_ONLY_UNARMED'?'Not armed':'Not verified'}</strong><span>Missing feeds and risk settings cause a skip</span></div>
   </div>
+  <div className="panel atlas-data-home"><Database size={20}/><div><strong>Available market data</strong><p>{availability?`${availability.minute.days} minute dates · ${availability.daily.days} daily-bar dates · ${availability.nse_reference.days} NSE reference dates · ${availability.full_0940.days} full 9:40 dates`:'Connect to see exact cloud archive counts.'}</p></div><a href="#data">See every date</a></div>
   <div className="panel atlas-owner-connect">
    <div><h2>Private paper results</h2><p>Connect to see cloud accounts and the existing paper ledger. The token stays in this browser tab’s memory.</p></div>
    <div className="atlas-owner-row"><label htmlFor="atlas-owner-token">Owner token</label>
@@ -98,6 +117,13 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,goMarket,goSc
     <div className="atlas-result-line"><span>Forward paper fills</span><strong>{account?account.paperFills:'Not verified'}</strong></div>
     <div className="atlas-result-line"><span>Virtual cash</span><strong>{account?inr(account.cashINR):'Not available'}</strong></div>
     <div className="atlas-result-line"><span>Realized paper P&amp;L</span><strong>{account?inr(account.realizedPnlINR):'Not available'}</strong></div>
+    <div className="atlas-rule-evidence"><h3>Historical evidence</h3><p>{rule.cadence==='Intraday'?`${availability?.minute.days??0} dated minute cohorts available. These ten-stock samples are not a full top-volume history.`:`${availability?.daily.days??0} ten-stock daily sample dates available. Required adjusted ETF history is missing.`}</p>
+     {rule.cadence==='Intraday'&&<div className="atlas-replay-controls"><label>Session<select value={sampleDay} onChange={e=>setSampleDay(e.target.value)}>{availability?.minute.dates.map(x=><option key={x.day} value={x.day}>{x.day} · {x.symbols} stocks</option>)}</select></label>
+      <label>Stock<select value={sampleSymbol} onChange={e=>setSampleSymbol(e.target.value)}>{COHORT.map(x=><option key={x}>{x}</option>)}</select></label>
+      <button type="button" className="secondary-button" disabled={!sampleDay||ownerToken.length<32} onClick={()=>void loadReplay()}>Inspect source</button></div>}
+     {replayError&&<p role="alert" className="atlas-simple-error">{replayError}</p>}
+     {replay&&<div className="atlas-replay-proof"><strong>{replay.status.replaceAll('_',' ')}</strong><span>{replay.symbol} · {replay.sourceDate} · {replay.minuteBars} minute bars</span><span>Published {new Date(replay.sourceKnownAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})} IST</span><code title={replay.sourceSha256}>SHA-256 {replay.sourceSha256.slice(0,16)}…</code><p>Profit and win rate: unavailable until all rule inputs and entry/exit settings are qualified.</p></div>}
+    </div>
    </article>
   </div>
   {state&&<div className="panel atlas-existing-ledger"><Cloud size={19}/><div><strong>Existing cloud paper ledger</strong>

@@ -492,6 +492,18 @@ html[data-theme="light"] .live-bidask span{color:#3c6269}
 .atlas-simple-card small{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;opacity:.72}
 .atlas-simple-card strong{font-size:1.35rem;line-height:1.2}
 .atlas-simple-card span{font-size:.86rem;line-height:1.4;opacity:.78}
+.atlas-data-home{display:flex;align-items:center;gap:.8rem;padding:1rem 1.2rem;border-left:3px solid #6c71ee}
+.atlas-data-home>div{flex:1}.atlas-data-home p{margin:.2rem 0 0;line-height:1.45}.atlas-data-home a{color:inherit;font-weight:700}
+.atlas-data-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:.8rem;margin:1rem 0}
+.atlas-data-card{display:flex;flex-direction:column;gap:.55rem;padding:1.1rem;border-top:3px solid #6c71ee;min-height:145px}
+.atlas-data-card:nth-child(2n){border-top-color:#28b887}.atlas-data-card:nth-child(3n){border-top-color:#f5a343}
+.atlas-data-card small{text-transform:uppercase;letter-spacing:.07em;opacity:.72}.atlas-data-card strong{font-size:1.45rem}.atlas-data-card span{font-size:.85rem;line-height:1.4}
+.atlas-data-detail{padding:1rem 1.2rem;margin:.7rem 0}.atlas-data-detail summary{cursor:pointer;font-weight:700}
+.atlas-data-dates{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.55rem;margin-top:1rem}.atlas-data-dates>div{display:flex;justify-content:space-between;gap:.5rem;padding:.6rem;border-radius:7px;background:rgba(108,113,238,.08);font-size:.85rem}
+.atlas-crypto-toolbar{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem}
+.atlas-rule-evidence{margin-top:1.3rem;padding:1rem;border-radius:9px;background:rgba(108,113,238,.08)}.atlas-rule-evidence h3{margin:0 0 .5rem}.atlas-rule-evidence p{line-height:1.5}
+.atlas-replay-controls{display:flex;align-items:end;flex-wrap:wrap;gap:.55rem}.atlas-replay-controls label{display:grid;gap:.3rem;font-weight:650;font-size:.82rem}.atlas-replay-controls select{min-height:39px;min-width:130px;border:1px solid var(--line,#cbd5df);border-radius:7px;background:var(--surface,#fff);color:inherit;padding:.4rem}
+.atlas-replay-proof{display:grid;gap:.35rem;margin-top:.8rem;padding:.8rem;border-radius:8px;background:rgba(40,184,135,.12);font-size:.85rem}.atlas-replay-proof code{overflow-wrap:anywhere}
 .atlas-owner-connect{padding:1.15rem;margin:1rem 0}
 .atlas-owner-connect h2,.atlas-evidence-table h2{margin:0 0 .25rem;font-size:1.06rem}
 .atlas-owner-connect p{margin:.2rem 0 .85rem;line-height:1.5}

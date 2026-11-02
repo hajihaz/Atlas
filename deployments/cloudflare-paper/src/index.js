@@ -26,7 +26,7 @@ async function readBody(req){if(req.headers.get('content-type')?.split(';')[0]!=
 function fresh(q,now){return q&&q.exchange_open===1&&session(now)&&q.observed_ms<=now+2000&&now-q.observed_ms<=MAX_STALENESS;}
 async function overview(db,now){
  const account=await row(db,'SELECT cash_paise FROM account WHERE id=1');
- const orders=await rows(db,'SELECT id,kind,symbol,side,qty,due_ms,status,fill_paise,fee_paise,reason FROM orders ORDER BY created_ms DESC,id DESC LIMIT 100');
+ const orders=await rows(db,'SELECT id,kind,symbol,side,qty,due_ms,status,fill_paise,fee_paise,reason,trigger_condition,trigger_price_paise,expires_ms FROM orders ORDER BY created_ms DESC,id DESC LIMIT 100');
  const positions=await rows(db,'SELECT symbol,qty FROM positions WHERE qty!=0 ORDER BY symbol');
  const events=await rows(db,'SELECT * FROM events ORDER BY id DESC LIMIT 40');
  const strategy=(await row(db,"SELECT value FROM settings WHERE key='strategy_enabled'"))?.value==='1';
@@ -39,7 +39,7 @@ async function overview(db,now){
  FROM positions p LEFT JOIN quotes q ON q.symbol=p.symbol WHERE p.qty!=0`,now-MAX_STALENESS,now+2000);
  const equity=positions.length&&(!session(now)||valuation.stale_count>0)?null:account.cash_paise+valuation.holdings_paise;
  return {mode:'PAPER_ONLY',realOrdersEnabled:false,cash_paise:account.cash_paise,equity_paise:equity,
-  positions,orders:orders.map(o=>({...o,due_at:dateStr(o.due_ms)})),
+  positions,orders:orders.map(o=>({...o,due_at:dateStr(o.due_ms),expires_at:o.expires_ms?dateStr(o.expires_ms):null})),
   events:events.map(e=>({...e,observed_at:dateStr(e.observed_ms)})),
   strategy_enabled:strategy,strategy:'NSE_TOP_VOLUME_0940_EXIT_1515',
   last_strategy_phase:phase?{status:phase.status,reason:phase.reason,completed_at:dateStr(phase.completed_ms)}:null,
@@ -65,8 +65,48 @@ async function daybook(db,day,now){
   strategy_orders:strategyOrders,
   current_virtual_ledger:{cash_paise:account.cash_paise,positions,as_of:dateStr(now)}};
 }
-async function schedule(db,data,now){if(typeof data.symbol!=='string'||!SYMBOL.test(data.symbol)||!['BUY','SELL'].includes(data.side)||!Number.isSafeInteger(data.quantity)||data.quantity<=0||data.quantity>100000)throw Error('invalid order');const due=parseDate(data.scheduled_at);if(due<now||due>now+30*86400000||!session(due))throw Error('invalid market schedule');const key=data.idempotency_key;if(typeof key!=='string'||!/^[A-Za-z0-9_-]{12,80}$/.test(key))throw Error('invalid idempotency key');await db.prepare("INSERT OR IGNORE INTO orders(id,client_key,kind,symbol,side,qty,due_ms,created_ms) VALUES(?,?,'MANUAL',?,?,?,?,?)").bind(crypto.randomUUID(),key,data.symbol,data.side,data.quantity,due,now).run();const existing=await row(db,'SELECT * FROM orders WHERE client_key=?',key);if(existing.symbol!==data.symbol||existing.side!==data.side||existing.qty!==data.quantity||existing.due_ms!==due)throw Error('idempotency conflict');return {id:existing.id,status:existing.status,realOrdersEnabled:false};}
-async function cancel(db,id,now){if(typeof id!=='string')throw Error('invalid id');const result=await db.prepare("UPDATE orders SET status='CANCELLED',completed_ms=? WHERE id=? AND kind='MANUAL' AND status='QUEUED'").bind(now,id).run();if(result.meta.changes!==1)throw Error('order no longer cancellable');return {id,status:'CANCELLED'};}
+async function dataAvailability(env){
+ if(!env.HISTORY_DB)throw Error('private history unavailable');
+ const history=env.HISTORY_DB;
+ const [minute,daily,reference,full]=await Promise.all([
+  rows(history,'SELECT source_date AS day,COUNT(*) AS symbols,MIN(candle_count) AS min_bars,MAX(candle_count) AS max_bars FROM history_samples GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
+  rows(history,'SELECT source_date AS day,COUNT(*) AS symbols,MIN(candle_count) AS min_bars,MAX(candle_count) AS max_bars FROM daily_history_samples GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
+  rows(history,'SELECT source_date AS day,COUNT(*) AS files FROM nse_reference_receipts GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
+  rows(env.DB,'SELECT c.session AS day,c.eligible_count AS eligible,COUNT(s.symbol) AS captured FROM coverage c LEFT JOIN entry_snapshots s ON s.session=c.session GROUP BY c.session ORDER BY c.session DESC LIMIT 90')
+ ]);
+ return {mode:'PAPER_ONLY',realOrdersEnabled:false,as_of:new Date().toISOString(),
+  minute:{days:minute.length,dates:minute},daily:{days:daily.length,dates:daily},
+  nse_reference:{days:reference.length,dates:reference},
+  full_0940:{days:full.length,dates:full},
+  note:'Daily reference files and fixed-cohort samples are not a full-universe intraday backtest.'};
+}
+async function schedule(db,data,now){
+ if(typeof data.symbol!=='string'||!SYMBOL.test(data.symbol)||!['BUY','SELL'].includes(data.side)||
+  !Number.isSafeInteger(data.quantity)||data.quantity<=0||data.quantity>100000)throw Error('invalid order');
+ const due=parseDate(data.scheduled_at);
+ if(due<now||due>now+30*86400000||!session(due))throw Error('invalid market schedule');
+ const key=data.idempotency_key;
+ if(typeof key!=='string'||!/^[A-Za-z0-9_-]{12,80}$/.test(key))throw Error('invalid idempotency key');
+ const trigger=data.trigger;
+ if(trigger!==undefined&&(!trigger||typeof trigger!=='object'||Array.isArray(trigger)||
+   !['AT_OR_ABOVE','AT_OR_BELOW'].includes(trigger.condition)||
+   !Number.isSafeInteger(trigger.price_paise)||trigger.price_paise<=0))throw Error('invalid price trigger');
+ if(trigger===undefined&&data.expires_at!==undefined)throw Error('invalid price trigger expiry');
+ const expiry=trigger?parseDate(data.expires_at):null;
+ if(trigger&&(expiry<=due||expiry>now+30*86400000))throw Error('invalid price trigger expiry');
+ const kind=trigger?'PRICE_TRIGGER':'MANUAL';
+ const prior=await row(db,'SELECT * FROM orders WHERE client_key=?',key);
+ if(trigger&&!prior){const active=await row(db,"SELECT COUNT(*) AS n FROM orders WHERE kind='PRICE_TRIGGER' AND status='QUEUED' AND expires_ms>=?",now);
+  if(active.n>=10)throw Error('price trigger capacity reached');}
+ await db.prepare('INSERT OR IGNORE INTO orders(id,client_key,kind,symbol,side,qty,due_ms,created_ms,trigger_condition,trigger_price_paise,expires_ms) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
+  .bind(crypto.randomUUID(),key,kind,data.symbol,data.side,data.quantity,due,now,trigger?.condition??null,trigger?.price_paise??null,expiry).run();
+ const existing=await row(db,'SELECT * FROM orders WHERE client_key=?',key);
+ if(existing.kind!==kind||existing.symbol!==data.symbol||existing.side!==data.side||existing.qty!==data.quantity||
+  existing.due_ms!==due||existing.trigger_condition!==(trigger?.condition??null)||
+  existing.trigger_price_paise!==(trigger?.price_paise??null)||existing.expires_ms!==expiry)throw Error('idempotency conflict');
+ return {id:existing.id,status:existing.status,kind,realOrdersEnabled:false};
+}
+async function cancel(db,id,now){if(typeof id!=='string')throw Error('invalid id');const result=await db.prepare("UPDATE orders SET status='CANCELLED',completed_ms=? WHERE id=? AND kind IN ('MANUAL','PRICE_TRIGGER') AND status='QUEUED'").bind(now,id).run();if(result.meta.changes!==1)throw Error('order no longer cancellable');return {id,status:'CANCELLED'};}
 async function ingest(db,body,now,sourceName){if(!sourceName||typeof sourceName!=='string')throw Error('verified feed source not configured');if(!Array.isArray(body.quotes)||body.quotes.length<1||body.quotes.length>4000)throw Error('invalid quote batch');const seen=new Set(),normalized=[],observedSessionCache=new Map();for(const q of body.quotes){if(!q||typeof q.symbol!=='string'||!SYMBOL.test(q.symbol)||seen.has(q.symbol)||!Number.isSafeInteger(q.price_paise)||q.price_paise<=0||!Number.isSafeInteger(q.cumulative_volume)||q.cumulative_volume<0||q.source!==sourceName||q.exchange_open!==true)throw Error('invalid source quote');const observed=parseDate(q.observed_at);if(!observedSessionCache.has(observed))observedSessionCache.set(observed,session(observed));if(!observedSessionCache.get(observed)||observed>now+2000||now-observed>MAX_STALENESS)throw Error('stale source quote');seen.add(q.symbol);normalized.push({...q,observed});}
 const cv=body.coverage;if(!cv&&normalized.length>30)throw Error('intraday quote batch capped at 30 symbols without coverage');
 if(cv&&![579,580].includes(ist(now).minute))throw Error('full-universe snapshots only accepted at the 09:39–09:40 entry window');
@@ -112,7 +152,15 @@ async function fill(db,o,now){if(o.status!=='QUEUED')return false;
 const q=await row(db,`SELECT q.*,COALESCE(p.qty,0) AS held_qty,p.entry_paise,p.intraday,
  a.cash_paise FROM quotes q CROSS JOIN account a LEFT JOIN positions p ON p.symbol=q.symbol
  WHERE q.symbol=? AND a.id=1`,o.symbol);
-if(!fresh(q,now)){await skip(db,o,now,'MISSING_OR_STALE_MARKET_QUOTE');return false;}
+if(!fresh(q,now)){
+ if(o.kind==='PRICE_TRIGGER')return false;
+ await skip(db,o,now,'MISSING_OR_STALE_MARKET_QUOTE');return false;
+}
+if(o.kind==='PRICE_TRIGGER'){
+ if(now>o.expires_ms){await skip(db,o,now,'TRIGGER_EXPIRED');return false;}
+ if(o.trigger_condition==='AT_OR_ABOVE'&&q.price_paise<o.trigger_price_paise||
+    o.trigger_condition==='AT_OR_BELOW'&&q.price_paise>o.trigger_price_paise)return false;
+}
 const position={qty:q.held_qty,entry_paise:q.entry_paise,intraday:q.intraday},held=q.held_qty;
 if(o.kind==='ENTRY'&&held!==0){await skip(db,o,now,'EXISTING_POSITION');return false;}
 if(o.side==='SELL'&&o.kind!=='ENTRY'&&held<o.qty){await skip(db,o,now,'INSUFFICIENT_HOLDINGS');return false;}
@@ -245,8 +293,9 @@ async function sourceTick(env,now=Date.now(),collectFull=collectMisSnapshot,coll
  // orders coming due soon (<=30), keeping D1 Free writes well below quota.
  const watch=await rows(d,`SELECT DISTINCT symbol FROM (
  SELECT symbol FROM positions WHERE qty!=0
- UNION ALL SELECT symbol FROM orders WHERE status='QUEUED' AND due_ms BETWEEN ? AND ?
- ) ORDER BY symbol LIMIT 31`,now-90000,now+90000);
+ UNION ALL SELECT symbol FROM orders WHERE status='QUEUED' AND kind='MANUAL' AND due_ms BETWEEN ? AND ?
+ UNION ALL SELECT symbol FROM orders WHERE status='QUEUED' AND kind='PRICE_TRIGGER' AND due_ms<=? AND expires_ms>=?
+ ) ORDER BY symbol LIMIT 31`,now-90000,now+90000,now,now);
  if(watch.length>30)throw Error('UPSTOX_COLLECTOR_BLOCKED: more than 30 risk symbols');
  if(!watch.length)return {sourceEnabled:true,quotes:0,kind:'IDLE'};
  const recent=await collectWatched(env,watch.map(x=>x.symbol),now);
@@ -261,9 +310,22 @@ async function tick(env,now=Date.now()){
  const minute=ist(now).minute;
  const riskOpen=await row(db,'SELECT 1 FROM positions WHERE intraday=1 AND qty!=0 LIMIT 1');
  const queueLimit=(minute===580||minute===915)?1:(riskOpen?2:12);
- const pending=await rows(db,`SELECT * FROM orders WHERE status='QUEUED' AND due_ms<=?
-  ORDER BY due_ms,id LIMIT ?`,now,queueLimit);
-for(const o of pending){if(now-o.due_ms>MAX_DELAY)await skip(db,o,now,'SCHEDULE_MISSED_NO_BACKFILL');else if(!session(now))await skip(db,o,now,'MARKET_CLOSED');else await fill(db,o,now);}
+ const pending=await rows(db,`SELECT o.* FROM orders o LEFT JOIN quotes q ON q.symbol=o.symbol
+ WHERE o.status='QUEUED' AND o.due_ms<=? AND (o.kind!='PRICE_TRIGGER' OR o.expires_ms<?
+ OR (q.exchange_open=1 AND q.observed_ms BETWEEN ? AND ? AND
+ ((o.trigger_condition='AT_OR_ABOVE' AND q.price_paise>=o.trigger_price_paise) OR
+ (o.trigger_condition='AT_OR_BELOW' AND q.price_paise<=o.trigger_price_paise))))
+ ORDER BY CASE WHEN o.kind='PRICE_TRIGGER' THEN 1 ELSE 0 END,o.due_ms,o.id LIMIT ?`,now,now,now-MAX_STALENESS,now+2000,queueLimit);
+for(const o of pending){
+ if(o.kind==='PRICE_TRIGGER'){
+  if(now>o.expires_ms)await skip(db,o,now,'TRIGGER_EXPIRED');
+  else if(session(now))await fill(db,o,now);
+  continue;
+ }
+ if(now-o.due_ms>MAX_DELAY)await skip(db,o,now,'SCHEDULE_MISSED_NO_BACKFILL');
+ else if(!session(now))await skip(db,o,now,'MARKET_CLOSED');
+ else await fill(db,o,now);
+}
 await stops(db,now);const enabled=(await row(db,"SELECT value FROM settings WHERE key='strategy_enabled'"))?.value==='1';await strategyPhases(db,now,enabled);const t=ist(now);
 if(t.weekday&&t.minute>580&&enabled)await db.prepare("INSERT OR IGNORE INTO runs(session,phase,status,reason,completed_ms) VALUES(?,'ENTRY','SKIPPED','MISSED_OR_UNVERIFIED_COVERAGE',?)").bind(t.day,now).run();
 if(t.weekday&&t.minute>915&&await row(db,'SELECT 1 FROM positions WHERE intraday=1 AND qty!=0'))await db.prepare("INSERT OR IGNORE INTO runs(session,phase,status,reason,completed_ms) VALUES(?,'EXIT','PARTIAL','UNRESOLVED_POSITIONS',?)").bind(t.day,now).run();
@@ -275,17 +337,18 @@ function safeDiagnostic(error){
  const safe=/^[A-Za-z0-9][A-Za-z0-9 ,.<>=-]{0,119}$/.test(detail)?detail:'[unclassified]';
  return {type,message:safe};
 }
-export const testing={ist,session,parseDate,tick,schedule,ingest,overview,daybook,strategyPhases,fill,sourceTick,safeDiagnostic};
+export const testing={ist,session,parseDate,tick,schedule,ingest,overview,daybook,dataAvailability,strategyPhases,fill,sourceTick,safeDiagnostic};
 export default {
  async fetch(req,env){const path=new URL(req.url).pathname,now=Date.now();if(path==='/healthz')return reply({mode:'PAPER_ONLY',service:'atlas-free-cloud-paper',
  realOrdersEnabled:false,backendConnected:Boolean(env.DB),
  configured:Boolean(env.DB&&typeof env.OWNER_TOKEN==='string'&&env.OWNER_TOKEN.length>=32&&env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100),
  feedSourceConfigured:Boolean(env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100)});if(!env.DB)return reply({error:'D1_NOT_CONNECTED'},503);
- const actions={'/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/quotes':'POST'};
+ const actions={'/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/data-availability':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/quotes':'POST'};
  if(!Object.hasOwn(actions,path))return reply({error:'NOT_FOUND'},404);if(req.method!==actions[path]&&!(path.endsWith('/history-pilot')&&req.method==='POST')&&!(path.endsWith('/history-cohort')&&req.method==='POST')&&!(path.endsWith('/daily-cohort')&&req.method==='POST')&&!(path.endsWith('/nse-reference')&&req.method==='POST'))return reply({error:'METHOD_NOT_ALLOWED'},405);
  if(!authorized(req,path.endsWith('/quotes')?env.FEED_TOKEN:env.OWNER_TOKEN))return reply({error:'UNAUTHORIZED'},401);
  try {if(path.endsWith('/state'))return reply(await overview(env.DB,now));
  if(path.endsWith('/daybook'))return reply(await daybook(env.DB,new URL(req.url).searchParams.get('day')||ist(now).day,now));
+ if(path.endsWith('/data-availability'))return reply(await dataAvailability(env));
  if(path.endsWith('/feed-check'))return reply(await verifyAnalyticsFeed(env));
  if(path.endsWith('/mis-source-check'))return reply(await verifyMisSourceReachability(new URL(req.url).searchParams.get('profile')||'plain'));
  if(path.endsWith('/nse-source-check'))return reply(await verifyNseSourceReachability(new URL(req.url).searchParams.get('kind')));
@@ -306,7 +369,7 @@ export default {
   console.error('paper worker source error:',d.type,d.message);
   return reply({error:'PAPER_SERVICE_UNAVAILABLE',diagnostic:d.message},503);
  }
- if(e instanceof SyntaxError||/(invalid|required|stale|conflict|cancellable|timestamp|JSON|timezone|schedule|source|body|boolean)/i.test(e?.message||''))return reply({error:String(e.message).slice(0,140)},400);
+ if(e instanceof SyntaxError||/(invalid|required|stale|conflict|capacity|cancellable|timestamp|JSON|timezone|schedule|source|body|boolean)/i.test(e?.message||''))return reply({error:String(e.message).slice(0,140)},400);
  console.error('paper worker error:',e?.name);return reply({error:'PAPER_SERVICE_UNAVAILABLE'},503);}
  },
   async scheduled(event,env,ctx){ctx.waitUntil((async()=>{

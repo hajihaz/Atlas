@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS account(id INTEGER PRIMARY KEY CHECK(id=1),cash_paise
 INSERT OR IGNORE INTO account(id,cash_paise) VALUES(1,10000000);
 CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY,value TEXT NOT NULL);
 INSERT OR IGNORE INTO settings(key,value) VALUES('strategy_enabled','0');
-CREATE TABLE IF NOT EXISTS orders(id TEXT PRIMARY KEY,client_key TEXT NOT NULL UNIQUE,kind TEXT NOT NULL,symbol TEXT NOT NULL,side TEXT NOT NULL,qty INTEGER NOT NULL CHECK(qty>0),due_ms INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'QUEUED',fill_paise INTEGER,fee_paise INTEGER,completed_ms INTEGER,reason TEXT,created_ms INTEGER NOT NULL,execution_id TEXT UNIQUE);
+CREATE TABLE IF NOT EXISTS orders(id TEXT PRIMARY KEY,client_key TEXT NOT NULL UNIQUE,kind TEXT NOT NULL,symbol TEXT NOT NULL,side TEXT NOT NULL,qty INTEGER NOT NULL CHECK(qty>0),due_ms INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'QUEUED',fill_paise INTEGER,fee_paise INTEGER,completed_ms INTEGER,reason TEXT,created_ms INTEGER NOT NULL,execution_id TEXT UNIQUE,trigger_condition TEXT,trigger_price_paise INTEGER,expires_ms INTEGER);
 CREATE INDEX IF NOT EXISTS idx_pending ON orders(status,due_ms);
 CREATE TABLE IF NOT EXISTS quotes(symbol TEXT PRIMARY KEY,price_paise INTEGER NOT NULL,cumulative_volume INTEGER NOT NULL,observed_ms INTEGER NOT NULL,source TEXT NOT NULL,exchange_open INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS positions(symbol TEXT PRIMARY KEY,qty INTEGER NOT NULL,entry_paise INTEGER,intraday INTEGER NOT NULL DEFAULT 0);

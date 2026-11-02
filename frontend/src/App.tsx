@@ -1,22 +1,26 @@
 import {lazy,Suspense,useEffect,useState} from 'react';
-import {Activity,CalendarClock,ChartNoAxesCombined,Menu,Moon,ShieldCheck,Sun,X} from 'lucide-react';
+import {Activity,Bitcoin,CalendarClock,ChartNoAxesCombined,Database,Menu,Moon,ShieldCheck,Sun,X} from 'lucide-react';
 import CloudPaperPage from './components/CloudPaperPage';
 import PaperTestingPage from './components/PaperTestingPage';
 import MarketEvidencePage from './components/MarketEvidencePage';
+import DataAvailabilityPage from './components/DataAvailabilityPage';
+import CryptoPricesPage from './components/CryptoPricesPage';
 import './styles.css';
 const IPOIntelligencePage=lazy(()=>import('./components/IPOIntelligencePage'));
 
 
-type Page='paper'|'markets'|'schedule'|'ipo';
+type Page='paper'|'markets'|'data'|'schedule'|'crypto'|'ipo';
 type Theme='light'|'dark';
 const choices=[
  {id:'paper',label:'Paper Trading',Icon:Activity},
  {id:'markets',label:'Market Watch',Icon:ChartNoAxesCombined},
+ {id:'data',label:'Available Market Data',Icon:Database},
  {id:'schedule',label:'Scheduled Orders',Icon:CalendarClock},
+ {id:'crypto',label:'Crypto Prices',Icon:Bitcoin},
 ] as const;
 function initialPage():Page{
  const hash=window.location.hash.slice(1);
- return hash==='markets'||hash==='schedule'||hash==='ipo'?hash:'paper';
+ return hash==='markets'||hash==='data'||hash==='schedule'||hash==='crypto'||hash==='ipo'?hash:'paper';
 }
 function initialTheme():Theme{
  try{return window.localStorage.getItem('atlas.theme.preference')==='dark'?'dark':'light';}
@@ -66,7 +70,9 @@ export default function App(){
    <main className="main-content premium-page-view">
     {page==='paper'?<PaperTestingPage ownerToken={ownerToken} setOwnerToken={setOwnerToken} goMarket={()=>go('markets')} goSchedule={()=>go('schedule')}/>:
      page==='markets'?<MarketEvidencePage ownerToken={ownerToken} goPaper={()=>go('paper')}/>:
+     page==='data'?<DataAvailabilityPage ownerToken={ownerToken} setOwnerToken={setOwnerToken}/>:
      page==='schedule'?<CloudPaperPage initialToken={ownerToken}/>:
+     page==='crypto'?<CryptoPricesPage/>:
      <Suspense fallback={<div className="panel" role="status">Loading IPO research…</div>}><IPOIntelligencePage/></Suspense>}
     <footer className="app-footer"><span>© 2026 ATLAS</span><div>₹ virtual capital · Source-qualified evidence · Real broker orders disabled · <button type="button" className="atlas-footer-link" onClick={()=>go('ipo')}>IPO research</button></div></footer>
    </main>
