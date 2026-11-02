@@ -2,6 +2,7 @@
 import {validateHistoricalCandles} from './upstox-history-pilot.js';
 const KEY='NSE_INDEX|Nifty 50';
 const URL='https://api.upstox.com/v3/historical-candle/intraday/'+encodeURIComponent(KEY)+'/minutes/1';
+const OHLC_URL='https://api.upstox.com/v3/market-quote/ohlc?instrument_key='+encodeURIComponent(KEY)+'&interval=I1';
 const fail=reason=>{const e=Error('NIFTY_OPEN_BLOCKED: '+reason);e.atlasDiagnostic='nifty open '+reason;throw e;};
 const digest=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(x=>x.toString(16).padStart(2,'0')).join('');
 const dayOf=now=>new Date(now+19800000).toISOString().slice(0,10);
@@ -82,4 +83,20 @@ export async function verifyNiftyHistoricalSource(env,day,fetcher=fetch,clock=()
  try{const proof=validateHistoricalCandles(parsed,day);
   return {...shape,valid:true,candleCount:proof.candle_count,firstMinute:proof.first_minute,lastMinute:proof.last_minute};
  }catch{return {...shape,valid:false}}
+}
+
+export async function verifyNiftyOhlcSource(env,fetcher=fetch){
+ if(typeof env.UPSTOX_ANALYTICS_TOKEN!=='string'||env.UPSTOX_ANALYTICS_TOKEN.length<100)fail('read-only source unavailable');
+ const res=await fetcher(OHLC_URL,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(7000),headers:{Authorization:'Bearer '+env.UPSTOX_ANALYTICS_TOKEN,Accept:'application/json'}});
+ if(res.status!==200)fail('OHLC provider HTTP '+res.status);
+ if(!(res.headers.get('content-type')||'').toLowerCase().startsWith('application/json'))fail('OHLC provider content type');
+ if(Number(res.headers.get('content-length'))>100000)fail('OHLC provider response too large');
+ const text=await res.text();if(text.length>100000)fail('OHLC provider response too large');
+ let body;try{body=JSON.parse(text)}catch{fail('OHLC provider JSON')}
+ const item=body?.data?.['NSE_INDEX:Nifty 50']??body?.data?.[KEY];
+ const candle=item?.prev_ohlc;
+ return {mode:'PAPER_ONLY',realOrdersEnabled:false,readOnly:true,providerStatus:body?.status==='success'?'SUCCESS':'OTHER',
+  instrumentMatched:item?.instrument_token===KEY,previousMinutePresent:!!candle,
+  previousMinuteTime:Number.isSafeInteger(candle?.ts)&&Number.isFinite(new Date(candle.ts).getTime())?new Date(candle.ts).toISOString():null,
+  previousMinuteShape:candle?['open','high','low','close','volume'].every(k=>Number.isFinite(candle[k])):false};
 }

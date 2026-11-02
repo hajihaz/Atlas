@@ -6,7 +6,7 @@ import {readCohortBacktest} from './history-backtest.js';
 import {catalog as sevenStrategyCatalog} from './seven-strategy-replay.js';
 import {readIntradayStrategyReplay,readMarketReplay} from './strategy-replay-reader.js';
 import {archiveTopVolumeStep,readTopVolumeHistory} from './top-volume-history.js';
-import {archiveNiftyOpen,readNiftyOpen,verifyNiftyHistoricalSource} from './nifty-open-archive.js';
+import {archiveNiftyOpen,readNiftyOpen,verifyNiftyHistoricalSource,verifyNiftyOhlcSource} from './nifty-open-archive.js';
 import {archiveDailyCohort,readDailyCohort,scheduledDailyCohortStep,verifyDailySource} from './upstox-daily-cohort.js';
 import {readFastPeriodRank} from './fast-period-rank.js';
 import {listSevenAccounts} from './seven-paper-store.js';
@@ -349,7 +349,7 @@ export default {
  realOrdersEnabled:false,backendConnected:Boolean(env.DB),
  configured:Boolean(env.DB&&typeof env.OWNER_TOKEN==='string'&&env.OWNER_TOKEN.length>=32&&env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100),
  feedSourceConfigured:Boolean(env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100)});if(!env.DB)return reply({error:'D1_NOT_CONNECTED'},503);
- const actions={'/api/cloud-paper/session':'SESSION','/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/data-availability':'GET','/api/cloud-paper/market-replay':'GET','/api/cloud-paper/top-volume-history':'GET','/api/cloud-paper/nifty-open':'GET','/api/cloud-paper/nifty-source-check':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/quotes':'POST'};
+ const actions={'/api/cloud-paper/session':'SESSION','/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/data-availability':'GET','/api/cloud-paper/market-replay':'GET','/api/cloud-paper/top-volume-history':'GET','/api/cloud-paper/nifty-open':'GET','/api/cloud-paper/nifty-source-check':'GET','/api/cloud-paper/nifty-ohlc-check':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/quotes':'POST'};
  if(!Object.hasOwn(actions,path))return reply({error:'NOT_FOUND'},404);
  if(path.endsWith('/session')){
   if(!['GET','POST','DELETE'].includes(req.method))return reply({error:'METHOD_NOT_ALLOWED'},405);
@@ -371,6 +371,7 @@ export default {
  if(path.endsWith('/top-volume-history'))return reply(await readTopVolumeHistory(env,new URL(req.url).searchParams.get('day')));
  if(path.endsWith('/nifty-open'))return reply(await readNiftyOpen(env,new URL(req.url).searchParams.get('day')));
  if(path.endsWith('/nifty-source-check'))return reply(await verifyNiftyHistoricalSource(env,new URL(req.url).searchParams.get('day')));
+ if(path.endsWith('/nifty-ohlc-check'))return reply(await verifyNiftyOhlcSource(env));
  if(path.endsWith('/feed-check'))return reply(await verifyAnalyticsFeed(env));
  if(path.endsWith('/mis-source-check'))return reply(await verifyMisSourceReachability(new URL(req.url).searchParams.get('profile')||'plain'));
  if(path.endsWith('/nse-source-check'))return reply(await verifyNseSourceReachability(new URL(req.url).searchParams.get('kind')));

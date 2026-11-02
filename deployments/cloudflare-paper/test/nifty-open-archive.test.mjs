@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
-import {archiveNiftyOpen,readNiftyOpen,verifyNiftyHistoricalSource} from '../src/nifty-open-archive.js';
+import {archiveNiftyOpen,readNiftyOpen,verifyNiftyHistoricalSource,verifyNiftyOhlcSource} from '../src/nifty-open-archive.js';
 
 const day='2026-11-03',at=Date.parse(day+'T04:01:10Z');
 function fixture(){const sql=new DatabaseSync(':memory:');sql.exec(readFileSync(new URL('../nifty-open.sql',import.meta.url),'utf8'));
@@ -52,4 +52,16 @@ test('dated source probe returns only bounded candle metadata',async()=>{
  assert.equal(result.valid,true);
  assert.equal(result.realOrdersEnabled,false);
  assert.equal(JSON.stringify(result).includes('25000'),false);
+});
+test('Nifty OHLC probe reveals only previous minute shape and timestamp',async()=>{
+ const f=fixture();
+ const value=await verifyNiftyOhlcSource(f.env,async(url,options)=>{
+  assert.match(url,/market-quote\/ohlc\?instrument_key=NSE_INDEX%7CNifty%2050&interval=I1$/);
+  assert.equal(options.method,'GET');
+  return new Response(JSON.stringify({status:'success',data:{'NSE_INDEX:Nifty 50':{
+   instrument_token:'NSE_INDEX|Nifty 50',prev_ohlc:{open:25000,high:25001,low:24999,close:25000,volume:0,ts:at}}}}),
+   {headers:{'content-type':'application/json'}});
+ });
+ assert.equal(value.instrumentMatched,true);assert.equal(value.previousMinuteShape,true);
+ assert.equal(JSON.stringify(value).includes('25000'),false);
 });
