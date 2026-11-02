@@ -61,7 +61,7 @@ function verifyNifty(bars,nifty){
 function topTen(context,day,symbol){
   const roster=context?.roster;
   if(!roster||roster.day!==day||roster.eligibleCount<500||
-     !Number.isFinite(ms(roster.knownAt))||ms(roster.knownAt)>Date.parse(day+'T04:10:00Z')||
+     !Number.isFinite(ms(roster.knownAt))||ms(roster.knownAt)>=Date.parse(day+'T04:11:00Z')||
      !Array.isArray(roster.top)||roster.top.length!==10)fail('full 09:40 roster unavailable');
   const seen=new Set();
   for(const row of roster.top){

@@ -2,7 +2,8 @@
 import {cohortSpec} from './upstox-history-cohort.js';
 import {topVolumeRoster} from './top-volume-history.js';
 import {validateHistoricalCandles} from './upstox-history-pilot.js';
-import {SEVEN_STRATEGIES} from './seven-strategy-replay.js';
+import {SEVEN_STRATEGIES,replayIntradayDay} from './seven-strategy-replay.js';
+import {readNiftyOpening} from './nifty-live-ohlc.js';
 const fail=reason=>{const e=Error('SEVEN_REPLAY_BLOCKED: '+reason);e.atlasDiagnostic='seven replay '+reason;throw e;};
 const hex=bytes=>[...bytes].map(x=>x.toString(16).padStart(2,'0')).join('');
 async function validatedMinuteSource(env,{day,symbol}){
@@ -41,10 +42,30 @@ export async function readMarketReplay(env,{day,symbol}){
 export async function readIntradayStrategyReplay(env,{day,symbol,strategyId}){
  if(!SEVEN_STRATEGIES.slice(0,5).some(x=>x.id===strategyId))fail('invalid intraday strategy');
  const {spec,row,bars}=await validatedMinuteSource(env,{day,symbol});
- // A one-symbol after-close receipt cannot reconstruct the 09:40 full universe,
- // 09:30 Nifty/GIFT decision, dated news, or 20-session same-time RVOL.
- // Preserve its exact proof and report the missing context instead of a fake replay.
  const strategy=SEVEN_STRATEGIES.find(x=>x.id===strategyId);
+ if(['scalpstorm_x','vwap_precision'].includes(strategyId)){
+  let top,nifty;
+  try{top=await topVolumeRoster(env,day);nifty=await readNiftyOpening(env,day)}catch(e){
+   if(/complete live 0940 coverage missing|incomplete or unqualified 0940 identity|both completed opening candles required|dated opening receipt missing/.test(e?.message||'')){
+    return {schema:'atlas.seven-strategy-replay.v2',sourceDate:day,symbol,instrumentKey:spec.key,
+     rosterSha256:spec.roster,sourceSha256:row.body_sha256,sourceKnownAt:row.known_at_utc,
+     minuteBars:bars.length,status:'WAITING_REQUIRED_CONTEXT',required:strategy.requires,
+     result:null,realOrdersEnabled:false};
+   }
+   throw e;
+  }
+  const context={symbol,niftyBars:nifty.bars,roster:{day,eligibleCount:top[0].captured,
+   knownAt:new Date(Math.max(...top.map(x=>x.observed_ms))).toISOString(),
+   top:top.map(x=>({symbol:x.symbol,volume:x.cumulative_volume}))}};
+  const result=replayIntradayDay(strategyId,bars,{context});
+  return {schema:'atlas.seven-strategy-replay.v2',sourceDate:day,symbol,instrumentKey:spec.key,
+   sourceSha256:row.body_sha256,sourceKnownAt:row.known_at_utc,minuteBars:bars.length,
+   status:result.status==='SIGNAL'?'RETROSPECTIVE_SIGNAL':'RETROSPECTIVE_NO_TRADE',
+   required:strategy.requires,niftySourceSha256:nifty.bars.map(x=>x.sourceSha256),
+   rosterKnownAt:context.roster.knownAt,result,realOrdersEnabled:false};
+ }
+ // The other rules still lack GIFT, time-stamped news, or 20 prior same-time
+ // RVOL/sector evidence. A one-symbol receipt cannot invent those inputs.
  return {schema:'atlas.seven-strategy-replay.v2',sourceDate:day,symbol,instrumentKey:spec.key,
   rosterSha256:spec.roster,sourceSha256:row.body_sha256,sourceKnownAt:row.known_at_utc,
   minuteBars:bars.length,status:'WAITING_REQUIRED_CONTEXT',required:strategy.requires,
