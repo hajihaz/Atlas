@@ -41,6 +41,16 @@ function validateMinuteBars(bars){
   return day;
 }
 function verifyNifty(bars,nifty){
+  if(Array.isArray(nifty)&&nifty.length===2){
+    const [open,close]=nifty;
+    if(open?.time!==bars[0].time||close?.time!==bars[14].time||
+       !Number.isFinite(open.open)||!Number.isFinite(close.close)||open.open<=0||close.close<=0||
+       !Number.isFinite(ms(open.sourceKnownAt))||!Number.isFinite(ms(close.sourceKnownAt))||
+       ms(open.sourceKnownAt)<bars[0].time+60000||ms(close.sourceKnownAt)<bars[14].time+60000||
+       ms(open.sourceKnownAt)>Date.parse(new Date(bars[0].time+19800000).toISOString().slice(0,10)+'T04:10:00Z')||
+       ms(close.sourceKnownAt)>Date.parse(new Date(bars[0].time+19800000).toISOString().slice(0,10)+'T04:10:00Z'))fail('Nifty predecision OHLC receipt missing');
+    return Math.round((close.close/open.open-1)*10000);
+  }
   if(!Array.isArray(nifty)||nifty.length<15)fail('Nifty morning receipt missing');
   for(let i=0;i<15;i++){
     const n=nifty[i];
