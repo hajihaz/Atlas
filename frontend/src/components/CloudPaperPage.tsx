@@ -16,7 +16,7 @@ const API=CUSTOM_API?`${CUSTOM_API}/api/cloud-paper`:'/api/cloud-paper';
 const inr=(paise:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}).format(paise/100);
 const displayTime=(date:string)=>new Date(date).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true});
 
-export default function CloudPaperPage({initialToken=''}:{initialToken?:string}){
+export default function CloudPaperPage({initialToken='',setOwnerToken}:{initialToken?:string;setOwnerToken?:(token:string)=>void}){
  const [token,setToken]=useState(initialToken);
  const [connected,setConnected]=useState(false);
  const [state,setState]=useState<PaperState|null>(null);
@@ -75,7 +75,7 @@ export default function CloudPaperPage({initialToken=''}:{initialToken?:string})
   try{
    const result=await request('state');
    if(result.mode!=='PAPER_ONLY'||result.realOrdersEnabled!==false)throw Error('Paper safety handshake failed');
-   setState(result);setConnected(true);setNotice('Private paper service connected. Token remains in browser memory only.');
+   setState(result);setConnected(true);setOwnerToken?.(token);setNotice('Private paper service connected. Token remains in browser memory only.');
   }catch(e){setConnected(false);setError(e instanceof Error?e.message:'Unable to connect');}
   finally{setLoading(false)}
  }
@@ -163,7 +163,7 @@ export default function CloudPaperPage({initialToken=''}:{initialToken?:string})
     <tbody>{state.orders.map(o=><tr key={o.id}><td>{displayTime(o.due_at)}</td><td>{o.symbol}</td><td>{o.side}</td><td>{o.qty}</td><td>{o.kind==='PRICE_TRIGGER'?`${o.trigger_condition==='AT_OR_ABOVE'?'≥':'≤'} ${o.trigger_price_paise!=null?inr(o.trigger_price_paise):'—'} · expires ${o.expires_at?displayTime(o.expires_at):'—'}`:'Set time'}</td><td>{o.fill_paise!=null?inr(o.fill_paise):'—'}</td><td title={o.reason||undefined}>{o.status}{o.reason?` · ${o.reason.replaceAll('_',' ').toLowerCase()}`:''}</td><td>{['MANUAL','PRICE_TRIGGER'].includes(o.kind)&&o.status==='QUEUED'?<button type="button" className="cloud-paper-cancel" disabled={loading} aria-label={`Cancel ${o.symbol} scheduled order`} onClick={()=>void update('cancel',{id:o.id},'Queued order cancelled.')}><XCircle size={16}/></button>:null}</td></tr>)}</tbody></table></div>:<p className="cloud-paper-empty">No server-side orders yet. Nothing has been simulated.</p>}</div>
    <div className="panel cloud-paper-table"><h2>Virtual positions & audit events</h2><p>Held positions: {state?.positions.length?state.positions.map(p=>`${p.symbol} ${p.qty} shares`).join(' · '):'None recorded'}</p>
     <div className="cloud-paper-audit">{state?.events.slice(0,12).map(e=><div key={e.id}><span>{displayTime(e.observed_at)}</span><strong>{e.type}</strong><span>{e.message}</span></div>)}</div></div>
-   <button type="button" className="cloud-paper-disconnect" onClick={()=>{setConnected(false);setState(null);setToken('');setNotice('');}}>Disconnect & forget token</button>
+   <button type="button" className="cloud-paper-disconnect" onClick={()=>{setConnected(false);setState(null);setToken('');setOwnerToken?.('');setNotice('');}}>Disconnect & forget token</button>
   </div>}
   {error&&<div className="cloud-paper-message cloud-paper-error" role="alert">{error}</div>}
   {notice&&<div className="cloud-paper-message" role="status">{notice}</div>}

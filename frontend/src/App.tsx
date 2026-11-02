@@ -71,7 +71,7 @@ export default function App(){
     {page==='paper'?<PaperTestingPage ownerToken={ownerToken} setOwnerToken={setOwnerToken} goMarket={()=>go('markets')} goSchedule={()=>go('schedule')}/>:
      page==='markets'?<MarketEvidencePage ownerToken={ownerToken} goPaper={()=>go('paper')}/>:
      page==='data'?<DataAvailabilityPage ownerToken={ownerToken} setOwnerToken={setOwnerToken}/>:
-     page==='schedule'?<CloudPaperPage initialToken={ownerToken}/>:
+     page==='schedule'?<CloudPaperPage initialToken={ownerToken} setOwnerToken={setOwnerToken}/>:
      page==='crypto'?<CryptoPricesPage/>:
      <Suspense fallback={<div className="panel" role="status">Loading IPO research…</div>}><IPOIntelligencePage/></Suspense>}
     <footer className="app-footer"><span>© 2026 ATLAS</span><div>₹ virtual capital · Source-qualified evidence · Real broker orders disabled · <button type="button" className="atlas-footer-link" onClick={()=>go('ipo')}>IPO research</button></div></footer>

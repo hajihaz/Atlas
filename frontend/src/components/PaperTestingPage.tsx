@@ -1,4 +1,4 @@
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,CheckCircle2,Cloud,Database,LockKeyhole,RefreshCcw,ShieldCheck} from 'lucide-react';
 import {ATLAS_RULES} from '../data/atlasSeven';
 import {cloudPaperRequest} from '../lib/cloudPaperRead';
@@ -24,6 +24,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,goMarket,goSc
  const [sampleSymbol,setSampleSymbol]=useState('RELIANCE');
  const [replay,setReplay]=useState<Replay|null>(null);
  const [replayError,setReplayError]=useState('');
+ const replaySerial=useRef(0);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
  const [accountNotice,setAccountNotice]=useState('');
@@ -66,13 +67,18 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,goMarket,goSc
   }finally{setBusy(false);}
  }
  async function loadReplay(){
+  const serial=++replaySerial.current;
   setReplay(null);setReplayError('');
   if(!sampleDay){setReplayError('No dated minute receipt is available.');return;}
   try{const result=await cloudPaperRequest<Replay>(ownerToken,'strategy-replay',{day:sampleDay,symbol:sampleSymbol,strategy:selected});
-   setReplay(result);
-  }catch(e){setReplayError(e instanceof Error?e.message:'Replay unavailable');}
+   if(serial===replaySerial.current)setReplay(result);
+  }catch(e){if(serial===replaySerial.current)setReplayError(e instanceof Error?e.message:'Replay unavailable');}
  }
- useEffect(()=>{setReplay(null);setReplayError('');},[selected,sampleDay,sampleSymbol]);
+ useEffect(()=>{
+  replaySerial.current++;
+  setReplay(null);setReplayError('');
+  if(rule.cadence==='Intraday'&&sampleDay&&ownerToken.length>=32&&availability)void loadReplay();
+ },[selected,sampleDay,sampleSymbol,ownerToken,availability]);
  return <section className="atlas-paper-home">
   <div className="sub-page-header"><div className="breadcrumb">ATLAS / PAPER TRADING</div>
    <h1>Test seven strategies<span className="period">.</span></h1>
