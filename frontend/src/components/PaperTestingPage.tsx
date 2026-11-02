@@ -11,8 +11,8 @@ type State={mode:string;realOrdersEnabled:boolean;strategy_enabled:boolean;strat
 type Replay={status:string;sourceDate:string;symbol:string;sourceSha256:string;sourceKnownAt:string;minuteBars:number;required:string[];result:null};
 const COHORT=['AXISBANK','BHARTIARTL','HDFCBANK','ICICIBANK','INFY','ITC','NHPC','RELIANCE','SBIN','TCS'];
 const inr=(n:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}).format(n);
-export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnected,setOwnerConnected,goMarket,goSchedule}:{
- ownerToken:string;setOwnerToken:(v:string)=>void;ownerConnected:boolean;setOwnerConnected:(v:boolean)=>void;goMarket:()=>void;goSchedule:()=>void;
+export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnected,setOwnerConnected,goMarket,goReplay,goSchedule}:{
+ ownerToken:string;setOwnerToken:(v:string)=>void;ownerConnected:boolean;setOwnerConnected:(v:boolean)=>void;goMarket:()=>void;goReplay:()=>void;goSchedule:()=>void;
 }){
  const [selected,setSelected]=useState(ATLAS_RULES[0].id);
  const [status,setStatus]=useState<CloudStatus|null>(null);
@@ -144,6 +144,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
     This ledger is kept separate from the seven new accounts.</p></div></div>}
   <div className="atlas-simple-actions">
    <button className="secondary-button" type="button" onClick={goMarket}>View market evidence <ArrowRight size={16}/></button>
+   <button className="secondary-button" type="button" onClick={goReplay}>Play market history <ArrowRight size={16}/></button>
    <button className="secondary-button" type="button" onClick={goSchedule}>Schedule a paper order <ArrowRight size={16}/></button>
   </div>
   <p className="atlas-simple-footnote"><CheckCircle2 size={15}/> Strategy definitions are implemented for deterministic signal research. Profits and win rates appear only after source-qualified fills.</p>

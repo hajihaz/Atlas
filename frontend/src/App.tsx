@@ -1,27 +1,29 @@
 import {lazy,Suspense,useEffect,useRef,useState} from 'react';
-import {Activity,Bitcoin,CalendarClock,ChartNoAxesCombined,Database,Menu,Moon,ShieldCheck,Sun,X} from 'lucide-react';
+import {Activity,Bitcoin,CalendarClock,ChartNoAxesCombined,Clapperboard,Database,Menu,Moon,ShieldCheck,Sun,X} from 'lucide-react';
 import CloudPaperPage from './components/CloudPaperPage';
 import PaperTestingPage from './components/PaperTestingPage';
 import MarketEvidencePage from './components/MarketEvidencePage';
 import DataAvailabilityPage from './components/DataAvailabilityPage';
 import CryptoPricesPage from './components/CryptoPricesPage';
+import MarketReplayPage from './components/MarketReplayPage';
 import {ownerSession} from './lib/cloudPaperRead';
 import './styles.css';
 const IPOIntelligencePage=lazy(()=>import('./components/IPOIntelligencePage'));
 
 
-type Page='paper'|'markets'|'data'|'schedule'|'crypto'|'ipo';
+type Page='paper'|'markets'|'data'|'replay'|'schedule'|'crypto'|'ipo';
 type Theme='light'|'dark';
 const choices=[
  {id:'paper',label:'Paper Trading',Icon:Activity},
  {id:'markets',label:'Market Watch',Icon:ChartNoAxesCombined},
  {id:'data',label:'Available Market Data',Icon:Database},
+ {id:'replay',label:'Market Replay',Icon:Clapperboard},
  {id:'schedule',label:'Scheduled Orders',Icon:CalendarClock},
  {id:'crypto',label:'Crypto Prices',Icon:Bitcoin},
 ] as const;
 function initialPage():Page{
  const hash=window.location.hash.slice(1);
- return hash==='markets'||hash==='data'||hash==='schedule'||hash==='crypto'||hash==='ipo'?hash:'paper';
+ return hash==='markets'||hash==='data'||hash==='replay'||hash==='schedule'||hash==='crypto'||hash==='ipo'?hash:'paper';
 }
 function initialTheme():Theme{
  try{return window.localStorage.getItem('atlas.theme.preference')==='dark'?'dark':'light';}
@@ -81,9 +83,10 @@ export default function App(){
     {mobileOpen&&<button type="button" className="icon-button" aria-label="Close menu" onClick={()=>setMobileOpen(false)}><X size={18}/></button>}
    </div></header>
    <main className="main-content premium-page-view">
-    {page==='paper'?<PaperTestingPage ownerToken={ownerToken} setOwnerToken={setOwnerToken} ownerConnected={ownerConnected} setOwnerConnected={updateOwnerConnected} goMarket={()=>go('markets')} goSchedule={()=>go('schedule')}/>:
+    {page==='paper'?<PaperTestingPage ownerToken={ownerToken} setOwnerToken={setOwnerToken} ownerConnected={ownerConnected} setOwnerConnected={updateOwnerConnected} goMarket={()=>go('markets')} goReplay={()=>go('replay')} goSchedule={()=>go('schedule')}/>:
      page==='markets'?<MarketEvidencePage ownerConnected={ownerConnected} goPaper={()=>go('paper')}/>:
      page==='data'?<DataAvailabilityPage ownerConnected={ownerConnected} goPaper={()=>go('paper')}/>:
+     page==='replay'?<MarketReplayPage ownerConnected={ownerConnected} goPaper={()=>go('paper')}/>:
      page==='schedule'?<CloudPaperPage initialToken={ownerToken} setOwnerToken={setOwnerToken} ownerConnected={ownerConnected} setOwnerConnected={updateOwnerConnected}/>:
      page==='crypto'?<CryptoPricesPage/>:
      <Suspense fallback={<div className="panel" role="status">Loading IPO research…</div>}><IPOIntelligencePage/></Suspense>}

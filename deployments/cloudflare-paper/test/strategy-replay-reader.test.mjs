@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {cohortSpec} from '../src/upstox-history-cohort.js';
-import {readIntradayStrategyReplay} from '../src/strategy-replay-reader.js';
+import {readIntradayStrategyReplay,readMarketReplay} from '../src/strategy-replay-reader.js';
 
 const DAY='2026-10-30',SYMBOL='RELIANCE',spec=cohortSpec({source_date:DAY,symbol:SYMBOL});
 function fixture(){
@@ -30,4 +30,14 @@ test('missing or changed receipts and unsupported strategy fail closed',async()=
  const broken=fixture();broken.response_body+=' ';
  await assert.rejects(readIntradayStrategyReplay(env(broken),{day:DAY,symbol:SYMBOL,strategyId:'scalpstorm_x'}),/source hash mismatch/);
  await assert.rejects(readIntradayStrategyReplay(env(fixture()),{day:DAY,symbol:SYMBOL,strategyId:'dual_momentum_rotation'}),/invalid intraday strategy/);
+});
+test('private market playback returns only validated dated candles',async()=>{
+ const replay=await readMarketReplay(env(fixture()),{day:DAY,symbol:SYMBOL});
+ assert.equal(replay.coverage,'FIXED_TEN_STOCK_SAMPLE_NOT_FULL_MARKET');
+ assert.equal(replay.bars.length,375);
+ assert.equal(replay.bars[0].open,100);
+ assert.equal(replay.bars.at(-1).volume,1000);
+ assert.equal(replay.realOrdersEnabled,false);
+ const altered=fixture();altered.response_body=altered.response_body.replace('1000','1001');
+ await assert.rejects(readMarketReplay(env(altered),{day:DAY,symbol:SYMBOL}),/source hash mismatch/);
 });
