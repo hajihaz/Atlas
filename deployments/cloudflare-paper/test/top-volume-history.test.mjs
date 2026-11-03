@@ -14,12 +14,15 @@ function wrapped(sql){return {prepare(query){return {bind(...args){return {
 }}}}}};
 function fixture(){
  const main=new DatabaseSync(':memory:'),history=new DatabaseSync(':memory:');
+ const kv=new Map();
  main.exec(readFileSync(new URL('../schema.sql',import.meta.url),'utf8'));
  history.exec(readFileSync(new URL('../history-pilot.sql',import.meta.url),'utf8'));
  main.prepare('INSERT INTO coverage VALUES(?,?,?,?,?)').run(day,500,at,12,'UPSTOX_ANALYTICS_READONLY_V3');
  const stmt=main.prepare('INSERT INTO entry_snapshots(session,symbol,price_paise,cumulative_volume,observed_ms,source,instrument_key) VALUES(?,?,?,?,?,?,?)');
  for(let i=0;i<500;i++)stmt.run(day,`TST${String(i).padStart(4,'0')}`,10000+i,100000+i,at,'UPSTOX_ANALYTICS_READONLY_V3',`NSE_EQ|INE${String(i).padStart(9,'0')}`);
- return {main,history,env:{DB:wrapped(main),HISTORY_DB:wrapped(history),UPSTOX_ANALYTICS_TOKEN:'T'.repeat(120)}};
+ return {main,history,kv,env:{DB:wrapped(main),HISTORY_DB:wrapped(history),
+  NSE_REFERENCE_ARCHIVE:{get:async key=>kv.get(key)??null,put:async(key,value)=>{kv.set(key,value)}},
+  UPSTOX_ANALYTICS_TOKEN:'T'.repeat(120)}};
 }
 function candles(){return {status:'success',data:{candles:Array.from({length:375},(_,i)=>{
  const minute=555+i,time=String(Math.floor(minute/60)).padStart(2,'0')+':'+String(minute%60).padStart(2,'0');
@@ -58,6 +61,23 @@ test('missing identity, incomplete source and incomplete session fail closed',as
  const incomplete=candles();incomplete.data.candles.pop();
  await assert.rejects(archiveTopVolumeStep(f.env,slot,async()=>new Response(JSON.stringify(incomplete),{headers:{'content-type':'application/json'}}),()=>slot+60000),/minute session incomplete/);
  assert.equal(f.history.prepare('SELECT COUNT(*) n FROM history_samples').get().n,0);
+});
+test('exact premarket identity sidecar qualifies a keyless but unchanged 0940 roster',async()=>{
+ const f=fixture();
+ const entries=f.main.prepare('SELECT symbol,instrument_key FROM entry_snapshots WHERE session=? ORDER BY symbol').all(day)
+  .map(x=>[x.symbol,x.instrument_key]);
+ const record={schema:'atlas.mis-identity.v1',day,source_class:'PREMARKET_MIS_MATCHED',
+  known_at_utc:day+'T01:39:59Z',source_sha256:'a'.repeat(64),
+  map_sha256:createHash('sha256').update(JSON.stringify(entries)).digest('hex'),entries};
+ f.kv.set('ATLAS_MIS_IDENTITY/'+day,JSON.stringify(record));
+ f.main.prepare('UPDATE entry_snapshots SET instrument_key=NULL').run();
+ const top=await topVolumeRoster(f.env,day);
+ assert.equal(top[0].instrument_key,'NSE_EQ|INE000000499');
+ assert.equal(top[0].identityEvidence,'PREMARKET_MIS_MATCHED');
+ const listing=await readTopVolumeHistory(f.env,day);
+ assert.equal(listing.identitySourceSha256,'a'.repeat(64));
+ f.main.prepare("UPDATE entry_snapshots SET symbol='TAMPER' WHERE symbol='TST0000'").run();
+ await assert.rejects(topVolumeRoster(f.env,day),/incomplete or unqualified/);
 });
 test('a preexisting partial same-key sample cannot be certified as complete top-volume history',async()=>{
  const f=fixture(),slot=Date.parse(day+'T13:00:00Z'),short=candles();short.data.candles.pop();

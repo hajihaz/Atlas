@@ -7,7 +7,7 @@ import type {Availability} from './DataAvailabilityPage';
 type Bar={time:number;open:number;high:number;low:number;close:number;volume:number};
 type Replay={schema:string;sourceDate:string;symbol:string;sourceSha256:string;sourceKnownAt:string;
  coverage:string;bars:Bar[];mode:string;realOrdersEnabled:boolean};
-type TopVolume={sourceDate:string;stocks:{rank:number;symbol:string;archived:boolean;minuteBars:number;volumeAt0940:number}[];realOrdersEnabled:boolean};
+type TopVolume={sourceDate:string;identityEvidence?:string;stocks:{rank:number;symbol:string;archived:boolean;minuteBars:number;volumeAt0940:number}[];realOrdersEnabled:boolean};
 const STOCKS=['AXISBANK','BHARTIARTL','HDFCBANK','ICICIBANK','INFY','ITC','NHPC','RELIANCE','SBIN','TCS'];
 const money=(n:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}).format(n);
 const amount=(n:number)=>new Intl.NumberFormat('en-IN').format(n);
@@ -77,7 +77,7 @@ export default function MarketReplayPage({ownerConnected,goPaper}:{ownerConnecte
     <label>Stock<select value={symbol} onChange={e=>setSymbol(e.target.value)}>{topVolume?.stocks.map(x=><option key={x.symbol} value={x.symbol}>{x.rank}. {x.symbol} · {x.archived?`${x.minuteBars} bars`:'capture pending'}</option>)}
      {STOCKS.filter(x=>!topVolume?.stocks.some(v=>v.symbol===x)).map(x=><option key={x} value={x}>{x} · fixed sample</option>)}</select></label>
     <span>{inventory?.minute.days??0} recorded dates</span></div>
-   {topVolume&&<div className="panel atlas-simple-status"><strong>09:40 top volume:</strong> {topVolume.stocks.filter(x=>x.archived).length}/10 archived for {day}. Choose a stock to replay its dated minute bars.</div>}
+   {topVolume&&<div className="panel atlas-simple-status"><strong>09:40 top volume:</strong> {topVolume.stocks.filter(x=>x.archived).length}/10 archived for {day}. {topVolume.identityEvidence==='PREMARKET_MIS_MATCHED'?'Instrument IDs were matched to the exact premarket MIS file; the 09:40 prices and volumes remain unchanged. ':''}Choose a stock to replay its dated minute bars.</div>}
    {error&&<div className="panel atlas-simple-error" role="alert">{error}</div>}
    {!replay&&!error?<div className="panel atlas-replay-empty" role="status">Loading verified minute history…</div>:null}
    {replay&&current&&chart&&<div className="panel atlas-replay-player">

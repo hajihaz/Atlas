@@ -17,11 +17,13 @@ function fixture(){
   if(typeof stmt.run==='function')res.push(await stmt.run());else throw Error('bad batch statement');
  }sql.exec('COMMIT');return res}catch(e){sql.exec('ROLLBACK');throw e}},
  };
- const env={DB:db,UPSTOX_FEED_ENABLED:'true',UPSTOX_ANALYTICS_TOKEN:'T'.repeat(120),FEED_SOURCE_ID:'UPSTOX_ANALYTICS_READONLY_V3'};
+ const kv=new Map();
+ const env={DB:db,NSE_REFERENCE_ARCHIVE:{get:async key=>kv.get(key)??null,put:async(key,value)=>{kv.set(key,value)}},
+  UPSTOX_FEED_ENABLED:'true',UPSTOX_ANALYTICS_TOKEN:'T'.repeat(120),FEED_SOURCE_ID:'UPSTOX_ANALYTICS_READONLY_V3'};
  const full={quotes:Array.from({length:1357},(_,i)=>({symbol:`MIS${String(i).padStart(4,'0')}`,
  price_paise:15000+i,cumulative_volume:100000+i,observed_at:new Date(now-1000).toISOString(),
  source:env.FEED_SOURCE_ID,exchange_open:true,instrument_key:`NSE_EQ|INE${String(i).padStart(9,'0')}`})),coverage:{complete:true,eligible_count:1357,nifty_change_bps:35}};
- return {sql,db,env,full,get queries(){return queries}};
+ return {sql,db,env,full,kv,get queries(){return queries}};
 }
 
 test('free Cron ingests authenticated read-only MIS fixture, then paper-fills only on enabled strategy',async()=>{
@@ -71,14 +73,25 @@ test('daybook refuses a counted but keyless 09:40 snapshot',async()=>{
  assert.equal(report.complete_0940_snapshot,false);
 });
 
-test('next-minute cloud audit detects a persisted key loss',async()=>{
+test('next-minute cloud audit accepts a fully matched private identity sidecar',async()=>{
  const f=fixture();
  await testing.sourceTick(f.env,now,async()=>f.full,undefined,()=>now);
+ f.sql.prepare('UPDATE entry_snapshots SET instrument_key=NULL').run();
+ const after=now+60_000;
+ await testing.sourceTick(f.env,after,async()=>{throw Error('full source must not repeat')},undefined,()=>after);
+ assert.equal(f.sql.prepare("SELECT COUNT(*) n FROM events WHERE type='IDENTITY_SIDECAR'").get().n,1);
+ assert.equal(f.sql.prepare('SELECT COUNT(*) AS n FROM entry_snapshots').get().n,1357);
+});
+
+test('next-minute cloud audit rejects a partial key loss or mismatched identity sidecar',async()=>{
+ const f=fixture();await testing.sourceTick(f.env,now,async()=>f.full,undefined,()=>now);
  f.sql.prepare("UPDATE entry_snapshots SET instrument_key=NULL WHERE symbol='MIS1356'").run();
  const after=now+60_000;
- await assert.rejects(testing.sourceTick(f.env,after,async()=>{throw Error('full source must not repeat')},undefined,()=>after),
-  /persisted instrument identity mismatch/);
- assert.equal(f.sql.prepare('SELECT COUNT(*) AS n FROM entry_snapshots').get().n,1357);
+ await assert.rejects(testing.sourceTick(f.env,after,async()=>f.full,undefined,()=>after),/incomplete or unqualified 0940 identity/);
+ f.sql.prepare('UPDATE entry_snapshots SET instrument_key=NULL').run();
+ const saved=JSON.parse(f.kv.get('ATLAS_MIS_IDENTITY/2026-10-27'));saved.entries[0][0]='WRONG';
+ f.kv.set('ATLAS_MIS_IDENTITY/2026-10-27',JSON.stringify(saved));
+ await assert.rejects(testing.sourceTick(f.env,after,async()=>f.full,undefined,()=>after),/incomplete or unqualified 0940 identity/);
 });
 
 

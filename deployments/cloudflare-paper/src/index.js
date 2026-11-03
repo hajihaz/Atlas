@@ -5,7 +5,8 @@ import {archiveHistoryCohort,archiveScheduledCohortStep,readHistoryCohort} from 
 import {readCohortBacktest} from './history-backtest.js';
 import {catalog as sevenStrategyCatalog} from './seven-strategy-replay.js';
 import {readIntradayStrategyReplay,readMarketReplay} from './strategy-replay-reader.js';
-import {archiveTopVolumeStep,readTopVolumeHistory} from './top-volume-history.js';
+import {archiveTopVolumeStep,readTopVolumeHistory,topVolumeRoster} from './top-volume-history.js';
+import {archiveLiveMisIdentity} from './mis-identity-archive.js';
 import {verifyNiftyHistoricalSource,verifyNiftyOhlcSource} from './nifty-open-archive.js';
 import {archiveNiftyLiveOhlc,readNiftyOpening} from './nifty-live-ohlc.js';
 import {readNseEodTop} from './nse-eod-top.js';
@@ -295,6 +296,7 @@ async function sourceTick(env,now=Date.now(),collectFull=collectMisSnapshot,coll
  if(t.minute===580){
   if(await row(d,'SELECT 1 FROM coverage WHERE session=?',t.day))return {sourceEnabled:true,quotes:0,kind:'ALREADY_SNAPSHOTTED'};
   const full=await collectFull(env,now);
+  await archiveLiveMisIdentity(env,t.day,full,clock);
   await ingest(d,full,clock(),env.FEED_SOURCE_ID);
   return {sourceEnabled:true,quotes:full.quotes.length,kind:'FULL_MIS'};
  }
@@ -304,8 +306,11 @@ async function sourceTick(env,now=Date.now(),collectFull=collectMisSnapshot,coll
   const coverage=await row(d,'SELECT eligible_count FROM coverage WHERE session=?',t.day);
   if(coverage){
    const persisted=await row(d,'SELECT COUNT(*) AS n,COUNT(instrument_key) AS keyed,COUNT(DISTINCT instrument_key) AS distinct_keys FROM entry_snapshots WHERE session=?',t.day);
-   if(persisted?.n!==coverage.eligible_count||persisted.keyed!==persisted.n||persisted.distinct_keys!==persisted.n)
-    throw Error('full-universe persisted instrument identity mismatch');
+   if(persisted?.n!==coverage.eligible_count)throw Error('full-universe persisted instrument identity mismatch');
+   if(persisted.keyed!==persisted.n||persisted.distinct_keys!==persisted.n){
+    const top=await topVolumeRoster(env,t.day);
+    await log(d,now,'IDENTITY_SIDECAR',top[0].identityEvidence).run();
+   }
   }
  }
  // During the remainder of a session request only watched positions and

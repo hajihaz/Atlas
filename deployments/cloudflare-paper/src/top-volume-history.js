@@ -1,5 +1,6 @@
 /** Private after-close receipts for the actual complete 09:40 top-volume roster. */
 import {validateHistoricalCandles} from './upstox-history-pilot.js';
+import {readMisIdentity} from './mis-identity-archive.js';
 
 const BASE='https://api.upstox.com/v3/historical-candle/';
 const KEY=/^NSE_EQ\|[A-Z0-9]{8,20}$/;
@@ -20,8 +21,21 @@ export async function topVolumeRoster(env,day){
  FROM entry_snapshots s CROSS JOIN proof WHERE s.session=?
  ORDER BY s.cumulative_volume DESC,s.symbol ASC LIMIT 10`).bind(day,day).all();
  const top=result.results;
- if(top.length!==10||top[0].captured!==c.eligible_count||top[0].keyed!==c.eligible_count||
-  top[0].distinct_keys!==c.eligible_count||top.some(x=>x.source!==c.source||!KEY.test(x.instrument_key)||x.observed_ms>c.observed_ms+2000||c.observed_ms-x.observed_ms>8000))fail('incomplete or unqualified 0940 identity');
+ if(top.length!==10||top[0].captured!==c.eligible_count)fail('incomplete or unqualified 0940 identity');
+ if(top[0].keyed===c.eligible_count&&top[0].distinct_keys===c.eligible_count){
+  for(const x of top)x.identityEvidence='LIVE_0940_STORED';
+ }else if(top[0].keyed===0&&top[0].distinct_keys===0){
+  let receipt;try{receipt=await readMisIdentity(env,day,c.eligible_count,c.observed_ms)}catch{fail('incomplete or unqualified 0940 identity')}
+  if(!receipt)fail('incomplete or unqualified 0940 identity');
+  const rows=await env.DB.prepare('SELECT symbol,instrument_key,observed_ms,source FROM entry_snapshots WHERE session=? ORDER BY symbol').bind(day).all();
+  if(rows.results.length!==c.eligible_count||rows.results.some((r,i)=>r.symbol!==receipt.entries[i][0]||
+   r.instrument_key!==null||r.source!==c.source||r.observed_ms>c.observed_ms+2000||c.observed_ms-r.observed_ms>8000))
+   fail('incomplete or unqualified 0940 identity');
+  const map=new Map(receipt.entries);
+  for(const x of top){x.instrument_key=map.get(x.symbol);x.identityEvidence=receipt.source_class;
+   x.identitySourceSha256=receipt.source_sha256??receipt.map_sha256;}
+ }else fail('incomplete or unqualified 0940 identity');
+ if(top.some(x=>x.source!==c.source||!KEY.test(x.instrument_key)||x.observed_ms>c.observed_ms+2000||c.observed_ms-x.observed_ms>8000))fail('incomplete or unqualified 0940 identity');
  if(new Set(top.map(x=>x.instrument_key)).size!==10)fail('duplicate 0940 top instrument');
  return top;
 }
@@ -32,7 +46,8 @@ export async function readTopVolumeHistory(env,day){
  const receipts=await env.HISTORY_DB.prepare('SELECT instrument_key,body_sha256,candle_count,known_at_utc FROM history_samples WHERE source_date=?').bind(day).all();
  const byKey=new Map(receipts.results.map(x=>[x.instrument_key,x]));
  return {schema:'atlas.top-volume-history.v1',mode:'PAPER_ONLY',realOrdersEnabled:false,sourceDate:day,
-  source:'COMPLETE_LIVE_0940_VOLUME_RANKING',stocks:top.map((x,i)=>({rank:i+1,symbol:x.symbol,instrumentKey:x.instrument_key,
+  source:'COMPLETE_LIVE_0940_VOLUME_RANKING',identityEvidence:top[0].identityEvidence,
+  identitySourceSha256:top[0].identitySourceSha256??null,stocks:top.map((x,i)=>({rank:i+1,symbol:x.symbol,instrumentKey:x.instrument_key,
    volumeAt0940:x.cumulative_volume,observedAt:new Date(x.observed_ms).toISOString(),
    archived:byKey.get(x.instrument_key)?.candle_count===375,minuteBars:byKey.get(x.instrument_key)?.candle_count??0,
    sourceSha256:byKey.get(x.instrument_key)?.body_sha256??null,sourceKnownAt:byKey.get(x.instrument_key)?.known_at_utc??null}))};
