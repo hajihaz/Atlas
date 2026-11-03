@@ -49,5 +49,5 @@ export async function readStrategyJournal(env,{day,strategyId}){
   strategyId,sourceDate:day,executionStatus:spec.executionStatus,
   account:{cashINR:state.cashPaise/100,realizedPnlINR:state.realizedPaise/100,
    pending:Object.keys(state.pending).length,positions:Object.keys(state.positions).length,fills:state.fills.length},
-  events:events.slice(0,40),note:'Forward decisions and virtual fills are separate. Empty means no verified event.'};
+  events:events.slice(0,40),note:'Most recent forward decisions and virtual fills are separate. Empty means no verified event on the selected date.'};
 }

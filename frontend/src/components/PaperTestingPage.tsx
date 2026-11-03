@@ -157,7 +157,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
     <div className="atlas-result-line"><span>Virtual cash</span><strong>{account?inr(account.cashINR):'Not available'}</strong></div>
     <div className="atlas-result-line"><span>Realized paper P&amp;L</span><strong>{account?inr(account.realizedPnlINR):'Not available'}</strong></div>
     <div className="atlas-rule-evidence"><h3>Forward paper activity</h3>
-     <p>Source decisions, pending intents and virtual fills appear in time order. This rule is {journal?.executionStatus.replaceAll('_',' ').toLowerCase()??'awaiting verified status'}.</p>
+     <p>The most recent source decisions, pending intents and virtual fills appear in time order. This rule is {journal?.executionStatus.replaceAll('_',' ').toLowerCase()??'awaiting verified status'}.</p>
      {journalError&&<p role="alert" className="atlas-simple-error">{journalError}</p>}
      {journal&&<><p className="atlas-simple-note">{journal.sourceDate} · {journal.account.pending} pending · {journal.account.positions} positions · {journal.account.fills} paper fills</p>
       {journal.events.length===0?<p role="status">No verified forward event for this rule on this date.</p>:
