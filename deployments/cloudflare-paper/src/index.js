@@ -423,7 +423,9 @@ export default {
  },
   async scheduled(event,env,ctx){ctx.waitUntil((async()=>{
    if(event.cron==='1-56/5 4-9 * * 1-5'){
-    try{await runForwardX(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only forward X signal unavailable:',d.type,d.message)}
+    if(ist(event.scheduledTime).minute===581){
+     try{await captureLiveMinute(env)}catch(e){const d=safeDiagnostic(e);console.error('read-only first live minute unavailable:',d.type,d.message)}
+    }else try{await runForwardX(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only forward X signal unavailable:',d.type,d.message)}
     return;
    }
    if(event.cron==='0-6 2,3 * * 1-5'){
@@ -445,7 +447,7 @@ export default {
    }
    try{await sourceTick(env);}catch(e){const d=safeDiagnostic(e);console.error('read-only Upstox feed unavailable:',d.type,d.message)}
    await tick(env);
-   if(session(actualNow)&&minute>=581&&minute<=915){
+   if(session(actualNow)&&minute>=582&&minute<=915){
     try{await captureLiveMinute(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('read-only live minute receipt unavailable:',d.type,d.message)}
    }
    if(session(actualNow)&&minute>=582&&minute<=601){
