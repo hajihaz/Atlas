@@ -475,7 +475,7 @@ export default {
    // paper intent on the following minute; a later fresh book alone can fill.
    if(session(actualNow)&&minute>=555&&minute<580){
     try{await tickSevenForward(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper carryover recovery unavailable:',d.type,d.message)}
-   }else if(session(actualNow)&&minute>=602&&minute<=884){
+   }else if(session(actualNow)&&minute>=597&&minute<=884){
     if(minute%5===2||minute%5===3){
      const day=ist(actualNow).day,windowEnd=actualNow-actualNow%60000-180000-(minute%5===3?60000:0);
      try{await queueForwardX(env,day,windowEnd,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper signal queue unavailable:',d.type,d.message)}
