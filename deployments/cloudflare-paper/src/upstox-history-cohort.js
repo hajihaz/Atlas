@@ -25,7 +25,7 @@ export function cohortSpec(input){
   typeof input.source_date!=='string'||typeof input.symbol!=='string')fail('invalid request');
  const day=input.source_date,symbol=input.symbol,key=IDENTITIES[symbol];
  if(!/^\d{4}-\d\d-\d\d$/.test(day)||!Number.isFinite(Date.parse(day+'T00:00:00Z'))||
-  new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day||day<'2026-10-28'||
+  new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day||day<'2026-09-24'||
   !Object.hasOwn(IDENTITIES,symbol)||!key)fail('invalid dated cohort');
  const roster=Object.hasOwn(ROSTERS,day)?ROSTERS[day]:null;
  return {day,symbol,key,roster,url:BASE+encodeURIComponent(key)+'/minutes/1/'+day+'/'+day,
@@ -77,7 +77,7 @@ export async function archiveHistoryCohort(env,input,fetcher=fetch,clock=()=>Dat
 export async function readHistoryCohort(env,day=null){
  if(!env.HISTORY_DB)fail('archive unavailable');
  if(day!==null&&(!/^\d{4}-\d\d-\d\d$/.test(day)||!Number.isFinite(Date.parse(day+'T00:00:00Z'))||
-  new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day||day<'2026-10-28'))fail('invalid cohort date');
+  new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day||day<'2026-09-24'))fail('invalid cohort date');
  const dates=day?[day]:Object.keys(ROSTERS);
  const results=await env.HISTORY_DB.prepare('SELECT instrument_key,source_date,body_sha256,body_bytes,candle_count,first_minute,last_minute,known_at_utc,evidence_class FROM history_samples WHERE source_date IN ('+dates.map(()=>'?').join(',')+') ORDER BY source_date,instrument_key LIMIT ?').bind(...dates,dates.length*COHORT_SYMBOLS.length).all();
  return {status:'PILOT_ONLY',source_date:day,roster_sha256:day?(ROSTERS[day]||null):null,

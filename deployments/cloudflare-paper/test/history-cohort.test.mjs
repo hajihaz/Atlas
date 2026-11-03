@@ -21,7 +21,8 @@ const payload=day=>({status:'success',data:{candles:[
 
 test('cohort is limited to ten dated premarket identities',()=>{
  assert.equal(cohortSpec({source_date:'2026-10-28',symbol:'RELIANCE'}).key,'NSE_EQ|INE002A01018');
- assert.throws(()=>cohortSpec({source_date:'2026-10-27',symbol:'RELIANCE'}),/invalid dated cohort/);
+ assert.equal(cohortSpec({source_date:'2026-09-24',symbol:'RELIANCE'}).roster,null);
+ assert.throws(()=>cohortSpec({source_date:'2026-09-23',symbol:'RELIANCE'}),/invalid dated cohort/);
  assert.throws(()=>cohortSpec({source_date:'2026-10-28',symbol:'OTHER'}),/invalid dated cohort/);
  assert.throws(()=>cohortSpec({source_date:'2026-10-28',symbol:'__proto__'}),/invalid dated cohort/);
 });

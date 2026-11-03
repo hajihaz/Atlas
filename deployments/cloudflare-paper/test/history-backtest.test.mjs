@@ -50,5 +50,5 @@ test('same-day intraday receipts and future fixed cohort remain scoreable with h
  assert.equal(future.eligible_count,10);
  assert.equal(future.roster_sha256,null);
  assert.equal(future.roster_provenance,'FIXED_WATCHLIST_IDENTITY_ONLY_NO_DATED_ROSTER');
- await assert.rejects(scoreCohortDay('2026-10-27',rows()),/invalid source date/);
+ await assert.rejects(scoreCohortDay('2026-09-23',rows()),/invalid source date/);
 });
