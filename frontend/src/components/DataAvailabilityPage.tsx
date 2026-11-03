@@ -36,13 +36,17 @@ export default function DataAvailabilityPage({ownerConnected,goPaper}:{ownerConn
   }catch(e){setEodError(e instanceof Error?e.message:'Whole-day ranking unavailable');}finally{setEodBusy(false);}
  }
  useEffect(()=>{if(ownerConnected)void refresh();else {setData(null);setEodTop(null);}},[ownerConnected]);
+ const completeSampleDays=data?.minute.dates.filter(x=>x.symbols===10&&x.min_bars===375&&x.max_bars===375).length??0;
+ const completeSampleBars=completeSampleDays*3750;
  return <section className="atlas-data-page"><div className="sub-page-header"><div className="breadcrumb">ATLAS / DATA</div><h1>Available market data<span className="period">.</span></h1>
   <p>Counted from private cloud receipts. Historical samples, daily files and 9:40 universes are separate evidence.</p></div>
   <div className="panel atlas-owner-connect"><div><h2>Private data inventory</h2><p>Choose a category below to see every captured date and its coverage.</p></div>
    <div className="atlas-owner-row">{!ownerConnected&&<button type="button" className="secondary-button" onClick={goPaper}>Connect private account</button>}
     <button type="button" className="primary-button" disabled={busy||!ownerConnected} onClick={()=>void refresh()}><RefreshCcw size={16}/> Refresh</button></div>
    {error&&<p className="atlas-simple-error" role="alert">{error}</p>}</div>
-  {data&&<><div className="atlas-data-grid">{groups.map(([key,title,description])=><div className="panel atlas-data-card" key={key}><Database size={21}/><small>{title}</small><strong>{data[key].days} dates</strong><span>{description}</span></div>)}</div>
+  {data&&<><div className="panel atlas-data-detail"><h2>{completeSampleDays} complete sample days · {completeSampleBars.toLocaleString('en-IN')} one-minute bars</h2>
+   <p>These are dated receipts for ten selected stocks per day. They do not prove a historical whole-market 09:40 ranking or an automatic paper trade.</p></div>
+   <div className="atlas-data-grid">{groups.map(([key,title,description])=><div className="panel atlas-data-card" key={key}><Database size={21}/><small>{title}</small><strong>{data[key].days} dates</strong><span>{description}</span></div>)}</div>
    {groups.map(([key,title])=><details className="panel atlas-data-detail" key={key}><summary>{title} · {data[key].days} dates</summary>
     {key==='nse_reference'&&<p>Choose a date to view the 20 highest-volume EQ stocks from the complete official end-of-day file. These are whole-day rankings, not stocks known at 09:40.</p>}
     <div className="atlas-data-dates">{data[key].dates.map(x=><div key={x.day}><strong>{x.day}</strong><span>{x.minutes!=null?`${x.minutes} completed minutes · 10 stocks each`:x.seeds!=null?`${x.seeds}/10 opening stock seeds`:x.bars!=null?`${x.bars} source candles`:x.symbols!=null?`${x.symbols} symbols · ${x.min_bars}–${x.max_bars} bars`:x.files!=null?`${x.files} source files`:`${x.captured}/${x.eligible} symbols · ${x.keyed??0} stored IDs`}</span>
