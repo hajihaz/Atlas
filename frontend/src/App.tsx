@@ -1,5 +1,6 @@
 import {lazy,Suspense,useEffect,useRef,useState} from 'react';
-import {Activity,Bitcoin,CalendarClock,ChartNoAxesCombined,Clapperboard,Database,Menu,Moon,ShieldCheck,Sun,X} from 'lucide-react';
+import {Activity,Bitcoin,CalendarClock,ChartNoAxesCombined,Clapperboard,Database,House,Menu,Moon,ShieldCheck,Sun,X} from 'lucide-react';
+import HomePage from './components/HomePage';
 import CloudPaperPage from './components/CloudPaperPage';
 import PaperTestingPage from './components/PaperTestingPage';
 import MarketEvidencePage from './components/MarketEvidencePage';
@@ -11,9 +12,10 @@ import './styles.css';
 const IPOIntelligencePage=lazy(()=>import('./components/IPOIntelligencePage'));
 
 
-type Page='paper'|'markets'|'data'|'replay'|'schedule'|'crypto'|'ipo';
+type Page='home'|'paper'|'markets'|'data'|'replay'|'schedule'|'crypto'|'ipo';
 type Theme='light'|'dark';
 const choices=[
+ {id:'home',label:'Home',Icon:House},
  {id:'paper',label:'Paper Trading',Icon:Activity},
  {id:'markets',label:'Market Watch',Icon:ChartNoAxesCombined},
  {id:'data',label:'Available Market Data',Icon:Database},
@@ -23,7 +25,7 @@ const choices=[
 ] as const;
 function initialPage():Page{
  const hash=window.location.hash.slice(1);
- return hash==='markets'||hash==='data'||hash==='replay'||hash==='schedule'||hash==='crypto'||hash==='ipo'?hash:'paper';
+ return hash==='home'||hash==='paper'||hash==='markets'||hash==='data'||hash==='replay'||hash==='schedule'||hash==='crypto'||hash==='ipo'?hash:'home';
 }
 function initialTheme():Theme{
  try{return window.localStorage.getItem('atlas.theme.preference')==='dark'?'dark':'light';}
@@ -64,8 +66,8 @@ export default function App(){
  return <div className={'app-shell atlas-simple-shell '+(mobileOpen?'mobile-open':'')}>
   {mobileOpen&&<button className="mobile-backdrop" type="button" aria-label="Close navigation" onClick={()=>setMobileOpen(false)}/>}
   <aside className={'sidebar atlas-simple-sidebar '+(mobileOpen?'mobile-open':'')}>
-   <div className="brand-section"><button type="button" className="brand" onClick={()=>go('paper')} aria-label="Atlas paper trading home">
-    <span className="brand-mark"><svg viewBox="0 0 42 42" fill="none" aria-hidden="true"><path d="M21 4 39 36H3L21 4Z" stroke="currentColor" strokeWidth="3"/><path d="M14 26h14M21 12v14" stroke="currentColor" strokeWidth="2.4"/></svg></span>
+   <div className="brand-section"><button type="button" className="brand" onClick={()=>go('home')} aria-label="Atlas home">
+    <span className="brand-mark"><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M7 36 24 7l17 29H7Z" stroke="currentColor" strokeWidth="2.8" strokeLinejoin="round"/><path d="m16 31 8-14 8 14M19 27h10" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round"/><circle cx="24" cy="7" r="2.3" fill="currentColor"/><path d="M10 41h28" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round"/></svg></span>
     <span className="brand-copy"><strong>ATLAS<span className="brand-dot">.</span></strong><small>PAPER TRADING</small></span>
    </button></div>
    <nav className="nav-links atlas-simple-nav" aria-label="Main navigation">
@@ -85,6 +87,7 @@ export default function App(){
    </div></header>
    <main className="main-content premium-page-view">
     {ownerChecking?<div className="panel" role="status">Opening your Atlas view…</div>:
+     page==='home'?<HomePage ownerConnected={ownerConnected} go={go}/>:
      page==='paper'?<PaperTestingPage ownerToken={ownerToken} setOwnerToken={setOwnerToken} ownerConnected={ownerConnected} setOwnerConnected={updateOwnerConnected} goMarket={()=>go('markets')} goData={()=>go('data')} goReplay={()=>go('replay')} goSchedule={()=>go('schedule')}/>:
      page==='markets'?<MarketEvidencePage ownerConnected={ownerConnected} goPaper={()=>go('paper')}/>:
      page==='data'?<DataAvailabilityPage ownerConnected={ownerConnected} goPaper={()=>go('paper')}/>:

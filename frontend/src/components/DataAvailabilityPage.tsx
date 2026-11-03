@@ -47,6 +47,8 @@ export default function DataAvailabilityPage({ownerConnected,goPaper}:{ownerConn
    {error&&<p className="atlas-simple-error" role="alert">{error}</p>}</div>
   {data&&<><div className="panel atlas-data-detail"><h2>{completeSampleDays} complete sample days · {completeSampleBars.toLocaleString('en-IN')} one-minute bars</h2>
    <p>These are dated receipts for ten selected stocks per day. They do not prove a historical whole-market 09:40 ranking or an automatic paper trade.</p></div>
+   <div className="panel atlas-data-detail"><h2>What Atlas has recorded</h2><p>Each bar shows the number of dated cloud receipts. It measures data coverage, not strategy profit.</p>
+    <div className="atlas-data-coverage">{groups.map(([key,title])=><div key={key}><span>{title}</span><div role="img" aria-label={`${title}: ${data[key].days} dates`}><i style={{width:`${Math.max(2,100*data[key].days/Math.max(1,...groups.map(([k])=>data[k].days)))}%`}}/></div><strong>{data[key].days}</strong></div>)}</div></div>
    <div className="atlas-data-grid">{groups.map(([key,title,description])=><div className="panel atlas-data-card" key={key}><Database size={21}/><small>{title}</small><strong>{data[key].days} dates</strong><span>{description}</span></div>)}</div>
    {groups.map(([key,title])=><details className="panel atlas-data-detail" key={key}><summary>{title} · {data[key].days} dates</summary>
     {key==='nse_reference'&&<p>Choose a date to view the 20 highest-volume EQ stocks from the complete official end-of-day file. These are whole-day rankings, not stocks known at 09:40.</p>}

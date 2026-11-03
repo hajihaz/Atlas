@@ -1,5 +1,5 @@
 /* Atlas independent free-tier cloud paper worker. NEVER routes real orders. */
-import {collectMisSnapshot,collectWatchedQuotes,verifyAnalyticsFeed,verifyMisSourceReachability} from './upstox-feed.js';
+import {collectMisSnapshot,collectWatchedQuotes,verifyAnalyticsFeed,verifyMisSourceReachability,homeMarketQuotes} from './upstox-feed.js';
 import {archiveHistoryPilot,readHistoryPilot} from './upstox-history-pilot.js';
 import {archiveHistoryCohort,archiveScheduledCohortStep,readHistoryCohort} from './upstox-history-cohort.js';
 import {readCohortBacktest} from './history-backtest.js';
@@ -379,7 +379,7 @@ export default {
  realOrdersEnabled:false,backendConnected:Boolean(env.DB),
  configured:Boolean(env.DB&&typeof env.OWNER_TOKEN==='string'&&env.OWNER_TOKEN.length>=32&&env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100),
  feedSourceConfigured:Boolean(env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100)});if(!env.DB)return reply({error:'D1_NOT_CONNECTED'},503);
- const actions={'/api/cloud-paper/session':'SESSION','/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/data-availability':'GET','/api/cloud-paper/market-replay':'GET','/api/cloud-paper/live-minute-status':'GET','/api/cloud-paper/forward-x-journal':'GET','/api/cloud-paper/strategy-journal':'GET','/api/cloud-paper/top-volume-history':'GET','/api/cloud-paper/nifty-opening':'GET','/api/cloud-paper/nse-eod-top':'GET','/api/cloud-paper/nifty-source-check':'GET','/api/cloud-paper/nifty-ohlc-check':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/etf-source-check':'GET','/api/cloud-paper/etf-daily':'GET','/api/cloud-paper/etf-raw-research':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/quotes':'POST'};
+ const actions={'/api/cloud-paper/session':'SESSION','/api/cloud-paper/home-market':'GET','/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/data-availability':'GET','/api/cloud-paper/market-replay':'GET','/api/cloud-paper/live-minute-status':'GET','/api/cloud-paper/forward-x-journal':'GET','/api/cloud-paper/strategy-journal':'GET','/api/cloud-paper/top-volume-history':'GET','/api/cloud-paper/nifty-opening':'GET','/api/cloud-paper/nse-eod-top':'GET','/api/cloud-paper/nifty-source-check':'GET','/api/cloud-paper/nifty-ohlc-check':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/etf-source-check':'GET','/api/cloud-paper/etf-daily':'GET','/api/cloud-paper/etf-raw-research':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/quotes':'POST'};
  if(!Object.hasOwn(actions,path))return reply({error:'NOT_FOUND'},404);
  if(path.endsWith('/session')){
   if(!['GET','POST','DELETE'].includes(req.method))return reply({error:'METHOD_NOT_ALLOWED'},405);
@@ -394,7 +394,8 @@ export default {
  const allowed=path.endsWith('/quotes')?authorized(req,env.FEED_TOKEN):
   authorized(req,env.OWNER_TOKEN)||await ownerSessionValid(req,env.OWNER_TOKEN,now);
  if(!allowed)return reply({error:'UNAUTHORIZED'},401);
- try {if(path.endsWith('/state'))return reply(await overview(env.DB,now));
+ try {if(path.endsWith('/home-market'))return reply(await homeMarketQuotes(env,now));
+ if(path.endsWith('/state'))return reply(await overview(env.DB,now));
  if(path.endsWith('/daybook'))return reply(await daybook(env.DB,new URL(req.url).searchParams.get('day')||ist(now).day,now));
  if(path.endsWith('/data-availability'))return reply(await dataAvailability(env));
  if(path.endsWith('/market-replay')){const q=new URL(req.url).searchParams;return reply(await readMarketReplay(env,{day:q.get('day'),symbol:q.get('symbol')}));}

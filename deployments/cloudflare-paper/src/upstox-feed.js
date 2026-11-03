@@ -89,6 +89,39 @@ async function quotes(fetcher,token,keys,receiptClock=()=>Date.now()){
  if(data?.status!=='success')fail('official quote response not successful');
  return {data,receivedAt:receiptClock()};
 }
+// A small owner-only home ticker. It never submits orders or treats an old
+// provider quote as a live price. ETF prices are labeled as ETFs, not metal spot.
+export async function homeMarketQuotes(env,now=Date.now(),fetcher=fetch){
+ const instruments=[
+  {symbol:'NIFTY 50',key:'NSE_INDEX|Nifty 50',kind:'INDEX'},
+  {symbol:'SENSEX',key:'BSE_INDEX|SENSEX',kind:'INDEX'},
+  {symbol:'GOLDBEES',key:'NSE_EQ|INF204KB17I5',kind:'GOLD_ETF'},
+  {symbol:'SILVERBEES',key:'NSE_EQ|INF204KC1402',kind:'SILVER_ETF'},
+  {symbol:'RELIANCE',key:'NSE_EQ|INE002A01018',kind:'STOCK'},
+  {symbol:'HDFCBANK',key:'NSE_EQ|INE040A01034',kind:'STOCK'},
+  {symbol:'TCS',key:'NSE_EQ|INE467B01029',kind:'STOCK'}
+ ];
+ if(env.UPSTOX_FEED_ENABLED!=='true'||typeof env.UPSTOX_ANALYTICS_TOKEN!=='string'||env.UPSTOX_ANALYTICS_TOKEN.length<100)
+  fail('read-only quote feed unavailable');
+ const {data,receivedAt}=await quotes(fetcher,env.UPSTOX_ANALYTICS_TOKEN,instruments.map(x=>x.key),()=>now);
+ const fmt=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+ const parts=Object.fromEntries(fmt.formatToParts(new Date(now)).map(x=>[x.type,x.value]));
+ const minute=Number(parts.hour)*60+Number(parts.minute),marketOpen=!['Sat','Sun'].includes(parts.weekday)&&minute>=555&&minute<930;
+ const items=instruments.map(item=>{
+  const q=Object.values(data.data||{}).find(v=>v?.instrument_token===item.key);
+  const price=Number(q?.last_price),previous=Number(q?.prev_close_price);
+  const parsed=q?.last_trade_time==null?NaN:Number(q.last_trade_time);
+  const sourceAt=q?.last_trade_time==null?Date.parse(q?.timestamp||''):
+   Number.isFinite(parsed)&&parsed>1e12?parsed:NaN;
+  const valid=Number.isFinite(price)&&price>0&&Number.isFinite(sourceAt)&&sourceAt<=receivedAt+2000&&receivedAt-sourceAt<7*86400000;
+  const fresh=valid&&marketOpen&&receivedAt-sourceAt<=90000;
+  return {symbol:item.symbol,kind:item.kind,instrumentKey:item.key,
+   price:valid?price:null,previousClose:Number.isFinite(previous)&&previous>0?previous:null,
+   sourceAt:valid?new Date(sourceAt).toISOString():null,status:!valid?'UNAVAILABLE':fresh?'RECENT_QUOTE':marketOpen?'STALE_QUOTE':'MARKET_CLOSED'};
+ });
+ return {schema:'atlas.home-market.v1',mode:'PAPER_ONLY',realOrdersEnabled:false,
+  receivedAt:new Date(receivedAt).toISOString(),source:'UPSTOX_ANALYTICS_READONLY_V3',quotes:items};
+}
 export async function collectMisSnapshot(env,now=Date.now(),fetcher=fetch,receiptClock=()=>Date.now()){
  const token=env.UPSTOX_ANALYTICS_TOKEN;
  if(env.UPSTOX_FEED_ENABLED!=='true'||!token||token.length<100||!env.FEED_SOURCE_ID)fail('read-only live feed not explicitly enabled');

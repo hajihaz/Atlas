@@ -129,6 +129,7 @@ export default function CloudPaperPage({initialToken='',setOwnerToken,ownerConne
    <strong>PAPER ONLY · ZERO BROKER ORDERS</strong>
    <p>Automatic simulated fills require fresh, source-timestamped NSE quotes and an authenticated server. Missed schedules are skipped, never backfilled. No fabricated profits.</p>
   </div></div>
+  <div className="panel atlas-schedule-explain"><strong>What does “Scheduled Orders” do?</strong><p>Choose a stock, buy or sell, and either a time or a price level. Atlas stores the instruction in the cloud and checks it without your phone or Mac. If a fresh market quote satisfies the rule, Atlas records a <em>virtual</em> fill; if data is missing or the time passes, it records a skip. This page does not place an Upstox broker order.</p></div>
   {statusChecking?<div className="panel cloud-paper-unavailable" role="status"><Cloud size={30}/><h2>Checking cloud paper desk…</h2></div>:
   !configured?<div className="panel cloud-paper-unavailable"><Cloud size={30}/><h2>{backendConnected?'Cloud worker hosted — private activation pending':'Cloud worker not connected to this deployment'}</h2>
    <p>Infrastructure and verified NSE market-data access must be configured. This public dashboard does not pretend to execute unattended orders.</p>
