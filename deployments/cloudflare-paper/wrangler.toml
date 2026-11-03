@@ -24,7 +24,7 @@ FEED_SOURCE_ID = "UPSTOX_ANALYTICS_READONLY_V3"
 UPSTOX_FEED_ENABLED = "true"
 
 [triggers]
-crons = ["* * * * *", "12-31 4 * * 1-5", "0-9 11,12,13 * * 1-5", "0-6 2,3 * * 1-5"]
+crons = ["* * * * *", "1-56/5 4-9 * * 1-5", "0-9 11,12,13 * * 1-5", "0-6 2,3 * * 1-5"]
 
 # Keep free Worker invocation logs across Wrangler deployments.
 [observability.logs]

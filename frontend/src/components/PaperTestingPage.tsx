@@ -11,6 +11,10 @@ type State={mode:string;realOrdersEnabled:boolean;strategy_enabled:boolean;strat
 type Replay={status:string;sourceDate:string;symbol:string;sourceSha256:string;sourceKnownAt:string;minuteBars:number;required:string[];
  result:null|{status:string;fills:unknown[];realizedPaise:null;signal:{status:string;side?:string;reason?:string;nextOpenTime?:number}}};
 type TopVolume={sourceDate:string;stocks:{rank:number;symbol:string;archived:boolean}[]};
+type ForwardX={schema:string;sourceDate:string;mode:string;realOrdersEnabled:boolean;
+ runs:{window_end_ms:number;status:string;reason:string}[];
+ summary:Record<string,number>;
+ decisions:{window_end_ms:number;symbol:string;status:string;side:string|null;reason:string}[]};
 const COHORT=['AXISBANK','BHARTIARTL','HDFCBANK','ICICIBANK','INFY','ITC','NHPC','RELIANCE','SBIN','TCS'];
 const inr=(n:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}).format(n);
 export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnected,setOwnerConnected,goMarket,goReplay,goSchedule}:{
@@ -25,6 +29,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
  const [sampleDay,setSampleDay]=useState('');
  const [sampleSymbol,setSampleSymbol]=useState('RELIANCE');
  const [topVolume,setTopVolume]=useState<TopVolume|null>(null);
+ const [forwardX,setForwardX]=useState<ForwardX|null>(null);
  const [replay,setReplay]=useState<Replay|null>(null);
  const [replayError,setReplayError]=useState('');
  const replaySerial=useRef(0);
@@ -94,6 +99,17 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
   return ()=>{active=false;};
  },[sampleDay,ownerConnected]);
  useEffect(()=>{if(ownerConnected&&!catalog)void refresh();},[ownerConnected]);
+ useEffect(()=>{
+  setForwardX(null);
+  const day=availability?.full_0940.dates[0]?.day;
+  if(!ownerConnected||selected!=='scalpstorm_x'||!day)return;
+  let active=true;
+  cloudPaperRequest<ForwardX>('','forward-x-journal',{day}).then(value=>{
+   if(active&&value.schema==='atlas.forward-x-journal.v1'&&value.mode==='PAPER_ONLY'&&
+    value.realOrdersEnabled===false&&value.sourceDate===day)setForwardX(value);
+  }).catch(()=>{});
+  return ()=>{active=false;};
+ },[ownerConnected,selected,availability]);
  return <section className="atlas-paper-home">
   <div className="sub-page-header"><div className="breadcrumb">ATLAS / PAPER TRADING</div>
    <h1>Test seven strategies<span className="period">.</span></h1>
@@ -139,6 +155,12 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
     <div className="atlas-result-line"><span>Forward paper fills</span><strong>{account?account.paperFills:'Not verified'}</strong></div>
     <div className="atlas-result-line"><span>Virtual cash</span><strong>{account?inr(account.cashINR):'Not available'}</strong></div>
     <div className="atlas-result-line"><span>Realized paper P&amp;L</span><strong>{account?inr(account.realizedPnlINR):'Not available'}</strong></div>
+    {selected==='scalpstorm_x'&&<div className="atlas-rule-evidence"><h3>Live cloud decisions</h3>
+     <p>{forwardX?`${forwardX.sourceDate}: ${forwardX.runs.filter(x=>x.status==='EVALUATED').length} five-minute checks, ${forwardX.summary.SIGNAL??0} signals, ${forwardX.runs.filter(x=>x.status==='SKIPPED').length} skipped checks. These are signals, not paper fills.`:'No verified live decision journal yet. Atlas will show the next open session here.'}</p>
+     {forwardX&&forwardX.decisions.length>0&&<details><summary>Show recent stock decisions</summary>
+      <div className="atlas-data-dates">{forwardX.decisions.slice(0,20).map((x,i)=><div key={`${x.window_end_ms}-${x.symbol}-${i}`}><strong>{x.symbol} · {x.status.replaceAll('_',' ')}</strong><span>{new Date(x.window_end_ms+60000).toLocaleTimeString('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit'})} IST · {x.side?`${x.side} · `:''}{x.reason.replaceAll('_',' ').toLowerCase()}</span></div>)}</div>
+     </details>}
+    </div>}
     <div className="atlas-rule-evidence"><h3>Historical evidence</h3><p>{rule.cadence==='Intraday'?`${availability?.minute.days??0} dated minute sessions available. Full top-volume history begins only on dates with a verified 09:40 roster and matching after-close stock bars.`:`${availability?.daily.days??0} ten-stock daily sample dates available. Required adjusted ETF history is missing.`}</p>
      {rule.cadence==='Intraday'&&<div className="atlas-replay-controls"><label>Session<select value={sampleDay} onChange={e=>setSampleDay(e.target.value)}>{availability?.minute.dates.map(x=><option key={x.day} value={x.day}>{x.day} · {x.symbols} stocks</option>)}</select></label>
       <label>Stock<select value={sampleSymbol} onChange={e=>setSampleSymbol(e.target.value)}>{topVolume?.stocks.map(x=><option key={x.symbol} value={x.symbol}>{x.rank}. {x.symbol} · {x.archived?'archived':'pending'}</option>)}

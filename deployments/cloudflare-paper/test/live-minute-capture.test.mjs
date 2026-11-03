@@ -48,7 +48,7 @@ test('cloud capture stores one immutable receipt and verifies rerun without fetc
 
 test('separate opening seed archives only the completed 09:15–09:39 bars',async()=>{
  const slot=Date.parse(day+'T04:12:00Z');let seed=null,gets=0;
- const compact=top.map(x=>({symbol:x.symbol,instrument_key:x.instrument_key,volume:x.cumulative_volume}));
+ const compact=top.map(x=>({symbol:x.symbol,instrument_key:x.instrument_key,volume:x.cumulative_volume,eligibleCount:x.captured}));
  const json=JSON.stringify(compact);
  const sha=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(json)))).map(x=>x.toString(16).padStart(2,'0')).join('');
  const roster={known_at_ms:Date.parse(day+'T04:10:00Z'),roster_sha256:sha,roster_json:json};

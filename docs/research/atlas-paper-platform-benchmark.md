@@ -28,3 +28,7 @@ Public product behavior only. No proprietary code, private APIs, or copied inter
 4. Expose a concise per-strategy evidence page: rule version, source dates, decisions, pending orders, fills, fees, P/L and reasons. Backtest and forward paper results remain separate.
 
 Atlas must stay paper-only on Cloudflare Free, with zero paid services and no real broker order route. A backtest or retrospective signal never becomes a forward fill.
+
+## Implemented on 3 November
+
+The private cloud now records completed top-ten minute OHLCV, ten opening-range seeds, and prospective ScalpStorm X decisions from completed five-minute bars. The dashboard shows their date counts and the X decision journal. It is deployed after market close, so the next open session must validate actual receipts, skip reasons, Cron CPU and quote timing. These decisions do not submit or settle paper orders; seven accounts still have zero fills. The remaining six rules need their own qualified input and execution paths.

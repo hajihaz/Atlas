@@ -29,3 +29,22 @@ CREATE TABLE IF NOT EXISTS live_opening_seed (
  bars_json TEXT NOT NULL,
  PRIMARY KEY (source_date, instrument_key)
 );
+CREATE TABLE IF NOT EXISTS live_x_runs (
+ source_date TEXT NOT NULL,
+ window_end_ms INTEGER NOT NULL,
+ completed_ms INTEGER NOT NULL,
+ status TEXT NOT NULL CHECK(status IN ('EVALUATED','SKIPPED')),
+ reason TEXT NOT NULL,
+ PRIMARY KEY (source_date, window_end_ms)
+);
+CREATE TABLE IF NOT EXISTS live_x_decisions (
+ source_date TEXT NOT NULL,
+ window_end_ms INTEGER NOT NULL,
+ symbol TEXT NOT NULL,
+ instrument_key TEXT NOT NULL,
+ status TEXT NOT NULL CHECK(status IN ('SIGNAL','NO_TRADE')),
+ side TEXT,
+ reason TEXT NOT NULL,
+ decision_json TEXT NOT NULL,
+ PRIMARY KEY (source_date, window_end_ms, symbol)
+);

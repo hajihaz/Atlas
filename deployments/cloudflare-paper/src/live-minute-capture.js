@@ -32,7 +32,7 @@ async function readTopRoster(env,day,now){
  let saved=await db.prepare('SELECT known_at_ms,roster_sha256,roster_json FROM live_top_roster WHERE source_date=?').bind(day).first();
  if(!saved){
   const top=await topVolumeRoster(env,day);
-  const compact=top.map(x=>({symbol:x.symbol,instrument_key:x.instrument_key,volume:x.cumulative_volume}));
+  const compact=top.map(x=>({symbol:x.symbol,instrument_key:x.instrument_key,volume:x.cumulative_volume,eligibleCount:x.captured}));
   const json=JSON.stringify(compact),sha=await digest(new TextEncoder().encode(json));
   await db.prepare('INSERT OR IGNORE INTO live_top_roster(source_date,known_at_ms,roster_sha256,roster_json) VALUES(?,?,?,?)')
    .bind(day,Math.max(...top.map(x=>x.observed_ms)),sha,json).run();
@@ -45,7 +45,7 @@ async function readTopRoster(env,day,now){
  if(!Array.isArray(top)||top.length!==10||new Set(top.map(x=>x.symbol)).size!==10||
   new Set(top.map(x=>x.instrument_key)).size!==10||top.some(x=>
    !/^[A-Z][A-Z0-9]{0,19}$/.test(x.symbol)||!/^NSE_EQ\|[A-Z0-9]{8,20}$/.test(x.instrument_key)||
-   !Number.isSafeInteger(x.volume)||x.volume<0))fail('stored roster identity invalid');
+   !Number.isSafeInteger(x.volume)||x.volume<0||!Number.isSafeInteger(x.eligibleCount)||x.eligibleCount<500))fail('stored roster identity invalid');
  return top;
 }
 
