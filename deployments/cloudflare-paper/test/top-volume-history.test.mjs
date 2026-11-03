@@ -49,6 +49,9 @@ test('missing identity, incomplete source and incomplete session fail closed',as
  f.main.prepare("UPDATE entry_snapshots SET instrument_key=NULL WHERE symbol='TST0499'").run();
  await assert.rejects(archiveTopVolumeStep(f.env,slot,async()=>{throw Error('provider called')},()=>slot+60000),/unqualified 0940 identity/);
  f.main.prepare("UPDATE entry_snapshots SET instrument_key='NSE_EQ|INE000000499' WHERE symbol='TST0499'").run();
+ f.main.prepare("UPDATE entry_snapshots SET instrument_key=NULL WHERE symbol='TST0000'").run();
+ await assert.rejects(topVolumeRoster(f.env,day),/incomplete or unqualified/);
+ f.main.prepare("UPDATE entry_snapshots SET instrument_key='NSE_EQ|INE000000000' WHERE symbol='TST0000'").run();
  f.main.prepare("DELETE FROM entry_snapshots WHERE symbol='TST0010'").run();
  await assert.rejects(topVolumeRoster(f.env,day),/incomplete or unqualified/);
  f.main.prepare('INSERT INTO entry_snapshots(session,symbol,price_paise,cumulative_volume,observed_ms,source,instrument_key) VALUES(?,?,?,?,?,?,?)').run(day,'TST0010',10010,100010,at,'UPSTOX_ANALYTICS_READONLY_V3','NSE_EQ|INE000000010');

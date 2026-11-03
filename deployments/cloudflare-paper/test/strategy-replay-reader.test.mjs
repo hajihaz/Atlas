@@ -43,9 +43,9 @@ test('private market playback returns only validated dated candles',async()=>{
 });
 test('complete top-volume, Nifty and minute receipts yield an honest retrospective signal',async()=>{
  const observed=Date.parse(DAY+'T04:10:05Z'),stock=fixture(),key='NSE_EQ|INE002A01018';
- const top=[{symbol:'RELIANCE',instrument_key:key,cumulative_volume:50000,observed_ms:observed,source:'UPSTOX_ANALYTICS_READONLY_V3',captured:500},
+ const top=[{symbol:'RELIANCE',instrument_key:key,cumulative_volume:50000,observed_ms:observed,source:'UPSTOX_ANALYTICS_READONLY_V3',captured:500,keyed:500,distinct_keys:500},
   ...Array.from({length:9},(_,i)=>({symbol:'TEST'+i,instrument_key:`NSE_EQ|INE${String(i).padStart(9,'0')}`,
-   cumulative_volume:40000-i,observed_ms:observed,source:'UPSTOX_ANALYTICS_READONLY_V3',captured:500}))];
+   cumulative_volume:40000-i,observed_ms:observed,source:'UPSTOX_ANALYTICS_READONLY_V3',captured:500,keyed:500,distinct_keys:500}))];
  const nifty=[['09:15',DAY+'T03:46:10Z',Date.parse(DAY+'T03:45:00Z'),100],
   ['09:29',DAY+'T04:00:10Z',Date.parse(DAY+'T03:59:00Z'),100.3]].map(([target,known,time,price])=>{
    const body=JSON.stringify({status:'success',data:{'NSE_INDEX:Nifty 50':{instrument_token:'NSE_INDEX|Nifty 50',

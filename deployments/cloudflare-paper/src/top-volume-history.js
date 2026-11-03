@@ -11,11 +11,17 @@ export async function topVolumeRoster(env,day){
  if(!validDay(day)||!env.DB)fail('invalid date or archive');
  const c=await env.DB.prepare('SELECT eligible_count,observed_ms,source FROM coverage WHERE session=?').bind(day).first();
  if(!c||c.eligible_count<500||c.source!=='UPSTOX_ANALYTICS_READONLY_V3')fail('complete live 0940 coverage missing');
- const result=await env.DB.prepare(`SELECT symbol,instrument_key,cumulative_volume,observed_ms,source,
- (SELECT COUNT(*) FROM entry_snapshots WHERE session=?) AS captured
- FROM entry_snapshots WHERE session=? ORDER BY cumulative_volume DESC,symbol ASC LIMIT 10`).bind(day,day).all();
+ const result=await env.DB.prepare(`WITH proof AS (
+  SELECT COUNT(*) AS captured,COUNT(instrument_key) AS keyed,
+   COUNT(DISTINCT instrument_key) AS distinct_keys
+  FROM entry_snapshots WHERE session=?
+ ) SELECT s.symbol,s.instrument_key,s.cumulative_volume,s.observed_ms,s.source,
+  proof.captured,proof.keyed,proof.distinct_keys
+ FROM entry_snapshots s CROSS JOIN proof WHERE s.session=?
+ ORDER BY s.cumulative_volume DESC,s.symbol ASC LIMIT 10`).bind(day,day).all();
  const top=result.results;
- if(top.length!==10||top[0].captured!==c.eligible_count||top.some(x=>x.source!==c.source||!KEY.test(x.instrument_key)||x.observed_ms>c.observed_ms+2000||c.observed_ms-x.observed_ms>8000))fail('incomplete or unqualified 0940 identity');
+ if(top.length!==10||top[0].captured!==c.eligible_count||top[0].keyed!==c.eligible_count||
+  top[0].distinct_keys!==c.eligible_count||top.some(x=>x.source!==c.source||!KEY.test(x.instrument_key)||x.observed_ms>c.observed_ms+2000||c.observed_ms-x.observed_ms>8000))fail('incomplete or unqualified 0940 identity');
  if(new Set(top.map(x=>x.instrument_key)).size!==10)fail('duplicate 0940 top instrument');
  return top;
 }
