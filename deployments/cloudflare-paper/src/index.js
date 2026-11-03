@@ -55,7 +55,7 @@ async function daybook(db,day,now){
   !Number.isFinite(Date.parse(day+'T00:00:00Z'))||new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day)
   throw Error('invalid session date');
  const coverage=await row(db,'SELECT eligible_count,observed_ms,nifty_change_bps,source FROM coverage WHERE session=?',day);
- const count=await row(db,'SELECT COUNT(*) AS n FROM entry_snapshots WHERE session=?',day);
+ const count=await row(db,'SELECT COUNT(*) AS n,COUNT(instrument_key) AS keyed,COUNT(DISTINCT instrument_key) AS distinct_keys FROM entry_snapshots WHERE session=?',day);
  const top=await rows(db,'SELECT symbol,price_paise,cumulative_volume,observed_ms,source FROM entry_snapshots WHERE session=? ORDER BY cumulative_volume DESC,symbol ASC LIMIT 10',day);
  const phases=await rows(db,'SELECT phase,status,reason,completed_ms FROM runs WHERE session=? ORDER BY completed_ms',day);
  const strategyOrders=await rows(db,"SELECT kind,status,COUNT(*) AS count FROM orders WHERE client_key LIKE ? GROUP BY kind,status ORDER BY kind,status",day+'-%');
@@ -63,8 +63,9 @@ async function daybook(db,day,now){
  const positions=await rows(db,'SELECT symbol,qty FROM positions WHERE qty!=0 ORDER BY symbol');
  return {mode:'PAPER_ONLY',realOrdersEnabled:false,session:day,
   coverage:coverage?{...coverage,received_at:dateStr(coverage.observed_ms)}:null,
-  entry_snapshot_count:count?.n||0,
-  complete_0940_snapshot:Boolean(coverage&&count?.n===coverage.eligible_count&&count.n>=500),
+  entry_snapshot_count:count?.n||0,keyed_snapshot_count:count?.keyed||0,
+  complete_0940_snapshot:Boolean(coverage&&count?.n===coverage.eligible_count&&count.n>=500&&
+   count.keyed===count.n&&count.distinct_keys===count.n),
   top_volume:top.map(q=>({...q,received_at:dateStr(q.observed_ms)})),
   phases:phases.map(p=>({...p,completed_at:dateStr(p.completed_ms)})),
   strategy_orders:strategyOrders,
@@ -77,7 +78,7 @@ async function dataAvailability(env){
   rows(history,'SELECT source_date AS day,COUNT(*) AS symbols,MIN(candle_count) AS min_bars,MAX(candle_count) AS max_bars FROM history_samples GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
   rows(history,'SELECT source_date AS day,COUNT(*) AS symbols,MIN(candle_count) AS min_bars,MAX(candle_count) AS max_bars FROM daily_history_samples GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
   rows(history,'SELECT source_date AS day,COUNT(*) AS files FROM nse_reference_receipts GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
-  rows(env.DB,'SELECT c.session AS day,c.eligible_count AS eligible,COUNT(s.symbol) AS captured FROM coverage c LEFT JOIN entry_snapshots s ON s.session=c.session GROUP BY c.session ORDER BY c.session DESC LIMIT 90'),
+  rows(env.DB,'SELECT c.session AS day,c.eligible_count AS eligible,COUNT(s.symbol) AS captured,COUNT(s.instrument_key) AS keyed FROM coverage c LEFT JOIN entry_snapshots s ON s.session=c.session GROUP BY c.session ORDER BY c.session DESC LIMIT 90'),
   rows(history,'SELECT source_date AS day,COUNT(*) AS bars FROM nifty_open_ohlc_receipts GROUP BY source_date ORDER BY source_date DESC LIMIT 90')
  ]);
  return {mode:'PAPER_ONLY',realOrdersEnabled:false,as_of:new Date().toISOString(),
@@ -296,6 +297,16 @@ async function sourceTick(env,now=Date.now(),collectFull=collectMisSnapshot,coll
   const full=await collectFull(env,now);
   await ingest(d,full,clock(),env.FEED_SOURCE_ID);
   return {sourceEnabled:true,quotes:full.quotes.length,kind:'FULL_MIS'};
+ }
+ // Audit the committed identity in a separate minute, keeping the expensive
+ // 09:40 full-universe invocation inside its existing Free CPU budget.
+ if(t.minute===581){
+  const coverage=await row(d,'SELECT eligible_count FROM coverage WHERE session=?',t.day);
+  if(coverage){
+   const persisted=await row(d,'SELECT COUNT(*) AS n,COUNT(instrument_key) AS keyed,COUNT(DISTINCT instrument_key) AS distinct_keys FROM entry_snapshots WHERE session=?',t.day);
+   if(persisted?.n!==coverage.eligible_count||persisted.keyed!==persisted.n||persisted.distinct_keys!==persisted.n)
+    throw Error('full-universe persisted instrument identity mismatch');
+  }
  }
  // During the remainder of a session request only watched positions and
  // orders coming due soon (<=30), keeping D1 Free writes well below quota.

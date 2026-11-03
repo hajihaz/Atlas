@@ -61,6 +61,26 @@ test('strategy disabled still archives the full MIS roster without an entry',asy
  assert.equal(f.sql.prepare('SELECT COUNT(*) AS n FROM orders').get().n,0);
 });
 
+test('daybook refuses a counted but keyless 09:40 snapshot',async()=>{
+ const f=fixture();
+ await testing.sourceTick(f.env,now,async()=>f.full,undefined,()=>now);
+ f.sql.prepare("UPDATE entry_snapshots SET instrument_key=NULL WHERE symbol='MIS1356'").run();
+ const report=await testing.daybook(f.db,'2026-10-27',now);
+ assert.equal(report.entry_snapshot_count,1357);
+ assert.equal(report.keyed_snapshot_count,1356);
+ assert.equal(report.complete_0940_snapshot,false);
+});
+
+test('next-minute cloud audit detects a persisted key loss',async()=>{
+ const f=fixture();
+ await testing.sourceTick(f.env,now,async()=>f.full,undefined,()=>now);
+ f.sql.prepare("UPDATE entry_snapshots SET instrument_key=NULL WHERE symbol='MIS1356'").run();
+ const after=now+60_000;
+ await assert.rejects(testing.sourceTick(f.env,after,async()=>{throw Error('full source must not repeat')},undefined,()=>after),
+  /persisted instrument identity mismatch/);
+ assert.equal(f.sql.prepare('SELECT COUNT(*) AS n FROM entry_snapshots').get().n,1357);
+});
+
 
 test('feed diagnostics expose only internal, bounded reason codes',()=>{
  const known=new Error('UPSTOX_COLLECTOR_BLOCKED: official provider HTTP 401');
