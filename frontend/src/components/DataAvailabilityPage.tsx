@@ -20,7 +20,7 @@ export default function DataAvailabilityPage({ownerConnected,goPaper}:{ownerConn
  const [data,setData]=useState<Availability|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [eodTop,setEodTop]=useState<EodTop|null>(null),[eodBusy,setEodBusy]=useState(false),[eodError,setEodError]=useState('');
  async function refresh(){
-  if(!ownerConnected){setError('Connect on the Paper Trading page first.');return;}
+  if(!ownerConnected){setError('Restore owner access from Paper Trading to view your private archive.');return;}
   setBusy(true);setError('');
   try{const result=await cloudPaperRequest<Availability>('','data-availability');
    if(result.mode!=='PAPER_ONLY'||result.realOrdersEnabled!==false)throw Error('Invalid cloud data response');
@@ -41,8 +41,8 @@ export default function DataAvailabilityPage({ownerConnected,goPaper}:{ownerConn
  const completeSampleBars=completeSampleDays*3750;
  return <section className="atlas-data-page"><div className="sub-page-header"><div className="breadcrumb">ATLAS / DATA</div><h1>Available market data<span className="period">.</span></h1>
   <p>Counted from private cloud receipts. Historical samples, daily files and 9:40 universes are separate evidence.</p></div>
-  <div className="panel atlas-owner-connect"><div><h2>Private data inventory</h2><p>Choose a category below to see every captured date and its coverage.</p></div>
-   <div className="atlas-owner-row">{!ownerConnected&&<button type="button" className="secondary-button" onClick={goPaper}>Connect private account</button>}
+  <div className="panel atlas-owner-connect"><div><h2>Captured dates</h2><p>Open a category below to inspect its dates and coverage.</p></div>
+   <div className="atlas-owner-row">{!ownerConnected&&<button type="button" className="secondary-button" onClick={goPaper}>Restore owner view</button>}
     <button type="button" className="primary-button" disabled={busy||!ownerConnected} onClick={()=>void refresh()}><RefreshCcw size={16}/> Refresh</button></div>
    {error&&<p className="atlas-simple-error" role="alert">{error}</p>}</div>
   {data&&<><div className="panel atlas-data-detail"><h2>{completeSampleDays} complete sample days · {completeSampleBars.toLocaleString('en-IN')} one-minute bars</h2>

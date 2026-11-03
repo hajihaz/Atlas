@@ -18,8 +18,8 @@ type RawEtfResult={strategyId:string;status:string;sourceFirstDay:string;sourceL
 type RawEtfReport={status:string;schema?:string;sourceDay:string;evidenceClass?:string;realOrdersEnabled:boolean;results?:RawEtfResult[]};
 const COHORT=['AXISBANK','BHARTIARTL','HDFCBANK','ICICIBANK','INFY','ITC','NHPC','RELIANCE','SBIN','TCS'];
 const inr=(n:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}).format(n);
-export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnected,setOwnerConnected,goMarket,goReplay,goSchedule}:{
- ownerToken:string;setOwnerToken:(v:string)=>void;ownerConnected:boolean;setOwnerConnected:(v:boolean)=>void;goMarket:()=>void;goReplay:()=>void;goSchedule:()=>void;
+export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnected,setOwnerConnected,goMarket,goData,goReplay,goSchedule}:{
+ ownerToken:string;setOwnerToken:(v:string)=>void;ownerConnected:boolean;setOwnerConnected:(v:boolean)=>void;goMarket:()=>void;goData:()=>void;goReplay:()=>void;goSchedule:()=>void;
 }){
  const [selected,setSelected]=useState(ATLAS_RULES[0].id);
  const [status,setStatus]=useState<CloudStatus|null>(null);
@@ -142,30 +142,32 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
    <strong>Paper only · real broker orders disabled</strong>
    <p>The cloud can run while your Mac and phone are off. Each strategy needs its own verified feed and forward paper test before Atlas can call it automatic.</p>
   </div></div>
+  <div className="atlas-simple-actions" aria-label="Start with Atlas">
+   <button className="primary-button" type="button" onClick={()=>document.getElementById('atlas-strategy-detail')?.scrollIntoView({behavior:'smooth',block:'start'})}>Explore seven strategies <ArrowRight size={16}/></button>
+   <button className="secondary-button" type="button" onClick={goReplay}>Replay market history <ArrowRight size={16}/></button>
+   <button className="secondary-button" type="button" onClick={goData}>See captured dates <ArrowRight size={16}/></button>
+  </div>
   <div className="atlas-simple-grid">
-   <div className="panel atlas-simple-card"><small>Cloud service</small><strong>{status?.configured?'Connected':status?.backendConnected?'Hosted · setup incomplete':'Unavailable'}</strong>
+   <div className="panel atlas-simple-card"><small>Cloud service</small><strong>{status===null?'Checking cloud…':status.configured?'Connected':status.backendConnected?'Hosted · setup incomplete':'Unavailable'}</strong>
     <span>{status?.feedSourceConfigured?'Upstox read-only feed configured':'Market feed not verified here'}</span></div>
    <div className="panel atlas-simple-card"><small>New strategy set</small><strong>7 defined</strong><span>5 intraday · 1 swing · 1 monthly</span></div>
-   <div className="panel atlas-simple-card"><small>Automatic paper testing</small><strong>{catalog?.executionStatus==='X_PAPER_PILOT_ARMED_OTHER_SIX_UNARMED'?'X pilot armed':'Not armed'}</strong><span>Other six rules await qualified feeds and risk tests</span></div>
+   <div className="panel atlas-simple-card"><small>Automatic paper testing</small><strong>{catalog?.executionStatus==='X_PAPER_PILOT_ARMED_OTHER_SIX_UNARMED'?'X pilot armed':ownerConnected?'Checking paper status':'Owner view needed'}</strong><span>Other six rules await qualified feeds and risk tests</span></div>
   </div>
   <div className="panel atlas-data-home"><Database size={20}/><div><strong>Available market data</strong><p>{availability?`${availability.live_minute.days} live minute dates · ${availability.opening_seed.days} opening-range dates · ${availability.minute.days} completed minute dates · ${availability.daily.days} daily-stock dates · ${availability.etf_raw.days} raw ETF history dates · ${availability.nse_reference.days} NSE reference dates · ${availability.full_0940.days} 9:40 dates`:'Connect to see exact cloud archive counts.'}</p></div><a href="#data">See every date</a></div>
-  <div className="panel atlas-owner-connect">
-   <div><h2>Private paper results</h2><p>{ownerConnected?'Connected securely. This browser will reconnect on return.':'Enter your owner token once. Atlas keeps a protected browser session; the token is not saved in browser storage.'}</p></div>
-   <div className="atlas-owner-row">{!ownerConnected&&<><label htmlFor="atlas-owner-token">Owner token</label>
-    <input id="atlas-owner-token" type="password" autoComplete="off" value={ownerToken} onChange={e=>setOwnerToken(e.target.value)} placeholder="Private owner token"/></>}
-    <button className="primary-button" type="button" disabled={busy||(!ownerConnected&&ownerToken.length<32)} onClick={()=>void refresh()}><RefreshCcw size={16}/>{ownerConnected?'Refresh':'Connect'}</button>
-    {ownerConnected&&<button type="button" className="secondary-button" onClick={()=>{void ownerSession('DELETE').then(()=>{setOwnerConnected(false);setOwnerToken('');setCatalog(null);setState(null);setAccounts(null);setAvailability(null);}).catch(()=>setError('Unable to disconnect. Try again.'));}}>Disconnect</button>}
-   </div>
-   {error&&<p role="alert" className="atlas-simple-error">{error}</p>}
-   {accountNotice&&<p role="status" className="atlas-simple-note">{accountNotice}</p>}
-  </div>
+  {ownerConnected?<div className="atlas-owner-tools"><span>Owner view connected</span><button className="secondary-button" type="button" disabled={busy} onClick={()=>void refresh()}><RefreshCcw size={16}/> Refresh results</button></div>:
+   <div className="panel atlas-owner-connect"><h2>Owner view is locked in this browser</h2><p>Atlas cloud jobs keep running. Restore browser access once to see private results and schedule paper orders.</p>
+    <details><summary>Restore owner access</summary><div className="atlas-owner-row"><label htmlFor="atlas-owner-token">Recovery key</label>
+     <input id="atlas-owner-token" type="password" autoComplete="off" value={ownerToken} onChange={e=>setOwnerToken(e.target.value)} placeholder="Owner recovery key"/>
+     <button className="primary-button" type="button" disabled={busy||ownerToken.length<32} onClick={()=>void refresh()}>Restore</button></div></details>
+    {error&&<p role="alert" className="atlas-simple-error">{error}</p>}</div>}
+  {accountNotice&&<p role="status" className="atlas-simple-note">{accountNotice}</p>}
   <div className="atlas-strategy-layout">
    <div className="atlas-strategy-list" aria-label="Seven Atlas strategies">
     {ATLAS_RULES.map(x=><button key={x.id} type="button" aria-pressed={selected===x.id}
-     className={'panel atlas-strategy-button '+(selected===x.id?'selected':'')} onClick={()=>setSelected(x.id)}>
+     className={'panel atlas-strategy-button '+(selected===x.id?'selected':'')} onClick={()=>{setSelected(x.id);document.getElementById('atlas-strategy-detail')?.scrollIntoView({behavior:'smooth',block:'start'});}}>
      <span><strong>{x.name}</strong><small>{x.cadence}</small></span><ArrowRight size={17}/></button>)}
    </div>
-   <article className="panel atlas-strategy-detail">
+   <article id="atlas-strategy-detail" className="panel atlas-strategy-detail">
     <div className="atlas-rule-heading"><div><span className="premium-kicker">{rule.cadence.toUpperCase()} RULE</span><h2>{rule.name}</h2></div>
      <span className="atlas-rule-badge"><LockKeyhole size={13}/> {catalog?.strategies.find(x=>x.id===selected)?.executionStatus==='PAPER_PILOT_ARMED'?'Paper pilot':'Signal only'}</span></div>
     <p className="atlas-rule-summary">{rule.summary}</p>
@@ -192,7 +194,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
        </div>)}</div>}
      </>}
     </div>
-    <div className="atlas-rule-evidence"><h3>Historical evidence</h3><p>{rule.cadence==='Intraday'?`${availability?.minute.days??0} dated minute sessions available. Full top-volume history begins only on dates with a verified 09:40 roster and matching after-close stock bars.`:`${availability?.etf_raw.days??0} dated raw ETF history receipts available. Adjustment and faithful weekly/monthly backtests remain unverified.`}</p>
+    <div id="atlas-history" className="atlas-rule-evidence"><h3>Historical evidence</h3><p>{rule.cadence==='Intraday'?`${availability?.minute.days??0} dated minute sessions available. Full top-volume history begins only on dates with a verified 09:40 roster and matching after-close stock bars.`:`${availability?.etf_raw.days??0} dated raw ETF history receipts available. Adjustment and faithful weekly/monthly backtests remain unverified.`}</p>
      {rule.cadence!=='Intraday'&&<><label>Research date <select value={rawEtfDay} onChange={e=>setRawEtfDay(e.target.value)}>{availability?.etf_raw.dates.map(x=><option key={x.day} value={x.day}>{x.day}</option>)}</select></label>
       {rawEtfError&&<p role="status" className="atlas-simple-note">{rawEtfError}</p>}
       {rawResult&&<div className="atlas-replay-proof"><strong>Raw ETF simulation · {rawResult.sourceFirstDay} to {rawResult.sourceLastDay}</strong>
@@ -207,7 +209,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
      {rule.cadence==='Intraday'&&<div className="atlas-replay-controls"><label>Session<select value={sampleDay} onChange={e=>setSampleDay(e.target.value)}>{availability?.minute.dates.map(x=><option key={x.day} value={x.day}>{x.day} · {x.symbols} stocks</option>)}</select></label>
       <label>Stock<select value={sampleSymbol} onChange={e=>setSampleSymbol(e.target.value)}>{topVolume?.stocks.map(x=><option key={x.symbol} value={x.symbol}>{x.rank}. {x.symbol} · {x.archived?'archived':'pending'}</option>)}
        {COHORT.filter(x=>!topVolume?.stocks.some(v=>v.symbol===x)).map(x=><option key={x} value={x}>{x} · fixed sample</option>)}</select></label>
-      <button type="button" className="secondary-button" disabled={!sampleDay||(!ownerConnected&&ownerToken.length<32)} onClick={()=>void loadReplay()}>Inspect source</button></div>}
+      <button type="button" className="secondary-button" disabled={!sampleDay||!ownerConnected} onClick={()=>void loadReplay()}>Inspect dated result</button></div>}
      {replayError&&<p role="alert" className="atlas-simple-error">{replayError}</p>}
      {replay&&<div className="atlas-replay-proof"><strong>{replay.status.replaceAll('_',' ')}</strong><span>{replay.symbol} · {replay.sourceDate} · {replay.minuteBars} minute bars</span><span>Published {new Date(replay.sourceKnownAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})} IST</span><code title={replay.sourceSha256}>SHA-256 {replay.sourceSha256.slice(0,16)}…</code>
       {replay.result?<p>Source-qualified retrospective {replay.result.signal.status.toLowerCase().replace('_',' ')}{replay.result.signal.side?` · ${replay.result.signal.side}`:''}{replay.result.signal.reason?` · ${replay.result.signal.reason.replaceAll('_',' ').toLowerCase()}`:''}. No paper fill was created.</p>:null}

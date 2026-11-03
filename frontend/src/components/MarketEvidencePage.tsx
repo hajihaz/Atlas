@@ -22,7 +22,7 @@ export default function MarketEvidencePage({ownerConnected,goPaper}:{ownerConnec
  const [error,setError]=useState('');
  useEffect(()=>{setBook(null);},[day]);
  async function refresh(){
-  if(!ownerConnected){setError('Connect your private paper account on the Paper Trading page.');return;}
+  if(!ownerConnected){setError('Restore owner access from Paper Trading to view market evidence.');return;}
   setBusy(true);setError('');
   try{
    const next=await cloudPaperRequest<Daybook>('','daybook',{day});
@@ -42,7 +42,7 @@ export default function MarketEvidencePage({ownerConnected,goPaper}:{ownerConnec
   <div className="panel atlas-evidence-controls"><label htmlFor="atlas-market-day">NSE session</label>
    <input id="atlas-market-day" type="date" value={day} max={todayIST()} onChange={e=>setDay(e.target.value)}/>
    <button className="primary-button" type="button" disabled={busy||!ownerConnected} onClick={()=>void refresh()}><RefreshCcw size={16}/>{busy?'Checking…':'Check cloud receipt'}</button>
-   {!ownerConnected&&<button className="secondary-button" type="button" onClick={goPaper}>Connect owner account <ArrowRight size={16}/></button>}
+   {!ownerConnected&&<button className="secondary-button" type="button" onClick={goPaper}>Restore owner view <ArrowRight size={16}/></button>}
   </div>
   {error&&<div className="panel atlas-simple-error" role="alert">{error}</div>}
   {!book?<div className="panel atlas-evidence-empty" role="status">

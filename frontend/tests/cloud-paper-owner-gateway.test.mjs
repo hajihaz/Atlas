@@ -63,6 +63,31 @@ test('dated NSE history remains private and forwards only its bounded day parame
  }finally{globalThis.fetch=saved;if(old===undefined)delete process.env.ATLAS_PAPER_BACKEND_URL;else process.env.ATLAS_PAPER_BACKEND_URL=old;}
 });
 
+test('strategy journal and raw ETF report are reachable only through owner reads',async()=>{
+ const old=process.env.ATLAS_PAPER_BACKEND_URL,saved=globalThis.fetch;
+ process.env.ATLAS_PAPER_BACKEND_URL='https://paper.example';
+ const seen=[];
+ globalThis.fetch=async(url,opts)=>{
+  seen.push(url);
+  assert.equal(opts.method,'GET');
+  assert.equal(opts.headers.Authorization,'Bearer '+'X'.repeat(64));
+  return {status:200,headers:{get:()=> 'application/json'},json:async()=>({mode:'PAPER_ONLY',realOrdersEnabled:false})};
+ };
+ try{
+  for(const [action,query,expected] of [
+   ['strategy-journal',{day:'2026-11-03',strategy:'scalpstorm_x'},'strategy-journal?day=2026-11-03&strategy=scalpstorm_x'],
+   ['etf-raw-research',{day:'2026-11-02'},'etf-raw-research?day=2026-11-02']]){
+   const denied=reply();await handler({...req(action),query:{action,...query}},denied);
+   assert.equal(denied.statusCode,401);
+   const result=reply();await handler({...req(action,'GET','Bearer '+'X'.repeat(64)),query:{action,...query}},result);
+   assert.equal(result.statusCode,200);
+   assert.equal(seen.at(-1),'https://paper.example/api/cloud-paper/'+expected);
+  }
+  const mutation=reply();await handler(req('etf-raw-research','POST','Bearer '+'X'.repeat(64)),mutation);
+  assert.equal(mutation.statusCode,405);
+ }finally{globalThis.fetch=saved;if(old===undefined)delete process.env.ATLAS_PAPER_BACKEND_URL;else process.env.ATLAS_PAPER_BACKEND_URL=old;}
+});
+
 test('gateway verifies live worker readiness rather than URL alone',async()=>{
  const previous=process.env.ATLAS_PAPER_BACKEND_URL,oldFetch=globalThis.fetch;
  process.env.ATLAS_PAPER_BACKEND_URL='https://paper.example';

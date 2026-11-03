@@ -34,6 +34,7 @@ export default function CloudPaperPage({initialToken='',setOwnerToken,ownerConne
  const [error,setError]=useState('');
  const [configured,setConfigured]=useState(Boolean(CUSTOM_API));
  const [backendConnected,setBackendConnected]=useState(false);
+ const [statusChecking,setStatusChecking]=useState(!CUSTOM_API);
  const request=useCallback(async (path:string,method:'GET'|'POST'='GET',body?:object)=>{
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),12000);
@@ -57,8 +58,8 @@ export default function CloudPaperPage({initialToken='',setOwnerToken,ownerConne
   let current=true;
   fetch('/api/cloud-paper?action=status',{cache:'no-store',credentials:'omit'})
    .then(async r=>r.ok?await r.json():null)
-   .then(data=>{if(current){setConfigured(data?.mode==='PAPER_ONLY' && data?.realOrdersEnabled===false && data?.configured===true);setBackendConnected(data?.backendConnected===true)}})
-   .catch(()=>{if(current)setConfigured(false)});
+   .then(data=>{if(current){setConfigured(data?.mode==='PAPER_ONLY' && data?.realOrdersEnabled===false && data?.configured===true);setBackendConnected(data?.backendConnected===true);setStatusChecking(false)}})
+   .catch(()=>{if(current){setConfigured(false);setStatusChecking(false)}});
   return ()=>{current=false};
  },[]);
  const refresh=useCallback(async ()=>{
@@ -128,14 +129,15 @@ export default function CloudPaperPage({initialToken='',setOwnerToken,ownerConne
    <strong>PAPER ONLY · ZERO BROKER ORDERS</strong>
    <p>Automatic simulated fills require fresh, source-timestamped NSE quotes and an authenticated server. Missed schedules are skipped, never backfilled. No fabricated profits.</p>
   </div></div>
-  {!configured?<div className="panel cloud-paper-unavailable"><Cloud size={30}/><h2>{backendConnected?'Cloud worker hosted — private activation pending':'Cloud worker not connected to this deployment'}</h2>
+  {statusChecking?<div className="panel cloud-paper-unavailable" role="status"><Cloud size={30}/><h2>Checking cloud paper desk…</h2></div>:
+  !configured?<div className="panel cloud-paper-unavailable"><Cloud size={30}/><h2>{backendConnected?'Cloud worker hosted — private activation pending':'Cloud worker not connected to this deployment'}</h2>
    <p>Infrastructure and verified NSE market-data access must be configured. This public dashboard does not pretend to execute unattended orders.</p>
    <span className="cloud-paper-pill">DEPLOYMENT GATE · PRIVATE CLOUD WORKER + VERIFIED NSE FEED</span></div>:
-  !connected?<div className="panel cloud-paper-connect"><LockKeyhole size={26}/><h2>Private paper account</h2>
-   <p>Enter the owner token once. A protected browser session reconnects on return; the token is not saved in browser storage.</p>
-   <form onSubmit={e=>{e.preventDefault();void connect()}}><label htmlFor="cloud-token">Owner access token</label>
-    <input id="cloud-token" type="password" autoComplete="off" minLength={32} required value={token} onChange={e=>setToken(e.target.value)} placeholder="Private owner token"/>
-    <button type="submit" className="primary-button" disabled={loading||token.length<32}>Connect cloud paper desk</button></form></div>:
+  !connected?<div className="panel cloud-paper-connect"><LockKeyhole size={26}/><h2>Owner view is locked in this browser</h2>
+   <p>Cloud schedules keep running. Restore browser access once to view and manage your virtual orders.</p>
+   <details><summary>Restore owner access</summary><form onSubmit={e=>{e.preventDefault();void connect()}}><label htmlFor="cloud-token">Recovery key</label>
+    <input id="cloud-token" type="password" autoComplete="off" minLength={32} required value={token} onChange={e=>setToken(e.target.value)} placeholder="Owner recovery key"/>
+    <button type="submit" className="primary-button" disabled={loading||token.length<32}>Restore owner view</button></form></details></div>:
   <div className="cloud-paper-content">
    <div className="cloud-paper-stats">
     <div className="panel"><small>Virtual cash</small><strong>{state?inr(state.cash_paise):'—'}</strong><span>Auditable integer-paise ledger</span></div>

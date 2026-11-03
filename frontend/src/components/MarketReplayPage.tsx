@@ -72,7 +72,7 @@ export default function MarketReplayPage({ownerConnected,goPaper}:{ownerConnecte
   <p>Play recorded one-minute candles in order. The chart reveals only bars reached by the playhead.</p></div>
   <div className="panel atlas-simple-status"><ShieldCheck size={21}/><div><strong>Private, source-verified history</strong>
    <p>Replay recorded minute bars. Where a complete 09:40 ranking exists, the actual top-volume stocks appear below. Older dates retain the fixed ten-stock sample. This is not a certified seven-strategy backtest.</p></div></div>
-  {!ownerConnected?<div className="panel atlas-replay-empty"><h2>Connect to view private history</h2><p>One owner login gives this browser a protected session.</p><button className="primary-button" onClick={goPaper}>Go to Paper Trading</button></div>:
+  {!ownerConnected?<div className="panel atlas-replay-empty"><h2>History is locked in this browser</h2><p>Restore owner access from Paper Trading. Cloud capture continues meanwhile.</p><button className="primary-button" onClick={goPaper}>Restore owner view</button></div>:
   <><div className="panel atlas-replay-toolbar"><label>Session<select value={day} onChange={e=>setDay(e.target.value)}>{inventory?.minute.dates.map(x=><option key={x.day} value={x.day}>{x.day} · {x.symbols} stocks</option>)}</select></label>
     <label>Stock<select value={symbol} onChange={e=>setSymbol(e.target.value)}>{topVolume?.stocks.map(x=><option key={x.symbol} value={x.symbol}>{x.rank}. {x.symbol} · {x.archived?`${x.minuteBars} bars`:'capture pending'}</option>)}
      {STOCKS.filter(x=>!topVolume?.stocks.some(v=>v.symbol===x)).map(x=><option key={x} value={x}>{x} · fixed sample</option>)}</select></label>

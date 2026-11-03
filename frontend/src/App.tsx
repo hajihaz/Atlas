@@ -35,11 +35,12 @@ export default function App(){
  const [mobileOpen,setMobileOpen]=useState(false);
  const [ownerToken,setOwnerToken]=useState('');
  const [ownerConnected,setOwnerConnected]=useState(false);
+ const [ownerChecking,setOwnerChecking]=useState(true);
  const sessionEpoch=useRef(0);
  function updateOwnerConnected(value:boolean){sessionEpoch.current++;setOwnerConnected(value);}
  useEffect(()=>{
   let active=true;
-  const check=()=>{const epoch=sessionEpoch.current;void ownerSession('GET').then(ok=>{if(active&&epoch===sessionEpoch.current)setOwnerConnected(ok);}).catch(()=>{/* retain state during a temporary network outage */});};
+  const check=()=>{const epoch=sessionEpoch.current;void ownerSession('GET').then(ok=>{if(active&&epoch===sessionEpoch.current)setOwnerConnected(ok);}).catch(()=>{/* retain state during a temporary network outage */}).finally(()=>{if(active)setOwnerChecking(false);});};
   const visible=()=>{if(document.visibilityState==='visible')check();};
   check();
   const timer=setInterval(check,6*60*60*1000);
@@ -83,7 +84,8 @@ export default function App(){
     {mobileOpen&&<button type="button" className="icon-button" aria-label="Close menu" onClick={()=>setMobileOpen(false)}><X size={18}/></button>}
    </div></header>
    <main className="main-content premium-page-view">
-    {page==='paper'?<PaperTestingPage ownerToken={ownerToken} setOwnerToken={setOwnerToken} ownerConnected={ownerConnected} setOwnerConnected={updateOwnerConnected} goMarket={()=>go('markets')} goReplay={()=>go('replay')} goSchedule={()=>go('schedule')}/>:
+    {ownerChecking?<div className="panel" role="status">Opening your Atlas view…</div>:
+     page==='paper'?<PaperTestingPage ownerToken={ownerToken} setOwnerToken={setOwnerToken} ownerConnected={ownerConnected} setOwnerConnected={updateOwnerConnected} goMarket={()=>go('markets')} goData={()=>go('data')} goReplay={()=>go('replay')} goSchedule={()=>go('schedule')}/>:
      page==='markets'?<MarketEvidencePage ownerConnected={ownerConnected} goPaper={()=>go('paper')}/>:
      page==='data'?<DataAvailabilityPage ownerConnected={ownerConnected} goPaper={()=>go('paper')}/>:
      page==='replay'?<MarketReplayPage ownerConnected={ownerConnected} goPaper={()=>go('paper')}/>:

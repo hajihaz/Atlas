@@ -446,6 +446,7 @@ html[data-theme="light"] .live-bidask span{color:#3c6269}
 .cloud-paper-screen h2{font-size:17px}.cloud-paper-unavailable p,.cloud-paper-connect p{font-size:12px;line-height:1.7;color:#95a8af}
 .cloud-paper-pill{font-size:10px;letter-spacing:1px;color:#e4c497}
 .cloud-paper-connect form,.cloud-paper-ticket{display:flex;flex-direction:column;gap:12px;width:100%}
+.cloud-paper-connect details{width:100%}.cloud-paper-connect details summary{cursor:pointer;font-weight:700;margin:.3rem 0 .8rem}
 .cloud-paper-screen label{font-size:11px;color:#a0b8be;font-weight:700}
 .cloud-paper-screen input,.cloud-paper-screen select{padding:12px 13px;min-height:44px;border:1px solid #3b515b;border-radius:9px;background:#182c36;color:#e1f2ee;width:100%;font:inherit;font-size:13px;color-scheme:dark}
 .cloud-paper-screen input:focus-visible,.cloud-paper-screen select:focus-visible{outline:2px solid #94eec4;outline-offset:2px}
@@ -516,6 +517,9 @@ html[data-theme="light"] .live-bidask span{color:#3c6269}
 .atlas-owner-connect{padding:1.15rem;margin:1rem 0}
 .atlas-owner-connect h2,.atlas-evidence-table h2{margin:0 0 .25rem;font-size:1.06rem}
 .atlas-owner-connect p{margin:.2rem 0 .85rem;line-height:1.5}
+.atlas-owner-connect details summary{cursor:pointer;font-weight:700;margin:.75rem 0}
+.atlas-owner-tools{display:flex;justify-content:flex-end;align-items:center;gap:.75rem;margin:.7rem 0;color:#167b5d;font-size:.82rem;font-weight:700}
+.atlas-strategy-detail,.atlas-rule-evidence{scroll-margin-top:88px}
 .atlas-owner-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:.75rem}
 .atlas-owner-row label,.atlas-evidence-controls label{font-weight:650;font-size:.85rem}
 .atlas-owner-row input,.atlas-evidence-controls input{min-height:42px;padding:.55rem .7rem;border:1px solid var(--line,#cbd5df);border-radius:8px;background:var(--surface,#fff);color:inherit}
