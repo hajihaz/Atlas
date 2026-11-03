@@ -16,6 +16,10 @@ import {archiveDailyCohort,readDailyCohort,scheduledDailyCohortStep,verifyDailyS
 import {readFastPeriodRank} from './fast-period-rank.js';
 import {listSevenAccounts} from './seven-paper-store.js';
 import {readStrategyJournal} from './strategy-journal.js';
+import {queueForwardX,tickSevenForward} from './seven-forward-paper.js';
+import {verifyEtfSource} from './etf-source-check.js';
+import {archiveEtfDaily,readEtfDaily} from './etf-daily-archive.js';
+import {runRawEtfResearch,readRawEtfResearch} from './etf-raw-research.js';
 import {verifyNseSourceReachability} from './nse-source-probe.js';
 import {ownerSessionValid,createOwnerSession,clearOwnerSession} from './owner-session.js';
 import {archiveNseReference,verifyNseReference,scheduledNseReferenceStep} from './nse-reference-archive.js';
@@ -78,20 +82,22 @@ async function daybook(db,day,now){
 async function dataAvailability(env){
  if(!env.HISTORY_DB)throw Error('private history unavailable');
  const history=env.HISTORY_DB;
- const [minute,daily,reference,full,nifty,liveMinutes,openingSeeds]=await Promise.all([
+ const [minute,daily,reference,full,nifty,liveMinutes,openingSeeds,etfRaw]=await Promise.all([
   rows(history,'SELECT source_date AS day,COUNT(*) AS symbols,MIN(candle_count) AS min_bars,MAX(candle_count) AS max_bars FROM history_samples GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
   rows(history,'SELECT source_date AS day,COUNT(*) AS symbols,MIN(candle_count) AS min_bars,MAX(candle_count) AS max_bars FROM daily_history_samples GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
   rows(history,'SELECT source_date AS day,COUNT(*) AS files FROM nse_reference_receipts GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
   rows(env.DB,'SELECT c.session AS day,c.eligible_count AS eligible,COUNT(s.symbol) AS captured,COUNT(s.instrument_key) AS keyed FROM coverage c LEFT JOIN entry_snapshots s ON s.session=c.session GROUP BY c.session ORDER BY c.session DESC LIMIT 90'),
   rows(history,'SELECT source_date AS day,COUNT(*) AS bars FROM nifty_open_ohlc_receipts GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
   rows(history,'SELECT source_date AS day,COUNT(*) AS minutes FROM live_minute_receipts GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
-  rows(history,'SELECT source_date AS day,COUNT(*) AS seeds FROM live_opening_seed GROUP BY source_date ORDER BY source_date DESC LIMIT 90')
+  rows(history,'SELECT source_date AS day,COUNT(*) AS seeds FROM live_opening_seed GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
+  rows(history,'SELECT source_day AS day,COUNT(*) AS symbols,MIN(candle_count) AS min_bars,MAX(candle_count) AS max_bars FROM etf_daily_receipts GROUP BY source_day ORDER BY source_day DESC LIMIT 90')
  ]);
  return {mode:'PAPER_ONLY',realOrdersEnabled:false,as_of:new Date().toISOString(),
   minute:{days:minute.length,dates:minute},daily:{days:daily.length,dates:daily},
   nse_reference:{days:reference.length,dates:reference},
   full_0940:{days:full.length,dates:full},nifty_open:{days:nifty.length,dates:nifty},
   live_minute:{days:liveMinutes.length,dates:liveMinutes},opening_seed:{days:openingSeeds.length,dates:openingSeeds},
+  etf_raw:{days:etfRaw.length,dates:etfRaw},
   note:'Live minute receipts, opening seeds and after-close samples are separate source evidence, not paper fills.'};
 }
 async function schedule(db,data,now){
@@ -373,7 +379,7 @@ export default {
  realOrdersEnabled:false,backendConnected:Boolean(env.DB),
  configured:Boolean(env.DB&&typeof env.OWNER_TOKEN==='string'&&env.OWNER_TOKEN.length>=32&&env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100),
  feedSourceConfigured:Boolean(env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100)});if(!env.DB)return reply({error:'D1_NOT_CONNECTED'},503);
- const actions={'/api/cloud-paper/session':'SESSION','/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/data-availability':'GET','/api/cloud-paper/market-replay':'GET','/api/cloud-paper/live-minute-status':'GET','/api/cloud-paper/forward-x-journal':'GET','/api/cloud-paper/strategy-journal':'GET','/api/cloud-paper/top-volume-history':'GET','/api/cloud-paper/nifty-opening':'GET','/api/cloud-paper/nse-eod-top':'GET','/api/cloud-paper/nifty-source-check':'GET','/api/cloud-paper/nifty-ohlc-check':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/quotes':'POST'};
+ const actions={'/api/cloud-paper/session':'SESSION','/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/data-availability':'GET','/api/cloud-paper/market-replay':'GET','/api/cloud-paper/live-minute-status':'GET','/api/cloud-paper/forward-x-journal':'GET','/api/cloud-paper/strategy-journal':'GET','/api/cloud-paper/top-volume-history':'GET','/api/cloud-paper/nifty-opening':'GET','/api/cloud-paper/nse-eod-top':'GET','/api/cloud-paper/nifty-source-check':'GET','/api/cloud-paper/nifty-ohlc-check':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/etf-source-check':'GET','/api/cloud-paper/etf-daily':'GET','/api/cloud-paper/etf-raw-research':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/quotes':'POST'};
  if(!Object.hasOwn(actions,path))return reply({error:'NOT_FOUND'},404);
  if(path.endsWith('/session')){
   if(!['GET','POST','DELETE'].includes(req.method))return reply({error:'METHOD_NOT_ALLOWED'},405);
@@ -384,7 +390,7 @@ export default {
   const result=reply({connected:true,mode:'PAPER_ONLY',realOrdersEnabled:false,expiresAt:session.expiresAt});
   result.headers.set('Set-Cookie',session.cookie);return result;
  }
- if(req.method!==actions[path]&&!(path.endsWith('/history-pilot')&&req.method==='POST')&&!(path.endsWith('/history-cohort')&&req.method==='POST')&&!(path.endsWith('/daily-cohort')&&req.method==='POST')&&!(path.endsWith('/nse-reference')&&req.method==='POST'))return reply({error:'METHOD_NOT_ALLOWED'},405);
+ if(req.method!==actions[path]&&!(path.endsWith('/history-pilot')&&req.method==='POST')&&!(path.endsWith('/history-cohort')&&req.method==='POST')&&!(path.endsWith('/daily-cohort')&&req.method==='POST')&&!(path.endsWith('/nse-reference')&&req.method==='POST')&&!(path.endsWith('/etf-daily')&&req.method==='POST')&&!(path.endsWith('/etf-raw-research')&&req.method==='POST'))return reply({error:'METHOD_NOT_ALLOWED'},405);
  const allowed=path.endsWith('/quotes')?authorized(req,env.FEED_TOKEN):
   authorized(req,env.OWNER_TOKEN)||await ownerSessionValid(req,env.OWNER_TOKEN,now);
  if(!allowed)return reply({error:'UNAUTHORIZED'},401);
@@ -411,6 +417,11 @@ export default {
  if(path.endsWith('/strategy-replay')){const q=new URL(req.url).searchParams;return reply(await readIntradayStrategyReplay(env,{day:q.get('day'),symbol:q.get('symbol'),strategyId:q.get('strategy')}));}
  if(path.endsWith('/daily-cohort'))return reply(req.method==='POST'?await archiveDailyCohort(env,await readBody(req)):await readDailyCohort(env,new URL(req.url).searchParams.get('day')));
  if(path.endsWith('/daily-source-check')){const q=new URL(req.url).searchParams;return reply(await verifyDailySource(env,{day:q.get('day'),symbol:q.get('symbol'),kind:q.get('kind')}));}
+ if(path.endsWith('/etf-source-check')){const q=new URL(req.url).searchParams;return reply(await verifyEtfSource(env,{day:q.get('day'),symbol:q.get('symbol'),kind:q.get('kind')}));}
+ if(path.endsWith('/etf-daily')){const q=req.method==='POST'?await readBody(req):Object.fromEntries(new URL(req.url).searchParams);
+  return reply(req.method==='POST'?await archiveEtfDaily(env,q):await readEtfDaily(env,q.day,q.symbol));}
+ if(path.endsWith('/etf-raw-research')){const day=req.method==='POST'?(await readBody(req)).day:new URL(req.url).searchParams.get('day');
+  return reply(req.method==='POST'?await runRawEtfResearch(env,day):await readRawEtfResearch(env,day));}
  if(path.endsWith('/period-rank')){const q=new URL(req.url).searchParams;return reply(await readFastPeriodRank(env,{sourceDay:q.get('source_day'),asOfDay:q.get('as_of_day'),strategyId:q.get('strategy')}));}
  if(path.endsWith('/seven-accounts'))return reply(await listSevenAccounts(env.DB));
  const p=await readBody(req);
@@ -444,11 +455,35 @@ export default {
     return;
    }
    const actualNow=Date.now(),minute=ist(actualNow).minute;
+   if(ist(actualNow).weekday&&(minute===480||minute===481||minute===1120||minute===1121)){
+    const target=minute<600?new Date(actualNow+19800000-86400000).toISOString().slice(0,10):ist(actualNow).day;
+    const symbol=minute%2===0?'NIFTYBEES':'GOLDBEES';
+    try{await archiveEtfDaily(env,{day:target,symbol})}catch(e){const d=safeDiagnostic(e);console.error('private ETF daily receipt unavailable:',d.type,d.message)}
+    return;
+   }
+   if(ist(actualNow).weekday&&(minute===482||minute===1122)){
+    const target=minute<600?new Date(actualNow+19800000-86400000).toISOString().slice(0,10):ist(actualNow).day;
+    try{await runRawEtfResearch(env,target)}catch(e){const d=safeDiagnostic(e);console.error('private raw ETF research unavailable:',d.type,d.message)}
+    return;
+   }
    if(session(actualNow)&&(minute===556||minute===570)){
     try{await archiveNiftyLiveOhlc(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('read-only Nifty OHLC receipt unavailable:',d.type,d.message)}
    }
    try{await sourceTick(env);}catch(e){const d=safeDiagnostic(e);console.error('read-only Upstox feed unavailable:',d.type,d.message)}
    await tick(env);
+   // The five-minute source decision runs in another Cron invocation. Queue
+   // paper intent on the following minute; a later fresh book alone can fill.
+   if(session(actualNow)&&minute>=555&&minute<580){
+    try{await tickSevenForward(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper carryover recovery unavailable:',d.type,d.message)}
+   }else if(session(actualNow)&&minute>=602&&minute<=884){
+    if(minute%5===2||minute%5===3){
+     const day=ist(actualNow).day,windowEnd=actualNow-actualNow%60000-180000-(minute%5===3?60000:0);
+     try{await queueForwardX(env,day,windowEnd,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper signal queue unavailable:',d.type,d.message)}
+    }
+    try{await tickSevenForward(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper virtual settlement unavailable:',d.type,d.message)}
+   }else if(session(actualNow)&&minute>=885&&minute<=929){
+    try{await tickSevenForward(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper risk exit unavailable:',d.type,d.message)}
+   }
    if(session(actualNow)&&minute>=582&&minute<=915){
     try{await captureLiveMinute(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('read-only live minute receipt unavailable:',d.type,d.message)}
    }

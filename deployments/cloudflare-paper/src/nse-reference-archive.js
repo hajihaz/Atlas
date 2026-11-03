@@ -54,7 +54,7 @@ export async function verifyNseReference(env,day,kind){
 }
 export async function archiveNseReference(env,input,fetcher=fetch,clock=()=>Date.now(),verifyExisting=true){
  const spec=nseReferenceSpec(input?.day,input?.kind),start=clock();
- if(spec.day>=new Date(start).toISOString().slice(0,10))fail('source date not complete');
+ if(spec.day>=new Date(start+19800000).toISOString().slice(0,10))fail('source date not complete');
  if(!env.HISTORY_DB||!env.NSE_REFERENCE_ARCHIVE)fail('private archive unavailable');
  const db=env.HISTORY_DB,old=await receipt(db,spec.day,spec.kind);
  if(old)return verifyExisting?checkStored(env,spec,old):publicReceipt(old,'ALREADY_RECORDED_UNVERIFIED_THIS_RUN',false);

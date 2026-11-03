@@ -5,21 +5,31 @@ const fail=reason=>{throw Error('SEVEN_LEDGER_BLOCKED: '+reason);};
 const clone=x=>structuredClone(x);
 const time=x=>typeof x==='string'?Date.parse(x):NaN;
 const price=x=>Number.isFinite(x)&&x>=0.01&&x<10000000?Math.round(x*100):fail('invalid price');
+// Conservative paper pilot values. Versioned so results cannot silently mix policies.
+export const SEVEN_RISK_POLICY=Object.freeze({version:'paper-risk-2026-11-04-v1',
+ maxAllocationPaise:1000000,maxLossPerTradePaise:25000,dailyLossPaise:50000,
+ stopBps:100,targetBps:150,entryCutoffMinute:885,exitMinute:915});
+const istDay=x=>new Date(x+19800000).toISOString().slice(0,10);
+const istMinute=x=>{const d=new Date(x+19800000);return d.getUTCHours()*60+d.getUTCMinutes()};
+const direction=p=>p?.direction||'LONG';
+const entryCount=(state,day)=>state.fills.filter(f=>f.reason==='NIFTY_AND_OPENING_RANGE_CONFIRMED'&&istDay(f.tradeAt)===day).length;
 export function createSevenAccount(strategyId,startedAt){
  if(!IDS.has(strategyId)||!Number.isSafeInteger(startedAt)||startedAt<=0)fail('account identity');
  return {schema:'atlas.seven-paper-account.v1',strategyId,startedAt,revision:0,
   initialCapitalPaise:10000000,cashPaise:10000000,realizedPaise:0,feesPaise:0,
-  positions:{},pending:{},seenSignals:{},fills:[],paperOnly:true,realOrdersEnabled:false};
+  positions:{},pending:{},seenSignals:{},fills:[],events:[],paperOnly:true,realOrdersEnabled:false};
 }
 export function assertSevenAccount(state){
  if(state?.schema!=='atlas.seven-paper-account.v1'||!IDS.has(state.strategyId)||
    state.paperOnly!==true||state.realOrdersEnabled!==false||state.initialCapitalPaise!==10000000||
    !Number.isSafeInteger(state.revision)||state.revision<0||!Number.isSafeInteger(state.cashPaise)||state.cashPaise<0||
    !Number.isSafeInteger(state.realizedPaise)||!Number.isSafeInteger(state.feesPaise)||state.feesPaise<0||
-   !state.positions||!state.pending||!state.seenSignals||!Array.isArray(state.fills))fail('account state');
+   !state.positions||!state.pending||!state.seenSignals||!Array.isArray(state.fills)||
+   state.events!==undefined&&!Array.isArray(state.events))fail('account state');
  for(const [symbol,p] of Object.entries(state.positions)){
   if(!/^[A-Z][A-Z0-9]{0,19}$/.test(symbol)||!Number.isSafeInteger(p.qty)||p.qty<=0||
-    !Number.isSafeInteger(p.entryCostPaise)||p.entryCostPaise<=0)fail('position state');
+    !Number.isSafeInteger(p.entryCostPaise)||p.entryCostPaise<=0||
+    !['LONG','SHORT'].includes(direction(p)))fail('position state');
  }
  return state;
 }
@@ -32,15 +42,32 @@ export function submitSevenSignal(previous,input,now){
    !/^NSE_EQ\|INE[A-Z0-9]{9}$/.test(input.instrumentKey)||
    !['BUY','SELL'].includes(input.side)||!Number.isFinite(time(input.signalAt)))fail('signal identity');
  const cadence=SEVEN_STRATEGIES.find(x=>x.id===previous.strategyId)?.cadence;
- const at=time(input.signalAt),maxAge=cadence==='SWING'||cadence==='MONTHLY'?3600000:120000;
+ const at=time(input.signalAt),maxAge=cadence==='SWING'||cadence==='MONTHLY'?3600000:240000;
  if(at<previous.startedAt||at>now||now-at>maxAge)fail('signal time');
  if(previous.seenSignals[input.id])return {state:previous,status:'DUPLICATE_SIGNAL'};
  const state=clone(previous),held=state.positions[input.symbol];
- if(input.side==='BUY'&&held||input.side==='SELL'&&!held)return {state,status:'NO_ACTION'};
- if(state.pending[input.symbol])return {state,status:'PENDING_EXISTS'};
+ state.events??=[];
+ const reject=status=>{state.seenSignals[input.id]=now;
+  for(const [id,seenAt] of Object.entries(state.seenSignals))if(now-seenAt>7200000)delete state.seenSignals[id];
+  state.events.push({at:now,symbol:input.symbol,kind:'SKIPPED',reason:status,side:input.side});
+  if(state.events.length>300)state.events.shift();state.revision++;return {state,status};};
+ const entry=!held;
+ if(held&&((direction(held)==='LONG'&&input.side==='BUY')||
+   (direction(held)==='SHORT'&&input.side==='SELL')))return reject('NO_ACTION');
+ if(entry&&cadence==='INTRADAY'){
+  const day=istDay(now),minute=istMinute(now);
+  if(minute<580||minute>=SEVEN_RISK_POLICY.entryCutoffMinute)return reject('ENTRY_WINDOW_CLOSED');
+  if((state.dailyRiskDay===day?state.dailyRealizedPaise||0:0)<=-SEVEN_RISK_POLICY.dailyLossPaise)
+   return reject('DAILY_LOSS_LIMIT');
+  if(previous.strategyId==='scalpstorm_x'&&
+    entryCount(state,day)+Object.values(state.pending).filter(p=>istDay(p.createdAt)===day&&!state.positions[p.symbol]).length>=2)
+   return reject('MAX_DAILY_ENTRIES');
+ }
+ if(state.pending[input.symbol])return reject('PENDING_EXISTS');
  state.pending[input.symbol]={id:input.id,side:input.side,symbol:input.symbol,
   instrumentKey:input.instrumentKey,signalAt:at,createdAt:now,expiresAt:now+90000,
-  reason:typeof input.reason==='string'&&/^[A-Z_]{3,30}$/.test(input.reason)?input.reason:'STRATEGY_SIGNAL'};
+  riskPolicyVersion:SEVEN_RISK_POLICY.version,
+  reason:typeof input.reason==='string'&&/^[A-Z0-9_]{3,40}$/.test(input.reason)?input.reason:'STRATEGY_SIGNAL'};
  state.seenSignals[input.id]=now;
  for(const [id,seenAt] of Object.entries(state.seenSignals))if(now-seenAt>7200000)delete state.seenSignals[id];
  state.revision++;
@@ -52,7 +79,9 @@ export function settleSevenPending(previous,symbol,quote,now){
  const pending=previous.pending[symbol];
  if(!pending)return {state:previous,status:'NO_PENDING'};
  if(!Number.isSafeInteger(now)||now>pending.expiresAt){
-  const state=clone(previous);delete state.pending[symbol];state.revision++;
+  const state=clone(previous);delete state.pending[symbol];state.events??=[];
+  state.events.push({at:now,symbol,kind:'EXPIRED',reason:'NO_LATER_FRESH_BOOK',side:pending.side});
+  if(state.events.length>300)state.events.shift();state.revision++;
   return {state,status:'EXPIRED'};
  }
  const traded=time(quote?.lastTradeAt),observed=time(quote?.observedAt);
@@ -67,27 +96,62 @@ export function settleSevenPending(previous,symbol,quote,now){
   Math.ceil(base*10005/10000):Math.floor(base*9995/10000);
  const state=clone(previous),position=state.positions[symbol];
  let qty,fee,pnl=0;
- if(pending.side==='BUY'){
-  if(position)return {state:previous,status:'ALREADY_HELD'};
-  qty=Math.min(Math.floor(book.quantity/4),Math.floor(Math.min(1000000,state.cashPaise)/(fillPrice*1.001)));
+ if(!position){
+  qty=Math.min(Math.floor(book.quantity/4),Math.floor(Math.min(SEVEN_RISK_POLICY.maxAllocationPaise,state.cashPaise)/(fillPrice*1.001)));
   if(qty<1)return {state:previous,status:'NO_BUYING_POWER'};
   fee=Math.ceil(qty*fillPrice*10/10000);
   const cost=qty*fillPrice+fee;if(cost>state.cashPaise)fail('cash invariant');
-  state.cashPaise-=cost;state.positions[symbol]={qty,entryCostPaise:cost,entryPricePaise:fillPrice};
+  state.cashPaise-=cost;
+  const long=pending.side==='BUY';
+  state.positions[symbol]={qty,entryCostPaise:cost,entryPricePaise:fillPrice,
+   instrumentKey:pending.instrumentKey,direction:long?'LONG':'SHORT',openedAt:traded,
+   stopPaise:long?Math.floor(fillPrice*(10000-SEVEN_RISK_POLICY.stopBps)/10000):Math.ceil(fillPrice*(10000+SEVEN_RISK_POLICY.stopBps)/10000),
+   targetPaise:long?Math.ceil(fillPrice*(10000+SEVEN_RISK_POLICY.targetBps)/10000):Math.floor(fillPrice*(10000-SEVEN_RISK_POLICY.targetBps)/10000),
+   riskPolicyVersion:pending.riskPolicyVersion};
  }else{
-  if(!position)return {state:previous,status:'NO_POSITION'};
+  if((direction(position)==='LONG'&&pending.side!=='SELL')||
+     (direction(position)==='SHORT'&&pending.side!=='BUY'))return {state:previous,status:'INVALID_EXIT_SIDE'};
   qty=position.qty;if(Math.floor(book.quantity/4)<qty)return {state:previous,status:'WAIT_BOOK'};
   fee=Math.ceil(qty*fillPrice*10/10000);
-  const proceeds=qty*fillPrice-fee;
-  pnl=proceeds-position.entryCostPaise;
-  state.cashPaise+=proceeds;state.realizedPaise+=pnl;delete state.positions[symbol];
+  if(direction(position)==='LONG'){
+   const proceeds=qty*fillPrice-fee;
+   pnl=proceeds-position.entryCostPaise;state.cashPaise+=proceeds;
+  }else{
+   pnl=qty*(position.entryPricePaise-fillPrice)-(position.entryCostPaise-qty*position.entryPricePaise)-fee;
+   state.cashPaise+=position.entryCostPaise+pnl;
+  }
+  state.realizedPaise+=pnl;
+  const day=istDay(traded);
+  state.dailyRealizedPaise=(state.dailyRiskDay===day?state.dailyRealizedPaise||0:0)+pnl;
+  state.dailyRiskDay=day;
+  delete state.positions[symbol];
  }
  state.feesPaise+=fee;
  state.fills.push({id:pending.id,strategyId:state.strategyId,symbol,side:pending.side,qty,
   pricePaise:fillPrice,feePaise:fee,pnlPaise:pnl,signalAt:pending.signalAt,
-  tradeAt:traded,mode:'HYPOTHETICAL_NEXT_OBSERVED_TRADE',reason:pending.reason});
+  tradeAt:traded,mode:'HYPOTHETICAL_NEXT_OBSERVED_TRADE',reason:pending.reason,
+  riskPolicyVersion:pending.riskPolicyVersion,
+  quoteSha256:/^[a-f0-9]{64}$/.test(quote.sourceSha256||'')?quote.sourceSha256:null});
  if(state.fills.length>1000)state.fills.shift();
  delete state.pending[symbol];state.revision++;
  assertSevenAccount(state);
  return {state,status:'PAPER_FILLED'};
+}
+
+/** Decide an intraday exit from a fresh quote, then wait for a later book to fill. */
+export function sevenRiskExit(previous,symbol,quote,now){
+ assertSevenAccount(previous);
+ const p=previous.positions[symbol];if(!p||previous.pending[symbol])return null;
+ const traded=time(quote?.lastTradeAt),observed=time(quote?.observedAt);
+ if(quote?.instrumentKey!==p.instrumentKey||!Number.isFinite(traded)||!Number.isFinite(observed)||
+  traded>now+1000||observed>now+1000||now-traded>10000||now-observed>10000)return null;
+ const current=price(quote.lastPrice),long=direction(p)==='LONG',minute=istMinute(now);
+ const reason=p.openedAt&&istDay(p.openedAt)!==istDay(now)?'CARRYOVER_RECOVERY':
+  minute>=SEVEN_RISK_POLICY.exitMinute?'MANDATORY_1515_EXIT':
+  long&&current<=p.stopPaise||!long&&current>=p.stopPaise?'RISK_STOP':
+  long&&current>=p.targetPaise||!long&&current<=p.targetPaise?'RISK_TARGET':null;
+ if(!reason)return null;
+ return {strategyId:previous.strategyId,id:`risk-${istDay(now)}-${symbol}-${reason}-${Math.floor(now/60000)}`,
+  symbol,instrumentKey:p.instrumentKey,side:long?'SELL':'BUY',signalAt:new Date(now).toISOString(),
+  reason,realOrdersEnabled:false};
 }

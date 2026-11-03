@@ -2,7 +2,7 @@
 const fail=reason=>{throw Error('SEVEN_STRATEGY_BLOCKED: '+reason);};
 const spec=(id,name,cadence,summary,needs,provisional=[])=>Object.freeze({
   id,name,cadence,summary,requires:Object.freeze(needs),provisional:Object.freeze(provisional),
-  executionStatus:'SIGNAL_ONLY_UNARMED',paperOnly:true
+  executionStatus:id==='scalpstorm_x'?'PAPER_PILOT_ARMED':'SIGNAL_ONLY_UNARMED',paperOnly:true
 });
 export const SEVEN_STRATEGIES=Object.freeze([
   spec('scalpstorm_x','ScalpStorm X','INTRADAY','9:40 top-volume NSE equities; Nifty morning bias; confirmed opening-range break',
@@ -22,7 +22,7 @@ export const SEVEN_STRATEGIES=Object.freeze([
 ]);
 export function catalog(){
   return {schema:'atlas.owner-seven-strategies.v1',paperOnly:true,realOrdersEnabled:false,
-    executionStatus:'SIGNAL_ONLY_UNARMED',strategies:SEVEN_STRATEGIES};
+    executionStatus:'X_PAPER_PILOT_ARMED_OTHER_SIX_UNARMED',strategies:SEVEN_STRATEGIES};
 }
 const date=x=>typeof x==='string'&&/^\d{4}-\d\d-\d\d$/.test(x)&&new Date(x+'T00:00:00Z').toISOString().slice(0,10)===x;
 const ms=x=>typeof x==='string'?Date.parse(x):NaN;

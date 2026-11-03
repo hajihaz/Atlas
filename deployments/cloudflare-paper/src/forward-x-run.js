@@ -1,4 +1,4 @@
-/** Cloud-only forward X signal journal. Signals never settle virtual orders here. */
+/** Cloud-only forward X source decision journal; settlement uses a separate later quote. */
 import {readNiftyOpening} from './nifty-live-ohlc.js';
 import {forwardXDecision} from './forward-x-decision.js';
 
@@ -82,5 +82,5 @@ export async function readForwardX(env,day){
  ]);
  return {schema:'atlas.forward-x-journal.v1',mode:'PAPER_ONLY',realOrdersEnabled:false,sourceDate:day,
   runs:runs.results,summary:Object.fromEntries(counts.results.map(x=>[x.status,x.n])),decisions:decisions.results,
-  warning:'Forward source-qualified signals only. No automatic paper settlement or P/L is claimed.'};
+  warning:'This route records completed-bar decisions only. Use the strategy journal and account for later virtual fills and P/L.'};
 }

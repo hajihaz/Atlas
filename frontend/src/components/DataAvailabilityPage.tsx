@@ -5,12 +5,13 @@ type Day={day:string;symbols?:number;min_bars?:number;max_bars?:number;files?:nu
 type Group={days:number;dates:Day[]};
 type EodStock={rank:number;symbol:string;isin:string;volumeShares:number;open:number;high:number;low:number;close:number;turnoverRupees:number;tradeCount:number};
 type EodTop={schema:string;mode:string;realOrdersEnabled:boolean;sourceDate:string;evidenceClass:string;sourceSha256:string;sourcePublishedAt:string;totalEqStocks:number;top:EodStock[]};
-export type Availability={mode:string;realOrdersEnabled:boolean;as_of:string;minute:Group;daily:Group;nse_reference:Group;full_0940:Group;nifty_open:Group;live_minute:Group;opening_seed:Group;note:string};
-const groups:[keyof Pick<Availability,'minute'|'daily'|'nse_reference'|'full_0940'|'nifty_open'|'live_minute'|'opening_seed'>,string,string][]=[
+export type Availability={mode:string;realOrdersEnabled:boolean;as_of:string;minute:Group;daily:Group;etf_raw:Group;nse_reference:Group;full_0940:Group;nifty_open:Group;live_minute:Group;opening_seed:Group;note:string};
+const groups:[keyof Pick<Availability,'minute'|'daily'|'etf_raw'|'nse_reference'|'full_0940'|'nifty_open'|'live_minute'|'opening_seed'>,string,string][]=[
  ['live_minute','Live minute capture','Completed top-ten bars recorded during the market session'],
  ['opening_seed','Opening range','09:15–09:39 bars for the actual 09:40 top ten'],
  ['minute','Minute bars','Ten-stock dated OHLCV samples'],
  ['daily','Daily stock bars','Ten-stock history samples'],
+ ['etf_raw','ETF daily history','NIFTYBEES and GOLDBEES raw bars; adjustment not certified'],
  ['nse_reference','NSE daily files','Official EOD and security master receipts'],
  ['full_0940','9:40 universe','Captured rankings; only keyed rosters qualify for replay'],
  ['nifty_open','Nifty opening','Pre-9:40 source receipts']

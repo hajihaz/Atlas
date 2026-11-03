@@ -1,6 +1,7 @@
 /** Owner-only evidence timeline. Research decisions are never paper fills. */
 import {SEVEN_STRATEGIES} from './seven-strategy-replay.js';
 import {loadSevenAccount} from './seven-paper-store.js';
+import {SEVEN_RISK_POLICY} from './seven-paper-ledger.js';
 
 const fail=reason=>{const e=Error('STRATEGY_JOURNAL_BLOCKED: '+reason);e.atlasDiagnostic='strategy journal '+reason;throw e;};
 const dayOk=day=>typeof day==='string'&&/^\d{4}-\d\d-\d\d$/.test(day)&&
@@ -17,13 +18,22 @@ export async function readStrategyJournal(env,{day,strategyId}){
     !Number.isSafeInteger(fill.qty)||fill.qty<1||!Number.isSafeInteger(fill.pricePaise))fail('fill audit invalid');
   if(new Date(fill.tradeAt+19800000).toISOString().slice(0,10)===day)
    events.push({at:new Date(fill.tradeAt).toISOString(),kind:'PAPER_FILL',symbol:fill.symbol,
-    side:fill.side,reason:fill.reason,quantity:fill.qty,priceINR:fill.pricePaise/100,sourceHashes:[]});
+    side:fill.side,reason:fill.reason,quantity:fill.qty,priceINR:fill.pricePaise/100,
+    feeINR:fill.feePaise/100,realizedPnlINR:fill.pnlPaise/100,
+    sourceHashes:fill.quoteSha256?[fill.quoteSha256]:[]});
  }
  for(const pending of Object.values(state.pending)){
   if(!Number.isSafeInteger(pending.createdAt)||!['BUY','SELL'].includes(pending.side))fail('pending audit invalid');
   if(new Date(pending.createdAt+19800000).toISOString().slice(0,10)===day)
    events.push({at:new Date(pending.createdAt).toISOString(),kind:'PENDING',symbol:pending.symbol,
     side:pending.side,reason:pending.reason,quantity:null,priceINR:null,sourceHashes:[]});
+ }
+ for(const item of state.events??[]){
+  if(!Number.isSafeInteger(item.at)||!['SKIPPED','EXPIRED'].includes(item.kind)||
+    typeof item.reason!=='string')fail('paper event audit invalid');
+  if(new Date(item.at+19800000).toISOString().slice(0,10)===day)
+   events.push({at:new Date(item.at).toISOString(),kind:item.kind,symbol:item.symbol,
+    side:item.side,reason:item.reason,quantity:null,priceINR:null,sourceHashes:[]});
  }
  if(strategyId==='scalpstorm_x'){
   const [decisions,runs]=await Promise.all([
@@ -46,8 +56,9 @@ export async function readStrategyJournal(env,{day,strategyId}){
  }
  events.sort((a,b)=>b.at.localeCompare(a.at)||String(a.symbol).localeCompare(String(b.symbol)));
  return {schema:'atlas.strategy-journal.v1',mode:'PAPER_ONLY',realOrdersEnabled:false,
-  strategyId,sourceDate:day,executionStatus:spec.executionStatus,
+  strategyId,sourceDate:day,executionStatus:strategyId==='scalpstorm_x'?'X_PAPER_PILOT_ARMED':spec.executionStatus,
+  riskPolicy:strategyId==='scalpstorm_x'?SEVEN_RISK_POLICY:null,
   account:{cashINR:state.cashPaise/100,realizedPnlINR:state.realizedPaise/100,
    pending:Object.keys(state.pending).length,positions:Object.keys(state.positions).length,fills:state.fills.length},
-  events:events.slice(0,40),note:'Most recent forward decisions and virtual fills are separate. Empty means no verified event on the selected date.'};
+  events:events.slice(0,40),note:'A source-qualified decision is not a fill. Paper fills require a later fresh observed trade and usable book depth.'};
 }

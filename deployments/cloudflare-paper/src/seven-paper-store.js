@@ -22,7 +22,8 @@ export async function loadSevenAccount(db,strategyId){
 }
 export async function saveSevenAccount(db,previous,next,now){
  assertSevenAccount(previous);assertSevenAccount(next);
- if(!db||previous.strategyId!==next.strategyId||next.revision!==previous.revision+1||
+ if(!db||previous.strategyId!==next.strategyId||next.revision<=previous.revision||
+   next.revision>previous.revision+20||
    !Number.isSafeInteger(now)||now<previous.startedAt)fail('revision or time');
  const result=await db.prepare('UPDATE seven_paper_accounts SET revision=?,state_json=?,updated_ms=? WHERE strategy_id=? AND revision=?')
   .bind(next.revision,JSON.stringify(next),now,next.strategyId,previous.revision).run();
@@ -39,7 +40,7 @@ export async function listSevenAccounts(db){
  const rows=result.results;if(rows.length!==7)fail('incomplete seven accounts');
  const seen=new Set();
  return {schema:'atlas.seven-paper-accounts.v1',paperOnly:true,realOrdersEnabled:false,
-  executionStatus:'UNARMED_NO_AUTOMATIC_SIGNAL_SETTLEMENT',
+  executionStatus:'X_PAPER_PILOT_ARMED_OTHER_SIX_UNARMED',
   accounts:rows.map(row=>{
    let state;try{state=JSON.parse(row.state_json)}catch{fail('stored JSON')}
    assertSevenAccount(state);

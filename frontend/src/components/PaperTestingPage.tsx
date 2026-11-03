@@ -4,7 +4,7 @@ import {ATLAS_RULES} from '../data/atlasSeven';
 import {cloudPaperRequest,cloudPaperUsesGateway,ownerSession} from '../lib/cloudPaperRead';
 import type {Availability} from './DataAvailabilityPage';
 type CloudStatus={mode:string;realOrdersEnabled:boolean;backendConnected:boolean;configured:boolean;feedSourceConfigured:boolean};
-type Catalog={schema:string;paperOnly:boolean;realOrdersEnabled:boolean;executionStatus:string;strategies:{id:string;name:string}[]};
+type Catalog={schema:string;paperOnly:boolean;realOrdersEnabled:boolean;executionStatus:string;strategies:{id:string;name:string;executionStatus:string}[]};
 type Account={strategyId:string;cashINR:number;realizedPnlINR:number;positionCount:number;pendingCount:number;paperFills:number};
 type Accounts={paperOnly:boolean;realOrdersEnabled:boolean;executionStatus:string;accounts:Account[]};
 type State={mode:string;realOrdersEnabled:boolean;strategy_enabled:boolean;strategy:string;cash_paise:number;positions:{symbol:string;qty:number}[];last_strategy_phase:{status:string;reason:string|null}|null};
@@ -13,7 +13,9 @@ type Replay={status:string;sourceDate:string;symbol:string;sourceSha256:string;s
 type TopVolume={sourceDate:string;stocks:{rank:number;symbol:string;archived:boolean}[]};
 type StrategyJournal={schema:string;sourceDate:string;strategyId:string;mode:string;realOrdersEnabled:boolean;executionStatus:string;
  account:{cashINR:number;realizedPnlINR:number;pending:number;positions:number;fills:number};
- events:{at:string;kind:string;symbol:string|null;side:string|null;reason:string;quantity:number|null;priceINR:number|null;sourceHashes:string[]}[]};
+ events:{at:string;kind:string;symbol:string|null;side:string|null;reason:string;quantity:number|null;priceINR:number|null;feeINR?:number;realizedPnlINR?:number;sourceHashes:string[]}[]};
+type RawEtfResult={strategyId:string;status:string;sourceFirstDay:string;sourceLastDay:string;closedTrades:number;wins:number;winRatePct:number|null;netPnlINR:number;estimatedFeesINR:number;maxDrawdownPct:number;openPositions:number;costModel:string;adjustmentCertified:boolean;forwardPaperFills:number;trades:{entryDay:string;exitDay:string|null;symbol?:string;quantity:number;entryPriceINR:number;exitPriceINR?:number;netPnlPaise:number|null;exitReason:string|null}[]};
+type RawEtfReport={status:string;schema?:string;sourceDay:string;evidenceClass?:string;realOrdersEnabled:boolean;results?:RawEtfResult[]};
 const COHORT=['AXISBANK','BHARTIARTL','HDFCBANK','ICICIBANK','INFY','ITC','NHPC','RELIANCE','SBIN','TCS'];
 const inr=(n:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}).format(n);
 export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnected,setOwnerConnected,goMarket,goReplay,goSchedule}:{
@@ -29,7 +31,11 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
  const [sampleSymbol,setSampleSymbol]=useState('RELIANCE');
  const [topVolume,setTopVolume]=useState<TopVolume|null>(null);
  const [journal,setJournal]=useState<StrategyJournal|null>(null);
+ const [journalDay,setJournalDay]=useState(()=>new Date(Date.now()+19800000).toISOString().slice(0,10));
  const [journalError,setJournalError]=useState('');
+ const [rawEtfReport,setRawEtfReport]=useState<RawEtfReport|null>(null);
+ const [rawEtfError,setRawEtfError]=useState('');
+ const [rawEtfDay,setRawEtfDay]=useState('');
  const [replay,setReplay]=useState<Replay|null>(null);
  const [replayError,setReplayError]=useState('');
  const replaySerial=useRef(0);
@@ -65,6 +71,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
       throw Error('Cloud strategy version does not match this paper-only screen.');
    setCatalog(nextCatalog);setState(nextState);setAvailability(nextAvailability);
    setSampleDay(v=>v||nextAvailability.minute.dates[0]?.day||'');
+   setRawEtfDay(v=>v||nextAvailability.etf_raw.dates[0]?.day||'');
    try{
     const nextAccounts=await cloudPaperRequest<Accounts>(auth,'seven-accounts');
     if(nextAccounts.paperOnly!==true||nextAccounts.realOrdersEnabled!==false)throw Error('Invalid account response');
@@ -101,7 +108,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
  useEffect(()=>{if(ownerConnected&&!catalog)void refresh();},[ownerConnected]);
  useEffect(()=>{
   setJournal(null);setJournalError('');
-  const day=availability?.full_0940.dates[0]?.day??availability?.minute.dates[0]?.day;
+  const day=journalDay;
   if(!ownerConnected||!day)return;
   let active=true;
   cloudPaperRequest<StrategyJournal>('','strategy-journal',{day,strategy:selected}).then(value=>{
@@ -110,7 +117,23 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
     else setJournalError('Invalid strategy journal response');}
   }).catch(e=>{if(active)setJournalError(e instanceof Error?e.message:'Journal unavailable');});
   return ()=>{active=false;};
- },[ownerConnected,selected,availability]);
+ },[ownerConnected,selected,journalDay]);
+ useEffect(()=>{
+  setRawEtfReport(null);setRawEtfError('');
+  if(!ownerConnected||!rawEtfDay||rule.cadence==='Intraday')return;
+  let active=true;
+  cloudPaperRequest<RawEtfReport>('','etf-raw-research',{day:rawEtfDay}).then(value=>{
+   if(!active)return;
+   if(value.status==='MISSING'){setRawEtfError('Raw ETF research has not completed for this date.');return;}
+   if(value.schema!=='atlas.raw-etf-research.v1'||value.sourceDay!==rawEtfDay||
+    value.evidenceClass!=='RETROSPECTIVE_RAW_UNADJUSTED_NOT_FORWARD_OR_STRATEGY_CERTIFIED'||
+    value.realOrdersEnabled!==false||!value.results?.some(x=>x.strategyId===selected&&x.adjustmentCertified===false&&x.forwardPaperFills===0))
+    {setRawEtfError('ETF report proof did not match this strategy.');return;}
+   setRawEtfReport(value);
+  }).catch(e=>{if(active)setRawEtfError(e instanceof Error?e.message:'ETF research unavailable');});
+  return ()=>{active=false;};
+ },[ownerConnected,rawEtfDay,selected,rule.cadence]);
+ const rawResult=rawEtfReport?.results?.find(x=>x.strategyId===selected);
  return <section className="atlas-paper-home">
   <div className="sub-page-header"><div className="breadcrumb">ATLAS / PAPER TRADING</div>
    <h1>Test seven strategies<span className="period">.</span></h1>
@@ -123,9 +146,9 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
    <div className="panel atlas-simple-card"><small>Cloud service</small><strong>{status?.configured?'Connected':status?.backendConnected?'Hosted · setup incomplete':'Unavailable'}</strong>
     <span>{status?.feedSourceConfigured?'Upstox read-only feed configured':'Market feed not verified here'}</span></div>
    <div className="panel atlas-simple-card"><small>New strategy set</small><strong>7 defined</strong><span>5 intraday · 1 swing · 1 monthly</span></div>
-   <div className="panel atlas-simple-card"><small>Automatic paper testing</small><strong>{catalog?.executionStatus==='SIGNAL_ONLY_UNARMED'?'Not armed':'Not verified'}</strong><span>Missing feeds and risk settings cause a skip</span></div>
+   <div className="panel atlas-simple-card"><small>Automatic paper testing</small><strong>{catalog?.executionStatus==='X_PAPER_PILOT_ARMED_OTHER_SIX_UNARMED'?'X pilot armed':'Not armed'}</strong><span>Other six rules await qualified feeds and risk tests</span></div>
   </div>
-  <div className="panel atlas-data-home"><Database size={20}/><div><strong>Available market data</strong><p>{availability?`${availability.live_minute.days} live minute dates · ${availability.opening_seed.days} opening-range dates · ${availability.minute.days} completed minute dates · ${availability.daily.days} daily-bar dates · ${availability.nse_reference.days} NSE reference dates · ${availability.full_0940.days} 9:40 dates`:'Connect to see exact cloud archive counts.'}</p></div><a href="#data">See every date</a></div>
+  <div className="panel atlas-data-home"><Database size={20}/><div><strong>Available market data</strong><p>{availability?`${availability.live_minute.days} live minute dates · ${availability.opening_seed.days} opening-range dates · ${availability.minute.days} completed minute dates · ${availability.daily.days} daily-stock dates · ${availability.etf_raw.days} raw ETF history dates · ${availability.nse_reference.days} NSE reference dates · ${availability.full_0940.days} 9:40 dates`:'Connect to see exact cloud archive counts.'}</p></div><a href="#data">See every date</a></div>
   <div className="panel atlas-owner-connect">
    <div><h2>Private paper results</h2><p>{ownerConnected?'Connected securely. This browser will reconnect on return.':'Enter your owner token once. Atlas keeps a protected browser session; the token is not saved in browser storage.'}</p></div>
    <div className="atlas-owner-row">{!ownerConnected&&<><label htmlFor="atlas-owner-token">Owner token</label>
@@ -144,7 +167,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
    </div>
    <article className="panel atlas-strategy-detail">
     <div className="atlas-rule-heading"><div><span className="premium-kicker">{rule.cadence.toUpperCase()} RULE</span><h2>{rule.name}</h2></div>
-     <span className="atlas-rule-badge"><LockKeyhole size={13}/> Signal only</span></div>
+     <span className="atlas-rule-badge"><LockKeyhole size={13}/> {catalog?.strategies.find(x=>x.id===selected)?.executionStatus==='PAPER_PILOT_ARMED'?'Paper pilot':'Signal only'}</span></div>
     <p className="atlas-rule-summary">{rule.summary}</p>
     <dl className="atlas-rule-steps">
      <div><dt>Pick</dt><dd>{rule.selection}</dd></div>
@@ -158,17 +181,29 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
     <div className="atlas-result-line"><span>Realized paper P&amp;L</span><strong>{account?inr(account.realizedPnlINR):'Not available'}</strong></div>
     <div className="atlas-rule-evidence"><h3>Forward paper activity</h3>
      <p>The most recent source decisions, pending intents and virtual fills appear in time order. This rule is {journal?.executionStatus.replaceAll('_',' ').toLowerCase()??'awaiting verified status'}.</p>
+     <label>Market date <input type="date" value={journalDay} max={new Date(Date.now()+19800000).toISOString().slice(0,10)} onChange={e=>setJournalDay(e.target.value)}/></label>
      {journalError&&<p role="alert" className="atlas-simple-error">{journalError}</p>}
      {journal&&<><p className="atlas-simple-note">{journal.sourceDate} · {journal.account.pending} pending · {journal.account.positions} positions · {journal.account.fills} paper fills</p>
       {journal.events.length===0?<p role="status">No verified forward event for this rule on this date.</p>:
        <div className="atlas-data-dates">{journal.events.map((event,i)=><div key={`${event.at}-${event.symbol??'session'}-${i}`}>
         <strong>{event.symbol??'Session'} · {event.kind.replaceAll('_',' ')}</strong>
-        <span>{new Date(event.at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})} IST · {event.side?`${event.side} · `:''}{event.reason.replaceAll('_',' ').toLowerCase()}{event.quantity!=null?` · ${event.quantity} shares at ${inr(event.priceINR??0)}`:''}</span>
+        <span>{new Date(event.at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})} IST · {event.side?`${event.side} · `:''}{event.reason.replaceAll('_',' ').toLowerCase()}{event.quantity!=null?` · ${event.quantity} shares at ${inr(event.priceINR??0)} · fee ${inr(event.feeINR??0)} · realized ${inr(event.realizedPnlINR??0)}`:''}</span>
         {event.sourceHashes.length>0&&<small title={event.sourceHashes.join(', ')}>Source SHA-256: {event.sourceHashes[0].slice(0,16)}… · {event.sourceHashes.length} completed bars</small>}
        </div>)}</div>}
      </>}
     </div>
-    <div className="atlas-rule-evidence"><h3>Historical evidence</h3><p>{rule.cadence==='Intraday'?`${availability?.minute.days??0} dated minute sessions available. Full top-volume history begins only on dates with a verified 09:40 roster and matching after-close stock bars.`:`${availability?.daily.days??0} ten-stock daily sample dates available. Required adjusted ETF history is missing.`}</p>
+    <div className="atlas-rule-evidence"><h3>Historical evidence</h3><p>{rule.cadence==='Intraday'?`${availability?.minute.days??0} dated minute sessions available. Full top-volume history begins only on dates with a verified 09:40 roster and matching after-close stock bars.`:`${availability?.etf_raw.days??0} dated raw ETF history receipts available. Adjustment and faithful weekly/monthly backtests remain unverified.`}</p>
+     {rule.cadence!=='Intraday'&&<><label>Research date <select value={rawEtfDay} onChange={e=>setRawEtfDay(e.target.value)}>{availability?.etf_raw.dates.map(x=><option key={x.day} value={x.day}>{x.day}</option>)}</select></label>
+      {rawEtfError&&<p role="status" className="atlas-simple-note">{rawEtfError}</p>}
+      {rawResult&&<div className="atlas-replay-proof"><strong>Raw ETF simulation · {rawResult.sourceFirstDay} to {rawResult.sourceLastDay}</strong>
+       <span>{rawResult.closedTrades} closed trades · {rawResult.wins} wins · {rawResult.winRatePct==null?'No win rate':`${rawResult.winRatePct}% win rate`}</span>
+       <span>Modeled net P&amp;L {inr(rawResult.netPnlINR)} · estimated fees {inr(rawResult.estimatedFeesINR)} · drawdown {rawResult.maxDrawdownPct}% · {rawResult.openPositions} open</span>
+       <p>{rawResult.costModel}. Prices are raw and corporate adjustments are unconfirmed. This is retrospective research, with zero forward paper fills.</p>
+       <div className="atlas-data-dates">{rawResult.trades.map((trade,i)=><div key={`${trade.entryDay}-${trade.symbol??selected}-${i}`}>
+        <strong>{trade.symbol??rule.name} · {trade.entryDay} entry · {trade.exitDay??'still open'}</strong>
+        <span>{trade.quantity} units at {inr(trade.entryPriceINR)}{trade.exitPriceINR!=null?` → ${inr(trade.exitPriceINR)}`:''} · modeled P&amp;L {trade.netPnlPaise==null?'open':inr(trade.netPnlPaise/100)} · {trade.exitReason??'unrealized'}</span>
+       </div>)}</div></div>}
+     </>}
      {rule.cadence==='Intraday'&&<div className="atlas-replay-controls"><label>Session<select value={sampleDay} onChange={e=>setSampleDay(e.target.value)}>{availability?.minute.dates.map(x=><option key={x.day} value={x.day}>{x.day} · {x.symbols} stocks</option>)}</select></label>
       <label>Stock<select value={sampleSymbol} onChange={e=>setSampleSymbol(e.target.value)}>{topVolume?.stocks.map(x=><option key={x.symbol} value={x.symbol}>{x.rank}. {x.symbol} · {x.archived?'archived':'pending'}</option>)}
        {COHORT.filter(x=>!topVolume?.stocks.some(v=>v.symbol===x)).map(x=><option key={x} value={x}>{x} · fixed sample</option>)}</select></label>

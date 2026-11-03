@@ -28,11 +28,12 @@ function daily(symbol,count,base=100){
   return {day,open:close,high:close+1,low:close-1,close,knownAt:day+'T11:00:00Z'};
  })};
 }
-test('catalog exposes only the seven owner-supplied strategies, all unarmed',()=>{
+test('catalog exposes one paper pilot and six unarmed owner strategies',()=>{
  assert.deepEqual(SEVEN_STRATEGIES.map(x=>x.id),ids);
  assert.equal(catalog().realOrdersEnabled,false);
- assert.equal(catalog().executionStatus,'SIGNAL_ONLY_UNARMED');
- assert.ok(SEVEN_STRATEGIES.every(x=>x.paperOnly&&x.executionStatus==='SIGNAL_ONLY_UNARMED'));
+ assert.equal(catalog().executionStatus,'X_PAPER_PILOT_ARMED_OTHER_SIX_UNARMED');
+ assert.equal(SEVEN_STRATEGIES.find(x=>x.id==='scalpstorm_x').executionStatus,'PAPER_PILOT_ARMED');
+ assert.ok(SEVEN_STRATEGIES.filter(x=>x.id!=='scalpstorm_x').every(x=>x.paperOnly&&x.executionStatus==='SIGNAL_ONLY_UNARMED'));
 });
 test('ScalpStorm X waits for completed 5-minute breakout and next-minute entry',()=>{
  const result=intradaySignal('scalpstorm_x',bars(),context());
