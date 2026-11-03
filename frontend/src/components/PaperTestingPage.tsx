@@ -3,6 +3,9 @@ import {ArrowRight,CheckCircle2,Cloud,Database,LockKeyhole,RefreshCcw,ShieldChec
 import {ATLAS_RULES} from '../data/atlasSeven';
 import {cloudPaperRequest,cloudPaperUsesGateway,ownerSession} from '../lib/cloudPaperRead';
 import type {Availability} from './DataAvailabilityPage';
+import ResearchTradeResults from './ResearchTradeResults';
+import HistoryCoverageTimeline from './HistoryCoverageTimeline';
+import DayStrategyReview from './DayStrategyReview';
 type CloudStatus={mode:string;realOrdersEnabled:boolean;backendConnected:boolean;configured:boolean;feedSourceConfigured:boolean};
 type Catalog={schema:string;paperOnly:boolean;realOrdersEnabled:boolean;executionStatus:string;strategies:{id:string;name:string;executionStatus:string}[]};
 type Account={strategyId:string;cashINR:number;realizedPnlINR:number;positionCount:number;pendingCount:number;paperFills:number};
@@ -171,18 +174,21 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
     <div className="atlas-rule-heading"><div><span className="premium-kicker">{rule.cadence.toUpperCase()} RULE</span><h2>{rule.name}</h2></div>
      <span className="atlas-rule-badge"><LockKeyhole size={13}/> {catalog?.strategies.find(x=>x.id===selected)?.executionStatus==='PAPER_PILOT_ARMED'?'Paper pilot':'Signal only'}</span></div>
     <p className="atlas-rule-summary">{rule.summary}</p>
-    <dl className="atlas-rule-steps">
+    <details className="atlas-rule-explainer"><summary>How this strategy works</summary><dl className="atlas-rule-steps">
      <div><dt>Pick</dt><dd>{rule.selection}</dd></div>
      <div><dt>Enter</dt><dd>{rule.entry}</dd></div>
      <div><dt>Exit</dt><dd>{rule.exit}</dd></div>
      <div><dt>Needs</dt><dd>{rule.needs}</dd></div>
     </dl>
-    <p className="atlas-simple-note"><strong>Testing note:</strong> {rule.trial}</p>
-    <div className="atlas-result-line"><span>Forward paper fills</span><strong>{account?account.paperFills:'Not verified'}</strong></div>
-    <div className="atlas-result-line"><span>Virtual cash</span><strong>{account?inr(account.cashINR):'Not available'}</strong></div>
-    <div className="atlas-result-line"><span>Realized paper P&amp;L</span><strong>{account?inr(account.realizedPnlINR):'Not available'}</strong></div>
+    <p className="atlas-simple-note"><strong>Testing note:</strong> {rule.trial}</p></details>
+    <div className="atlas-strategy-portfolio" aria-label="Forward paper account">
+     <div><small>Open positions</small><strong>{account?account.positionCount:'—'}</strong></div>
+     <div><small>Paper fills</small><strong>{account?account.paperFills:'—'}</strong></div>
+     <div><small>Virtual cash</small><strong>{account?inr(account.cashINR):'—'}</strong></div>
+     <div><small>Realized paper P&amp;L</small><strong>{account?inr(account.realizedPnlINR):'—'}</strong></div>
+    </div>
     <div className="atlas-rule-evidence"><h3>Forward paper activity</h3>
-     <p>The most recent source decisions, pending intents and virtual fills appear in time order. This rule is {journal?.executionStatus.replaceAll('_',' ').toLowerCase()??'awaiting verified status'}.</p>
+     <p>{catalog?.strategies.find(x=>x.id===selected)?.executionStatus==='PAPER_PILOT_ARMED'?'Paper pilot active. A trade appears here only after a verified live signal and later fresh quote.':'Paper testing is waiting for the data this strategy needs.'}</p>
      <label>Market date <input type="date" value={journalDay} max={new Date(Date.now()+19800000).toISOString().slice(0,10)} onChange={e=>setJournalDay(e.target.value)}/></label>
      {journalError&&<p role="alert" className="atlas-simple-error">{journalError}</p>}
      {journal&&<><p className="atlas-simple-note">{journal.sourceDate} · {journal.account.pending} pending · {journal.account.positions} positions · {journal.account.fills} paper fills</p>
@@ -197,19 +203,14 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
     <div id="atlas-history" className="atlas-rule-evidence"><h3>Historical evidence</h3><p>{rule.cadence==='Intraday'?`${availability?.minute.days??0} dated minute sessions available. Full top-volume history begins only on dates with a verified 09:40 roster and matching after-close stock bars.`:`${availability?.etf_raw.days??0} dated raw ETF history receipts available. Adjustment and faithful weekly/monthly backtests remain unverified.`}</p>
      {rule.cadence!=='Intraday'&&<><label>Research date <select value={rawEtfDay} onChange={e=>setRawEtfDay(e.target.value)}>{availability?.etf_raw.dates.map(x=><option key={x.day} value={x.day}>{x.day}</option>)}</select></label>
       {rawEtfError&&<p role="status" className="atlas-simple-note">{rawEtfError}</p>}
-      {rawResult&&<div className="atlas-replay-proof"><strong>Raw ETF simulation · {rawResult.sourceFirstDay} to {rawResult.sourceLastDay}</strong>
-       <span>{rawResult.closedTrades} closed trades · {rawResult.wins} wins · {rawResult.winRatePct==null?'No win rate':`${rawResult.winRatePct}% win rate`}</span>
-       <span>Modeled net P&amp;L {inr(rawResult.netPnlINR)} · estimated fees {inr(rawResult.estimatedFeesINR)} · drawdown {rawResult.maxDrawdownPct}% · {rawResult.openPositions} open</span>
-       <p>{rawResult.costModel}. Prices are raw and corporate adjustments are unconfirmed. This is retrospective research, with zero forward paper fills.</p>
-       <div className="atlas-data-dates">{rawResult.trades.map((trade,i)=><div key={`${trade.entryDay}-${trade.symbol??selected}-${i}`}>
-        <strong>{trade.symbol??rule.name} · {trade.entryDay} entry · {trade.exitDay??'still open'}</strong>
-        <span>{trade.quantity} units at {inr(trade.entryPriceINR)}{trade.exitPriceINR!=null?` → ${inr(trade.exitPriceINR)}`:''} · modeled P&amp;L {trade.netPnlPaise==null?'open':inr(trade.netPnlPaise/100)} · {trade.exitReason??'unrealized'}</span>
-       </div>)}</div></div>}
+      {rawResult&&<ResearchTradeResults result={rawResult} fallbackSymbol={selected==='rsi2_snapback'?'NIFTYBEES':'ETF'}/>}
      </>}
-     {rule.cadence==='Intraday'&&<div className="atlas-replay-controls"><label>Session<select value={sampleDay} onChange={e=>setSampleDay(e.target.value)}>{availability?.minute.dates.map(x=><option key={x.day} value={x.day}>{x.day} · {x.symbols} stocks</option>)}</select></label>
+     {rule.cadence==='Intraday'&&<><HistoryCoverageTimeline dates={availability?.minute.dates??[]} selected={sampleDay} onSelect={setSampleDay}/><div className="atlas-replay-controls"><label>Session<select value={sampleDay} onChange={e=>setSampleDay(e.target.value)}>{availability?.minute.dates.map(x=><option key={x.day} value={x.day}>{x.day} · {x.symbols} stocks</option>)}</select></label>
       <label>Stock<select value={sampleSymbol} onChange={e=>setSampleSymbol(e.target.value)}>{topVolume?.stocks.map(x=><option key={x.symbol} value={x.symbol}>{x.rank}. {x.symbol} · {x.archived?'archived':'pending'}</option>)}
        {COHORT.filter(x=>!topVolume?.stocks.some(v=>v.symbol===x)).map(x=><option key={x} value={x}>{x} · fixed sample</option>)}</select></label>
-      <button type="button" className="secondary-button" disabled={!sampleDay||!ownerConnected} onClick={()=>void loadReplay()}>Inspect dated result</button></div>}
+      <button type="button" className="secondary-button" disabled={!sampleDay||!ownerConnected} onClick={()=>void loadReplay()}>Inspect dated result</button></div>
+      {ownerConnected&&sampleDay&&<DayStrategyReview day={sampleDay} strategy={selected} stocks={topVolume?.stocks.filter(x=>x.archived).map(x=>x.symbol)??COHORT} onPick={setSampleSymbol}/>}
+     </>}
      {replayError&&<p role="alert" className="atlas-simple-error">{replayError}</p>}
      {replay&&<div className="atlas-replay-proof"><strong>{replay.status.replaceAll('_',' ')}</strong><span>{replay.symbol} · {replay.sourceDate} · {replay.minuteBars} minute bars</span><span>Published {new Date(replay.sourceKnownAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})} IST</span><code title={replay.sourceSha256}>SHA-256 {replay.sourceSha256.slice(0,16)}…</code>
       {replay.result?<p>Source-qualified retrospective {replay.result.signal.status.toLowerCase().replace('_',' ')}{replay.result.signal.side?` · ${replay.result.signal.side}`:''}{replay.result.signal.reason?` · ${replay.result.signal.reason.replaceAll('_',' ').toLowerCase()}`:''}. No paper fill was created.</p>:null}

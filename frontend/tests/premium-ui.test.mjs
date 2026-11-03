@@ -26,7 +26,7 @@ test('all shown controls have actions and private owner token remains in memory'
 test('UI reports missing evidence rather than invented strategy performance',()=>{
  assert.match(paper,/X_PAPER_PILOT_ARMED_OTHER_SIX_UNARMED/);
  assert.match(paper,/Other six rules await qualified feeds/);
- assert.match(paper,/Not verified/);
+ assert.match(paper,/account\?account\.paperFills:'—'/);
  assert.match(paper,/No result is assumed/);
  assert.match(market,/complete_0940_snapshot/);
  assert.match(market,/full eligible universe/);
