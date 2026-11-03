@@ -7,6 +7,7 @@ import {catalog as sevenStrategyCatalog} from './seven-strategy-replay.js';
 import {readIntradayStrategyReplay,readMarketReplay} from './strategy-replay-reader.js';
 import {archiveTopVolumeStep,readTopVolumeHistory,topVolumeRoster} from './top-volume-history.js';
 import {archiveLiveMisIdentity} from './mis-identity-archive.js';
+import {captureLiveMinute,captureOpeningSeed,readLiveMinuteStatus} from './live-minute-capture.js';
 import {verifyNiftyHistoricalSource,verifyNiftyOhlcSource} from './nifty-open-archive.js';
 import {archiveNiftyLiveOhlc,readNiftyOpening} from './nifty-live-ohlc.js';
 import {readNseEodTop} from './nse-eod-top.js';
@@ -75,18 +76,21 @@ async function daybook(db,day,now){
 async function dataAvailability(env){
  if(!env.HISTORY_DB)throw Error('private history unavailable');
  const history=env.HISTORY_DB;
- const [minute,daily,reference,full,nifty]=await Promise.all([
+ const [minute,daily,reference,full,nifty,liveMinutes,openingSeeds]=await Promise.all([
   rows(history,'SELECT source_date AS day,COUNT(*) AS symbols,MIN(candle_count) AS min_bars,MAX(candle_count) AS max_bars FROM history_samples GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
   rows(history,'SELECT source_date AS day,COUNT(*) AS symbols,MIN(candle_count) AS min_bars,MAX(candle_count) AS max_bars FROM daily_history_samples GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
   rows(history,'SELECT source_date AS day,COUNT(*) AS files FROM nse_reference_receipts GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
   rows(env.DB,'SELECT c.session AS day,c.eligible_count AS eligible,COUNT(s.symbol) AS captured,COUNT(s.instrument_key) AS keyed FROM coverage c LEFT JOIN entry_snapshots s ON s.session=c.session GROUP BY c.session ORDER BY c.session DESC LIMIT 90'),
-  rows(history,'SELECT source_date AS day,COUNT(*) AS bars FROM nifty_open_ohlc_receipts GROUP BY source_date ORDER BY source_date DESC LIMIT 90')
+  rows(history,'SELECT source_date AS day,COUNT(*) AS bars FROM nifty_open_ohlc_receipts GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
+  rows(history,'SELECT source_date AS day,COUNT(*) AS minutes FROM live_minute_receipts GROUP BY source_date ORDER BY source_date DESC LIMIT 90'),
+  rows(history,'SELECT source_date AS day,COUNT(*) AS seeds FROM live_opening_seed GROUP BY source_date ORDER BY source_date DESC LIMIT 90')
  ]);
  return {mode:'PAPER_ONLY',realOrdersEnabled:false,as_of:new Date().toISOString(),
   minute:{days:minute.length,dates:minute},daily:{days:daily.length,dates:daily},
   nse_reference:{days:reference.length,dates:reference},
   full_0940:{days:full.length,dates:full},nifty_open:{days:nifty.length,dates:nifty},
-  note:'Daily reference files, Nifty opening receipts and minute samples are separate evidence, not a full-universe intraday backtest.'};
+  live_minute:{days:liveMinutes.length,dates:liveMinutes},opening_seed:{days:openingSeeds.length,dates:openingSeeds},
+  note:'Live minute receipts, opening seeds and after-close samples are separate source evidence, not paper fills.'};
 }
 async function schedule(db,data,now){
  if(typeof data.symbol!=='string'||!SYMBOL.test(data.symbol)||!['BUY','SELL'].includes(data.side)||
@@ -367,7 +371,7 @@ export default {
  realOrdersEnabled:false,backendConnected:Boolean(env.DB),
  configured:Boolean(env.DB&&typeof env.OWNER_TOKEN==='string'&&env.OWNER_TOKEN.length>=32&&env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100),
  feedSourceConfigured:Boolean(env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100)});if(!env.DB)return reply({error:'D1_NOT_CONNECTED'},503);
- const actions={'/api/cloud-paper/session':'SESSION','/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/data-availability':'GET','/api/cloud-paper/market-replay':'GET','/api/cloud-paper/top-volume-history':'GET','/api/cloud-paper/nifty-opening':'GET','/api/cloud-paper/nse-eod-top':'GET','/api/cloud-paper/nifty-source-check':'GET','/api/cloud-paper/nifty-ohlc-check':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/quotes':'POST'};
+ const actions={'/api/cloud-paper/session':'SESSION','/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/data-availability':'GET','/api/cloud-paper/market-replay':'GET','/api/cloud-paper/live-minute-status':'GET','/api/cloud-paper/top-volume-history':'GET','/api/cloud-paper/nifty-opening':'GET','/api/cloud-paper/nse-eod-top':'GET','/api/cloud-paper/nifty-source-check':'GET','/api/cloud-paper/nifty-ohlc-check':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/quotes':'POST'};
  if(!Object.hasOwn(actions,path))return reply({error:'NOT_FOUND'},404);
  if(path.endsWith('/session')){
   if(!['GET','POST','DELETE'].includes(req.method))return reply({error:'METHOD_NOT_ALLOWED'},405);
@@ -386,6 +390,7 @@ export default {
  if(path.endsWith('/daybook'))return reply(await daybook(env.DB,new URL(req.url).searchParams.get('day')||ist(now).day,now));
  if(path.endsWith('/data-availability'))return reply(await dataAvailability(env));
  if(path.endsWith('/market-replay')){const q=new URL(req.url).searchParams;return reply(await readMarketReplay(env,{day:q.get('day'),symbol:q.get('symbol')}));}
+ if(path.endsWith('/live-minute-status'))return reply(await readLiveMinuteStatus(env,new URL(req.url).searchParams.get('day')||ist(now).day));
  if(path.endsWith('/top-volume-history'))return reply(await readTopVolumeHistory(env,new URL(req.url).searchParams.get('day')));
  if(path.endsWith('/nifty-opening'))return reply(await readNiftyOpening(env,new URL(req.url).searchParams.get('day')));
  if(path.endsWith('/nse-eod-top'))return reply(await readNseEodTop(env,new URL(req.url).searchParams.get('day')));
@@ -415,6 +420,10 @@ export default {
  console.error('paper worker error:',e?.name);return reply({error:'PAPER_SERVICE_UNAVAILABLE'},503);}
  },
   async scheduled(event,env,ctx){ctx.waitUntil((async()=>{
+   if(event.cron==='12-31 4 * * 1-5'){
+    try{await captureOpeningSeed(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only opening seed unavailable:',d.type,d.message)}
+    return;
+   }
    if(event.cron==='0-6 2,3 * * 1-5'){
     try{await scheduledNseReferenceStep(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('private NSE reference archive unavailable:',d.type,d.message)}
     return;
@@ -434,5 +443,8 @@ export default {
    }
    try{await sourceTick(env);}catch(e){const d=safeDiagnostic(e);console.error('read-only Upstox feed unavailable:',d.type,d.message)}
    await tick(env);
+   if(session(actualNow)&&minute>=581&&minute<=915){
+    try{await captureLiveMinute(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('read-only live minute receipt unavailable:',d.type,d.message)}
+   }
   })().catch(e=>console.error('scheduled paper tick error:',e?.name)));},
 };

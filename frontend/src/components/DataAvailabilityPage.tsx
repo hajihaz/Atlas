@@ -1,12 +1,14 @@
 import {useEffect,useState} from 'react';
 import {Database,RefreshCcw} from 'lucide-react';
 import {cloudPaperRequest} from '../lib/cloudPaperRead';
-type Day={day:string;symbols?:number;min_bars?:number;max_bars?:number;files?:number;eligible?:number;captured?:number;keyed?:number;bars?:number};
+type Day={day:string;symbols?:number;min_bars?:number;max_bars?:number;files?:number;eligible?:number;captured?:number;keyed?:number;bars?:number;minutes?:number;seeds?:number};
 type Group={days:number;dates:Day[]};
 type EodStock={rank:number;symbol:string;isin:string;volumeShares:number;open:number;high:number;low:number;close:number;turnoverRupees:number;tradeCount:number};
 type EodTop={schema:string;mode:string;realOrdersEnabled:boolean;sourceDate:string;evidenceClass:string;sourceSha256:string;sourcePublishedAt:string;totalEqStocks:number;top:EodStock[]};
-export type Availability={mode:string;realOrdersEnabled:boolean;as_of:string;minute:Group;daily:Group;nse_reference:Group;full_0940:Group;nifty_open:Group;note:string};
-const groups:[keyof Pick<Availability,'minute'|'daily'|'nse_reference'|'full_0940'|'nifty_open'>,string,string][]=[
+export type Availability={mode:string;realOrdersEnabled:boolean;as_of:string;minute:Group;daily:Group;nse_reference:Group;full_0940:Group;nifty_open:Group;live_minute:Group;opening_seed:Group;note:string};
+const groups:[keyof Pick<Availability,'minute'|'daily'|'nse_reference'|'full_0940'|'nifty_open'|'live_minute'|'opening_seed'>,string,string][]=[
+ ['live_minute','Live minute capture','Completed top-ten bars recorded during the market session'],
+ ['opening_seed','Opening range','09:15–09:39 bars for the actual 09:40 top ten'],
  ['minute','Minute bars','Ten-stock dated OHLCV samples'],
  ['daily','Daily stock bars','Ten-stock history samples'],
  ['nse_reference','NSE daily files','Official EOD and security master receipts'],
@@ -43,7 +45,7 @@ export default function DataAvailabilityPage({ownerConnected,goPaper}:{ownerConn
   {data&&<><div className="atlas-data-grid">{groups.map(([key,title,description])=><div className="panel atlas-data-card" key={key}><Database size={21}/><small>{title}</small><strong>{data[key].days} dates</strong><span>{description}</span></div>)}</div>
    {groups.map(([key,title])=><details className="panel atlas-data-detail" key={key}><summary>{title} · {data[key].days} dates</summary>
     {key==='nse_reference'&&<p>Choose a date to view the 20 highest-volume EQ stocks from the complete official end-of-day file. These are whole-day rankings, not stocks known at 09:40.</p>}
-    <div className="atlas-data-dates">{data[key].dates.map(x=><div key={x.day}><strong>{x.day}</strong><span>{x.bars!=null?`${x.bars} source candles`:x.symbols!=null?`${x.symbols} symbols · ${x.min_bars}–${x.max_bars} bars`:x.files!=null?`${x.files} source files`:`${x.captured}/${x.eligible} symbols · ${x.keyed??0} stored IDs`}</span>
+    <div className="atlas-data-dates">{data[key].dates.map(x=><div key={x.day}><strong>{x.day}</strong><span>{x.minutes!=null?`${x.minutes} completed minutes · 10 stocks each`:x.seeds!=null?`${x.seeds}/10 opening stock seeds`:x.bars!=null?`${x.bars} source candles`:x.symbols!=null?`${x.symbols} symbols · ${x.min_bars}–${x.max_bars} bars`:x.files!=null?`${x.files} source files`:`${x.captured}/${x.eligible} symbols · ${x.keyed??0} stored IDs`}</span>
      {key==='nse_reference'&&x.files===2&&<button type="button" className="secondary-button" disabled={eodBusy} onClick={()=>void loadEodTop(x.day)}>View top volume</button>}</div>)}</div></details>)}
    {eodBusy&&<p role="status">Checking official whole-day source…</p>}{eodError&&<p className="atlas-simple-error" role="alert">{eodError}</p>}
    {eodTop&&<div className="panel atlas-data-detail"><h2>{eodTop.sourceDate} · Whole-day top volume</h2>

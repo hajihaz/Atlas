@@ -61,3 +61,4 @@ lean-adapter/obj/
 /scripts/lean-smoke/bin/
 /scripts/lean-smoke/obj/
 .vercel/
+/.env.local
