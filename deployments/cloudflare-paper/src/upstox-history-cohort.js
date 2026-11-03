@@ -1,4 +1,4 @@
-/** Bounded retrospective cohort. The identities appear in both dated MIS receipts. */
+/** Bounded fixed-watchlist cohort. Only listed ROSTERS have dated MIS proof. */
 import {validateHistoricalCandles} from './upstox-history-pilot.js';
 
 const BASE='https://api.upstox.com/v3/historical-candle/';

@@ -19,7 +19,7 @@ const payload=day=>({status:'success',data:{candles:[
  [`${day}T09:15:00+05:30`,99,100,98,100,4000,0],
 ]}});
 
-test('cohort is limited to ten dated premarket identities',()=>{
+test('cohort is limited to ten fixed identities and marks dates without MIS proof',()=>{
  assert.equal(cohortSpec({source_date:'2026-10-28',symbol:'RELIANCE'}).key,'NSE_EQ|INE002A01018');
  assert.equal(cohortSpec({source_date:'2026-09-24',symbol:'RELIANCE'}).roster,null);
  assert.throws(()=>cohortSpec({source_date:'2026-09-23',symbol:'RELIANCE'}),/invalid dated cohort/);
