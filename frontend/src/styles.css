@@ -607,3 +607,12 @@ html[data-theme="dark"] .atlas-home-chart-empty{background:radial-gradient(ellip
 @media(max-width:1050px){.atlas-home-tickers{grid-template-columns:repeat(3,minmax(0,1fr))}.atlas-home-quick{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:680px){.atlas-home-hero{align-items:start;flex-direction:column}.atlas-home-tickers{grid-template-columns:repeat(2,minmax(0,1fr))}.atlas-home-quick{grid-template-columns:1fr 1fr}.atlas-manual-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.atlas-manual-result{grid-template-columns:1fr}.atlas-data-coverage>div{grid-template-columns:110px 1fr 24px}}
 @media(max-width:430px){.atlas-home-quick{grid-template-columns:1fr}.atlas-home-section-head{align-items:start;flex-direction:column}.atlas-home-ticker strong{font-size:1.1rem}}
+
+/* Keep the owner experiment report and navigation within the mobile viewport. */
+.atlas-strategy-detail{min-width:0;overflow-wrap:anywhere}
+@media(max-width:800px){
+ .atlas-simple-shell .app-body{margin-left:0;min-width:0;width:100%}
+ .atlas-simple-shell .sidebar{width:250px;transform:translateX(-100%)}
+ .atlas-simple-shell .sidebar.mobile-open{transform:translateX(0)}
+ .atlas-strategy-layout{grid-template-columns:minmax(0,1fr)}
+}

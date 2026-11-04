@@ -1,6 +1,7 @@
 /** D1 compare-and-swap store for isolated seven-strategy paper ledgers. */
 import {createSevenAccount,assertSevenAccount} from './seven-paper-ledger.js';
 import {SEVEN_STRATEGIES} from './seven-strategy-replay.js';
+import {paperExperimentReport} from './paper-experiment-report.js';
 const fail=reason=>{throw Error('SEVEN_STORE_BLOCKED: '+reason);};
 export async function ensureSevenAccounts(db,startedAt){
  if(!db||!Number.isSafeInteger(startedAt)||startedAt<=0)fail('store or time');
@@ -52,9 +53,11 @@ export async function listSevenAccounts(db){
    if(!Number.isSafeInteger(running))fail('realized performance audit');
    const closedPnlSeries=fills.map(f=>{running+=f.pnlPaise;return {at:new Date(f.tradeAt).toISOString(),realizedPnlINR:running/100};});
    if(Math.abs(running-state.realizedPaise)>1)fail('realized performance mismatch');
+   // A legacy fill may lack reporting details; preserve the independently audited basic balance view.
+   let experiment=null;try{experiment=paperExperimentReport(state)}catch{ /* Detailed statistics remain unavailable. */ }
    return {strategyId:state.strategyId,revision:state.revision,cashINR:state.cashPaise/100,
     realizedPnlINR:state.realizedPaise/100,pendingCount:Object.keys(state.pending).length,
     positionCount:Object.keys(state.positions).length,paperFills:state.fills.length,updatedAt:row.updated_ms,
-    closedPnlSeries,historyTruncated:state.fills.length===1000};
+    closedPnlSeries,historyTruncated:state.fills.length===1000,experiment,experimentStatus:experiment?'AVAILABLE':'UNAVAILABLE_LEGACY_OR_INVALID_FILL_DETAIL'};
   })};
 }

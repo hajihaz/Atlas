@@ -6,9 +6,11 @@ import type {Availability} from './DataAvailabilityPage';
 import ResearchTradeResults from './ResearchTradeResults';
 import HistoryCoverageTimeline from './HistoryCoverageTimeline';
 import DayStrategyReview from './DayStrategyReview';
+import PaperExperimentReport from './PaperExperimentReport';
+import type {Experiment} from './PaperExperimentReport';
 type CloudStatus={mode:string;realOrdersEnabled:boolean;backendConnected:boolean;configured:boolean;feedSourceConfigured:boolean};
 type Catalog={schema:string;paperOnly:boolean;realOrdersEnabled:boolean;executionStatus:string;strategies:{id:string;name:string;executionStatus:string}[]};
-type Account={strategyId:string;cashINR:number;realizedPnlINR:number;positionCount:number;pendingCount:number;paperFills:number};
+type Account={strategyId:string;cashINR:number;realizedPnlINR:number;positionCount:number;pendingCount:number;paperFills:number;experiment?:Experiment};
 type Accounts={paperOnly:boolean;realOrdersEnabled:boolean;executionStatus:string;accounts:Account[]};
 type State={mode:string;realOrdersEnabled:boolean;strategy_enabled:boolean;strategy:string;cash_paise:number;positions:{symbol:string;qty:number}[];last_strategy_phase:{status:string;reason:string|null}|null};
 type Replay={status:string;sourceDate:string;symbol:string;sourceSha256:string;sourceKnownAt:string;minuteBars:number;required:string[];
@@ -187,6 +189,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
      <div><small>Virtual cash</small><strong>{account?inr(account.cashINR):'—'}</strong></div>
      <div><small>Realized paper P&amp;L</small><strong>{account?inr(account.realizedPnlINR):'—'}</strong></div>
     </div>
+    {account?.experiment?<PaperExperimentReport report={account.experiment} strategy={selected}/>:account&&<p className="atlas-simple-note">Detailed experiment statistics are unavailable for this account. Basic balances remain visible above.</p>}
     <div className="atlas-rule-evidence"><h3>Forward paper activity</h3>
      <p>{catalog?.strategies.find(x=>x.id===selected)?.executionStatus==='PAPER_PILOT_ARMED'?'Paper pilot active. A trade appears here only after a verified live signal and later fresh quote.':'Paper testing is waiting for the data this strategy needs.'}</p>
      <label>Market date <input type="date" value={journalDay} max={new Date(Date.now()+19800000).toISOString().slice(0,10)} onChange={e=>setJournalDay(e.target.value)}/></label>

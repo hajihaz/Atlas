@@ -474,6 +474,12 @@ export default {
    if(session(actualNow)&&minute>=885&&minute<=929){
     try{await tickSevenForward(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper risk exit unavailable:',d.type,d.message)}
    }
+   // Capture before legacy work, using the actual request time rather than an older Cron timestamp.
+   if(session(actualNow)&&minute>=582&&minute<=915){
+    try{await captureLiveMinute(env)}catch(e){const d=safeDiagnostic(e);console.error('read-only live minute receipt unavailable:',d.type,d.message);
+     try{await log(env.DB,Date.now(),'LIVE_MINUTE_CAPTURE_FAILED',d.message).run()}catch{ /* Console keeps the original diagnostic if D1 is unavailable. */ }
+    }
+   }
    try{await sourceTick(env);}catch(e){const d=safeDiagnostic(e);console.error('read-only Upstox feed unavailable:',d.type,d.message)}
    try{await tick(env)}catch(e){const d=safeDiagnostic(e);console.error('legacy paper tick unavailable:',d.type,d.message)}
    // The five-minute source decision runs in another Cron invocation. Queue
@@ -486,9 +492,6 @@ export default {
      try{await queueForwardX(env,day,windowEnd,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper signal queue unavailable:',d.type,d.message)}
     }
     try{await tickSevenForward(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper virtual settlement unavailable:',d.type,d.message)}
-   }
-   if(session(actualNow)&&minute>=582&&minute<=915){
-    try{await captureLiveMinute(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('read-only live minute receipt unavailable:',d.type,d.message)}
    }
    if(session(actualNow)&&minute>=582&&minute<=601){
     try{await captureOpeningSeed(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only opening seed unavailable:',d.type,d.message)}
