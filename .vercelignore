@@ -1,0 +1,11 @@
+.ai/
+.git/
+.atlas-runtime/
+**/.env*
+**/node_modules/
+**/.vercel/
+**/__pycache__/
+**/*.db
+**/*.db-shm
+**/*.db-wal
+.secrets.baseline
