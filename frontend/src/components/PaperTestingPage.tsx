@@ -31,7 +31,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
  const [state,setState]=useState<State|null>(null);
  const [availability,setAvailability]=useState<Availability|null>(null);
  const [sampleDay,setSampleDay]=useState('');
- const [sampleSymbol,setSampleSymbol]=useState('RELIANCE');
+ const [sampleSymbol,setSampleSymbol]=useState('');
  const [topVolume,setTopVolume]=useState<TopVolume|null>(null);
  const [journal,setJournal]=useState<StrategyJournal|null>(null);
  const [journalDay,setJournalDay]=useState(()=>new Date(Date.now()+19800000).toISOString().slice(0,10));
@@ -92,7 +92,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
  async function loadReplay(){
   const serial=++replaySerial.current;
   setReplay(null);setReplayError('');
-  if(!sampleDay){setReplayError('No dated minute receipt is available.');return;}
+  if(!sampleDay||!sampleSymbol){setReplayError('Choose a dated stock receipt.');return;}
   try{const result=await cloudPaperRequest<Replay>(cloudPaperUsesGateway?'':ownerToken,'strategy-replay',{day:sampleDay,symbol:sampleSymbol,strategy:selected});
    if(serial===replaySerial.current)setReplay(result);
   }catch(e){if(serial===replaySerial.current)setReplayError(e instanceof Error?e.message:'Replay unavailable');}
@@ -100,12 +100,12 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
  useEffect(()=>{
   replaySerial.current++;
   setReplay(null);setReplayError('');
-  if(rule.cadence==='Intraday'&&sampleDay&&(ownerConnected||ownerToken.length>=32)&&availability)void loadReplay();
+  if(rule.cadence==='Intraday'&&sampleDay&&sampleSymbol&&(ownerConnected||ownerToken.length>=32)&&availability)void loadReplay();
  },[selected,sampleDay,sampleSymbol,ownerToken,ownerConnected,availability]);
  useEffect(()=>{
-  setTopVolume(null);if(!sampleDay||!ownerConnected)return;
+  setTopVolume(null);setSampleSymbol('');if(!sampleDay||!ownerConnected)return;
   let active=true;
-  cloudPaperRequest<TopVolume>('','top-volume-history',{day:sampleDay}).then(value=>{if(active&&value.sourceDate===sampleDay)setTopVolume(value);}).catch(()=>{});
+  cloudPaperRequest<TopVolume>('','top-volume-history',{day:sampleDay}).then(value=>{if(active&&value.sourceDate===sampleDay){setTopVolume(value);setSampleSymbol(value.stocks.find(x=>x.archived)?.symbol??COHORT[0]);}}).catch(()=>{if(active)setSampleSymbol(COHORT[0]);});
   return ()=>{active=false;};
  },[sampleDay,ownerConnected]);
  useEffect(()=>{if(ownerConnected&&!catalog)void refresh();},[ownerConnected]);
@@ -206,7 +206,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
       {rawResult&&<ResearchTradeResults result={rawResult} fallbackSymbol={selected==='rsi2_snapback'?'NIFTYBEES':'ETF'}/>}
      </>}
      {rule.cadence==='Intraday'&&<><div className="atlas-intraday-performance"><strong>Paper performance chart</strong><p>{account?.paperFills?`${account.paperFills} fills are recorded. Open the dated activity above to inspect verified prices and results.`:'No verified fills yet, so there is no profit curve to draw. The chart below shows recorded market data only.'}</p></div><HistoryCoverageTimeline dates={availability?.minute.dates??[]} selected={sampleDay} onSelect={setSampleDay}/><div className="atlas-replay-controls"><label>Session<select value={sampleDay} onChange={e=>setSampleDay(e.target.value)}>{availability?.minute.dates.map(x=><option key={x.day} value={x.day}>{x.day} · {x.symbols} stocks</option>)}</select></label>
-      <label>Stock<select value={sampleSymbol} onChange={e=>setSampleSymbol(e.target.value)}>{topVolume?.stocks.map(x=><option key={x.symbol} value={x.symbol}>{x.rank}. {x.symbol} · {x.archived?'archived':'pending'}</option>)}
+      <label>Stock<select value={sampleSymbol} onChange={e=>setSampleSymbol(e.target.value)}>{!sampleSymbol&&<option value="">Loading archived stocks…</option>}{topVolume?.stocks.map(x=><option key={x.symbol} value={x.symbol} disabled={!x.archived}>{x.rank}. {x.symbol} · {x.archived?'archived':'pending'}</option>)}
        {COHORT.filter(x=>!topVolume?.stocks.some(v=>v.symbol===x)).map(x=><option key={x} value={x}>{x} · fixed sample</option>)}</select></label>
       <button type="button" className="secondary-button" disabled={!sampleDay||!ownerConnected} onClick={()=>void loadReplay()}>Inspect dated result</button></div>
       {ownerConnected&&sampleDay&&<DayStrategyReview day={sampleDay} strategy={selected} stocks={topVolume?.stocks.filter(x=>x.archived).map(x=>x.symbol)??COHORT} onPick={setSampleSymbol}/>}
