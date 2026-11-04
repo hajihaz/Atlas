@@ -46,8 +46,15 @@ export async function listSevenAccounts(db){
    assertSevenAccount(state);
    if(seen.has(row.strategy_id)||row.strategy_id!==state.strategyId||row.revision!==state.revision)fail('stored identity');
    seen.add(row.strategy_id);
+   const fills=[...state.fills].sort((a,b)=>a.tradeAt-b.tradeAt);
+   if(fills.some(f=>!Number.isSafeInteger(f.tradeAt)||!Number.isSafeInteger(f.pnlPaise)))fail('fill performance audit');
+   let running=state.realizedPaise-fills.reduce((sum,f)=>sum+f.pnlPaise,0);
+   if(!Number.isSafeInteger(running))fail('realized performance audit');
+   const closedPnlSeries=fills.map(f=>{running+=f.pnlPaise;return {at:new Date(f.tradeAt).toISOString(),realizedPnlINR:running/100};});
+   if(Math.abs(running-state.realizedPaise)>1)fail('realized performance mismatch');
    return {strategyId:state.strategyId,revision:state.revision,cashINR:state.cashPaise/100,
     realizedPnlINR:state.realizedPaise/100,pendingCount:Object.keys(state.pending).length,
-    positionCount:Object.keys(state.positions).length,paperFills:state.fills.length,updatedAt:row.updated_ms};
+    positionCount:Object.keys(state.positions).length,paperFills:state.fills.length,updatedAt:row.updated_ms,
+    closedPnlSeries,historyTruncated:state.fills.length===1000};
   })};
 }
