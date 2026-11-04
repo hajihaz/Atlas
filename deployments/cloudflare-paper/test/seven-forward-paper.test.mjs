@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import {createSevenAccount,submitSevenSignal,settleSevenPending,sevenRiskExit} from '../src/seven-paper-ledger.js';
-import {ensureSevenAccounts,loadSevenAccount} from '../src/seven-paper-store.js';
+import {ensureSevenAccounts,loadSevenAccount,saveSevenAccount} from '../src/seven-paper-store.js';
 import {queueForwardX,tickSevenForward,normalizeBookResponse} from '../src/seven-forward-paper.js';
 
 const DAY='2026-11-04',KEY='NSE_EQ|INE002A01018',SYMBOL='RELIANCE';
@@ -14,17 +14,46 @@ const db=sqlite=>({prepare(sql){return {bind(...params){return {
  async run(){const r=sqlite.prepare(sql).run(...params);return {meta:{changes:r.changes}}}
 }}}}});
 const quote=(stamp,price=100)=>({source:'Upstox Analytics',instrumentKey:KEY,lastPrice:price,
- lastTradeAt:new Date(stamp).toISOString(),observedAt:new Date(stamp).toISOString(),
+ lastTradeAt:new Date(stamp).toISOString(),providerAt:new Date(stamp).toISOString(),
+ observedAt:new Date(stamp).toISOString(),
  bid:{price:price-.05,quantity:1000},ask:{price:price+.05,quantity:1000},sourceSha256:'a'.repeat(64)});
 
-test('documented Upstox V3 depth requires exact instrument identity and fresh trade',()=>{
+test('documented Upstox V3 depth requires exact identity and fresh provider response',()=>{
  const body={status:'success',data:{'NSE_EQ:RELIANCE':{instrument_token:KEY,symbol:SYMBOL,
   last_trade_time:String(at(4,37)),timestamp:new Date(at(4,37)).toISOString(),last_price:100,
   depth:{buy:[{price:99.9,quantity:100}],sell:[{price:100.1,quantity:100}]}}}};
  const valid=normalizeBookResponse(body,[KEY],at(4,37)+1000,'a'.repeat(64));
  assert.equal(valid.get(KEY).ask.price,100.1);
+ assert.equal(valid.get(KEY).providerAt,new Date(at(4,37)).toISOString());
  assert.equal(normalizeBookResponse(body,[KEY],at(4,38)+12000,'a'.repeat(64)).size,0);
+ const quiet={...body,data:{'NSE_EQ:RELIANCE':{...body.data['NSE_EQ:RELIANCE'],
+  last_trade_time:String(at(4,30)),timestamp:new Date(at(4,37)).toISOString()}}};
+ assert.equal(normalizeBookResponse(quiet,[KEY],at(4,37)+1000,'a'.repeat(64)).size,1);
  assert.throws(()=>normalizeBookResponse({...body,data:{'NSE_EQ:RELIANCE':{...body.data['NSE_EQ:RELIANCE'],instrument_token:'NSE_EQ|INE000000000'}}},[KEY],at(4,37)+1000,'a'.repeat(64)),/unrequested book identity/);
+});
+
+test('15:15 queues a paper exit without a quote; later provider book settles despite old last trade',async()=>{
+ const accounts=new DatabaseSync(':memory:');accounts.exec(readFileSync(new URL('../seven-paper-ledger.sql',import.meta.url),'utf8'));
+ const env={DB:db(accounts)};
+ await ensureSevenAccounts(env.DB,at(3,45));
+ const entryAt=at(4,35);
+ const original=await loadSevenAccount(env.DB,'scalpstorm_x');
+ const state=submitSevenSignal(original,{strategyId:'scalpstorm_x',id:'test-timed-exit-entry-01',
+  symbol:SYMBOL,instrumentKey:KEY,side:'BUY',signalAt:new Date(entryAt).toISOString(),
+  realOrdersEnabled:false},entryAt).state;
+ const bought=settleSevenPending(state,SYMBOL,quote(entryAt+1000),entryAt+1000).state;
+ assert.equal(Object.keys(bought.positions).length,1);
+ await saveSevenAccount(env.DB,original,bought,entryAt+1000);
+ const cutoff=at(9,45);
+ assert.equal((await tickSevenForward(env,cutoff,async()=>new Map())).exits,1);
+ const pending=await loadSevenAccount(env.DB,'scalpstorm_x');
+ assert.equal(pending.pending[SYMBOL].reason,'MANDATORY_1515_EXIT');
+ const later={...quote(cutoff+60000),lastTradeAt:new Date(entryAt+1000).toISOString()};
+ assert.equal((await tickSevenForward(env,cutoff+60000,async()=>new Map([[KEY,later]]))).fills,1);
+ const sold=await loadSevenAccount(env.DB,'scalpstorm_x');
+ assert.equal(sold.fills.at(-1).mode,'HYPOTHETICAL_NEXT_OBSERVED_BOOK');
+ assert.equal(Object.keys(sold.positions).length,0);
+ assert.equal(sold.cashPaise,10000000+sold.realizedPaise);
 });
 
 test('qualified X signal queues once; later book fills; 15:15 exit waits for another trade',async()=>{

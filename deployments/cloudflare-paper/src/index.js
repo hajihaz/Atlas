@@ -470,8 +470,12 @@ export default {
    if(session(actualNow)&&(minute===556||minute===570)){
     try{await archiveNiftyLiveOhlc(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('read-only Nifty OHLC receipt unavailable:',d.type,d.message)}
    }
+   // Give the seven-rule 15:15 liquidation first claim on Free-plan CPU.
+   if(session(actualNow)&&minute>=885&&minute<=929){
+    try{await tickSevenForward(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper risk exit unavailable:',d.type,d.message)}
+   }
    try{await sourceTick(env);}catch(e){const d=safeDiagnostic(e);console.error('read-only Upstox feed unavailable:',d.type,d.message)}
-   await tick(env);
+   try{await tick(env)}catch(e){const d=safeDiagnostic(e);console.error('legacy paper tick unavailable:',d.type,d.message)}
    // The five-minute source decision runs in another Cron invocation. Queue
    // paper intent on the following minute; a later fresh book alone can fill.
    if(session(actualNow)&&minute>=555&&minute<580){
@@ -482,8 +486,6 @@ export default {
      try{await queueForwardX(env,day,windowEnd,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper signal queue unavailable:',d.type,d.message)}
     }
     try{await tickSevenForward(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper virtual settlement unavailable:',d.type,d.message)}
-   }else if(session(actualNow)&&minute>=885&&minute<=929){
-    try{await tickSevenForward(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper risk exit unavailable:',d.type,d.message)}
    }
    if(session(actualNow)&&minute>=582&&minute<=915){
     try{await captureLiveMinute(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('read-only live minute receipt unavailable:',d.type,d.message)}

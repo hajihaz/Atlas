@@ -52,11 +52,12 @@ export function normalizeBookResponse(body,keys,receivedAt,sourceSha256){
   if(pair[1]?.symbol!==pair[0].slice(7)||out.has(key))fail('book instrument identity');
   const value=pair[1],lastTrade=Number(value.last_trade_time),provider=Date.parse(value.timestamp);
   if(!Number.isSafeInteger(lastTrade)||!Number.isFinite(provider)||provider>receivedAt+1000||
-    lastTrade>receivedAt+1000||receivedAt-lastTrade>10000||receivedAt-provider>10000||
+    lastTrade>receivedAt+1000||receivedAt-provider>10000||
     !Number.isFinite(value.last_price)||value.last_price<=0)continue;
   const bid=value.depth?.buy?.[0],ask=value.depth?.sell?.[0];
   out.set(key,{source:'Upstox Analytics',instrumentKey:key,lastPrice:value.last_price,
-   lastTradeAt:new Date(lastTrade).toISOString(),observedAt:new Date(receivedAt).toISOString(),
+   lastTradeAt:new Date(lastTrade).toISOString(),providerAt:new Date(provider).toISOString(),
+   observedAt:new Date(receivedAt).toISOString(),
    bid:bid&&{price:bid.price,quantity:bid.quantity},
    ask:ask&&{price:ask.price,quantity:ask.quantity},sourceSha256});
  }
@@ -103,7 +104,7 @@ export async function tickSevenForward(env,now=Date.now(),books=fetchPaperBooks)
    if(result.status==='EXPIRED')expired++;
   }
   // Never generate an exit from the same quote that opened a position.
-  if(before.positions[symbol]&&!before.pending[symbol]&&q){
+  if(before.positions[symbol]&&!before.pending[symbol]){
    const signal=sevenRiskExit(state,symbol,q,now);
    if(signal){const result=submitSevenSignal(state,signal,now);state=result.state;
     if(result.status==='PENDING')exits++;}

@@ -6,7 +6,7 @@ const clone=x=>structuredClone(x);
 const time=x=>typeof x==='string'?Date.parse(x):NaN;
 const price=x=>Number.isFinite(x)&&x>=0.01&&x<10000000?Math.round(x*100):fail('invalid price');
 // Conservative paper pilot values. Versioned so results cannot silently mix policies.
-export const SEVEN_RISK_POLICY=Object.freeze({version:'paper-risk-2026-11-04-v1',
+export const SEVEN_RISK_POLICY=Object.freeze({version:'paper-risk-2026-11-04-v2',
  maxAllocationPaise:1000000,maxLossPerTradePaise:25000,dailyLossPaise:50000,
  stopBps:100,targetBps:150,entryCutoffMinute:885,exitMinute:915});
 const istDay=x=>new Date(x+19800000).toISOString().slice(0,10);
@@ -73,7 +73,7 @@ export function submitSevenSignal(previous,input,now){
  state.revision++;
  return {state,status:'PENDING'};
 }
-/** Only a later, fresh observed trade with usable book depth can settle. */
+/** Only a later, fresh provider-generated book with usable depth can settle. */
 export function settleSevenPending(previous,symbol,quote,now){
  assertSevenAccount(previous);
  const pending=previous.pending[symbol];
@@ -84,11 +84,11 @@ export function settleSevenPending(previous,symbol,quote,now){
   if(state.events.length>300)state.events.shift();state.revision++;
   return {state,status:'EXPIRED'};
  }
- const traded=time(quote?.lastTradeAt),observed=time(quote?.observedAt);
+ const provider=time(quote?.providerAt),observed=time(quote?.observedAt);
  if(quote?.source!=='Upstox Analytics'||quote.instrumentKey!==pending.instrumentKey||
-   !Number.isFinite(traded)||!Number.isFinite(observed)||traded<=pending.signalAt||
-   traded<=pending.createdAt||observed>now+1000||traded>now+1000||
-   now-traded>10000||now-observed>10000)return {state:previous,status:'WAIT_FRESH_QUOTE'};
+   !Number.isFinite(provider)||!Number.isFinite(observed)||provider<=pending.signalAt||
+   provider<=pending.createdAt||provider>observed+1000||observed>now+1000||
+   now-provider>10000||now-observed>10000)return {state:previous,status:'WAIT_FRESH_QUOTE'};
  const book=pending.side==='BUY'?quote.ask:quote.bid;
  if(!book||!Number.isFinite(book.price)||book.price<=0||
    !Number.isSafeInteger(book.quantity)||book.quantity<1)return {state:previous,status:'WAIT_BOOK'};
@@ -104,7 +104,7 @@ export function settleSevenPending(previous,symbol,quote,now){
   state.cashPaise-=cost;
   const long=pending.side==='BUY';
   state.positions[symbol]={qty,entryCostPaise:cost,entryPricePaise:fillPrice,
-   instrumentKey:pending.instrumentKey,direction:long?'LONG':'SHORT',openedAt:traded,
+   instrumentKey:pending.instrumentKey,direction:long?'LONG':'SHORT',openedAt:provider,
    stopPaise:long?Math.floor(fillPrice*(10000-SEVEN_RISK_POLICY.stopBps)/10000):Math.ceil(fillPrice*(10000+SEVEN_RISK_POLICY.stopBps)/10000),
    targetPaise:long?Math.ceil(fillPrice*(10000+SEVEN_RISK_POLICY.targetBps)/10000):Math.floor(fillPrice*(10000-SEVEN_RISK_POLICY.targetBps)/10000),
    riskPolicyVersion:pending.riskPolicyVersion};
@@ -121,7 +121,7 @@ export function settleSevenPending(previous,symbol,quote,now){
    state.cashPaise+=position.entryCostPaise+pnl;
   }
   state.realizedPaise+=pnl;
-  const day=istDay(traded);
+  const day=istDay(provider);
   state.dailyRealizedPaise=(state.dailyRiskDay===day?state.dailyRealizedPaise||0:0)+pnl;
   state.dailyRiskDay=day;
   delete state.positions[symbol];
@@ -129,7 +129,7 @@ export function settleSevenPending(previous,symbol,quote,now){
  state.feesPaise+=fee;
  state.fills.push({id:pending.id,strategyId:state.strategyId,symbol,side:pending.side,qty,
   pricePaise:fillPrice,feePaise:fee,pnlPaise:pnl,signalAt:pending.signalAt,
-  tradeAt:traded,mode:'HYPOTHETICAL_NEXT_OBSERVED_TRADE',reason:pending.reason,
+  tradeAt:provider,mode:'HYPOTHETICAL_NEXT_OBSERVED_BOOK',reason:pending.reason,
   riskPolicyVersion:pending.riskPolicyVersion,
   quoteSha256:/^[a-f0-9]{64}$/.test(quote.sourceSha256||'')?quote.sourceSha256:null});
  if(state.fills.length>1000)state.fills.shift();
@@ -138,18 +138,24 @@ export function settleSevenPending(previous,symbol,quote,now){
  return {state,status:'PAPER_FILLED'};
 }
 
-/** Decide an intraday exit from a fresh quote, then wait for a later book to fill. */
+/** Queue timed exits without a quote; price exits require a fresh executable book. */
 export function sevenRiskExit(previous,symbol,quote,now){
  assertSevenAccount(previous);
  const p=previous.positions[symbol];if(!p||previous.pending[symbol])return null;
- const traded=time(quote?.lastTradeAt),observed=time(quote?.observedAt);
- if(quote?.instrumentKey!==p.instrumentKey||!Number.isFinite(traded)||!Number.isFinite(observed)||
-  traded>now+1000||observed>now+1000||now-traded>10000||now-observed>10000)return null;
- const current=price(quote.lastPrice),long=direction(p)==='LONG',minute=istMinute(now);
- const reason=p.openedAt&&istDay(p.openedAt)!==istDay(now)?'CARRYOVER_RECOVERY':
-  minute>=SEVEN_RISK_POLICY.exitMinute?'MANDATORY_1515_EXIT':
+ const long=direction(p)==='LONG',minute=istMinute(now);
+ const timed=p.openedAt&&istDay(p.openedAt)!==istDay(now)?'CARRYOVER_RECOVERY':
+  minute>=SEVEN_RISK_POLICY.exitMinute?'MANDATORY_1515_EXIT':null;
+ const provider=time(quote?.providerAt),observed=time(quote?.observedAt);
+ const book=long?quote?.bid:quote?.ask;
+ const fresh=quote?.source==='Upstox Analytics'&&quote.instrumentKey===p.instrumentKey&&
+  Number.isFinite(provider)&&Number.isFinite(observed)&&provider<=observed+1000&&
+  observed<=now+1000&&now-provider<=10000&&now-observed<=10000&&
+  Number.isFinite(book?.price)&&book.price>0&&Number.isSafeInteger(book?.quantity)&&book.quantity>0;
+ if(!timed&&!fresh)return null;
+ const current=fresh?price(book.price):null;
+ const reason=timed||(
   long&&current<=p.stopPaise||!long&&current>=p.stopPaise?'RISK_STOP':
-  long&&current>=p.targetPaise||!long&&current<=p.targetPaise?'RISK_TARGET':null;
+  long&&current>=p.targetPaise||!long&&current<=p.targetPaise?'RISK_TARGET':null);
  if(!reason)return null;
  return {strategyId:previous.strategyId,id:`risk-${istDay(now)}-${symbol}-${reason}-${Math.floor(now/60000)}`,
   symbol,instrumentKey:p.instrumentKey,side:long?'SELL':'BUY',signalAt:new Date(now).toISOString(),
