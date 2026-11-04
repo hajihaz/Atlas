@@ -6,7 +6,7 @@ const clone=x=>structuredClone(x);
 const time=x=>typeof x==='string'?Date.parse(x):NaN;
 const price=x=>Number.isFinite(x)&&x>=0.01&&x<10000000?Math.round(x*100):fail('invalid price');
 // Conservative paper pilot values. Versioned so results cannot silently mix policies.
-export const SEVEN_RISK_POLICY=Object.freeze({version:'paper-risk-2026-11-04-v2',
+export const SEVEN_RISK_POLICY=Object.freeze({version:'paper-risk-2026-11-04-v3',
  maxAllocationPaise:1000000,maxLossPerTradePaise:25000,dailyLossPaise:50000,
  stopBps:100,targetBps:150,entryCutoffMinute:885,exitMinute:915});
 const istDay=x=>new Date(x+19800000).toISOString().slice(0,10);
@@ -57,6 +57,8 @@ export function submitSevenSignal(previous,input,now){
  if(entry&&cadence==='INTRADAY'){
   const day=istDay(now),minute=istMinute(now);
   if(minute<580||minute>=SEVEN_RISK_POLICY.entryCutoffMinute)return reject('ENTRY_WINDOW_CLOSED');
+  if(Object.values(state.positions).some(p=>p.openedAt&&istDay(p.openedAt)!==day))
+   return reject('UNRESOLVED_CARRYOVER');
   if((state.dailyRiskDay===day?state.dailyRealizedPaise||0:0)<=-SEVEN_RISK_POLICY.dailyLossPaise)
    return reject('DAILY_LOSS_LIMIT');
   if(previous.strategyId==='scalpstorm_x'&&

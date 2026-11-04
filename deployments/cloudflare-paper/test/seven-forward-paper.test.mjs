@@ -116,3 +116,34 @@ test('versioned X pilot admits at most two daily entries and blocks late entries
  assert.equal(blocked.state.events.at(-1).reason,'MAX_DAILY_ENTRIES');
  assert.equal(send(base,'RELIANCE','late-entry-signal-01',at(9,30)).status,'ENTRY_WINDOW_CLOSED');
 });
+
+test('two restored carryovers block new entries and recover only from later sufficient fresh books',async()=>{
+ const accounts=new DatabaseSync(':memory:');accounts.exec(readFileSync(new URL('../seven-paper-ledger.sql',import.meta.url),'utf8'));
+ const env={DB:db(accounts)},now=Date.parse('2026-11-05T04:15:00Z');
+ await ensureSevenAccounts(env.DB,at(3,45));
+ const original=await loadSevenAccount(env.DB,'scalpstorm_x'),restored=structuredClone(original);
+ restored.cashPaise=8418970;restored.feesPaise=1580;restored.revision++;
+ restored.positions={
+  EQUITASBNK:{qty:102,entryCostPaise:582084,entryPricePaise:5701,instrumentKey:'NSE_EQ|INE063P01018',direction:'LONG',openedAt:at(4,33),stopPaise:5643,targetPaise:5787,riskPolicyVersion:'paper-risk-2026-11-04-v1'},
+  IDEA:{qty:812,entryCostPaise:998946,entryPricePaise:1229,instrumentKey:'NSE_EQ|INE669E01016',direction:'LONG',openedAt:at(4,33),stopPaise:1216,targetPaise:1248,riskPolicyVersion:'paper-risk-2026-11-04-v1'}};
+ // Isolated fixture mirrors quantities/cash only. Prices below are synthetic, never production fills.
+ await saveSevenAccount(env.DB,original,restored,now);
+ const blocked=submitSevenSignal(restored,{strategyId:'scalpstorm_x',id:'carryover-block-new-entry-01',symbol:SYMBOL,instrumentKey:KEY,side:'BUY',signalAt:new Date(now).toISOString(),realOrdersEnabled:false},now);
+ assert.equal(blocked.status,'UNRESOLVED_CARRYOVER');
+ assert.equal((await tickSevenForward(env,now,async()=>new Map())).exits,2);
+ let state=await loadSevenAccount(env.DB,'scalpstorm_x');
+ assert.equal(state.cashPaise,8418970);assert.equal(state.fills.length,0);
+ assert.ok(Object.values(state.pending).every(p=>p.reason==='CARRYOVER_RECOVERY'));
+ const books=(stamp,depth=10000)=>new Map(Object.values(restored.positions).map(p=>[p.instrumentKey,{
+  source:'Upstox Analytics',instrumentKey:p.instrumentKey,lastTradeAt:new Date(at(4,33)).toISOString(),
+  providerAt:new Date(stamp).toISOString(),observedAt:new Date(stamp).toISOString(),
+  bid:{price:p.entryPricePaise/100,quantity:depth},ask:{price:p.entryPricePaise/100+.01,quantity:depth},sourceSha256:'b'.repeat(64)}]));
+ assert.equal((await tickSevenForward(env,now+1000,async()=>books(now))).fills,0);
+ assert.equal((await tickSevenForward(env,now+2000,async()=>books(now+2000,1))).fills,0);
+ const result=await tickSevenForward(env,now+60000,async()=>books(now+60000));
+ assert.equal(result.fills,2);assert.equal(result.openPositions,0);assert.equal(result.pending,0);
+ state=await loadSevenAccount(env.DB,'scalpstorm_x');
+ assert.equal(state.cashPaise,10000000+state.realizedPaise);
+ assert.ok(state.fills.every(f=>f.mode==='HYPOTHETICAL_NEXT_OBSERVED_BOOK'&&f.reason==='CARRYOVER_RECOVERY'));
+ assert.ok(state.fills.every(f=>f.riskPolicyVersion==='paper-risk-2026-11-04-v3'));
+});
