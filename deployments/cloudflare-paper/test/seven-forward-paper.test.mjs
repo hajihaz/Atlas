@@ -4,8 +4,9 @@ import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import {createSevenAccount,submitSevenSignal,settleSevenPending,sevenRiskExit} from '../src/seven-paper-ledger.js';
 import {ensureSevenAccounts,loadSevenAccount,saveSevenAccount} from '../src/seven-paper-store.js';
-import {queueForwardX,tickSevenForward,normalizeBookResponse} from '../src/seven-forward-paper.js';
+import {queueForwardX,tickSevenForward as runTickSevenForward,normalizeBookResponse,readSevenBookStatus} from '../src/seven-forward-paper.js';
 
+const tickSevenForward=(env,now,books)=>runTickSevenForward(env,now,books,()=>now);
 const DAY='2026-11-04',KEY='NSE_EQ|INE002A01018',SYMBOL='RELIANCE';
 const at=(hour,minute)=>Date.parse(`${DAY}T${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}:00Z`);
 const db=sqlite=>({prepare(sql){return {bind(...params){return {
@@ -146,4 +147,36 @@ test('two restored carryovers block new entries and recover only from later suff
  assert.equal(state.cashPaise,10000000+state.realizedPaise);
  assert.ok(state.fills.every(f=>f.mode==='HYPOTHETICAL_NEXT_OBSERVED_BOOK'&&f.reason==='CARRYOVER_RECOVERY'));
  assert.ok(state.fills.every(f=>f.riskPolicyVersion==='paper-risk-2026-11-04-v3'));
+});
+
+test('network latency uses the receipt clock without relaxing provider freshness or same-intent rules',async()=>{
+ const accounts=new DatabaseSync(':memory:');accounts.exec(readFileSync(new URL('../seven-paper-ledger.sql',import.meta.url),'utf8'));
+ const env={DB:db(accounts)};await ensureSevenAccounts(env.DB,at(3,45));
+ const original=await loadSevenAccount(env.DB,'scalpstorm_x'),entry=at(4,35);
+ const intent=submitSevenSignal(original,{strategyId:'scalpstorm_x',id:'late-response-entry-0001',symbol:SYMBOL,instrumentKey:KEY,side:'BUY',signalAt:new Date(entry).toISOString(),realOrdersEnabled:false},entry).state;
+ const bought=settleSevenPending(intent,SYMBOL,quote(entry+1000),entry+1000).state;
+ await saveSevenAccount(env.DB,original,bought,entry+1000);
+ const cutoff=at(9,45);
+ assert.equal((await runTickSevenForward(env,cutoff,async()=>new Map(),()=>cutoff+2000)).exits,1);
+ const pending=await loadSevenAccount(env.DB,'scalpstorm_x'),later=quote(cutoff+62000);
+ assert.equal(settleSevenPending(pending,SYMBOL,later,cutoff+60000).status,'WAIT_FRESH_QUOTE');
+ assert.equal((await runTickSevenForward(env,cutoff+60000,async()=>new Map([[KEY,quote(cutoff+40000)]]),()=>cutoff+63000)).fills,0);
+ await assert.rejects(()=>runTickSevenForward(env,cutoff+70000,async()=>new Map(),()=>cutoff+69999),/processing clock/);
+ const result=await runTickSevenForward(env,cutoff+60000,async()=>new Map([[KEY,later]]),()=>cutoff+63000);
+ assert.equal(result.fills,1);assert.equal(result.openPositions,0);
+});
+
+test('active book diagnosis reports latency and depth without changing a paper account',async()=>{
+ const sqlite=new DatabaseSync(':memory:');sqlite.exec(readFileSync(new URL('../seven-paper-ledger.sql',import.meta.url),'utf8'));const env={DB:db(sqlite)};
+ const now=at(4,40);await ensureSevenAccounts(env.DB,at(3,45));const base=await loadSevenAccount(env.DB,'scalpstorm_x');
+ const intent=submitSevenSignal(base,{strategyId:'scalpstorm_x',id:'read-only-book-diagnose-01',symbol:SYMBOL,instrumentKey:KEY,side:'BUY',signalAt:new Date(now).toISOString(),realOrdersEnabled:false},now).state;
+ const bought=settleSevenPending(intent,SYMBOL,quote(now+1000),now+1000).state;await saveSevenAccount(env.DB,base,bought,now+1000);
+ let count=0;const report=await readSevenBookStatus(env,async()=>new Map([[KEY,quote(now+11500)]]),()=>now+10000+(count++?2000:0));
+ assert.equal(report.elapsedMs,2000);assert.equal(report.positions[0].oldRequestClockWouldReject,true);assert.equal(report.positions[0].sufficientExitDepth,true);
+ assert.equal((await loadSevenAccount(env.DB,'scalpstorm_x')).revision,bought.revision);
+});
+test('paper book diagnosis is owner-only and read-only at the deployed route boundary',async()=>{
+ const {default:worker}=await import('../src/index.js');const env={DB:{},OWNER_TOKEN:'x'.repeat(40)};
+ assert.equal((await worker.fetch(new Request('https://atlas.invalid/api/cloud-paper/paper-book-status'),env)).status,401);
+ assert.equal((await worker.fetch(new Request('https://atlas.invalid/api/cloud-paper/paper-book-status',{method:'POST'}),env)).status,405);
 });

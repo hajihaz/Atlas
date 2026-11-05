@@ -82,7 +82,7 @@ export async function fetchPaperBooks(env,keys,fetcher=fetch,clock=()=>Date.now(
 }
 
 /** One batched read per minute, one compare-and-swap account save; stale data cannot fill. */
-export async function tickSevenForward(env,now=Date.now(),books=fetchPaperBooks){
+export async function tickSevenForward(env,now=Date.now(),books=fetchPaperBooks,clock=()=>Date.now()){
  const minute=minuteOf(now);
  if(minute<555||minute>929)return {status:'OUTSIDE_MARKET'};
  const before=await loadSevenAccount(env.DB,STRATEGY);
@@ -93,25 +93,46 @@ export async function tickSevenForward(env,now=Date.now(),books=fetchPaperBooks)
  if(keys.some(x=>!x))fail('active instrument identity missing');
  let quotes,bookUnavailable=false;
  try{quotes=await books(env,keys)}catch{quotes=new Map();bookUnavailable=true;}
+ // A source response arrives after the request began. Validate it at receipt/processing time.
+ const processedAt=clock();
+ if(!Number.isSafeInteger(processedAt)||processedAt<now||processedAt-now>20000)fail('processing clock outside bound');
+ if(dayOf(processedAt)!==dayOf(now)||minuteOf(processedAt)>929)return {status:'OUTSIDE_MARKET'};
  const initial=before;
  let state=before,fills=0,exits=0,expired=0;
  for(const symbol of active){
   const key=before.pending[symbol]?.instrumentKey||before.positions[symbol]?.instrumentKey;
   const q=quotes.get(key);
   if(before.pending[symbol]){
-   const result=settleSevenPending(state,symbol,q,now);
+   const result=settleSevenPending(state,symbol,q,processedAt);
    state=result.state;if(result.status==='PAPER_FILLED')fills++;
    if(result.status==='EXPIRED')expired++;
   }
   // Never generate an exit from the same quote that opened a position.
   if(before.positions[symbol]&&!before.pending[symbol]){
-   const signal=sevenRiskExit(state,symbol,q,now);
-   if(signal){const result=submitSevenSignal(state,signal,now);state=result.state;
+   const signal=sevenRiskExit(state,symbol,q,processedAt);
+   if(signal){const result=submitSevenSignal(state,signal,processedAt);state=result.state;
     if(result.status==='PENDING')exits++;}
   }
  }
- if(state.revision!==initial.revision)await saveSevenAccount(env.DB,initial,state,now);
+ if(state.revision!==initial.revision)await saveSevenAccount(env.DB,initial,state,processedAt);
  if(bookUnavailable)fail('read only book unavailable');
  return {status:'PAPER_EVALUATED',fills,exits,expired,openPositions:Object.keys(state.positions).length,
   pending:Object.keys(state.pending).length,realOrdersEnabled:false};
+}
+
+/** Owner-only, read-only diagnosis of books needed by actual open paper positions. */
+export async function readSevenBookStatus(env,books=fetchPaperBooks,clock=()=>Date.now()){
+ const requestedAt=clock(),state=await loadSevenAccount(env.DB,STRATEGY);
+ if(!state)fail('account missing');
+ const active=Object.entries(state.positions);
+ if(!active.length)return {schema:'atlas.paper-book-status.v1',status:'NO_OPEN_POSITIONS',positions:[],realOrdersEnabled:false};
+ const quotes=await books(env,[...new Set(active.map(([,p])=>p.instrumentKey))]),now=clock();
+ return {schema:'atlas.paper-book-status.v1',status:'OBSERVED',requestedAt:new Date(requestedAt).toISOString(),
+  observedAt:new Date(now).toISOString(),elapsedMs:now-requestedAt,realOrdersEnabled:false,
+  positions:active.map(([symbol,p])=>{const q=quotes.get(p.instrumentKey),book=p.direction==='SHORT'?q?.ask:q?.bid;
+   return {symbol,quantity:p.qty,normalizedFreshBook:Boolean(q),providerAt:q?.providerAt??null,
+    providerAgeMs:q?now-Date.parse(q.providerAt):null,bookQuantity:book?.quantity??null,
+    sufficientExitDepth:Number.isSafeInteger(book?.quantity)&&Math.floor(book.quantity/4)>=p.qty,
+    oldRequestClockWouldReject:q?Date.parse(q.observedAt)>requestedAt+1000:null,
+    sourceSha256:q?.sourceSha256??null};})};
 }
