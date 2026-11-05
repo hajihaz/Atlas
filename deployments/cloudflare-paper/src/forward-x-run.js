@@ -1,6 +1,7 @@
 /** Cloud-only forward X source decision journal; settlement uses a separate later quote. */
 import {readNiftyOpening} from './nifty-live-ohlc.js';
 import {forwardXDecision} from './forward-x-decision.js';
+import {runForwardVwap,recordVwapSkip} from './forward-vwap.js';
 
 const fail=reason=>{const e=Error('FORWARD_X_RUN_BLOCKED: '+reason);e.atlasDiagnostic='forward X run '+reason;throw e;};
 const digest=async value=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value)))].map(x=>x.toString(16).padStart(2,'0')).join('');
@@ -49,7 +50,10 @@ export async function runForwardX(env,scheduledTime,clock=()=>Date.now()){
   now<scheduled.getTime()||now-scheduled.getTime()>60000)fail('outside forward decision slot');
  const day=dayOf(now),windowEnd=now-now%60000-120000,db=env.HISTORY_DB;
  const prior=await db.prepare('SELECT status,reason FROM live_x_runs WHERE source_date=? AND window_end_ms=?').bind(day,windowEnd).first();
- if(prior)return {status:'VERIFIED_EXISTING',sourceDate:day,windowEnd,runStatus:prior.status};
+ if(prior){
+  if(prior.status==='EVALUATED')try{await runForwardVwap(env,day,windowEnd,now,await inputForWindow(env,day,windowEnd,now));}catch(e){await recordVwapSkip(env,day,windowEnd,now,e);}
+  return {status:'VERIFIED_EXISTING',sourceDate:day,windowEnd,runStatus:prior.status};
+ }
  let input;
  try{input=await inputForWindow(env,day,windowEnd,now)}catch(e){
   if(typeof e?.atlasDiagnostic!=='string')throw e;
@@ -59,6 +63,7 @@ export async function runForwardX(env,scheduledTime,clock=()=>Date.now()){
  }
  const decisions=input.top.map(stock=>forwardXDecision({day,symbol:stock.symbol,roster:input.roster,
   seed:input.seedMap.get(stock.instrument_key),window:input.windows.get(stock.instrument_key),nifty:input.nifty,now}));
+ try{await runForwardVwap(env,day,windowEnd,now,input);}catch(e){await recordVwapSkip(env,day,windowEnd,now,e);}
  const encoded=JSON.stringify(decisions.map((d,i)=>({symbol:d.symbol,instrumentKey:input.top[i].instrument_key,
   status:d.status,side:d.side??null,reason:d.reason,decision:d})));
  await db.batch([

@@ -146,7 +146,7 @@ test('two restored carryovers block new entries and recover only from later suff
  state=await loadSevenAccount(env.DB,'scalpstorm_x');
  assert.equal(state.cashPaise,10000000+state.realizedPaise);
  assert.ok(state.fills.every(f=>f.mode==='HYPOTHETICAL_NEXT_OBSERVED_BOOK'&&f.reason==='CARRYOVER_RECOVERY'));
- assert.ok(state.fills.every(f=>f.riskPolicyVersion==='paper-risk-2026-11-04-v3'));
+ assert.ok(state.fills.every(f=>f.riskPolicyVersion==='paper-risk-2026-11-05-v4'));
 });
 
 test('network latency uses the receipt clock without relaxing provider freshness or same-intent rules',async()=>{
@@ -190,4 +190,26 @@ test('owner recovery cannot create a new entry or act on a same-session holding'
  const next=now+86400000;assert.equal((await requestCarryoverRecovery(env,next,async()=>new Map(),()=>next)).exits,1);
  assert.equal((await loadSevenAccount(env.DB,'scalpstorm_x')).pending[SYMBOL].reason,'CARRYOVER_RECOVERY');
  const {default:worker}=await import('../src/index.js');assert.equal((await worker.fetch(new Request('https://atlas.invalid/api/cloud-paper/recover-carryovers',{method:'POST'}),{DB:{},OWNER_TOKEN:'x'.repeat(40)})).status,401);
+});
+
+test('a timed exit can settle during the same bounded tick only from a second independent later book',async()=>{
+ const sqlite=new DatabaseSync(':memory:');sqlite.exec(readFileSync(new URL('../seven-paper-ledger.sql',import.meta.url),'utf8'));const env={DB:db(sqlite)};await ensureSevenAccounts(env.DB,at(3,45));
+ const base=await loadSevenAccount(env.DB,'scalpstorm_x'),entry=at(4,35);
+ let s=submitSevenSignal(base,{strategyId:base.strategyId,id:'bounded-followup-entry-01',symbol:SYMBOL,instrumentKey:KEY,side:'BUY',signalAt:new Date(entry).toISOString(),realOrdersEnabled:false},entry).state;
+ s=settleSevenPending(s,SYMBOL,quote(entry+1000),entry+1000).state;await saveSevenAccount(env.DB,base,s,entry+1000);
+ const cutoff=at(9,45);let reads=0,times=0;
+ const result=await runTickSevenForward(env,cutoff,async()=>new Map([[KEY,quote(cutoff+1000*++reads)]]),()=>cutoff+1000*++times);
+ assert.equal(reads,2);assert.equal(result.fills,1);assert.equal(result.openPositions,0);assert.equal(result.bookPasses,2);
+ const closed=await loadSevenAccount(env.DB,'scalpstorm_x');assert.equal(closed.fills.at(-1).tradeAt,cutoff+2000);
+});
+test('expired stop exit is requeued even after price rebounds; remaining shares keep the original exit intent',async()=>{
+ const sqlite=new DatabaseSync(':memory:');sqlite.exec(readFileSync(new URL('../seven-paper-ledger.sql',import.meta.url),'utf8'));const env={DB:db(sqlite)};await ensureSevenAccounts(env.DB,at(3,45));
+ const base=await loadSevenAccount(env.DB,'scalpstorm_x'),entry=at(4,35);
+ let s=submitSevenSignal(base,{strategyId:base.strategyId,id:'sticky-risk-exit-entry-01',symbol:SYMBOL,instrumentKey:KEY,side:'BUY',signalAt:new Date(entry).toISOString(),realOrdersEnabled:false},entry).state;
+ s=settleSevenPending(s,SYMBOL,quote(entry+1000),entry+1000).state;await saveSevenAccount(env.DB,base,s,entry+1000);
+ assert.equal((await tickSevenForward(env,entry+2000,async()=>new Map([[KEY,quote(entry+2000,98)]]))).exits,1);
+ const recoveredPrice=entry+94000;
+ const result=await tickSevenForward(env,recoveredPrice,async()=>new Map([[KEY,quote(recoveredPrice,100)]]));
+ assert.equal(result.expired,1);assert.equal(result.exits,1);
+ const pending=await loadSevenAccount(env.DB,'scalpstorm_x');assert.equal(pending.pending[SYMBOL].reason,'RISK_STOP');
 });

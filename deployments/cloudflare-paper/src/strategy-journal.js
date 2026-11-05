@@ -1,9 +1,10 @@
 /** Owner-only evidence timeline. Research decisions are never paper fills. */
-import {SEVEN_STRATEGIES} from './seven-strategy-replay.js';
+import {FORWARD_PILOTS,SEVEN_STRATEGIES} from './seven-strategy-replay.js';
 import {loadSevenAccount} from './seven-paper-store.js';
 import {SEVEN_RISK_POLICY} from './seven-paper-ledger.js';
 
 const fail=reason=>{const e=Error('STRATEGY_JOURNAL_BLOCKED: '+reason);e.atlasDiagnostic='strategy journal '+reason;throw e;};
+const digest=async text=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text)))].map(x=>x.toString(16).padStart(2,'0')).join('');
 const dayOk=day=>typeof day==='string'&&/^\d{4}-\d\d-\d\d$/.test(day)&&
  Number.isFinite(Date.parse(day+'T00:00:00Z'))&&new Date(day+'T00:00:00Z').toISOString().slice(0,10)===day;
 
@@ -54,10 +55,20 @@ export async function readStrategyJournal(env,{day,strategyId}){
     reason:run.reason,quantity:null,priceINR:null,sourceHashes:[]});
   }
  }
+ if(strategyId==='vwap_precision'){
+  const rows=await env.HISTORY_DB.prepare('SELECT window_end_ms,completed_ms,status,payload_json,payload_sha256 FROM forward_strategy_windows WHERE source_date=? AND strategy_id=? ORDER BY window_end_ms DESC LIMIT 3').bind(day,strategyId).all();
+  for(const row of rows.results){
+   if(await digest(row.payload_json)!==row.payload_sha256)fail('VWAP source proof changed');
+   const payload=JSON.parse(row.payload_json);
+   if(!['SKIPPED','EVALUATED'].includes(row.status)||row.status==='EVALUATED'&&(!Array.isArray(payload.decisions)||payload.decisions.length!==10||payload.decisions.some(d=>d.strategyId!==strategyId||d.sourceDate!==day||!['SIGNAL','NO_TRADE'].includes(d.status)||!Array.isArray(d.sourceSha256)||d.sourceSha256.length!==5||d.sourceSha256.some(h=>!/^[a-f0-9]{64}$/.test(h)))))fail('VWAP decision source invalid');
+   if(row.status==='SKIPPED')events.push({at:new Date(row.completed_ms).toISOString(),kind:'SKIPPED',symbol:null,side:null,reason:payload.reason,quantity:null,priceINR:null,sourceHashes:[]});
+   else for(const d of payload.decisions)events.push({at:d.barEndedAt,kind:d.status,symbol:d.symbol,side:d.side,reason:d.reason,quantity:null,priceINR:null,sourceHashes:d.sourceSha256});
+  }
+ }
  events.sort((a,b)=>b.at.localeCompare(a.at)||String(a.symbol).localeCompare(String(b.symbol)));
  return {schema:'atlas.strategy-journal.v1',mode:'PAPER_ONLY',realOrdersEnabled:false,
-  strategyId,sourceDate:day,executionStatus:strategyId==='scalpstorm_x'?'X_PAPER_PILOT_ARMED':spec.executionStatus,
-  riskPolicy:strategyId==='scalpstorm_x'?SEVEN_RISK_POLICY:null,
+  strategyId,sourceDate:day,executionStatus:spec.executionStatus,
+  riskPolicy:FORWARD_PILOTS.includes(strategyId)?SEVEN_RISK_POLICY:null,
   account:{cashINR:state.cashPaise/100,realizedPnlINR:state.realizedPaise/100,
    pending:Object.keys(state.pending).length,positions:Object.keys(state.positions).length,fills:state.fills.length},
   events:events.slice(0,40),note:'A source-qualified decision is not a fill. Paper fills require a later fresh observed trade and usable book depth.'};

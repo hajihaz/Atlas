@@ -28,3 +28,8 @@ test('incomplete retained history suppresses totals and invalid fills fail close
  const r=paperExperimentReport(s);assert.equal(r.historyComplete,false);assert.equal(r.closedTrades,null);assert.deepEqual(r.daily,[]);
  s.fills[0].feePaise=-1;assert.throws(()=>paperExperimentReport(s),/invalid fill/);
 });
+
+test('legacy pending order with no recorded reason remains readable without inventing a reason',()=>{
+ const s=createSevenAccount('scalpstorm_x',T);s.pending.A={symbol:'A',side:'SELL',createdAt:T};
+ const report=paperExperimentReport(s);assert.equal(report.pending[0].reason,'UNRECORDED_REASON');assert.equal(s.pending.A.reason,undefined);
+});

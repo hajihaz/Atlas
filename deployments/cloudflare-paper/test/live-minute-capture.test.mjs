@@ -68,3 +68,21 @@ test('separate opening seed archives only the completed 09:15–09:39 bars',asyn
  const again=await captureOpeningSeed(env,slot,fetcher,()=>slot+1000);
  assert.equal(again.status,'VERIFIED_EXISTING');assert.equal(gets,1);
 });
+
+test('final 15:14 bar has a dedicated 15:15 invocation independent of risk settlement',async()=>{
+ const {default:worker}=await import('../src/index.js');
+ const scheduled=Date.parse(day+'T09:45:00Z'),received=scheduled+2000;let saved=null,gets=0;
+ const compact=top.map(t=>({symbol:t.symbol,instrument_key:t.instrument_key,volume:1000,eligibleCount:1375})),json=JSON.stringify(compact);
+ const sha=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(json)))].map(x=>x.toString(16).padStart(2,'0')).join('');
+ const roster={known_at_ms:Date.parse(day+'T04:10:00Z'),roster_sha256:sha,roster_json:json};
+ const history={prepare(sql){return {bind(...args){return {async first(){return sql.includes('live_top_roster')?roster:saved},async run(){saved={bar_ms:args[1],known_at_ms:args[2],source_url:args[3],body_sha256:args[4],bars_json:args[5]};return {meta:{changes:1}}}}}}}};
+ const env={HISTORY_DB:history,DB:{prepare(){assert.fail('Dedicated capture must not run risk/legacy ledger queries')}},UPSTOX_ANALYTICS_TOKEN:'x'.repeat(101)};
+ const originalFetch=globalThis.fetch,originalNow=Date.now;
+ try{
+  Date.now=()=>received;
+  globalThis.fetch=async()=>{gets++;const p=payload();for(const value of Object.values(p.data))value.prev_ohlc.ts=scheduled-60000;return new Response(JSON.stringify(p));};
+  const tasks=[];worker.scheduled({cron:'1-56/5,45 4-9 * * 1-5',scheduledTime:scheduled},env,{waitUntil(p){tasks.push(p)}});
+  await Promise.all(tasks);
+  assert.equal(gets,1);assert.equal(saved.bar_ms,Date.parse(day+'T09:44:00Z'));assert.equal(saved.known_at_ms,received);
+ }finally{globalThis.fetch=originalFetch;Date.now=originalNow;}
+});

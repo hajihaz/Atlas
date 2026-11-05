@@ -14,6 +14,7 @@ function db(sql){return {prepare(query){return {bind(...params){return {
 async function fixture(){
  const sql=new DatabaseSync(':memory:');
  sql.exec(readFileSync(new URL('../live-minute.sql',import.meta.url),'utf8'));
+ sql.exec(readFileSync(new URL('../forward-strategy-windows.sql',import.meta.url),'utf8'));
  sql.exec(readFileSync(new URL('../nifty-opening-ohlc.sql',import.meta.url),'utf8'));
  const top=Array.from({length:10},(_,i)=>({symbol:`S${i}`,instrument_key:`NSE_EQ|INE0000000${i}`,volume:10000-i,eligibleCount:1376}));
  const roster=JSON.stringify(top);
@@ -45,6 +46,7 @@ async function fixture(){
 
 test('cloud runner journals ten point-in-time decisions and never fills',async()=>{
  const f=await fixture(),result=await runForwardX(f.env,scheduled,()=>scheduled+5000);
+ assert.equal(f.sql.prepare('SELECT status FROM forward_strategy_windows').get().status,'SKIPPED');
  assert.equal(result.status,'EVALUATED');assert.equal(result.signals,1);assert.equal(result.noTrade,9);assert.equal(result.paperFills,0);
  const journal=await readForwardX(f.env,day);
  assert.equal(journal.runs.length,1);assert.equal(journal.decisions.length,10);

@@ -26,8 +26,8 @@ test('all shown controls have actions and private owner token remains in memory'
  assert.doesNotMatch(app,/localStorage\.setItem\([^,]*token|sessionStorage\.setItem\([^,]*token/i);
 });
 test('UI reports missing evidence rather than invented strategy performance',()=>{
- assert.match(paper,/X_PAPER_PILOT_ARMED_OTHER_SIX_UNARMED/);
- assert.match(paper,/Other six rules await qualified feeds/);
+ assert.match(paper,/X_VWAP_PAPER_PILOTS_ARMED_OTHER_FIVE_UNARMED/);
+ assert.match(paper,/Other five rules await qualified inputs/);
  assert.match(paper,/account\?account\.paperFills:'—'/);
  assert.match(paper,/No result is assumed/);
  assert.match(market,/complete_0940_snapshot/);

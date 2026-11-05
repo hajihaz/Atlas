@@ -38,20 +38,23 @@ export default function PaperChartWorkspace({report:r,strategy,ownerConnected,ow
   });
  },[receipt]);
  const trades=useMemo(()=>r?.historyComplete?[...r.closedTradesJournal].sort((a,b)=>a.exitAt.localeCompare(b.exitAt)):[],[r]);
+ const realized=useMemo(()=>r?.historyComplete?(r.realizedPnlSeries??trades.map(t=>({at:t.exitAt,symbol:t.symbol,netPnlINR:t.netPnlINR}))):[],[r,trades]);
+ const baselineAt=[...trades.map(t=>t.entryAt),...(r?.openPositions.map(p=>p.openedAt)??[]),...realized.slice(0,1).map(t=>t.at)].sort()[0];
+ const realizedTotal=realized.reduce((s,t)=>s+t.netPnlINR,0);
  const latestDay=r?.daily.map(x=>x.day).sort().at(-1)??'';
  const cutoff=range==='ALL'?'':new Date(Date.parse(latestDay+'T00:00:00Z')-(range==='1W'?6:29)*86400000).toISOString().slice(0,10);
  const performance=useMemo(()=>{
   if(!r?.historyComplete)return [];
   if(metric==='daily')return r.daily.filter(x=>!cutoff||x.day>=cutoff).map(x=>({label:x.day,value:x.realizedPnlINR}));
   if(metric==='stocks'){
-   const sums=new Map<string,number>();trades.filter(t=>!cutoff||new Date(t.exitAt).toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'})>=cutoff).forEach(t=>sums.set(t.symbol,(sums.get(t.symbol)??0)+t.netPnlINR));
+   const sums=new Map<string,number>();realized.filter(t=>!cutoff||new Date(t.at).toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'})>=cutoff).forEach(t=>sums.set(t.symbol,(sums.get(t.symbol)??0)+t.netPnlINR));
    return [...sums].map(([label,value])=>({label,value}));
   }
   let sum=0;
-  const points=trades.map(t=>{sum+=t.netPnlINR;return {label:new Date(t.exitAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}),value:sum,at:t.exitAt};});
-  if(trades.length)points.unshift({label:new Date(trades[0].entryAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}),value:0,at:trades[0].entryAt});
+  const points=realized.map(t=>{sum+=t.netPnlINR;return {label:new Date(t.at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}),value:sum,at:t.at};});
+  if(realized.length)points.unshift({label:new Date(baselineAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}),value:0,at:baselineAt});
   return points.filter(t=>!cutoff||new Date(t.at).toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'})>=cutoff);
- },[r,trades,cutoff,metric]);
+ },[r,trades,realized,baselineAt,cutoff,metric]);
  const last=candles.at(-1),first=candles[0],delta=first&&last?last.close-first.open:0;
  const pick=(label:string)=>{
   setPicked(label);
@@ -67,9 +70,9 @@ export default function PaperChartWorkspace({report:r,strategy,ownerConnected,ow
     <button type="button" aria-pressed={view==='price'} onClick={()=>setView('price')}>Stock price</button>
    </div><button type="button" className="atlas-icon-button" aria-label={expanded?'Restore chart size':'Expand chart'} onClick={()=>setExpanded(v=>!v)}>{expanded?<Minimize2 size={19}/>:<Maximize2 size={19}/>}</button></div>
    {view==='performance'?<>
-    <div className="atlas-chart-title"><div><small>FORWARD PAPER RESULTS · {r?.historyComplete?'RECORDED EXITS':'AWAITING VERIFIED HISTORY'}</small><h3>{metric==='cumulative'?'Cumulative realized P&L':metric==='daily'?'Daily realized P&L':'Closed P&L by stock'}</h3></div><strong className={(trades.reduce((s,t)=>s+t.netPnlINR,0)>=0?'atlas-up':'atlas-down')}>{trades.length?money(trades.reduce((s,t)=>s+t.netPnlINR,0)):'—'}<small>All recorded closed trades</small></strong></div>
+    <div className="atlas-chart-title"><div><small>FORWARD PAPER RESULTS · {r?.historyComplete?'RECORDED EXITS':'AWAITING VERIFIED HISTORY'}</small><h3>{metric==='cumulative'?'Cumulative realized P&L':metric==='daily'?'Daily realized P&L':'Realized P&L by stock'}</h3></div><strong className={(realizedTotal>=0?'atlas-up':'atlas-down')}>{realized.length?money(realizedTotal):'—'}<small>All recorded realized fills</small></strong></div>
     <div className="atlas-chart-toolbar"><div className="atlas-segment" aria-label="Performance chart type">{([['cumulative','P&L curve'],['daily','By day'],['stocks','By stock']] as const).map(([id,label])=><button key={id} type="button" aria-pressed={metric===id} onClick={()=>{setMetric(id);setPicked('');}}>{label}</button>)}</div><div className="atlas-segment" aria-label="Performance date range">{['1W','1M','ALL'].map(v=><button key={v} type="button" aria-pressed={range===v} onClick={()=>setRange(v)}>{v==='ALL'?'All recorded':v}</button>)}</div></div>
-    {performance.length>0?<div className="atlas-chart-canvas" role="img" aria-label={metric==='cumulative'?'Cumulative realized P&L from verified closed trades':metric==='daily'?'Daily realized paper P&L':'Recorded closed paper P&L by stock'}>
+    {performance.length>0?<div className="atlas-chart-canvas" role="img" aria-label={metric==='cumulative'?'Cumulative realized P&L from verified paper fills':metric==='daily'?'Daily realized paper P&L':'Recorded realized paper P&L by stock'}>
      <ResponsiveContainer width="100%" height="100%">
       {metric==='cumulative'?<ComposedChart data={performance} margin={{top:24,right:24,left:8,bottom:12}} accessibilityLayer>
        <CartesianGrid vertical={false} stroke="var(--line,#dce5e8)" strokeDasharray="3 5"/><XAxis dataKey="label" minTickGap={48} tick={{fontSize:11,fill:'currentColor'}} tickLine={false}/><YAxis width={70} tick={{fontSize:11,fill:'currentColor'}} tickFormatter={v=>'₹'+v} axisLine={false} tickLine={false}/><Tooltip contentStyle={{background:'var(--surface,#fff)',borderRadius:10,color:'var(--text-primary,#20343f)'}} formatter={(v:number)=>[money(v),'Realized P&L']}/><ReferenceLine y={0} stroke="#879da5"/><Area dataKey="value" type="stepAfter" stroke="#168768" strokeWidth={2.5} fill="#17a47c" fillOpacity={.08} dot={{r:4}} activeDot={{r:6}} isAnimationActive={false}/>{performance.length>6&&<Brush dataKey="label" height={24} stroke="#168768"/>}
@@ -78,7 +81,7 @@ export default function PaperChartWorkspace({report:r,strategy,ownerConnected,ow
       </BarChart>}
      </ResponsiveContainer>
     </div>:<div className="atlas-chart-empty" role="status"><TrendingUp size={36}/><strong>{empty}</strong></div>}
-    <p className="atlas-chart-caption">Realized results include recorded modeled fees. Open-position gains and full equity history are not included.{cutoff?' Range ends on the latest recorded activity date.':''}</p>
+    <p className="atlas-chart-caption">Realized results include recorded modeled fees. Partial exits contribute realized P&L. Unrealized gains and full equity history are not included.{cutoff?' Range ends on the latest recorded activity date.':''}</p>
     {metric!=='cumulative'&&performance.length>0&&<div className="atlas-chart-picks" aria-label={metric==='daily'?'Select a day':'Select a stock'}>{performance.map(p=><button key={p.label} type="button" aria-pressed={picked===p.label} onClick={()=>pick(p.label)}>{p.label} <span className={p.value>=0?'atlas-up':'atlas-down'}>{money(p.value)}</span></button>)}</div>}
    </>:<>
     <div className="atlas-price-controls"><label>Stock<select aria-label="Chart stock" value={symbol} onChange={e=>onSymbol(e.target.value)}>{!symbol&&<option value="">Select a stock</option>}{symbols.map(s=><option key={s}>{s}</option>)}</select></label><label>Recorded session<select aria-label="Chart session" value={day} onChange={e=>onDay(e.target.value)}>{dates.length===0&&<option value="">No archived dates</option>}{dates.map(d=><option key={d.day} value={d.day}>{d.day}</option>)}</select></label><label>Overlay<select aria-label="Chart indicator" value={indicator} onChange={e=>setIndicator(e.target.value)}><option value="none">Price only</option><option value="sma">SMA 20</option><option value="vwap">VWAP · captured bars</option></select></label><span>1-minute bars · IST</span></div>

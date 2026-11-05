@@ -8,6 +8,7 @@ import {readIntradayStrategyReplay,readMarketReplay} from './strategy-replay-rea
 import {archiveTopVolumeStep,readTopVolumeHistory,topVolumeRoster} from './top-volume-history.js';
 import {archiveLiveMisIdentity} from './mis-identity-archive.js';
 import {captureLiveMinute,captureOpeningSeed,readLiveMinuteStatus} from './live-minute-capture.js';
+import {archiveSupplemental,probeSupplemental} from './supplemental-sources.js';
 import {runForwardX,readForwardX} from './forward-x-run.js';
 import {verifyNiftyHistoricalSource,verifyNiftyOhlcSource} from './nifty-open-archive.js';
 import {archiveNiftyLiveOhlc,readNiftyOpening} from './nifty-live-ohlc.js';
@@ -16,7 +17,7 @@ import {archiveDailyCohort,readDailyCohort,scheduledDailyCohortStep,verifyDailyS
 import {readFastPeriodRank} from './fast-period-rank.js';
 import {listSevenAccounts} from './seven-paper-store.js';
 import {readStrategyJournal} from './strategy-journal.js';
-import {queueForwardX,tickSevenForward,readSevenBookStatus,requestCarryoverRecovery} from './seven-forward-paper.js';
+import {queueForwardX,queueForwardStrategy,tickAllForward,readSevenBookStatus,requestCarryoverRecovery} from './seven-forward-paper.js';
 import {verifyEtfSource} from './etf-source-check.js';
 import {archiveEtfDaily,readEtfDaily} from './etf-daily-archive.js';
 import {runRawEtfResearch,readRawEtfResearch} from './etf-raw-research.js';
@@ -379,7 +380,7 @@ export default {
  realOrdersEnabled:false,backendConnected:Boolean(env.DB),
  configured:Boolean(env.DB&&typeof env.OWNER_TOKEN==='string'&&env.OWNER_TOKEN.length>=32&&env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100),
  feedSourceConfigured:Boolean(env.FEED_SOURCE_ID==='UPSTOX_ANALYTICS_READONLY_V3'&&env.UPSTOX_FEED_ENABLED==='true'&&typeof env.UPSTOX_ANALYTICS_TOKEN==='string'&&env.UPSTOX_ANALYTICS_TOKEN.length>=100)});if(!env.DB)return reply({error:'D1_NOT_CONNECTED'},503);
- const actions={'/api/cloud-paper/session':'SESSION','/api/cloud-paper/home-market':'GET','/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/data-availability':'GET','/api/cloud-paper/market-replay':'GET','/api/cloud-paper/live-minute-status':'GET','/api/cloud-paper/forward-x-journal':'GET','/api/cloud-paper/strategy-journal':'GET','/api/cloud-paper/top-volume-history':'GET','/api/cloud-paper/nifty-opening':'GET','/api/cloud-paper/nse-eod-top':'GET','/api/cloud-paper/nifty-source-check':'GET','/api/cloud-paper/nifty-ohlc-check':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/etf-source-check':'GET','/api/cloud-paper/etf-daily':'GET','/api/cloud-paper/etf-raw-research':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/recover-carryovers':'POST','/api/cloud-paper/paper-book-status':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/quotes':'POST'};
+ const actions={'/api/cloud-paper/supplemental-source':'GET','/api/cloud-paper/session':'SESSION','/api/cloud-paper/home-market':'GET','/api/cloud-paper/state':'GET','/api/cloud-paper/daybook':'GET','/api/cloud-paper/data-availability':'GET','/api/cloud-paper/market-replay':'GET','/api/cloud-paper/live-minute-status':'GET','/api/cloud-paper/forward-x-journal':'GET','/api/cloud-paper/strategy-journal':'GET','/api/cloud-paper/top-volume-history':'GET','/api/cloud-paper/nifty-opening':'GET','/api/cloud-paper/nse-eod-top':'GET','/api/cloud-paper/nifty-source-check':'GET','/api/cloud-paper/nifty-ohlc-check':'GET','/api/cloud-paper/feed-check':'GET','/api/cloud-paper/mis-source-check':'GET','/api/cloud-paper/nse-source-check':'GET','/api/cloud-paper/nse-reference':'GET','/api/cloud-paper/history-pilot':'GET','/api/cloud-paper/history-cohort':'GET','/api/cloud-paper/history-backtest':'GET','/api/cloud-paper/seven-strategies':'GET','/api/cloud-paper/strategy-replay':'GET','/api/cloud-paper/daily-cohort':'GET','/api/cloud-paper/daily-source-check':'GET','/api/cloud-paper/etf-source-check':'GET','/api/cloud-paper/etf-daily':'GET','/api/cloud-paper/etf-raw-research':'GET','/api/cloud-paper/period-rank':'GET','/api/cloud-paper/recover-carryovers':'POST','/api/cloud-paper/paper-book-status':'GET','/api/cloud-paper/seven-accounts':'GET','/api/cloud-paper/orders':'POST','/api/cloud-paper/cancel':'POST','/api/cloud-paper/quotes':'POST'};
  if(!Object.hasOwn(actions,path))return reply({error:'NOT_FOUND'},404);
  if(path.endsWith('/session')){
   if(!['GET','POST','DELETE'].includes(req.method))return reply({error:'METHOD_NOT_ALLOWED'},405);
@@ -401,6 +402,7 @@ export default {
  if(path.endsWith('/market-replay')){const q=new URL(req.url).searchParams;return reply(await readMarketReplay(env,{day:q.get('day'),symbol:q.get('symbol')}));}
  if(path.endsWith('/live-minute-status'))return reply(await readLiveMinuteStatus(env,new URL(req.url).searchParams.get('day')||ist(now).day));
  if(path.endsWith('/forward-x-journal'))return reply(await readForwardX(env,new URL(req.url).searchParams.get('day')||ist(now).day));
+ if(path.endsWith('/supplemental-source')){const q=new URL(req.url).searchParams;return reply(await probeSupplemental(env,q.get('kind'),q.get('day')||ist(now).day));}
  if(path.endsWith('/strategy-journal')){const q=new URL(req.url).searchParams;return reply(await readStrategyJournal(env,{day:q.get('day')||ist(now).day,strategyId:q.get('strategy')}));}
  if(path.endsWith('/top-volume-history'))return reply(await readTopVolumeHistory(env,new URL(req.url).searchParams.get('day')));
  if(path.endsWith('/nifty-opening'))return reply(await readNiftyOpening(env,new URL(req.url).searchParams.get('day')));
@@ -442,10 +444,10 @@ export default {
  console.error('paper worker error:',e?.name);return reply({error:'PAPER_SERVICE_UNAVAILABLE'},503);}
  },
   async scheduled(event,env,ctx){ctx.waitUntil((async()=>{
-   if(event.cron==='1-56/5 4-9 * * 1-5'){
-    if(ist(event.scheduledTime).minute===581){
+   if(event.cron==='1-56/5,45 4-9 * * 1-5'||event.cron==='1-56/5 4-9 * * 1-5'){
+    if(ist(event.scheduledTime).minute===581||ist(event.scheduledTime).minute===915){
      try{await captureLiveMinute(env)}catch(e){const d=safeDiagnostic(e);console.error('read-only first live minute unavailable:',d.type,d.message)}
-    }else try{await runForwardX(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only forward X signal unavailable:',d.type,d.message)}
+    }else if(ist(event.scheduledTime).minute%5===1&&ist(event.scheduledTime).minute>=596&&ist(event.scheduledTime).minute<=906)try{await runForwardX(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only forward X signal unavailable:',d.type,d.message)}
     return;
    }
    if(event.cron==='0-6 2,3 * * 1-5'){
@@ -476,9 +478,10 @@ export default {
    if(session(actualNow)&&(minute===556||minute===570)){
     try{await archiveNiftyLiveOhlc(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('read-only Nifty OHLC receipt unavailable:',d.type,d.message)}
    }
+   if(ist(actualNow).weekday&&(minute===390||minute===570)){try{await archiveSupplemental(env,'gift',ist(actualNow).day);}catch(e){const d=safeDiagnostic(e);console.error('GIFT candidate receipt unavailable:',d.type,d.message)}}
    // Give the seven-rule 15:15 liquidation first claim on Free-plan CPU.
    if(session(actualNow)&&minute>=885&&minute<=929){
-    try{await tickSevenForward(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper risk exit unavailable:',d.type,d.message)}
+    try{await tickAllForward(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper risk exit unavailable:',d.type,d.message)}
    }
    // Capture before legacy work, using the actual request time rather than an older Cron timestamp.
    if(session(actualNow)&&minute>=582&&minute<=915){
@@ -486,18 +489,19 @@ export default {
      try{await log(env.DB,Date.now(),'LIVE_MINUTE_CAPTURE_FAILED',d.message).run()}catch{ /* Console keeps the original diagnostic if D1 is unavailable. */ }
     }
    }
+   if(session(actualNow)&&minute>=604&&minute<885&&minute%15===4){try{await archiveSupplemental(env,'news',ist(actualNow).day);}catch(e){const d=safeDiagnostic(e);console.error('news candidate receipt unavailable:',d.type,d.message)}}
    try{await sourceTick(env);}catch(e){const d=safeDiagnostic(e);console.error('read-only Upstox feed unavailable:',d.type,d.message)}
    try{await tick(env)}catch(e){const d=safeDiagnostic(e);console.error('legacy paper tick unavailable:',d.type,d.message)}
    // The five-minute source decision runs in another Cron invocation. Queue
    // paper intent on the following minute; a later fresh book alone can fill.
    if(session(actualNow)&&minute>=555&&minute<580){
-    try{await tickSevenForward(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper carryover recovery unavailable:',d.type,d.message)}
+    try{await tickAllForward(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper carryover recovery unavailable:',d.type,d.message)}
    }else if(session(actualNow)&&minute>=597&&minute<=884){
     if(minute%5===2||minute%5===3){
      const day=ist(actualNow).day,windowEnd=actualNow-actualNow%60000-180000-(minute%5===3?60000:0);
-     try{await queueForwardX(env,day,windowEnd,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper signal queue unavailable:',d.type,d.message)}
+     try{await queueForwardX(env,day,windowEnd,actualNow);await queueForwardStrategy(env,'vwap_precision',day,windowEnd,actualNow);}catch(e){const d=safeDiagnostic(e);console.error('seven paper signal queue unavailable:',d.type,d.message)}
     }
-    try{await tickSevenForward(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper virtual settlement unavailable:',d.type,d.message)}
+    try{await tickAllForward(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper virtual settlement unavailable:',d.type,d.message)}
    }
    if(session(actualNow)&&minute>=582&&minute<=601){
     try{await captureOpeningSeed(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only opening seed unavailable:',d.type,d.message)}

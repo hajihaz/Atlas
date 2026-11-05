@@ -2,33 +2,44 @@
 import {loadSevenAccount,saveSevenAccount} from './seven-paper-store.js';
 import {submitSevenSignal,settleSevenPending,sevenRiskExit,SEVEN_RISK_POLICY} from './seven-paper-ledger.js';
 
+import {FORWARD_PILOTS} from './seven-strategy-replay.js';
 const STRATEGY='scalpstorm_x';
+const digest=async s=>hex(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s))));
 const fail=reason=>{const e=Error('SEVEN_FORWARD_BLOCKED: '+reason);e.atlasDiagnostic='seven forward '+reason;throw e;};
 const dayOf=ms=>new Date(ms+19800000).toISOString().slice(0,10);
 const minuteOf=ms=>{const d=new Date(ms+19800000);return d.getUTCHours()*60+d.getUTCMinutes()};
 const hex=bytes=>[...bytes].map(x=>x.toString(16).padStart(2,'0')).join('');
 
 /** Attach only already-persisted, point-in-time X decisions to the independent account. */
-export async function queueForwardX(env,day,windowEnd,now){
+export async function queueForwardX(env,day,windowEnd,now){return queueForwardStrategy(env,STRATEGY,day,windowEnd,now);}
+export async function queueForwardStrategy(env,strategyId,day,windowEnd,now){
+ if(!FORWARD_PILOTS.includes(strategyId))fail('strategy is unarmed');
  if(!env.DB||!env.HISTORY_DB||day!==dayOf(now)||!Number.isSafeInteger(windowEnd)||
    minuteOf(now)<581||minuteOf(now)>=SEVEN_RISK_POLICY.entryCutoffMinute)fail('decision slot or store');
- const run=await env.HISTORY_DB.prepare('SELECT status FROM live_x_runs WHERE source_date=? AND window_end_ms=?')
-  .bind(day,windowEnd).first();
- if(run?.status!=='EVALUATED')return {status:'SOURCE_NOT_QUALIFIED',queued:0};
- const result=await env.HISTORY_DB.prepare("SELECT symbol,instrument_key,side,decision_json FROM live_x_decisions WHERE source_date=? AND window_end_ms=? AND status='SIGNAL' ORDER BY symbol")
-  .bind(day,windowEnd).all();
- let state=await loadSevenAccount(env.DB,STRATEGY);
+ let rows=[];
+ if(strategyId===STRATEGY){
+  const run=await env.HISTORY_DB.prepare('SELECT status FROM live_x_runs WHERE source_date=? AND window_end_ms=?').bind(day,windowEnd).first();
+  if(run?.status!=='EVALUATED')return {status:'SOURCE_NOT_QUALIFIED',queued:0};
+  rows=(await env.HISTORY_DB.prepare("SELECT symbol,instrument_key,side,decision_json FROM live_x_decisions WHERE source_date=? AND window_end_ms=? AND status='SIGNAL' ORDER BY symbol").bind(day,windowEnd).all()).results;
+ }else{
+  const run=await env.HISTORY_DB.prepare('SELECT completed_ms,status,payload_json,payload_sha256 FROM forward_strategy_windows WHERE source_date=? AND strategy_id=? AND window_end_ms=?').bind(day,strategyId,windowEnd).first();
+  if(run?.status!=='EVALUATED'||run.completed_ms>now)return {status:'SOURCE_NOT_QUALIFIED',queued:0};
+  if(await digest(run.payload_json)!==run.payload_sha256)fail('VWAP persisted proof changed');
+  const payload=JSON.parse(run.payload_json);if(!Array.isArray(payload.decisions)||payload.decisions.length!==10)fail('VWAP decision roster incomplete');
+  rows=payload.decisions.filter(d=>d.status==='SIGNAL').map(d=>({symbol:d.symbol,instrument_key:d.instrumentKey,side:d.side,decision_json:JSON.stringify(d)}));
+ }
+ let state=await loadSevenAccount(env.DB,strategyId);
  if(!state)fail('account missing');
  const initial=state,statuses=[];
- for(const row of result.results){
+ for(const row of rows){
   let decision;try{decision=JSON.parse(row.decision_json)}catch{fail('decision JSON changed')}
-  if(decision?.strategyId!==STRATEGY||decision?.sourceDate!==day||decision.symbol!==row.symbol||
+  if(decision?.strategyId!==strategyId||decision?.sourceDate!==day||decision.symbol!==row.symbol||
     decision.status!=='SIGNAL'||decision.side!==row.side||
     !/^NSE_EQ\|INE[A-Z0-9]{9}$/.test(row.instrument_key)||
     !Array.isArray(decision.sourceSha256)||decision.sourceSha256.length!==5||
     decision.sourceSha256.some(x=>!/^[a-f0-9]{64}$/.test(x)))fail('decision proof or identity changed');
-  const id=`x-${day}-${windowEnd}-${row.symbol}`;
-  const action=submitSevenSignal(state,{strategyId:STRATEGY,id,symbol:row.symbol,
+  const id=`${strategyId==='scalpstorm_x'?'x':'vwap'}-${day}-${windowEnd}-${row.symbol}`;
+  const action=submitSevenSignal(state,{strategyId,id,symbol:row.symbol,
    instrumentKey:row.instrument_key,side:row.side,signalAt:decision.barEndedAt,
    reason:decision.reason,realOrdersEnabled:false},now);
   state=action.state;statuses.push({symbol:row.symbol,status:action.status});
@@ -82,10 +93,11 @@ export async function fetchPaperBooks(env,keys,fetcher=fetch,clock=()=>Date.now(
 }
 
 /** One batched read per minute, one compare-and-swap account save; stale data cannot fill. */
-export async function tickSevenForward(env,now=Date.now(),books=fetchPaperBooks,clock=()=>Date.now()){
+export async function tickSevenForward(env,now=Date.now(),books=fetchPaperBooks,clock=()=>Date.now(),options={}){
  const minute=minuteOf(now);
  if(minute<555||minute>929)return {status:'OUTSIDE_MARKET'};
- const before=await loadSevenAccount(env.DB,STRATEGY);
+ const strategyId=options.strategyId||STRATEGY;if(!FORWARD_PILOTS.includes(strategyId))fail('strategy is unarmed');
+ const before=await loadSevenAccount(env.DB,strategyId);
  if(!before)fail('account missing');
  const active=[...new Set([...Object.keys(before.pending),...Object.keys(before.positions)])];
  if(!active.length)return {status:'IDLE',fills:0};
@@ -108,7 +120,7 @@ export async function tickSevenForward(env,now=Date.now(),books=fetchPaperBooks,
    if(result.status==='EXPIRED')expired++;
   }
   // Never generate an exit from the same quote that opened a position.
-  if(before.positions[symbol]&&!before.pending[symbol]){
+  if(before.positions[symbol]&&!state.pending[symbol]){
    const signal=sevenRiskExit(state,symbol,q,processedAt);
    if(signal){const result=submitSevenSignal(state,signal,processedAt);state=result.state;
     if(result.status==='PENDING')exits++;}
@@ -116,6 +128,10 @@ export async function tickSevenForward(env,now=Date.now(),books=fetchPaperBooks,
  }
  if(state.revision!==initial.revision)await saveSevenAccount(env.DB,initial,state,processedAt);
  if(bookUnavailable)fail('read only book unavailable');
+ if(exits>0&&options.followUp!==false){
+  const next=await tickSevenForward(env,processedAt,books,clock,{...options,followUp:false});
+  return {...next,fills:fills+(next.fills||0),exits:exits+(next.exits||0),expired:expired+(next.expired||0),bookPasses:2};
+ }
  return {status:'PAPER_EVALUATED',fills,exits,expired,openPositions:Object.keys(state.positions).length,
   pending:Object.keys(state.pending).length,realOrdersEnabled:false};
 }
@@ -145,4 +161,15 @@ export async function requestCarryoverRecovery(env,now=Date.now(),books=fetchPap
  if(held.some(([,p])=>!p.openedAt||dayOf(p.openedAt)>=today)||
   Object.keys(state.pending).some(symbol=>!state.positions[symbol]))fail('recovery only permits prior-session held positions');
  return tickSevenForward(env,now,books,clock);
+}
+
+/** Each armed account is independent; one failing account cannot suppress the other. */
+export async function tickAllForward(env,now=Date.now(),books=fetchPaperBooks,clock=()=>Date.now()){
+ const results=[];
+ for(const strategyId of FORWARD_PILOTS){
+  try{results.push({strategyId,...await tickSevenForward(env,now,books,clock,{strategyId})});}
+  catch(e){results.push({strategyId,status:'ERROR',reason:e?.atlasDiagnostic||'FORWARD_ACCOUNT_UNAVAILABLE'});}
+ }
+ if(results.some(r=>r.status==='ERROR'))console.error('paper account settlement incomplete',JSON.stringify(results.filter(r=>r.status==='ERROR')));
+ return {results,realOrdersEnabled:false};
 }

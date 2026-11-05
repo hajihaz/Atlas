@@ -41,7 +41,7 @@ export async function listSevenAccounts(db){
  const rows=result.results;if(rows.length!==7)fail('incomplete seven accounts');
  const seen=new Set();
  return {schema:'atlas.seven-paper-accounts.v1',paperOnly:true,realOrdersEnabled:false,
-  executionStatus:'X_PAPER_PILOT_ARMED_OTHER_SIX_UNARMED',
+  executionStatus:'X_VWAP_PAPER_PILOTS_ARMED_OTHER_FIVE_UNARMED',
   accounts:rows.map(row=>{
    let state;try{state=JSON.parse(row.state_json)}catch{fail('stored JSON')}
    assertSevenAccount(state);
