@@ -44,3 +44,13 @@ test('forged, stale, missing-depth, same-tick and wrong-account evidence fail cl
  assert.equal(settleSevenPending(accepted.state,'RELIANCE',quote(T+1000,100,1),T+1000).status,'NO_BUYING_POWER');
  assert.equal(Object.keys(state.positions).length,0);
 });
+
+test('verified NSE_EQ ETF ISINs in the captured roster retain exact identity and can paper-settle',()=>{
+ const key='NSE_EQ|INF277KA1984',base=createSevenAccount('vwap_precision',T-1000);
+ const accepted=submitSevenSignal(base,{...signal('vwap_precision'),symbol:'TATSILV',instrumentKey:key},T);
+ assert.equal(accepted.status,'PENDING');
+ const q={...quote(T+1000),instrumentKey:key};
+ assert.equal(settleSevenPending(accepted.state,'TATSILV',q,T+1000).status,'PAPER_FILLED');
+ assert.equal(settleSevenPending(accepted.state,'TATSILV',quote(T+1000),T+1000).status,'WAIT_FRESH_QUOTE');
+ assert.throws(()=>submitSevenSignal(base,{...signal('vwap_precision'),instrumentKey:'NSE_FO|1234'},T),/signal identity/);
+});

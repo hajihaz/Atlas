@@ -16,7 +16,7 @@ async function topKeys(env,day){
  const row=await env.HISTORY_DB.prepare('SELECT roster_json,roster_sha256 FROM live_top_roster WHERE source_date=?').bind(day).first();
  if(!row||await digest(row.roster_json)!==row.roster_sha256)fail('dated roster missing');
  const top=JSON.parse(row.roster_json);
- if(!Array.isArray(top)||top.length!==10||new Set(top.map(x=>x.instrument_key)).size!==10||top.some(x=>!/^NSE_EQ\|INE[A-Z0-9]{9}$/.test(x.instrument_key)))fail('dated roster identities invalid');
+ if(!Array.isArray(top)||top.length!==10||new Set(top.map(x=>x.instrument_key)).size!==10||top.some(x=>!/^NSE_EQ\|IN[EF][A-Z0-9]{9}$/.test(x.instrument_key)))fail('dated roster identities invalid');
  return top.map(x=>x.instrument_key);
 }
 export async function fetchSupplemental(env,kind,day,{fetcher=fetch,clock=()=>Date.now()}={}){

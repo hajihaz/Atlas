@@ -39,7 +39,7 @@ export function submitSevenSignal(previous,input,now){
  if(!Number.isSafeInteger(now)||!input||input.strategyId!==previous.strategyId||
    input.realOrdersEnabled!==false||typeof input.id!=='string'||!/^[A-Za-z0-9_-]{16,100}$/.test(input.id)||
    typeof input.symbol!=='string'||!/^[A-Z][A-Z0-9]{0,19}$/.test(input.symbol)||
-   !/^NSE_EQ\|INE[A-Z0-9]{9}$/.test(input.instrumentKey)||
+   !/^NSE_EQ\|IN[EF][A-Z0-9]{9}$/.test(input.instrumentKey)||
    !['BUY','SELL'].includes(input.side)||!Number.isFinite(time(input.signalAt)))fail('signal identity');
  const cadence=SEVEN_STRATEGIES.find(x=>x.id===previous.strategyId)?.cadence;
  const at=time(input.signalAt),maxAge=cadence==='SWING'||cadence==='MONTHLY'?3600000:240000;

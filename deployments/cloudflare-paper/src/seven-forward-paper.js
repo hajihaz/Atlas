@@ -35,7 +35,7 @@ export async function queueForwardStrategy(env,strategyId,day,windowEnd,now){
   let decision;try{decision=JSON.parse(row.decision_json)}catch{fail('decision JSON changed')}
   if(decision?.strategyId!==strategyId||decision?.sourceDate!==day||decision.symbol!==row.symbol||
     decision.status!=='SIGNAL'||decision.side!==row.side||
-    !/^NSE_EQ\|INE[A-Z0-9]{9}$/.test(row.instrument_key)||
+    !/^NSE_EQ\|IN[EF][A-Z0-9]{9}$/.test(row.instrument_key)||
     !Array.isArray(decision.sourceSha256)||decision.sourceSha256.length!==5||
     decision.sourceSha256.some(x=>!/^[a-f0-9]{64}$/.test(x)))fail('decision proof or identity changed');
   const id=`${strategyId==='scalpstorm_x'?'x':'vwap'}-${day}-${windowEnd}-${row.symbol}`;
@@ -77,7 +77,7 @@ export function normalizeBookResponse(body,keys,receivedAt,sourceSha256){
 
 export async function fetchPaperBooks(env,keys,fetcher=fetch,clock=()=>Date.now()){
  if(!keys.length)return new Map();
- if(keys.length>10||new Set(keys).size!==keys.length||keys.some(x=>!/^NSE_EQ\|INE[A-Z0-9]{9}$/.test(x))||
+ if(keys.length>10||new Set(keys).size!==keys.length||keys.some(x=>!/^NSE_EQ\|IN[EF][A-Z0-9]{9}$/.test(x))||
    typeof env.UPSTOX_ANALYTICS_TOKEN!=='string'||env.UPSTOX_ANALYTICS_TOKEN.length<100)
    fail('read-only book request invalid');
  // Source: https://upstox.com/developer/api-documentation/get-full-market-quote-v3/
