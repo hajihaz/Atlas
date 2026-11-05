@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {SEVEN_STRATEGIES} from '../src/seven-strategy-replay.js';
 import {createSevenAccount,submitSevenSignal,settleSevenPending} from '../src/seven-paper-ledger.js';
 const KEY='NSE_EQ|INE002A01018',T=Date.parse('2026-10-30T04:30:00Z');
-const signal=(strategyId,side='BUY',at=T,id='signal-unique-000001')=>({strategyId,id,symbol:'RELIANCE',instrumentKey:KEY,side,signalAt:new Date(at).toISOString(),realOrdersEnabled:false});
+const signal=(strategyId,side='BUY',at=T,id='signal-unique-000001')=>({strategyId,id,symbol:'RELIANCE',instrumentKey:KEY,side,signalAt:new Date(at).toISOString(),risk:{version:'period-paper-risk-2026-11-05-v1',stopDistancePaise:100},realOrdersEnabled:false});
 const quote=(at=T+1000,price=100,quantity=1000)=>({source:'Upstox Analytics',instrumentKey:KEY,
  lastTradeAt:new Date(at).toISOString(),providerAt:new Date(at).toISOString(),observedAt:new Date(at).toISOString(),
  bid:{price:price-.05,quantity},ask:{price:price+.05,quantity}});

@@ -2,7 +2,9 @@
 import {loadSevenAccount,saveSevenAccount} from './seven-paper-store.js';
 import {submitSevenSignal,settleSevenPending,sevenRiskExit,SEVEN_RISK_POLICY} from './seven-paper-ledger.js';
 
-import {FORWARD_PILOTS} from './seven-strategy-replay.js';
+import {FORWARD_PILOTS,SEVEN_STRATEGIES} from './seven-strategy-replay.js';
+import {EXTRA_INTRADAY,EXTRA_METHODS} from './forward-extra.js';
+const INTRADAY_IMPLEMENTED=[...FORWARD_PILOTS,...EXTRA_INTRADAY];
 const STRATEGY='scalpstorm_x';
 const digest=async s=>hex(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s))));
 const fail=reason=>{const e=Error('SEVEN_FORWARD_BLOCKED: '+reason);e.atlasDiagnostic='seven forward '+reason;throw e;};
@@ -13,7 +15,7 @@ const hex=bytes=>[...bytes].map(x=>x.toString(16).padStart(2,'0')).join('');
 /** Attach only already-persisted, point-in-time X decisions to the independent account. */
 export async function queueForwardX(env,day,windowEnd,now){return queueForwardStrategy(env,STRATEGY,day,windowEnd,now);}
 export async function queueForwardStrategy(env,strategyId,day,windowEnd,now){
- if(!FORWARD_PILOTS.includes(strategyId))fail('strategy is unarmed');
+ if(!INTRADAY_IMPLEMENTED.includes(strategyId))fail('strategy is unarmed');
  if(!env.DB||!env.HISTORY_DB||day!==dayOf(now)||!Number.isSafeInteger(windowEnd)||
    minuteOf(now)<581||minuteOf(now)>=SEVEN_RISK_POLICY.entryCutoffMinute)fail('decision slot or store');
  let rows=[];
@@ -38,9 +40,11 @@ export async function queueForwardStrategy(env,strategyId,day,windowEnd,now){
     !/^NSE_EQ\|IN[EF][A-Z0-9]{9}$/.test(row.instrument_key)||
     !Array.isArray(decision.sourceSha256)||decision.sourceSha256.length!==5||
     decision.sourceSha256.some(x=>!/^[a-f0-9]{64}$/.test(x)))fail('decision proof or identity changed');
-  const id=`${strategyId==='scalpstorm_x'?'x':'vwap'}-${day}-${windowEnd}-${row.symbol}`;
+  if(EXTRA_INTRADAY.includes(strategyId)&&(!/^[a-f0-9]{64}$/.test(decision.contextSha256||'')||decision.methodVersion!==EXTRA_METHODS[strategyId]))fail('additional context proof missing');
+  const id=`${strategyId==='scalpstorm_x'?'x':strategyId==='vwap_precision'?'vwap':strategyId}-${day}-${windowEnd}-${row.symbol}`;
   const action=submitSevenSignal(state,{strategyId,id,symbol:row.symbol,
    instrumentKey:row.instrument_key,side:row.side,signalAt:decision.barEndedAt,
+   decisionSha256:await digest(row.decision_json),methodVersion:decision.methodVersion||(strategyId==='scalpstorm_x'?'X_OPENING_RANGE_V1':'VWAP_EMA9_PULLBACK_V1'),
    reason:decision.reason,realOrdersEnabled:false},now);
   state=action.state;statuses.push({symbol:row.symbol,status:action.status});
  }
@@ -99,7 +103,7 @@ export async function fetchPaperBooks(env,keys,fetcher=fetch,clock=()=>Date.now(
 export async function tickSevenForward(env,now=Date.now(),books=fetchPaperBooks,clock=()=>Date.now(),options={}){
  const minute=minuteOf(now);
  if(minute<555||minute>929)return {status:'OUTSIDE_MARKET'};
- const strategyId=options.strategyId||STRATEGY;if(!FORWARD_PILOTS.includes(strategyId))fail('strategy is unarmed');
+ const strategyId=options.strategyId||STRATEGY;if(!SEVEN_STRATEGIES.some(s=>s.id===strategyId))fail('unknown strategy');
  const before=await loadSevenAccount(env.DB,strategyId);
  if(!before)fail('account missing');
  const active=[...new Set([...Object.keys(before.pending),...Object.keys(before.positions)])];
@@ -173,7 +177,7 @@ export async function requestCarryoverRecovery(env,now=Date.now(),books=fetchPap
 /** Each armed account is independent; one failing account cannot suppress the other. */
 export async function tickAllForward(env,now=Date.now(),books=fetchPaperBooks,clock=()=>Date.now()){
  const results=[];
- for(const strategyId of FORWARD_PILOTS){
+ for(const {id:strategyId} of SEVEN_STRATEGIES){
   try{results.push({strategyId,...await tickSevenForward(env,now,books,clock,{strategyId})});}
   catch(e){results.push({strategyId,status:'ERROR',reason:e?.atlasDiagnostic||'FORWARD_ACCOUNT_UNAVAILABLE'});}
  }

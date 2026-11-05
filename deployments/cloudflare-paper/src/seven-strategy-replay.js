@@ -3,27 +3,27 @@ const fail=reason=>{throw Error('SEVEN_STRATEGY_BLOCKED: '+reason);};
 export const FORWARD_PILOTS=Object.freeze(['scalpstorm_x','vwap_precision']);
 const spec=(id,name,cadence,summary,needs,provisional=[])=>Object.freeze({
   id,name,cadence,summary,requires:Object.freeze(needs),provisional:Object.freeze(provisional),
-  executionStatus:FORWARD_PILOTS.includes(id)?'PAPER_PILOT_ARMED':'SIGNAL_ONLY_UNARMED',paperOnly:true
+  executionStatus:FORWARD_PILOTS.includes(id)?'PAPER_PILOT_ARMED':'SOURCE_GATED_FORWARD_IMPLEMENTED',paperOnly:true
 });
 export const SEVEN_STRATEGIES=Object.freeze([
   spec('scalpstorm_x','ScalpStorm X','INTRADAY','9:40 top-volume NSE equities; Nifty morning bias; confirmed opening-range break',
     ['dated full NSE 09:40 volume roster','Nifty 09:15-09:30','stock one-minute OHLCV'],['stop and target distances']),
   spec('scalpstorm_x2','ScalpStorm X2','INTRADAY','GIFT Nifty morning bias; same stock selection and confirmation as X',
-    ['dated full NSE 09:40 volume roster','same-contract GIFT Nifty 06:30 and 09:30','Nifty conflict check','stock one-minute OHLCV'],['GIFT reference and threshold validation','stop and target distances']),
-  spec('scalpstorm_x3','ScalpStorm X3','INTRADAY','Timestamped company news with liquid, price-confirmed response',
-    ['verified time-stamped company news','stock one-minute OHLCV','liquidity evidence'],['news materiality classification','liquidity threshold','stop and target distances']),
+    ['dated full NSE 09:40 volume roster','official rolling GIFT index 06:30 open and 09:29 completed close, available before 09:40; 120-second delay','Nifty conflict check','stock one-minute OHLCV'],['GIFT reference and threshold validation','stop and target distances']),
+  spec('scalpstorm_x3','ScalpStorm X3','INTRADAY','Experimental quantified YoY net-profit headlines with liquid, price-confirmed response',
+    ['first-known company-specific quarterly net-profit headline with unambiguous YoY change of at least 10%','stock one-minute OHLCV','liquidity evidence'],['news materiality classification','liquidity threshold','stop and target distances']),
   spec('scalpstorm_xtreme','ScalpStorm Xtreme','INTRADAY','9:40 relative volume, Nifty-relative strength, breakout and retest',
     ['20 prior same-time volume baselines','Nifty and sector returns','stock one-minute OHLCV'],['RVOL and strength thresholds','stop placement']),
   spec('vwap_precision','VWAP Precision','INTRADAY','Nifty-aligned VWAP and EMA9 trend pullback after 10:00',
     ['dated full NSE 09:40 volume roster','Nifty morning bias','stock one-minute OHLCV'],['pullback proximity','stop distance']),
   spec('rsi2_snapback','RSI-2 Snapback','SWING','NIFTYBEES daily close above SMA200 and RSI2 below 5; next-session entry',
-    ['time-qualified adjusted NIFTYBEES daily bars'],['ATR stop and sizing under gap risk']),
+    ['preopen-known provider-declared split/bonus-adjusted NIFTYBEES price bars and dated NSE calendar'],['ATR stop and sizing under gap risk']),
   spec('dual_momentum_rotation','Dual Momentum Rotation','MONTHLY','Choose positive six-month momentum leader of NIFTYBEES and GOLDBEES; otherwise cash',
-    ['time-qualified adjusted daily bars for both ETFs'],['six-month session convention'])
+    ['preopen-known provider-declared split/bonus-adjusted daily price bars for both ETFs and dated NSE calendar'],['six-month session convention'])
 ]);
 export function catalog(){
   return {schema:'atlas.owner-seven-strategies.v1',paperOnly:true,realOrdersEnabled:false,
-    executionStatus:'X_VWAP_PAPER_PILOTS_ARMED_OTHER_FIVE_UNARMED',strategies:SEVEN_STRATEGIES};
+    executionStatus:'TWO_BASE_PILOTS_FIVE_SOURCE_GATED_FORWARD_DRIVERS',strategies:SEVEN_STRATEGIES};
 }
 const date=x=>typeof x==='string'&&/^\d{4}-\d\d-\d\d$/.test(x)&&new Date(x+'T00:00:00Z').toISOString().slice(0,10)===x;
 const ms=x=>typeof x==='string'?Date.parse(x):NaN;

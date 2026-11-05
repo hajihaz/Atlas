@@ -1,5 +1,6 @@
 /** Pure independent virtual accounts for Atlas paper research. No broker transport. */
 import {SEVEN_STRATEGIES} from './seven-strategy-replay.js';
+import {PERIOD_POLICY} from './forward-period.js';
 const IDS=new Set(SEVEN_STRATEGIES.map(x=>x.id));
 const fail=reason=>{throw Error('SEVEN_LEDGER_BLOCKED: '+reason);};
 const clone=x=>structuredClone(x);
@@ -41,11 +42,16 @@ export function submitSevenSignal(previous,input,now){
    typeof input.symbol!=='string'||!/^[A-Z][A-Z0-9]{0,19}$/.test(input.symbol)||
    !/^NSE_EQ\|IN[EF][A-Z0-9]{9}$/.test(input.instrumentKey)||
    !['BUY','SELL'].includes(input.side)||!Number.isFinite(time(input.signalAt)))fail('signal identity');
+ if(input.decisionSha256!==undefined&&(!/^[a-f0-9]{64}$/.test(input.decisionSha256)||!/^[A-Z0-9_]{3,80}$/.test(input.methodVersion||'')))fail('decision audit identity');
  const cadence=SEVEN_STRATEGIES.find(x=>x.id===previous.strategyId)?.cadence;
  const at=time(input.signalAt),maxAge=cadence==='SWING'||cadence==='MONTHLY'?3600000:240000;
  if(at<previous.startedAt||at>now||now-at>maxAge)fail('signal time');
  if(previous.seenSignals[input.id])return {state:previous,status:'DUPLICATE_SIGNAL'};
  const state=clone(previous),held=state.positions[input.symbol];
+ if(!held&&cadence!=='INTRADAY'){
+  if(input.side!=='BUY')fail('period strategies are long only');
+  if(input.risk?.version!==PERIOD_POLICY.version||!Number.isSafeInteger(input.risk.stopDistancePaise)||input.risk.stopDistancePaise<1||input.risk.stopDistancePaise>1000000000)fail('period ATR risk missing');
+ }
  state.events??=[];
  const reject=status=>{state.seenSignals[input.id]=now;
   for(const [id,seenAt] of Object.entries(state.seenSignals))if(now-seenAt>7200000)delete state.seenSignals[id];
@@ -61,15 +67,16 @@ export function submitSevenSignal(previous,input,now){
    return reject('UNRESOLVED_CARRYOVER');
   if((state.dailyRiskDay===day?state.dailyRealizedPaise||0:0)<=-SEVEN_RISK_POLICY.dailyLossPaise)
    return reject('DAILY_LOSS_LIMIT');
-  if(['scalpstorm_x','vwap_precision'].includes(previous.strategyId)&&
-    entryCount(state,day)+Object.values(state.pending).filter(p=>istDay(p.createdAt)===day&&!state.positions[p.symbol]).length>=2)
+  if(entryCount(state,day)+Object.values(state.pending).filter(p=>istDay(p.createdAt)===day&&!state.positions[p.symbol]).length>=2)
    return reject('MAX_DAILY_ENTRIES');
  }
  if(state.pending[input.symbol])return reject('PENDING_EXISTS');
  if(held){state.positions[input.symbol].exitRequestedReason=input.reason||'STRATEGY_SIGNAL';state.positions[input.symbol].exitRequestedAt??=now;}
  state.pending[input.symbol]={id:input.id,side:input.side,symbol:input.symbol,
   instrumentKey:input.instrumentKey,signalAt:at,createdAt:now,expiresAt:now+90000,
-  riskPolicyVersion:SEVEN_RISK_POLICY.version,
+  decisionSha256:input.decisionSha256??held?.decisionSha256??null,methodVersion:input.methodVersion??held?.methodVersion??null,
+  riskPolicyVersion:cadence==='INTRADAY'?SEVEN_RISK_POLICY.version:PERIOD_POLICY.version,
+  ...(cadence==='INTRADAY'?{}:{stopDistancePaise:input.risk?.stopDistancePaise??held?.stopDistancePaise}),
   reason:typeof input.reason==='string'&&/^[A-Z0-9_]{3,40}$/.test(input.reason)?input.reason:'STRATEGY_SIGNAL'};
  state.seenSignals[input.id]=now;
  for(const [id,seenAt] of Object.entries(state.seenSignals))if(now-seenAt>7200000)delete state.seenSignals[id];
@@ -100,7 +107,9 @@ export function settleSevenPending(previous,symbol,quote,now){
  const state=clone(previous),position=state.positions[symbol];
  let qty,fee,pnl=0,allocatedCost=0;
  if(!position){
-  qty=Math.min(Math.floor(book.quantity/4),Math.floor(Math.min(SEVEN_RISK_POLICY.maxAllocationPaise,state.cashPaise)/(fillPrice*1.001)));
+  const period=pending.riskPolicyVersion===PERIOD_POLICY.version;
+  if(period&&(!Number.isSafeInteger(pending.stopDistancePaise)||pending.stopDistancePaise<1||pending.stopDistancePaise>=fillPrice))return {state:previous,status:'INVALID_PERIOD_STOP'};
+  qty=Math.min(Math.floor(book.quantity/4),Math.floor(Math.min(SEVEN_RISK_POLICY.maxAllocationPaise,state.cashPaise)/(fillPrice*1.001)),period?Math.floor(PERIOD_POLICY.maxLossPerTradePaise/(pending.stopDistancePaise+Math.ceil(fillPrice*.003))):Infinity);
   if(qty<1)return {state:previous,status:'NO_BUYING_POWER'};
   fee=Math.ceil(qty*fillPrice*10/10000);
   const cost=qty*fillPrice+fee;if(cost>state.cashPaise)fail('cash invariant');
@@ -108,8 +117,10 @@ export function settleSevenPending(previous,symbol,quote,now){
   const long=pending.side==='BUY';
   state.positions[symbol]={qty,entryCostPaise:cost,entryPricePaise:fillPrice,
    instrumentKey:pending.instrumentKey,direction:long?'LONG':'SHORT',openedAt:provider,
-   stopPaise:long?Math.floor(fillPrice*(10000-SEVEN_RISK_POLICY.stopBps)/10000):Math.ceil(fillPrice*(10000+SEVEN_RISK_POLICY.stopBps)/10000),
-   targetPaise:long?Math.ceil(fillPrice*(10000+SEVEN_RISK_POLICY.targetBps)/10000):Math.floor(fillPrice*(10000-SEVEN_RISK_POLICY.targetBps)/10000),
+   stopPaise:period?fillPrice-pending.stopDistancePaise:long?Math.floor(fillPrice*(10000-SEVEN_RISK_POLICY.stopBps)/10000):Math.ceil(fillPrice*(10000+SEVEN_RISK_POLICY.stopBps)/10000),
+   targetPaise:period?null:long?Math.ceil(fillPrice*(10000+SEVEN_RISK_POLICY.targetBps)/10000):Math.floor(fillPrice*(10000-SEVEN_RISK_POLICY.targetBps)/10000),
+   ...(period?{stopDistancePaise:pending.stopDistancePaise}:{}),
+   decisionSha256:pending.decisionSha256??null,methodVersion:pending.methodVersion??null,
    riskPolicyVersion:pending.riskPolicyVersion};
  }else{
   if((direction(position)==='LONG'&&pending.side!=='SELL')||
@@ -137,6 +148,7 @@ export function settleSevenPending(previous,symbol,quote,now){
   allocatedEntryCostPaise:position?allocatedCost:null,positionRemaining:position?state.positions[symbol]?.qty||0:qty,signalAt:pending.signalAt,
   tradeAt:provider,intentCreatedAt:pending.createdAt,observedAt:observed,sourceKnownAt:quote.sourceKnownAt??observed,processedAt:now,mode:'HYPOTHETICAL_NEXT_OBSERVED_BOOK',reason:pending.reason,
   riskPolicyVersion:pending.riskPolicyVersion,
+  decisionSha256:pending.decisionSha256??null,methodVersion:pending.methodVersion??null,
   quoteSha256:/^[a-f0-9]{64}$/.test(quote.sourceSha256||'')?quote.sourceSha256:null});
  if(state.fills.length>1000)state.fills.shift();
  if(position&&state.positions[symbol])state.pending[symbol]={...pending,lastFillProviderAt:provider,filledQuantity:(pending.filledQuantity||0)+qty};
@@ -150,8 +162,11 @@ export function sevenRiskExit(previous,symbol,quote,now){
  assertSevenAccount(previous);
  const p=previous.positions[symbol];if(!p||previous.pending[symbol])return null;
  const long=direction(p)==='LONG',minute=istMinute(now);
- const timed=p.openedAt&&istDay(p.openedAt)!==istDay(now)?'CARRYOVER_RECOVERY':
-  minute>=SEVEN_RISK_POLICY.exitMinute?'MANDATORY_1515_EXIT':p.exitRequestedReason||null;
+ const intraday=SEVEN_STRATEGIES.find(s=>s.id===previous.strategyId)?.cadence==='INTRADAY';
+ // Overnight holding is intentional for swing/monthly accounts. Only intraday
+ // strategies inherit the failed-session recovery and 15:15 liquidation rule.
+ const timed=intraday&&p.openedAt&&istDay(p.openedAt)!==istDay(now)?'CARRYOVER_RECOVERY':
+  intraday&&minute>=SEVEN_RISK_POLICY.exitMinute?'MANDATORY_1515_EXIT':p.exitRequestedReason||null;
  const provider=time(quote?.providerAt),observed=time(quote?.observedAt);
  const book=long?quote?.bid:quote?.ask;
  const fresh=quote?.source==='Upstox Analytics'&&quote.instrumentKey===p.instrumentKey&&
@@ -162,7 +177,7 @@ export function sevenRiskExit(previous,symbol,quote,now){
  const current=fresh?price(book.price):null;
  const reason=timed||(
   long&&current<=p.stopPaise||!long&&current>=p.stopPaise?'RISK_STOP':
-  long&&current>=p.targetPaise||!long&&current<=p.targetPaise?'RISK_TARGET':null);
+  Number.isFinite(p.targetPaise)&&(long&&current>=p.targetPaise||!long&&current<=p.targetPaise)?'RISK_TARGET':null);
  if(!reason)return null;
  return {strategyId:previous.strategyId,id:`risk-${istDay(now)}-${symbol}-${reason}-${Math.floor(now/60000)}`,
   symbol,instrumentKey:p.instrumentKey,side:long?'SELL':'BUY',signalAt:new Date(now).toISOString(),

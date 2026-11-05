@@ -1,0 +1,2 @@
+CREATE TABLE IF NOT EXISTS forward_context_receipts(source_date TEXT NOT NULL,kind TEXT NOT NULL CHECK(kind IN ('gift_opening','xtreme')),instrument_key TEXT NOT NULL,known_ms INTEGER NOT NULL,payload_json TEXT NOT NULL,payload_sha256 TEXT NOT NULL,raw_receipts_json TEXT NOT NULL,PRIMARY KEY(source_date,kind,instrument_key));
+CREATE TABLE IF NOT EXISTS period_calendar_receipts(source_date TEXT PRIMARY KEY,known_ms INTEGER NOT NULL,source_url TEXT NOT NULL,body_json TEXT NOT NULL,body_sha256 TEXT NOT NULL);

@@ -2,6 +2,7 @@
 import {readNiftyOpening} from './nifty-live-ohlc.js';
 import {forwardXDecision} from './forward-x-decision.js';
 import {runForwardVwap,recordVwapSkip} from './forward-vwap.js';
+import {runAdditionalForward} from './forward-extra-run.js';
 
 const fail=reason=>{const e=Error('FORWARD_X_RUN_BLOCKED: '+reason);e.atlasDiagnostic='forward X run '+reason;throw e;};
 const digest=async value=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value)))].map(x=>x.toString(16).padStart(2,'0')).join('');
@@ -51,7 +52,7 @@ export async function runForwardX(env,scheduledTime,clock=()=>Date.now()){
  const day=dayOf(now),windowEnd=now-now%60000-120000,db=env.HISTORY_DB;
  const prior=await db.prepare('SELECT status,reason FROM live_x_runs WHERE source_date=? AND window_end_ms=?').bind(day,windowEnd).first();
  if(prior){
-  if(prior.status==='EVALUATED')try{await runForwardVwap(env,day,windowEnd,now,await inputForWindow(env,day,windowEnd,now));}catch(e){await recordVwapSkip(env,day,windowEnd,now,e);}
+  if(prior.status==='EVALUATED'){const input=await inputForWindow(env,day,windowEnd,now);try{await runForwardVwap(env,day,windowEnd,now,input);}catch(e){await recordVwapSkip(env,day,windowEnd,now,e);}try{await runAdditionalForward(env,day,windowEnd,now,input);}catch{console.error('additional strategy journal unavailable');}}
   return {status:'VERIFIED_EXISTING',sourceDate:day,windowEnd,runStatus:prior.status};
  }
  let input;
@@ -74,6 +75,7 @@ export async function runForwardX(env,scheduledTime,clock=()=>Date.now()){
  ]);
  const count=await db.prepare('SELECT COUNT(*) AS n FROM live_x_decisions WHERE source_date=? AND window_end_ms=?').bind(day,windowEnd).first();
  if(count?.n!==10)fail('decision journal incomplete');
+ try{try{await runAdditionalForward(env,day,windowEnd,now,input);}catch{console.error('additional strategy journal unavailable');}}catch{console.error('additional strategy journal unavailable');}
  return {status:'EVALUATED',sourceDate:day,windowEnd,signals:decisions.filter(x=>x.status==='SIGNAL').length,noTrade:decisions.filter(x=>x.status==='NO_TRADE').length,
   paperFills:0,realOrdersEnabled:false};
 }

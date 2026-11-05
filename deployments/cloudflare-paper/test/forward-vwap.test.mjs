@@ -47,7 +47,8 @@ test('persisted VWAP decision queues only its independent account; later quote f
  const result=await tickAllForward(env,now+1000,async()=>q(now+1000),()=>now+1000);
  assert.equal(result.results.find(r=>r.strategyId==='vwap_precision').fills,2);
  assert.equal((await loadSevenAccount(db,'vwap_precision')).fills.length,2);
- await assert.rejects(()=>queueForwardStrategy(env,'scalpstorm_x2',day,windowEnd,now),/unarmed/);
+ assert.equal((await queueForwardStrategy(env,'scalpstorm_x2',day,windowEnd,now)).status,'SOURCE_NOT_QUALIFIED');
+ await assert.rejects(()=>queueForwardStrategy(env,'rsi2_snapback',day,windowEnd,now),/unarmed/);
  const before=(await loadSevenAccount(db,'vwap_precision')).revision;
  sql.prepare('UPDATE forward_strategy_windows SET payload_json=? WHERE window_end_ms=?').run('{}',windowEnd);
  await assert.rejects(()=>queueForwardStrategy(env,'vwap_precision',day,windowEnd,now+1000),/proof changed/);

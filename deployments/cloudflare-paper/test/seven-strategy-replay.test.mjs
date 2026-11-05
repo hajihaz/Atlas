@@ -31,10 +31,10 @@ function daily(symbol,count,base=100){
 test('catalog exposes X and VWAP paper pilots and five unarmed owner strategies',()=>{
  assert.deepEqual(SEVEN_STRATEGIES.map(x=>x.id),ids);
  assert.equal(catalog().realOrdersEnabled,false);
- assert.equal(catalog().executionStatus,'X_VWAP_PAPER_PILOTS_ARMED_OTHER_FIVE_UNARMED');
+ assert.equal(catalog().executionStatus,'TWO_BASE_PILOTS_FIVE_SOURCE_GATED_FORWARD_DRIVERS');
  assert.equal(SEVEN_STRATEGIES.find(x=>x.id==='scalpstorm_x').executionStatus,'PAPER_PILOT_ARMED');
  assert.equal(SEVEN_STRATEGIES.find(x=>x.id==='vwap_precision').executionStatus,'PAPER_PILOT_ARMED');
- assert.ok(SEVEN_STRATEGIES.filter(x=>!['scalpstorm_x','vwap_precision'].includes(x.id)).every(x=>x.paperOnly&&x.executionStatus==='SIGNAL_ONLY_UNARMED'));
+ assert.ok(SEVEN_STRATEGIES.filter(x=>!['scalpstorm_x','vwap_precision'].includes(x.id)).every(x=>x.paperOnly&&x.executionStatus==='SOURCE_GATED_FORWARD_IMPLEMENTED'));
 });
 test('ScalpStorm X waits for completed 5-minute breakout and next-minute entry',()=>{
  const result=intradaySignal('scalpstorm_x',bars(),context());

@@ -16,6 +16,7 @@ function database(schema){
 async function fixture(){
  const account=database(readFileSync(new URL('../seven-paper-ledger.sql',import.meta.url),'utf8'));
  const history=database(readFileSync(new URL('../live-minute.sql',import.meta.url),'utf8'));
+ history.sql.exec(readFileSync(new URL('../forward-strategy-windows.sql',import.meta.url),'utf8'));
  await ensureSevenAccounts(account.db,Date.parse('2026-11-03T03:45:00Z'));
  return {env:{DB:account.db,HISTORY_DB:history.db},history:history.sql};
 }
@@ -34,7 +35,7 @@ test('journal separates source-qualified decisions from paper fills',async()=>{
  assert.equal(x.realOrdersEnabled,false);
  const other=await readStrategyJournal(env,{day,strategyId:'scalpstorm_x2'});
  assert.deepEqual(other.events,[]);
- assert.equal(other.executionStatus,'SIGNAL_ONLY_UNARMED');
+ assert.equal(other.executionStatus,'SOURCE_GATED_FORWARD_IMPLEMENTED');
 });
 test('journal rejects invalid strategy or corrupted source proof',async()=>{
  const {env,history}=await fixture(),day='2026-11-03';

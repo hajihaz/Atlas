@@ -1,4 +1,5 @@
 /** Read-only experiment reporting. Never estimates a missing market price or changes a fill. */
+import {PERIOD_POLICY} from './forward-period.js';
 import {SEVEN_RISK_POLICY} from './seven-paper-ledger.js';
 const money=n=>n/100,day=t=>new Date(t+19800000).toISOString().slice(0,10);
 const exits=new Set(['RISK_STOP','RISK_TARGET','MANDATORY_1515_EXIT','CARRYOVER_RECOVERY']);
@@ -29,7 +30,7 @@ export function paperExperimentReport(state){
  const wins=closed.filter(t=>t.netPnlINR>0).length,losses=closed.filter(t=>t.netPnlINR<0).length;
  const positive=closed.reduce((n,t)=>n+Math.max(0,t.netPnlINR),0),negative=-closed.reduce((n,t)=>n+Math.min(0,t.netPnlINR),0);
  return {schema:'atlas.paper-experiment.v1',evidenceClass:'FORWARD_PAPER_LEDGER_NOT_REAL_TRADES',
-  decisionEngine:'DETERMINISTIC_RULES',settingsLocked:true,currentRiskPolicy:SEVEN_RISK_POLICY,
+  decisionEngine:'DETERMINISTIC_RULES',settingsLocked:true,currentRiskPolicy:['rsi2_snapback','dual_momentum_rotation'].includes(state.strategyId)?PERIOD_POLICY:SEVEN_RISK_POLICY,
   recordedPolicyVersions:[...new Set(fills.map(f=>f.riskPolicyVersion||'UNRECORDED'))],
   historyComplete:complete,feesPaidINR:money(state.feesPaise),
   costModel:'Modeled 0.10% fee per fill plus 0.05% adverse price adjustment; not a broker/tax bill.',
