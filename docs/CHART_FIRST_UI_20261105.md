@@ -35,5 +35,6 @@ Browser acceptance covers:
 11. Quiet account refresh.
 12. Paginated activity and collapsed source proof.
 13. Honest unfilled-strategy empty state.
+14. Dark-theme controls and tooltip surfaces with readable text.
 
 Desktop and mobile screenshots reviewed. Private runtime evidence stays outside the release bundle in the existing evidence directory. Production acceptance is recorded separately after promotion.

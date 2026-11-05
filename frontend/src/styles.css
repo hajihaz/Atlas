@@ -664,3 +664,13 @@ html[data-theme="dark"] .atlas-home-chart-empty{background:radial-gradient(ellip
 .atlas-workspace-detail .atlas-rule-heading{margin-bottom:12px;align-items:center}.atlas-workspace-detail .atlas-rule-heading h2{font-size:23px;margin:4px 0}.atlas-workspace-detail .atlas-rule-heading p{font-size:12px;margin:0}
 .atlas-account-overview{padding:15px 0;margin-bottom:18px}.atlas-account-overview>div{gap:6px}.atlas-main-chart .atlas-chart-title{margin:18px 0 16px}
 @media(max-width:680px){.atlas-workspace-header h1{font-size:23px}.atlas-workspace-detail .atlas-rule-heading{align-items:start}.atlas-account-overview{gap:16px}.atlas-account-overview strong{font-size:20px}.atlas-strategy-chip{min-height:56px}}
+
+/* Scoped chart tokens keep controls and tooltips readable in both themes. */
+.atlas-chart-page{--surface:#121f29;--line:#344650;--text-primary:#d4e3e7;color-scheme:dark}
+.atlas-chart-page .atlas-up{color:#68dcb5}.atlas-chart-page .atlas-down{color:#ff9aa6}
+.atlas-chart-page .atlas-view-tabs button[aria-pressed=true],.atlas-chart-page .atlas-segment button[aria-pressed=true]{color:#68dcb5}
+.atlas-chart-page .atlas-workspace-table td.atlas-up{color:#68dcb5}.atlas-chart-page .atlas-workspace-table td.atlas-down{color:#ff9aa6}
+html[data-theme="light"] .atlas-chart-page{--surface:#fff;--line:#dce5e8;--text-primary:#294652;color-scheme:light}
+html[data-theme="light"] .atlas-chart-page .atlas-up,html[data-theme="light"] .atlas-chart-page .atlas-workspace-table td.atlas-up{color:#137c5d}
+html[data-theme="light"] .atlas-chart-page .atlas-down,html[data-theme="light"] .atlas-chart-page .atlas-workspace-table td.atlas-down{color:#bd414f}
+html[data-theme="light"] .atlas-chart-page .atlas-view-tabs button[aria-pressed=true],html[data-theme="light"] .atlas-chart-page .atlas-segment button[aria-pressed=true]{color:#137c5d}
