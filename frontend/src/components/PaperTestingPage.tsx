@@ -138,6 +138,32 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
   }).catch(e=>{if(active)setRawEtfError(e instanceof Error?e.message:'ETF research unavailable');});
   return ()=>{active=false;};
  },[ownerConnected,rawEtfDay,selected,rule.cadence]);
+ // Refresh visible owner results quietly; retain the last verified view during transient failures.
+ useEffect(()=>{
+  if(!ownerConnected)return;
+  let active=true,inFlight=false;
+  const poll=async()=>{
+   if(document.visibilityState!=='visible'||inFlight)return;
+   inFlight=true;
+   try{
+    const auth=cloudPaperUsesGateway?'':ownerToken;
+    const results=await Promise.allSettled([
+     cloudPaperRequest<Accounts>(auth,'seven-accounts'),
+     cloudPaperRequest<StrategyJournal>(auth,'strategy-journal',{day:journalDay,strategy:selected})
+    ]);
+    if(!active)return;
+    const a=results[0];
+    if(a.status==='fulfilled'&&a.value.paperOnly===true&&a.value.realOrdersEnabled===false&&
+     Array.isArray(a.value.accounts)&&a.value.accounts.length===7&&ATLAS_RULES.every(rule=>a.value.accounts.some(x=>x.strategyId===rule.id)))setAccounts(a.value);
+    const j=results[1];
+    if(j.status==='fulfilled'&&j.value.schema==='atlas.strategy-journal.v1'&&j.value.mode==='PAPER_ONLY'&&
+     j.value.realOrdersEnabled===false&&j.value.strategyId===selected&&j.value.sourceDate===journalDay)setJournal(j.value);
+   }finally{inFlight=false;}
+  };
+  const timer=setInterval(()=>void poll(),15000),visible=()=>void poll();
+  document.addEventListener('visibilitychange',visible);
+  return ()=>{active=false;clearInterval(timer);document.removeEventListener('visibilitychange',visible);};
+ },[ownerConnected,ownerToken,selected,journalDay]);
  const rawResult=rawEtfReport?.results?.find(x=>x.strategyId===selected);
  return <section className="atlas-paper-home">
   <div className="sub-page-header"><div className="breadcrumb">ATLAS / PAPER TRADING</div>

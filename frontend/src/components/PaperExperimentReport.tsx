@@ -8,7 +8,7 @@ export default function PaperExperimentReport({report:r,strategy}:{report:Experi
   const rows=[['stock','entry_utc','exit_utc','shares','net_pnl_inr','modeled_fees_inr','exit_reason'],...r.closedTradesJournal.map(t=>[t.symbol,t.entryAt,t.exitAt,t.quantity,t.netPnlINR,t.feesINR,t.exitReason])];
   download(`${strategy}-closed-paper-trades.csv`,rows.map(row=>row.map(cells).join(',')).join('\n'),'text/csv');};
  return <div className="atlas-rule-evidence" aria-label="Paper experiment report">
-  <h3>Forward experiment report</h3><p>Decision engine: deterministic rules · settings locked · current policy {r.currentRiskPolicy.version}</p>
+  <h3>Forward experiment report</h3><p>Results refresh every 15 seconds while this page is visible.</p><p>Decision engine: deterministic rules · settings locked · current policy {r.currentRiskPolicy.version}</p>
   <div className="atlas-strategy-portfolio">
    <div><small>Closed trades</small><strong>{r.closedTrades??'Unavailable'}</strong></div>
    <div><small>Win rate · closed trades</small><strong>{r.winRatePct==null?'—':r.winRatePct.toFixed(1)+'%'}</strong></div>
