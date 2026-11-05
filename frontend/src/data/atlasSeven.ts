@@ -15,7 +15,7 @@ export const ATLAS_RULES:readonly AtlasRule[]=[
   selection:'Top 10 at 9:40; official rolling GIFT index 6:30 open to 9:29 completed close moves at least ±0.20%.',
   entry:'After a completed five-minute range break; skip if Nifty strongly conflicts.',
   exit:'Close by 3:15 PM.',
-  needs:'Contiguous GIFT morning candles received before 9:40, plus X market data. Provider delay: 120 seconds.',
+  needs:'Exact GIFT 6:30 opening and 9:29 completed bars received before 9:40, plus X market data. Provider delay: 120 seconds; intermediate gaps are disclosed.',
   trial:'Experimental rolling-index variant; futures contract identity is not certified. Thresholds and risk settings need validation.'},
  {id:'scalpstorm_x3',name:'ScalpStorm X3',cadence:'Intraday',
   summary:'Quantified quarterly earnings headlines followed by price and volume confirmation.',

@@ -185,7 +185,7 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
    </div>
   </div>
   <article id="atlas-strategy-detail" className="atlas-strategy-detail atlas-workspace-detail">
-   <div className="atlas-rule-heading"><div><span className="premium-kicker">{rule.cadence.toUpperCase()} STRATEGY</span><h2>{rule.name}</h2><p>{rule.summary}</p></div><span className="atlas-rule-badge"><LockKeyhole size={13}/>{catalog?.strategies.find(x=>x.id===selected)?.executionStatus==='PAPER_PILOT_ARMED'?'Paper pilot active':ownerConnected?'Waiting for qualified inputs':'Owner view needed'}</span></div>
+   <div className="atlas-rule-heading"><div><span className="premium-kicker">{rule.cadence.toUpperCase()} STRATEGY</span><h2>{rule.name}</h2><p>{rule.summary}</p></div><span className="atlas-rule-badge"><LockKeyhole size={13}/>{catalog?.strategies.find(x=>x.id===selected)?.executionStatus==='PAPER_PILOT_ARMED'?'Paper pilot active':catalog?.strategies.find(x=>x.id===selected)?.executionStatus==='SOURCE_GATED_FORWARD_IMPLEMENTED'?'Source-gated paper pilot':ownerConnected?'Waiting for qualified inputs':'Owner view needed'}</span></div>
    <div className="atlas-account-overview" aria-label="Forward paper account">
     <div><small>Realized paper P&amp;L</small><strong className={account&&account.realizedPnlINR<0?'atlas-down':'atlas-up'}>{account?inr(account.realizedPnlINR):'—'}</strong><span>Recorded closed results</span></div>
     <div><small>Virtual cash</small><strong>{account?inr(account.cashINR):'—'}</strong><span>Available paper balance</span></div>

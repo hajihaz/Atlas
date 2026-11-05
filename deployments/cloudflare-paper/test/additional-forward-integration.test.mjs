@@ -46,7 +46,7 @@ test('Xtreme collector binds profile, 20 complete same-time volumes and exact se
  for(let d=1;d<=40;d++)for(let i=0;i<5;i++)history.push([new Date(OPEN-d*86400000+i*300000).toISOString(),100,101,99,100,1000]);
  const sector=Array.from({length:15},(_,i)=>[new Date(OPEN+i*60000).toISOString(),100,101,99,100.1,100]);
  const urls=[],fetcher=async url=>{urls.push(url);let data;
-  if(url.endsWith('/profile'))data={sector:'Banks'};
+  if(url.endsWith('/profile'))data={sector:'Bank'};
   else if(url.includes('/intraday/'))data={candles:sector};
   else {const parts=url.split('/'),to=parts.at(-2),from=parts.at(-1);data={candles:history.filter(c=>{const d=c[0].slice(0,10);return d>=from&&d<=to})}}
   return new Response(JSON.stringify({status:'success',data}),{status:200});

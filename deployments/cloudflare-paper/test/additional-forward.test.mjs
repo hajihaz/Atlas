@@ -21,11 +21,12 @@ const accountDb=()=>{const s=new DatabaseSync(':memory:');s.exec(readFileSync(ne
 const historyDb=()=>{const s=new DatabaseSync(':memory:');s.exec("CREATE TABLE forward_strategy_windows(source_date TEXT,strategy_id TEXT,window_end_ms INTEGER,completed_ms INTEGER,status TEXT,payload_json TEXT,payload_sha256 TEXT,PRIMARY KEY(source_date,strategy_id,window_end_ms));");return s};
 const digest=async x=>Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(x))).toString('hex');
 const quote=(key,at,price=100,quantity=10000)=>({source:'Upstox Analytics',instrumentKey:key,providerAt:new Date(at).toISOString(),observedAt:new Date(at).toISOString(),sourceKnownAt:at,sourceSha256:SHA,bid:{price,quantity},ask:{price,quantity}});
-test('GIFT qualification requires 180 contiguous morning candles known before entry',()=>{
+test('GIFT qualification requires exact opening/closing anchors known before entry; interior gaps stay disclosed',()=>{
  const from=Date.parse(DAY+'T01:00:00Z'),r={knownAt:OPEN+19*60000,body:{data:{candles:Array.from({length:180},(_,i)=>[new Date(from+i*60000).toISOString(),100,102,99,101,0])}}};
- const c=giftOpeningContext(r,DAY);assert.equal(c.open,100);assert.equal(c.close,101);assert.equal(c.sameContractCertified,false);
+ const c=giftOpeningContext(r,DAY);assert.equal(c.open,100);
+ const sparse=giftOpeningContext({...r,body:{data:{candles:r.body.data.candles.filter((_,i)=>i!==2&&i!==6)}}},DAY);assert.equal(sparse.missingInteriorMinutes,2);assert.equal(sparse.open,100);assert.equal(c.close,101);assert.equal(c.sameContractCertified,false);
  assert.throws(()=>giftOpeningContext({...r,knownAt:OPEN+25*60000},DAY),/availability/);
- assert.throws(()=>giftOpeningContext({...r,body:{data:{candles:r.body.data.candles.slice(1)}}},DAY),/continuity/);
+ assert.throws(()=>giftOpeningContext({...r,body:{data:{candles:r.body.data.candles.slice(1)}}},DAY),/anchors/);
 });
 test('X2 signals only causal aligned GIFT/Nifty confirmed breaks, never a gap or warmup',()=>{
  const s=initializeExtra(DAY,'HDFCBANK',seed),w=window(25),now=w.at(-1).knownAt;

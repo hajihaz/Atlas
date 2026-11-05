@@ -1,9 +1,10 @@
 /** Fixed read-only context collection. No arbitrary URL, order or credential export. */
-import {EXTRA_METHODS} from './forward-extra.js';
+import {fetchSupplemental} from './supplemental-sources.js';
+import {qualifyEarningsNews,EXTRA_METHODS} from './forward-extra.js';
 const fail=r=>{const e=Error('FORWARD_CONTEXT_BLOCKED: '+r);e.atlasDiagnostic='forward context '+r;throw e};
 const digest=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(x=>x.toString(16).padStart(2,'0')).join('');
 const dayOf=t=>new Date(t+19800000).toISOString().slice(0,10);
-const sectors=Object.freeze({Banks:'Nifty Bank',Banking:'Nifty Bank','Information Technology':'Nifty IT',Automobiles:'Nifty Auto',Pharmaceuticals:'Nifty Pharma',Metals:'Nifty Metal',Realty:'Nifty Realty',FMCG:'Nifty FMCG'});
+const sectors=Object.freeze({Bank:'Nifty Bank',Banks:'Nifty Bank',Banking:'Nifty Bank','Information Technology':'Nifty IT',Automobiles:'Nifty Auto',Pharmaceuticals:'Nifty Pharma',Metals:'Nifty Metal',Realty:'Nifty Realty',FMCG:'Nifty FMCG'});
 async function get(env,url,fetcher,clock){
  if(!env.UPSTOX_ANALYTICS_TOKEN||!url.startsWith('https://api.upstox.com/'))fail('fixed source');
  const requestedAt=clock(),r=await fetcher(url,{method:'GET',redirect:'manual',headers:{Authorization:'Bearer '+env.UPSTOX_ANALYTICS_TOKEN,Accept:'application/json'},signal:AbortSignal.timeout(7000)});
@@ -30,8 +31,8 @@ async function save(env,day,kind,key,payload,knownAt){
 export function giftOpeningContext(receipt,day){
  const from=Date.parse(day+'T01:00:00Z'),to=Date.parse(day+'T03:59:00Z'),rows=candles(receipt),by=new Map();
  for(const r of rows){const t=Date.parse(r[0]);if(t>=from&&t<=to){if(by.has(t)||![r[1],r[2],r[3],r[4]].every(x=>Number.isFinite(x)&&x>0)||r[2]<Math.max(r[1],r[4])||r[3]>Math.min(r[1],r[4]))fail('GIFT candle shape');by.set(t,r)}}
- if(by.size!==180||Array.from({length:180},(_,i)=>by.has(from+i*60000)).some(x=>!x)||receipt.knownAt<to+180000||receipt.knownAt>=Date.parse(day+'T04:10:00Z'))fail('GIFT opening continuity or pre-entry availability');
- return {method:EXTRA_METHODS.scalpstorm_x2,open:by.get(from)[1],close:by.get(to)[4],openTime:from,closeTime:to,declaredLatencySeconds:120,sameContractCertified:false};
+ if(!by.has(from)||!by.has(to)||receipt.knownAt<to+180000||receipt.knownAt>=Date.parse(day+'T04:10:00Z'))fail('GIFT opening anchors or pre-entry availability');
+ return {method:EXTRA_METHODS.scalpstorm_x2,open:by.get(from)[1],close:by.get(to)[4],openTime:from,closeTime:to,observedOpeningMinutes:by.size,missingInteriorMinutes:180-by.size,declaredLatencySeconds:120,sameContractCertified:false};
 }
 export async function collectGiftOpening(env,day,{fetcher=fetch,clock=()=>Date.now()}={}){
  if(day!==dayOf(clock()))fail('current GIFT date');
@@ -46,7 +47,7 @@ export async function collectXtremeContext(env,day,slot,{fetcher=fetch,clock=()=
  const top=JSON.parse(rr.roster_json),stock=top[slot],key=stock?.instrument_key;
  if(!Array.isArray(top)||top.length!==10||new Set(top.map(s=>s.instrument_key)).size!==10||!/^NSE_EQ\|INE[A-Z0-9]{9}$/.test(key||''))fail('company equity identity');
  const profile=await get(env,'https://api.upstox.com/v2/fundamentals/'+key.slice(7)+'/profile',fetcher,clock);
- const sectorName=profile.body?.data?.sector,benchmark=sectors[sectorName];if(!benchmark)fail('no exact supported sector benchmark');
+ const sectorName=profile.body?.data?.sector,benchmark=sectors[sectorName];if(!benchmark){if(probeOnly)return {status:'UNSUPPORTED_SECTOR',instrumentKey:key,sectorProfile:sectorName??null,profileFields:Object.keys(profile.body?.data||{}),forwardQualified:false};fail('no exact supported sector benchmark');}
  const before=Date.parse(day+'T00:00:00Z'),date=t=>new Date(t).toISOString().slice(0,10);
  const split=before-28*86400000,from=before-56*86400000;
  const history=[];
@@ -67,10 +68,18 @@ export async function readExtraContext(env,strategyId,day,stock,windowStart){ret
 export async function probeExtraSource(env,kind,day,slot=0,options={}){
  try{
   if(kind==='xtreme')return await collectXtremeContext(env,day,slot,{...options,probeOnly:true});
+  if(kind==='news'){
+   const r=await fetchSupplemental(env,'news',day,options);
+   const rr=await env.HISTORY_DB.prepare('SELECT roster_json,roster_sha256 FROM live_top_roster WHERE source_date=?').bind(day).first();
+   if(!rr||await digest(rr.roster_json)!==rr.roster_sha256)fail('news probe roster');
+   const top=JSON.parse(rr.roster_json),eligible=r.metadata.paginationComplete===true&&r.metadata.rejectedTimes===0;
+   return {status:eligible?'SOURCE_AVAILABLE':'NEWS_RECEIPT_UNQUALIFIED',articles:r.metadata.articles,classifiedAsOf:r.knownAt,method:EXTRA_METHODS.scalpstorm_x3,evaluations:top.map(s=>{const q=eligible?qualifyEarningsNews(r.body.data?.[s.instrument_key]||[],s.symbol,r.knownAt,r.knownAt):null;return {symbol:s.symbol,qualifiesNow:Boolean(q),direction:q?.direction??null,publishedAt:q?.publishedAt??null}}),forwardQualified:false,realOrdersEnabled:false};
+  }
   if(kind!=='gift')fail('unsupported probe kind');
   const r=await get(env,'https://api.upstox.com/v3/historical-candle/intraday/'+encodeURIComponent('GLOBAL_INDEX|SGX NIFTY')+'/minutes/1',options.fetcher||fetch,options.clock||(()=>Date.now()));
-  const rows=candles(r);
-  return {status:'SOURCE_AVAILABLE',instrumentKey:'GLOBAL_INDEX|SGX NIFTY',candles:rows.length,knownAt:r.knownAt,sourceSha256:r.sha256,forwardQualified:false,warning:'Read-only availability probe; late observations never certify an earlier decision.'};
+  const rows=candles(r),from=Date.parse(day+'T01:00:00Z'),openingMinutes=new Set(rows.map(x=>Date.parse(x[0])).filter(t=>t>=from&&t<from+180*60000));
+  const completeOpening=Array.from({length:180},(_,i)=>openingMinutes.has(from+i*60000)).every(Boolean);
+  return {status:openingMinutes.has(from)&&openingMinutes.has(from+179*60000)?'ANCHOR_SOURCE_AVAILABLE':'REQUIRED_ANCHOR_MISSING',openingAnchorsPresent:openingMinutes.has(from)&&openingMinutes.has(from+179*60000),instrumentKey:'GLOBAL_INDEX|SGX NIFTY',candles:rows.length,openingMinuteCount:openingMinutes.size,missingOpeningMinutes:Array.from({length:180},(_,i)=>from+i*60000).filter(t=>!openingMinutes.has(t)).map(t=>new Date(t).toISOString()),completeOpening,knownAt:r.knownAt,sourceSha256:r.sha256,forwardQualified:false,warning:'Read-only availability probe; late observations never certify an earlier decision.'};
  }catch(e){return {status:'BLOCKED',reason:e?.atlasDiagnostic||'FIXED_PROVIDER_SOURCE_UNAVAILABLE',forwardQualified:false,realOrdersEnabled:false};}
 }
 /** Load each context archive once per strategy/window, not once per stock. */
