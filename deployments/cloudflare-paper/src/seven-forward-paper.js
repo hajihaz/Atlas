@@ -136,3 +136,13 @@ export async function readSevenBookStatus(env,books=fetchPaperBooks,clock=()=>Da
     oldRequestClockWouldReject:q?Date.parse(q.observedAt)>requestedAt+1000:null,
     sourceSha256:q?.sourceSha256??null};})};
 }
+
+/** Bounded owner recovery trigger: existing prior-session positions only; never creates an entry. */
+export async function requestCarryoverRecovery(env,now=Date.now(),books=fetchPaperBooks,clock=()=>Date.now()){
+ const state=await loadSevenAccount(env.DB,STRATEGY);if(!state)fail('account missing');
+ const held=Object.entries(state.positions),today=dayOf(now);
+ if(!held.length)return {status:'NO_CARRYOVERS',realOrdersEnabled:false};
+ if(held.some(([,p])=>!p.openedAt||dayOf(p.openedAt)>=today)||
+  Object.keys(state.pending).some(symbol=>!state.positions[symbol]))fail('recovery only permits prior-session held positions');
+ return tickSevenForward(env,now,books,clock);
+}

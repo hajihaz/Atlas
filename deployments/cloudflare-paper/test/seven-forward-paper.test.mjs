@@ -4,7 +4,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import {createSevenAccount,submitSevenSignal,settleSevenPending,sevenRiskExit} from '../src/seven-paper-ledger.js';
 import {ensureSevenAccounts,loadSevenAccount,saveSevenAccount} from '../src/seven-paper-store.js';
-import {queueForwardX,tickSevenForward as runTickSevenForward,normalizeBookResponse,readSevenBookStatus} from '../src/seven-forward-paper.js';
+import {queueForwardX,tickSevenForward as runTickSevenForward,normalizeBookResponse,readSevenBookStatus,requestCarryoverRecovery} from '../src/seven-forward-paper.js';
 
 const tickSevenForward=(env,now,books)=>runTickSevenForward(env,now,books,()=>now);
 const DAY='2026-11-04',KEY='NSE_EQ|INE002A01018',SYMBOL='RELIANCE';
@@ -179,4 +179,15 @@ test('paper book diagnosis is owner-only and read-only at the deployed route bou
  const {default:worker}=await import('../src/index.js');const env={DB:{},OWNER_TOKEN:'x'.repeat(40)};
  assert.equal((await worker.fetch(new Request('https://atlas.invalid/api/cloud-paper/paper-book-status'),env)).status,401);
  assert.equal((await worker.fetch(new Request('https://atlas.invalid/api/cloud-paper/paper-book-status',{method:'POST'}),env)).status,405);
+});
+
+test('owner recovery cannot create a new entry or act on a same-session holding',async()=>{
+ const sqlite=new DatabaseSync(':memory:');sqlite.exec(readFileSync(new URL('../seven-paper-ledger.sql',import.meta.url),'utf8'));const env={DB:db(sqlite)};const now=at(4,40);
+ await ensureSevenAccounts(env.DB,at(3,45));assert.equal((await requestCarryoverRecovery(env,now,async()=>assert.fail('no book read'),()=>now)).status,'NO_CARRYOVERS');
+ const base=await loadSevenAccount(env.DB,'scalpstorm_x'),intent=submitSevenSignal(base,{strategyId:'scalpstorm_x',id:'same-session-recovery-01',symbol:SYMBOL,instrumentKey:KEY,side:'BUY',signalAt:new Date(now).toISOString(),realOrdersEnabled:false},now).state;
+ const bought=settleSevenPending(intent,SYMBOL,quote(now+1000),now+1000).state;await saveSevenAccount(env.DB,base,bought,now+1000);
+ await assert.rejects(()=>requestCarryoverRecovery(env,now+2000,async()=>assert.fail('no book read'),()=>now+2000),/prior-session/);
+ const next=now+86400000;assert.equal((await requestCarryoverRecovery(env,next,async()=>new Map(),()=>next)).exits,1);
+ assert.equal((await loadSevenAccount(env.DB,'scalpstorm_x')).pending[SYMBOL].reason,'CARRYOVER_RECOVERY');
+ const {default:worker}=await import('../src/index.js');assert.equal((await worker.fetch(new Request('https://atlas.invalid/api/cloud-paper/recover-carryovers',{method:'POST'}),{DB:{},OWNER_TOKEN:'x'.repeat(40)})).status,401);
 });
