@@ -62,3 +62,4 @@ lean-adapter/obj/
 /scripts/lean-smoke/obj/
 .vercel/
 /.env.local
+**/.wrangler/
