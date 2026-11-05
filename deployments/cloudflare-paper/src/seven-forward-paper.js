@@ -63,7 +63,7 @@ export function normalizeBookResponse(body,keys,receivedAt,sourceSha256){
   if(pair[1]?.symbol!==pair[0].slice(7)||out.has(key))fail('book instrument identity');
   const value=pair[1],lastTrade=Number(value.last_trade_time),provider=Date.parse(value.timestamp);
   if(!Number.isSafeInteger(lastTrade)||!Number.isFinite(provider)||provider>receivedAt+1000||
-    lastTrade>receivedAt+1000||receivedAt-provider>10000||
+    lastTrade>receivedAt+1000||dayOf(lastTrade)!==dayOf(receivedAt)||receivedAt-provider>10000||
     !Number.isFinite(value.last_price)||value.last_price<=0)continue;
   const bid=value.depth?.buy?.[0],ask=value.depth?.sell?.[0];
   out.set(key,{source:'Upstox Analytics',instrumentKey:key,lastPrice:value.last_price,
@@ -83,13 +83,16 @@ export async function fetchPaperBooks(env,keys,fetcher=fetch,clock=()=>Date.now(
  // Source: https://upstox.com/developer/api-documentation/get-full-market-quote-v3/
  const url=new URL('https://api.upstox.com/v3/market-quote/quotes');
  url.searchParams.set('instrument_key',keys.join(','));
+ const requestedAt=clock();
  const res=await fetcher(url.toString(),{method:'GET',redirect:'manual',signal:AbortSignal.timeout(7000),
   headers:{Authorization:'Bearer '+env.UPSTOX_ANALYTICS_TOKEN,Accept:'application/json'}});
  if(!res.ok||res.redirected||Number(res.headers.get('content-length'))>100000)fail('read-only book HTTP');
  const raw=await res.text();if(raw.length>100000)fail('read-only book size');
  const receivedAt=clock(),sha=hex(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(raw))));
  let body;try{body=JSON.parse(raw)}catch{fail('read-only book JSON')}
- return normalizeBookResponse(body,keys,receivedAt,sha);
+ const result=normalizeBookResponse(body,keys,receivedAt,sha);
+ Object.defineProperty(result,'receipt',{value:{requestedAt,receivedAt,sourceUrl:url.toString(),keys:[...keys],sha256:sha,httpStatus:res.status,raw},enumerable:false});
+ return result;
 }
 
 /** One batched read per minute, one compare-and-swap account save; stale data cannot fill. */
@@ -104,7 +107,11 @@ export async function tickSevenForward(env,now=Date.now(),books=fetchPaperBooks,
  const keys=active.map(symbol=>before.pending[symbol]?.instrumentKey||before.positions[symbol]?.instrumentKey);
  if(keys.some(x=>!x))fail('active instrument identity missing');
  let quotes,bookUnavailable=false;
- try{quotes=await books(env,keys)}catch{quotes=new Map();bookUnavailable=true;}
+ try{
+  quotes=await books(env,keys);
+  if(quotes.receipt){const knownAt=await persistPaperBook(env,quotes.receipt);for(const quote of quotes.values())quote.sourceKnownAt=knownAt;}
+  else if(books===fetchPaperBooks&&quotes.size)fail('source receipt missing');
+ }catch{quotes=new Map();bookUnavailable=true;}
  // A source response arrives after the request began. Validate it at receipt/processing time.
  const processedAt=clock();
  if(!Number.isSafeInteger(processedAt)||processedAt<now||processedAt-now>20000)fail('processing clock outside bound');
@@ -172,4 +179,16 @@ export async function tickAllForward(env,now=Date.now(),books=fetchPaperBooks,cl
  }
  if(results.some(r=>r.status==='ERROR'))console.error('paper account settlement incomplete',JSON.stringify(results.filter(r=>r.status==='ERROR')));
  return {results,realOrdersEnabled:false};
+}
+
+/** Save exact provider bytes BEFORE a price can mutate a paper account. */
+export async function persistPaperBook(env,r){
+ if(!env.HISTORY_DB||!r||!Number.isSafeInteger(r.requestedAt)||!Number.isSafeInteger(r.receivedAt)||r.receivedAt<r.requestedAt||r.receivedAt-r.requestedAt>20000||!Number.isSafeInteger(r.httpStatus)||r.httpStatus<200||r.httpStatus>299||typeof r.raw!=='string'||r.raw.length>100000||await digest(r.raw)!==r.sha256||!Array.isArray(r.keys)||r.keys.length<1||r.keys.length>10||new Set(r.keys).size!==r.keys.length)fail('book receipt proof');
+ const url=new URL('https://api.upstox.com/v3/market-quote/quotes');url.searchParams.set('instrument_key',r.keys.join(','));
+ if(r.sourceUrl!==url.toString())fail('book receipt source');
+ await env.HISTORY_DB.prepare('INSERT OR IGNORE INTO paper_book_receipts(body_sha256,requested_ms,known_ms,http_status,source_url,requested_keys_json,response_body) VALUES(?,?,?,?,?,?,?)').bind(r.sha256,r.requestedAt,r.receivedAt,r.httpStatus,r.sourceUrl,JSON.stringify(r.keys),r.raw).run();
+ const saved=await env.HISTORY_DB.prepare('SELECT response_body,source_url,requested_keys_json,known_ms,requested_ms,http_status FROM paper_book_receipts WHERE body_sha256=?').bind(r.sha256).first();
+ if(!saved||saved.response_body!==r.raw||!Number.isSafeInteger(saved.known_ms)||saved.known_ms>r.receivedAt||saved.requested_ms>saved.known_ms||saved.http_status<200||saved.http_status>299)fail('book receipt persistence changed');
+ const keys=JSON.parse(saved.requested_keys_json),originalUrl=new URL('https://api.upstox.com/v3/market-quote/quotes');originalUrl.searchParams.set('instrument_key',keys.join(','));if(saved.source_url!==originalUrl.toString())fail('stored receipt source changed');
+ return saved.known_ms;
 }

@@ -213,3 +213,10 @@ test('expired stop exit is requeued even after price rebounds; remaining shares 
  assert.equal(result.expired,1);assert.equal(result.exits,1);
  const pending=await loadSevenAccount(env.DB,'scalpstorm_x');assert.equal(pending.pending[SYMBOL].reason,'RISK_STOP');
 });
+
+test('a fresh HTTP/provider timestamp cannot make previous-day trade data executable on a holiday',()=>{
+ const body={status:'success',data:{'NSE_EQ:RELIANCE':{instrument_token:KEY,symbol:SYMBOL,last_trade_time:String(at(4,30)-86400000),timestamp:new Date(at(4,37)).toISOString(),last_price:100,depth:{buy:[{price:99.9,quantity:1000}],sell:[{price:100.1,quantity:1000}]}}}};
+ assert.equal(normalizeBookResponse(body,[KEY],at(4,37)+1000,'a'.repeat(64)).size,0);
+ body.data['NSE_EQ:RELIANCE'].last_trade_time=String(at(4,30));
+ assert.equal(normalizeBookResponse(body,[KEY],at(4,37)+1000,'a'.repeat(64)).size,1);
+});

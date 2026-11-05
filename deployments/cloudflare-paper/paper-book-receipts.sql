@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS paper_book_receipts (body_sha256 TEXT PRIMARY KEY, requested_ms INTEGER NOT NULL, known_ms INTEGER NOT NULL, http_status INTEGER NOT NULL CHECK(http_status BETWEEN 200 AND 299), source_url TEXT NOT NULL, requested_keys_json TEXT NOT NULL, response_body TEXT NOT NULL);

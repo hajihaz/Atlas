@@ -12,9 +12,12 @@ This release is paper-only. It preserves existing fills and balances, uses the e
 - X2, X3, Xtreme, RSI-2 and Dual Momentum remain unarmed. Candidate Upstox GIFT/news receipt collection never certifies contract identity, company materiality or a trading direction.
 - The final 15:14 bar has a separate 15:15 invocation using the existing Cron trigger slot family, independent of liquidation work. No archived missing receipt is manufactured.
 
+- Exact raw market-book responses are persisted before settlement. New fills bind instrument key, intent creation, original source observation and processing time. A receipt-storage failure blocks a fill; previously observed bytes cannot be reused as a later snapshot through clock skew.
+- Equity and ETF ISINs already present in the verified roster retain exact identity. Previous-day last-trade data is rejected even if the provider response timestamp is current.
+
 ## Evidence and limits
 
-- Worker tests: 158 passed. Frontend tests: 206 passed. Production build and Worker dry-run passed before release.
+- Worker tests: 165 passed. Frontend tests: 206 passed. Production build and Worker dry-run passed before release.
 - The updated report was checked against the seven saved genuine accounts without mutation. X's existing two closed trades and signed modeled fees remain unchanged.
 - All 667 captured live receipt hashes from 4–5 November match their persisted content. 4 November lacks 14:41 and 15:14; 5 November lacks 15:14. After-close 375-bar archives are distinct evidence and do not repair those prospective gaps.
 - The old deployed version's 5 November 09:15–15:30-window GraphQL observation reports 503 requests, zero invocation-level errors and a maximum CPU P99 field of 40278. This is a mixed-invocation observation, not a guarantee that each application step succeeded or that free-tier CPU headroom is safe.

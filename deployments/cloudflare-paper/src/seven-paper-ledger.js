@@ -90,7 +90,7 @@ export function settleSevenPending(previous,symbol,quote,now){
  const provider=time(quote?.providerAt),observed=time(quote?.observedAt);
  if(quote?.source!=='Upstox Analytics'||quote.instrumentKey!==pending.instrumentKey||
    !Number.isFinite(provider)||!Number.isFinite(observed)||provider<=pending.signalAt||
-   provider<=pending.createdAt||provider<=(pending.lastFillProviderAt||0)||provider>observed+1000||observed>now+1000||
+   provider<=pending.createdAt||quote.sourceKnownAt!==undefined&&quote.sourceKnownAt<=pending.createdAt||provider<=(pending.lastFillProviderAt||0)||provider>observed+1000||observed>now+1000||
    now-provider>10000||now-observed>10000)return {state:previous,status:'WAIT_FRESH_QUOTE'};
  const book=pending.side==='BUY'?quote.ask:quote.bid;
  if(!book||!Number.isFinite(book.price)||book.price<=0||
@@ -132,10 +132,10 @@ export function settleSevenPending(previous,symbol,quote,now){
   else {position.qty-=qty;position.entryCostPaise-=allocatedCost;}
  }
  state.feesPaise+=fee;
- state.fills.push({id:pending.filledQuantity?pending.id+'-part-'+pending.filledQuantity:pending.id,strategyId:state.strategyId,symbol,side:pending.side,qty,
+ state.fills.push({id:pending.filledQuantity?pending.id+'-part-'+pending.filledQuantity:pending.id,strategyId:state.strategyId,symbol,instrumentKey:pending.instrumentKey,side:pending.side,qty,
   pricePaise:fillPrice,feePaise:fee,pnlPaise:pnl,positionEffect:position?'REDUCE':'OPEN',
   allocatedEntryCostPaise:position?allocatedCost:null,positionRemaining:position?state.positions[symbol]?.qty||0:qty,signalAt:pending.signalAt,
-  tradeAt:provider,mode:'HYPOTHETICAL_NEXT_OBSERVED_BOOK',reason:pending.reason,
+  tradeAt:provider,intentCreatedAt:pending.createdAt,observedAt:observed,sourceKnownAt:quote.sourceKnownAt??observed,processedAt:now,mode:'HYPOTHETICAL_NEXT_OBSERVED_BOOK',reason:pending.reason,
   riskPolicyVersion:pending.riskPolicyVersion,
   quoteSha256:/^[a-f0-9]{64}$/.test(quote.sourceSha256||'')?quote.sourceSha256:null});
  if(state.fills.length>1000)state.fills.shift();
