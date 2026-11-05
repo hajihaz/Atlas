@@ -1,5 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
-import {ArrowRight,CheckCircle2,Cloud,Database,LockKeyhole,RefreshCcw,ShieldCheck} from 'lucide-react';
+import {LockKeyhole,RefreshCcw,ShieldCheck} from 'lucide-react';
 import {ATLAS_RULES} from '../data/atlasSeven';
 import {cloudPaperRequest,cloudPaperUsesGateway,ownerSession} from '../lib/cloudPaperRead';
 import type {Availability} from './DataAvailabilityPage';
@@ -8,6 +8,7 @@ import HistoryCoverageTimeline from './HistoryCoverageTimeline';
 import DayStrategyReview from './DayStrategyReview';
 import PaperExperimentReport from './PaperExperimentReport';
 import type {Experiment} from './PaperExperimentReport';
+import PaperChartWorkspace from './PaperChartWorkspace';
 type CloudStatus={mode:string;realOrdersEnabled:boolean;backendConnected:boolean;configured:boolean;feedSourceConfigured:boolean};
 type Catalog={schema:string;paperOnly:boolean;realOrdersEnabled:boolean;executionStatus:string;strategies:{id:string;name:string;executionStatus:string}[]};
 type Account={strategyId:string;cashINR:number;realizedPnlINR:number;positionCount:number;pendingCount:number;paperFills:number;experiment?:Experiment};
@@ -27,6 +28,9 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
  ownerToken:string;setOwnerToken:(v:string)=>void;ownerConnected:boolean;setOwnerConnected:(v:boolean)=>void;goMarket:()=>void;goData:()=>void;goReplay:()=>void;goSchedule:()=>void;
 }){
  const [selected,setSelected]=useState(ATLAS_RULES[0].id);
+ const strategyStrip=useRef<HTMLDivElement>(null);
+ const drag=useRef<{x:number;left:number;moved:boolean}|null>(null);
+ useEffect(()=>{const strip=strategyStrip.current,tab=strip?.querySelector<HTMLElement>('[aria-pressed="true"]');if(strip&&tab){const a=strip.getBoundingClientRect(),b=tab.getBoundingClientRect();if(b.left<a.left)strip.scrollLeft+=b.left-a.left;else if(b.right>a.right)strip.scrollLeft+=b.right-a.right;}},[selected]);
  const [status,setStatus]=useState<CloudStatus|null>(null);
  const [catalog,setCatalog]=useState<Catalog|null>(null);
  const [accounts,setAccounts]=useState<Accounts|null>(null);
@@ -165,96 +169,48 @@ export default function PaperTestingPage({ownerToken,setOwnerToken,ownerConnecte
   return ()=>{active=false;clearInterval(timer);document.removeEventListener('visibilitychange',visible);};
  },[ownerConnected,ownerToken,selected,journalDay]);
  const rawResult=rawEtfReport?.results?.find(x=>x.strategyId===selected);
- return <section className="atlas-paper-home">
-  <div className="sub-page-header"><div className="breadcrumb">ATLAS / PAPER TRADING</div>
-   <h1>Test seven strategies<span className="period">.</span></h1>
-   <p>One place to see the rule, data needed and verified paper result. All money shown here is virtual.</p></div>
-  <div className="panel atlas-simple-status"><ShieldCheck size={22}/><div>
-   <strong>Paper only · real broker orders disabled</strong>
-   <p>The cloud can run while your Mac and phone are off. Each strategy needs its own verified feed and forward paper test before Atlas can call it automatic.</p>
-  </div></div>
-  <div className="atlas-simple-actions" aria-label="Start with Atlas">
-   <button className="primary-button" type="button" onClick={()=>document.getElementById('atlas-strategy-detail')?.scrollIntoView({behavior:'smooth',block:'start'})}>Explore seven strategies <ArrowRight size={16}/></button>
-   <button className="secondary-button" type="button" onClick={goReplay}>Replay market history <ArrowRight size={16}/></button>
-   <button className="secondary-button" type="button" onClick={goData}>See captured dates <ArrowRight size={16}/></button>
-  </div>
-  <div className="atlas-simple-grid">
-   <div className="panel atlas-simple-card"><small>Cloud service</small><strong>{status===null?'Checking cloud…':status.configured?'Connected':status.backendConnected?'Hosted · setup incomplete':'Unavailable'}</strong>
-    <span>{status?.feedSourceConfigured?'Upstox read-only feed configured':'Market feed not verified here'}</span></div>
-   <div className="panel atlas-simple-card"><small>New strategy set</small><strong>7 defined</strong><span>5 intraday · 1 swing · 1 monthly</span></div>
-   <div className="panel atlas-simple-card"><small>Automatic paper testing</small><strong>{catalog?.executionStatus==='X_PAPER_PILOT_ARMED_OTHER_SIX_UNARMED'?'X pilot armed':ownerConnected?'Checking paper status':'Owner view needed'}</strong><span>Other six rules await qualified feeds and risk tests</span></div>
-  </div>
-  <div className="panel atlas-data-home"><Database size={20}/><div><strong>Available market data</strong><p>{availability?`${availability.live_minute.days} live minute dates · ${availability.opening_seed.days} opening-range dates · ${availability.minute.days} completed minute dates · ${availability.daily.days} daily-stock dates · ${availability.etf_raw.days} raw ETF history dates · ${availability.nse_reference.days} NSE reference dates · ${availability.full_0940.days} 9:40 dates`:'Connect to see exact cloud archive counts.'}</p></div><a href="#data">See every date</a></div>
-  {ownerConnected?<div className="atlas-owner-tools"><span>Owner view connected</span><button className="secondary-button" type="button" disabled={busy} onClick={()=>void refresh()}><RefreshCcw size={16}/> Refresh results</button></div>:
-   <div className="panel atlas-owner-connect"><h2>Owner view is locked in this browser</h2><p>Atlas cloud jobs keep running. Restore browser access once to see private results and schedule paper orders.</p>
-    <details><summary>Restore owner access</summary><div className="atlas-owner-row"><label htmlFor="atlas-owner-token">Recovery key</label>
-     <input id="atlas-owner-token" type="password" autoComplete="off" value={ownerToken} onChange={e=>setOwnerToken(e.target.value)} placeholder="Owner recovery key"/>
-     <button className="primary-button" type="button" disabled={busy||ownerToken.length<32} onClick={()=>void refresh()}>Restore</button></div></details>
-    {error&&<p role="alert" className="atlas-simple-error">{error}</p>}</div>}
-  {accountNotice&&<p role="status" className="atlas-simple-note">{accountNotice}</p>}
-  <div className="atlas-strategy-layout">
-   <div className="atlas-strategy-list" aria-label="Seven Atlas strategies">
-    {ATLAS_RULES.map(x=><button key={x.id} type="button" aria-pressed={selected===x.id}
-     className={'panel atlas-strategy-button '+(selected===x.id?'selected':'')} onClick={()=>{setSelected(x.id);document.getElementById('atlas-strategy-detail')?.scrollIntoView({behavior:'smooth',block:'start'});}}>
-     <span><strong>{x.name}</strong><small>{x.cadence}</small></span><ArrowRight size={17}/></button>)}
+ return <section className="atlas-paper-home atlas-chart-page">
+  <div className="atlas-workspace-header"><div><div className="breadcrumb">ATLAS / PAPER TRADING</div><h1>Trading workspace<span className="period">.</span></h1><p>Strategies, stock charts and recorded paper results.</p></div><div className="atlas-workspace-actions"><span className="atlas-rule-badge"><ShieldCheck size={14}/> Paper only</span>{ownerConnected&&<button className="secondary-button" type="button" disabled={busy} onClick={()=>void refresh()}><RefreshCcw size={15}/>{busy?'Refreshing…':'Refresh'}</button>}</div></div>
+  {!ownerConnected&&<div className="panel atlas-owner-connect"><h2>Connect your private results</h2><p>Restore owner access once in this browser to see recorded balances and charts.</p><details><summary>Restore owner access</summary><div className="atlas-owner-row"><label htmlFor="atlas-owner-token">Recovery key</label><input id="atlas-owner-token" type="password" autoComplete="off" value={ownerToken} onChange={e=>setOwnerToken(e.target.value)} placeholder="Owner recovery key"/><button className="primary-button" type="button" disabled={busy||ownerToken.length<32} onClick={()=>void refresh()}>Restore</button></div></details></div>}
+  {error&&<p role="alert" className="atlas-simple-error">{error}</p>}{accountNotice&&<p role="status" className="atlas-simple-note">{accountNotice}</p>}
+  <div className="atlas-strategy-top"><div className="atlas-strategy-label"><strong>Strategies</strong><span>Swipe or drag to explore</span><select aria-label="Select strategy" value={selected} onChange={e=>setSelected(e.target.value)}>{ATLAS_RULES.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></div>
+   <div ref={strategyStrip} className="atlas-strategy-strip" aria-label="Seven Atlas strategies"
+    onPointerDown={e=>{if(e.pointerType==='mouse'&&e.button===0)drag.current={x:e.clientX,left:e.currentTarget.scrollLeft,moved:false};}}
+    onPointerMove={e=>{if(!drag.current||!e.buttons)return;const delta=e.clientX-drag.current.x;if(Math.abs(delta)>8){drag.current.moved=true;e.currentTarget.scrollLeft=drag.current.left-delta;}}}
+    onPointerUp={()=>{if(drag.current&&!drag.current.moved)drag.current=null;}}
+    onPointerLeave={()=>{drag.current=null;}}
+    onClickCapture={e=>{if(drag.current?.moved){e.preventDefault();e.stopPropagation();drag.current=null;}}}>
+    {ATLAS_RULES.map(x=><button key={x.id} type="button" aria-pressed={selected===x.id} className={'atlas-strategy-chip '+(selected===x.id?'selected':'')} onClick={()=>setSelected(x.id)}><strong>{x.name}</strong><small>{x.cadence}</small></button>)}
    </div>
-   <article id="atlas-strategy-detail" className="panel atlas-strategy-detail">
-    <div className="atlas-rule-heading"><div><span className="premium-kicker">{rule.cadence.toUpperCase()} RULE</span><h2>{rule.name}</h2></div>
-     <span className="atlas-rule-badge"><LockKeyhole size={13}/> {catalog?.strategies.find(x=>x.id===selected)?.executionStatus==='PAPER_PILOT_ARMED'?'Paper pilot':'Signal only'}</span></div>
-    <p className="atlas-rule-summary">{rule.summary}</p>
-    <details className="atlas-rule-explainer"><summary>How this strategy works</summary><dl className="atlas-rule-steps">
-     <div><dt>Pick</dt><dd>{rule.selection}</dd></div>
-     <div><dt>Enter</dt><dd>{rule.entry}</dd></div>
-     <div><dt>Exit</dt><dd>{rule.exit}</dd></div>
-     <div><dt>Needs</dt><dd>{rule.needs}</dd></div>
-    </dl>
-    <p className="atlas-simple-note"><strong>Testing note:</strong> {rule.trial}</p></details>
-    <div className="atlas-strategy-portfolio" aria-label="Forward paper account">
-     <div><small>Open positions</small><strong>{account?account.positionCount:'—'}</strong></div>
-     <div><small>Paper fills</small><strong>{account?account.paperFills:'—'}</strong></div>
-     <div><small>Virtual cash</small><strong>{account?inr(account.cashINR):'—'}</strong></div>
-     <div><small>Realized paper P&amp;L</small><strong>{account?inr(account.realizedPnlINR):'—'}</strong></div>
-    </div>
-    {account?.experiment?<PaperExperimentReport report={account.experiment} strategy={selected}/>:account&&<p className="atlas-simple-note">Detailed experiment statistics are unavailable for this account. Basic balances remain visible above.</p>}
-    <div className="atlas-rule-evidence"><h3>Forward paper activity</h3>
-     <p>{catalog?.strategies.find(x=>x.id===selected)?.executionStatus==='PAPER_PILOT_ARMED'?'Paper pilot active. A trade appears here only after a verified live signal and later fresh quote.':'Paper testing is waiting for the data this strategy needs.'}</p>
-     <label>Market date <input type="date" value={journalDay} max={new Date(Date.now()+19800000).toISOString().slice(0,10)} onChange={e=>setJournalDay(e.target.value)}/></label>
-     {journalError&&<p role="alert" className="atlas-simple-error">{journalError}</p>}
-     {journal&&<><p className="atlas-simple-note">{journal.sourceDate} · {journal.account.pending} pending · {journal.account.positions} positions · {journal.account.fills} paper fills</p>
-      {journal.events.length===0?<p role="status">No verified forward event for this rule on this date.</p>:
-       <div className="atlas-data-dates">{journal.events.map((event,i)=><div key={`${event.at}-${event.symbol??'session'}-${i}`}>
-        <strong>{event.symbol??'Session'} · {event.kind.replaceAll('_',' ')}</strong>
-        <span>{new Date(event.at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})} IST · {event.side?`${event.side} · `:''}{event.reason.replaceAll('_',' ').toLowerCase()}{event.quantity!=null?` · ${event.quantity} shares at ${inr(event.priceINR??0)} · fee ${inr(event.feeINR??0)} · realized ${inr(event.realizedPnlINR??0)}`:''}</span>
-        {event.sourceHashes.length>0&&<small title={event.sourceHashes.join(', ')}>Source SHA-256: {event.sourceHashes[0].slice(0,16)}… · {event.sourceHashes.length} completed bars</small>}
-       </div>)}</div>}
-     </>}
-    </div>
-    <div id="atlas-history" className="atlas-rule-evidence"><h3>Historical evidence</h3><p>{rule.cadence==='Intraday'?`${availability?.minute.days??0} dated minute sessions available. Full top-volume history begins only on dates with a verified 09:40 roster and matching after-close stock bars.`:`${availability?.etf_raw.days??0} dated raw ETF history receipts available. Adjustment and faithful weekly/monthly backtests remain unverified.`}</p>
-     {rule.cadence!=='Intraday'&&<><label>Research date <select value={rawEtfDay} onChange={e=>setRawEtfDay(e.target.value)}>{availability?.etf_raw.dates.map(x=><option key={x.day} value={x.day}>{x.day}</option>)}</select></label>
-      {rawEtfError&&<p role="status" className="atlas-simple-note">{rawEtfError}</p>}
-      {rawResult&&<ResearchTradeResults result={rawResult} fallbackSymbol={selected==='rsi2_snapback'?'NIFTYBEES':'ETF'}/>}
-     </>}
-     {rule.cadence==='Intraday'&&<><div className="atlas-intraday-performance"><strong>Paper performance chart</strong><p>{account?.paperFills?`${account.paperFills} fills are recorded. Open the dated activity above to inspect verified prices and results.`:'No verified fills yet, so there is no profit curve to draw. The chart below shows recorded market data only.'}</p></div><HistoryCoverageTimeline dates={availability?.minute.dates??[]} selected={sampleDay} onSelect={setSampleDay}/><div className="atlas-replay-controls"><label>Session<select value={sampleDay} onChange={e=>setSampleDay(e.target.value)}>{availability?.minute.dates.map(x=><option key={x.day} value={x.day}>{x.day} · {x.symbols} stocks</option>)}</select></label>
-      <label>Stock<select value={sampleSymbol} onChange={e=>setSampleSymbol(e.target.value)}>{!sampleSymbol&&<option value="">Loading archived stocks…</option>}{topVolume?.stocks.map(x=><option key={x.symbol} value={x.symbol} disabled={!x.archived}>{x.rank}. {x.symbol} · {x.archived?'archived':'pending'}</option>)}
-       {COHORT.filter(x=>!topVolume?.stocks.some(v=>v.symbol===x)).map(x=><option key={x} value={x}>{x} · fixed sample</option>)}</select></label>
-      <button type="button" className="secondary-button" disabled={!sampleDay||!ownerConnected} onClick={()=>void loadReplay()}>Inspect dated result</button></div>
-      {ownerConnected&&sampleDay&&<DayStrategyReview day={sampleDay} strategy={selected} stocks={topVolume?.stocks.filter(x=>x.archived).map(x=>x.symbol)??COHORT} onPick={setSampleSymbol}/>}
-     </>}
-     {replayError&&<p role="alert" className="atlas-simple-error">{replayError}</p>}
-     {replay&&<div className="atlas-replay-proof"><strong>{replay.status.replaceAll('_',' ')}</strong><span>{replay.symbol} · {replay.sourceDate} · {replay.minuteBars} minute bars</span><span>Published {new Date(replay.sourceKnownAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})} IST</span><code title={replay.sourceSha256}>SHA-256 {replay.sourceSha256.slice(0,16)}…</code>
-      {replay.result?<p>Source-qualified retrospective {replay.result.signal.status.toLowerCase().replace('_',' ')}{replay.result.signal.side?` · ${replay.result.signal.side}`:''}{replay.result.signal.reason?` · ${replay.result.signal.reason.replaceAll('_',' ').toLowerCase()}`:''}. No paper fill was created.</p>:null}
-      <p>Profit and win rate: unavailable until entry, exit and risk settings are qualified.</p></div>}
-    </div>
-   </article>
   </div>
-  {state&&<div className="panel atlas-existing-ledger"><Cloud size={19}/><div><strong>Existing cloud paper ledger</strong>
-    <p>{state.strategy}: {state.strategy_enabled?'armed':'disabled'} · {state.positions.length} open virtual positions · Last phase {state.last_strategy_phase?.status??'none'}.
-    This ledger is kept separate from the seven new accounts.</p></div></div>}
-  <div className="atlas-simple-actions">
-   <button className="secondary-button" type="button" onClick={goMarket}>View market evidence <ArrowRight size={16}/></button>
-   <button className="secondary-button" type="button" onClick={goReplay}>Play market history <ArrowRight size={16}/></button>
-   <button className="secondary-button" type="button" onClick={goSchedule}>Schedule a paper order <ArrowRight size={16}/></button>
-  </div>
-  <p className="atlas-simple-footnote"><CheckCircle2 size={15}/> Strategy definitions are implemented for deterministic signal research. Profits and win rates appear only after source-qualified fills.</p>
+  <article id="atlas-strategy-detail" className="atlas-strategy-detail atlas-workspace-detail">
+   <div className="atlas-rule-heading"><div><span className="premium-kicker">{rule.cadence.toUpperCase()} STRATEGY</span><h2>{rule.name}</h2><p>{rule.summary}</p></div><span className="atlas-rule-badge"><LockKeyhole size={13}/>{catalog?.strategies.find(x=>x.id===selected)?.executionStatus==='PAPER_PILOT_ARMED'?'Paper pilot active':ownerConnected?'Waiting for qualified inputs':'Owner view needed'}</span></div>
+   <div className="atlas-account-overview" aria-label="Forward paper account">
+    <div><small>Realized paper P&amp;L</small><strong className={account&&account.realizedPnlINR<0?'atlas-down':'atlas-up'}>{account?inr(account.realizedPnlINR):'—'}</strong><span>Recorded closed results</span></div>
+    <div><small>Virtual cash</small><strong>{account?inr(account.cashINR):'—'}</strong><span>Available paper balance</span></div>
+    <div><small>Current equity</small><strong>{account?.experiment?.equityINR!=null?inr(account.experiment.equityINR):'—'}</strong><span>{account?.positionCount?'Fresh open-position marks required':'Cash plus marked positions'}</span></div>
+    <div><small>Open positions / paper fills</small><strong>{account?account.positionCount:'—'} <span className="atlas-metric-divider">/</span> {account?account.paperFills:'—'}</strong><span>{account?account.pendingCount+' pending':'No result is assumed'}</span></div>
+   </div>
+   <PaperChartWorkspace report={account?.experiment} strategy={selected} ownerConnected={ownerConnected} ownerToken={ownerToken} day={sampleDay} symbol={sampleSymbol} onDay={setSampleDay} onSymbol={setSampleSymbol} dates={availability?.minute.dates??[]} stocks={[...(topVolume?.stocks.filter(x=>x.archived).map(x=>x.symbol)??[]),...COHORT]} onJournalDay={setJournalDay}/>
+   {account?.experiment?<PaperExperimentReport report={account.experiment} strategy={selected}/>:<div className="panel atlas-analysis-panel"><h3>Trade results</h3><p>{ownerConnected?'No verified experiment report for this strategy yet.':'Connect the owner view to see recorded trade results.'}</p></div>}
+   <details className="panel atlas-workspace-fold"><summary>Strategy rules and readiness</summary><dl className="atlas-rule-steps"><div><dt>Pick</dt><dd>{rule.selection}</dd></div><div><dt>Enter</dt><dd>{rule.entry}</dd></div><div><dt>Exit</dt><dd>{rule.exit}</dd></div><div><dt>Needs</dt><dd>{rule.needs}</dd></div></dl><p>{rule.trial}</p><p>{catalog?.executionStatus==='X_PAPER_PILOT_ARMED_OTHER_SIX_UNARMED'?'ScalpStorm X is in a forward paper pilot. Other six rules await qualified feeds and risk tests.':'Only source-qualified forward fills count as recorded performance.'}</p></details>
+   <section className="panel atlas-activity-panel" aria-label="Dated paper activity"><div className="atlas-section-heading"><div><h3>Day activity</h3><p>Choose a market date to inspect actual fills and decisions.</p></div><label>Market date<input aria-label="Activity market date" type="date" value={journalDay} max={new Date(Date.now()+19800000).toISOString().slice(0,10)} onChange={e=>setJournalDay(e.target.value)}/></label></div>
+    {journalError&&<p role="alert" className="atlas-simple-error">{journalError}</p>}{journal&&<><p>{journal.sourceDate} · {journal.account.fills} paper fills · {journal.account.positions} positions · {journal.account.pending} pending</p><PaperActivity events={journal.events}/></>}
+   </section>
+   <details id="atlas-history" className="panel atlas-workspace-fold"><summary>Historical research and data coverage</summary><p>Historical research is separate from forward paper performance. Full top-volume history needs the exact 09:40 roster and matching stock receipts.</p>
+    {rule.cadence==='Intraday'?<><HistoryCoverageTimeline dates={availability?.minute.dates??[]} selected={sampleDay} onSelect={setSampleDay}/><div className="atlas-replay-controls"><label>Research session<select value={sampleDay} onChange={e=>setSampleDay(e.target.value)}>{availability?.minute.dates.map(x=><option key={x.day} value={x.day}>{x.day} · {x.symbols} stocks</option>)}</select></label><label>Research stock<select value={sampleSymbol} onChange={e=>setSampleSymbol(e.target.value)}>{[...new Set([sampleSymbol,...(topVolume?.stocks.filter(x=>x.archived).map(x=>x.symbol)??[]),...COHORT].filter(Boolean))].map(s=><option key={s}>{s}</option>)}</select></label><button type="button" className="secondary-button" disabled={!sampleDay||!ownerConnected} onClick={()=>void loadReplay()}>Inspect dated result</button></div>
+     {ownerConnected&&sampleDay&&<DayStrategyReview day={sampleDay} strategy={selected} stocks={topVolume?.stocks.filter(x=>x.archived).map(x=>x.symbol)??COHORT} onPick={setSampleSymbol}/>}
+    </>:<><label>Research date <select value={rawEtfDay} onChange={e=>setRawEtfDay(e.target.value)}>{availability?.etf_raw.dates.map(x=><option key={x.day} value={x.day}>{x.day}</option>)}</select></label>{rawEtfError&&<p role="status">{rawEtfError}</p>}{rawResult&&<ResearchTradeResults result={rawResult} fallbackSymbol={selected==='rsi2_snapback'?'NIFTYBEES':'ETF'}/>}</>}
+    {replayError&&<p role="alert">{replayError}</p>}{replay&&<div className="atlas-replay-proof"><strong>{replay.status.replaceAll('_',' ')}</strong><span>{replay.symbol} · {replay.sourceDate} · {replay.minuteBars} minute bars</span>{replay.result&&<p>Source-qualified retrospective {replay.result.signal.status.toLowerCase().replaceAll('_',' ')}{replay.result.signal.side?' · '+replay.result.signal.side:''}. No paper fill was created.</p>}<p>Profit and win rate: unavailable until entry, exit and risk settings are qualified.</p><details><summary>Receipt source</summary><code>{replay.sourceSha256}</code><p>Published {new Date(replay.sourceKnownAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})} IST</p></details></div>}
+   </details>
+   <details className="panel atlas-workspace-fold"><summary>Cloud service and archive details</summary><p>Owner view {ownerConnected?'connected':'locked'} · {status?.configured?'Cloud connected':'Cloud status unverified'}. Results refresh every 15 seconds while this page is visible.</p><p>{availability?`${availability.live_minute.days} live minute dates · ${availability.minute.days} completed minute dates · ${availability.daily.days} daily-stock dates · ${availability.etf_raw.days} raw ETF dates`:'Archive inventory unavailable.'}</p>{state&&<p>Separate legacy ledger: {state.strategy} · {state.positions.length} open virtual positions · {state.last_strategy_phase?.status??'No recorded phase'}</p>}<div className="atlas-simple-actions"><button className="secondary-button" type="button" onClick={goMarket}>Market evidence</button><button className="secondary-button" type="button" onClick={goData}>Captured dates</button><button className="secondary-button" type="button" onClick={goReplay}>Market replay</button><button className="secondary-button" type="button" onClick={goSchedule}>Scheduled paper orders</button></div></details>
+  </article>
  </section>;
+}
+type ActivityEvent=StrategyJournal['events'][number];
+function PaperActivity({events}:{events:ActivityEvent[]}){
+ const [all,setAll]=useState(false),[limit,setLimit]=useState(20);
+ useEffect(()=>{setLimit(20);},[events,all]);
+ const visible=all?events:events.filter(e=>e.quantity!=null||/FILL|EXIT|ENTRY/.test(e.kind));
+ return <><div className="atlas-view-tabs"><button type="button" aria-pressed={!all} onClick={()=>setAll(false)}>Trades &amp; orders</button><button type="button" aria-pressed={all} onClick={()=>setAll(true)}>All decisions ({events.length})</button></div>{visible.length===0?<p role="status">{all?'No recorded event on this date.':'No trade or order event on this date. Open All decisions for evaluated signals.'}</p>:<><div className="atlas-table-scroll"><table className="atlas-workspace-table"><thead><tr><th>Time · IST</th><th>Stock</th><th>Activity</th><th>Shares</th><th>Price</th><th>Details</th></tr></thead><tbody>{visible.slice(0,limit).map((e,i)=><tr key={e.at+'-'+i}><td>{new Date(e.at).toLocaleTimeString('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit'})}</td><th scope="row">{e.symbol??'Session'}</th><td>{e.kind.replaceAll('_',' ')}{e.side?' · '+e.side:''}</td><td>{e.quantity??'—'}</td><td>{e.priceINR!=null?inr(e.priceINR):'—'}</td><td><details><summary>Why / source</summary><p>{e.reason.replaceAll('_',' ').toLowerCase()}</p>{e.sourceHashes.map(h=><code key={h}>{h}</code>)}</details></td></tr>)}</tbody></table></div>{visible.length>limit&&<button className="secondary-button" type="button" onClick={()=>setLimit(v=>v+20)}>Show 20 more ({visible.length-limit} remaining)</button>}</>}</>;
 }

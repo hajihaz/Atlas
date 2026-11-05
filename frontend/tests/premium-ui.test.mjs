@@ -19,7 +19,9 @@ test('all shown controls have actions and private owner token remains in memory'
  assert.match(app,/onClick=\{\(\)=>go\(id\)\}/);
  assert.match(app,/onClick=\{\(\)=>setTheme/);
  assert.match(paper,/onClick=\{\(\)=>void refresh\(\)\}/);
- assert.match(paper,/onClick=\{\(\)=>\{setSelected\(x\.id\);document\.getElementById\('atlas-strategy-detail'\)\?\.scrollIntoView/);
+ assert.match(paper,/onClick=\{\(\)=>setSelected\(x\.id\)\}/);
+ assert.match(paper,/aria-label="Select strategy"/);
+ assert.match(paper,/className="atlas-strategy-strip"/);
  assert.match(market,/onClick=\{\(\)=>void refresh\(\)\}/);
  assert.doesNotMatch(app,/localStorage\.setItem\([^,]*token|sessionStorage\.setItem\([^,]*token/i);
 });
