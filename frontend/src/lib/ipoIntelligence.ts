@@ -132,11 +132,11 @@ export function feedAgeMinutes(feed:IpoFeed,now=new Date()):number{
   if(!Number.isFinite(observed)||observed>now.getTime()+60000)return Infinity;
   return Math.max(0,(now.getTime()-observed)/60000);
 }
-export function recommendation(i:IpoIssue,stale:boolean):{label:string;reason:string;score:number|null;tone:'warning'|'good'|'neutral'}{
-  const stage=effectiveStatus(i);
+export function recommendation(i:IpoIssue,stale:boolean,now=new Date()):{label:string;reason:string;score:number|null;tone:'warning'|'good'|'neutral'}{
+  const stage=effectiveStatus(i,now);
   if(stage==='CLOSED')return {label:'APPLICATION CLOSED',reason:'The bidding period has ended. Allotment and actual listing performance still require registrar/exchange confirmation.',score:null,tone:'neutral'};
   if(stage==='UPCOMING')return {label:'PRE-OPEN WATCH',reason:'The issue is not open for bidding. Read the prospectus and check the final price, valuation and offer risks before applying.',score:null,tone:'neutral'};
-  if(stale||issueSourceStale(i))return {label:'SOURCE STALE',reason:'Latest verified exchange snapshot is too old to assess current demand.',score:null,tone:'warning'};
+  if(stale||issueSourceStale(i,now))return {label:'SOURCE STALE',reason:'Latest verified exchange snapshot is too old to assess current demand.',score:null,tone:'warning'};
   if(i.financials===null)return {label:'HOLD — DO NOT APPLY YET',reason:'Verified issuer financials, valuation and prospectus risk review are missing. Subscription multiples alone cannot support a reliable Apply decision. Wait for a complete risk assessment.',score:null,tone:'warning'};
   const f=i.financials;
   if(f.investmentDecision==='HOLD_FOR_VALUATION_REVIEW' || f.valuationVerified===false || f.peerComparisonVerified===false){
