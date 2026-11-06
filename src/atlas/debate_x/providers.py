@@ -14,7 +14,15 @@ from .evidence import EvidenceError
 class _RejectRedirect(urllib.request.HTTPRedirectHandler):
     """Prevent a model API origin from redirecting credential-bearing requests."""
 
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
+    def redirect_request(
+        self,
+        req: urllib.request.Request,
+        fp: Any,
+        code: int,
+        msg: str,
+        headers: Any,
+        newurl: str,
+    ) -> urllib.request.Request | None:
         raise EvidenceError("LLM API redirect blocked")
 
 

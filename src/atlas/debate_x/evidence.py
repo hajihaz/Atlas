@@ -51,12 +51,12 @@ class Evidence:
     def parse(cls, data: dict[str, Any], decision_at: dt.datetime) -> Evidence:
         if not isinstance(data, dict):
             raise EvidenceError("malformed evidence")
-        values = {
-            k: data.get(k)
-            for k in ("id", "kind", "source", "published_at", "received_at", "detail")
-        }
-        if any(not isinstance(v, str) or not v.strip() for v in values.values()):
-            raise EvidenceError("evidence requires nonempty source, timestamps and detail")
+        values: dict[str, str] = {}
+        for key in ("id", "kind", "source", "published_at", "received_at", "detail"):
+            value = data.get(key)
+            if not isinstance(value, str) or not value.strip():
+                raise EvidenceError("evidence requires nonempty source, timestamps and detail")
+            values[key] = value
         if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,80}", values["id"]):
             raise EvidenceError("unsafe evidence identifier")
         if values["kind"] not in {"quote", "volume", "trend", "news", "event", "other"}:
@@ -66,12 +66,20 @@ class Evidence:
         published, received = timestamp(values["published_at"]), timestamp(values["received_at"])
         if published > received or received > decision_at:
             raise EvidenceError("future/unreceived information detected")
+        price_inr: str | None = None
         if values["kind"] == "quote":
-            quote_price = positive_money(data.get("price_inr"), "quote price_inr")
-            values["price_inr"] = str(quote_price)
+            price_inr = str(positive_money(data.get("price_inr"), "quote price_inr"))
         elif "price_inr" in data:
             raise EvidenceError("nonquote evidence cannot assert a quote price")
-        return cls(**values)
+        return cls(
+            id=values["id"],
+            kind=values["kind"],
+            source=values["source"],
+            published_at=values["published_at"],
+            received_at=values["received_at"],
+            detail=values["detail"],
+            price_inr=price_inr,
+        )
 
 
 @dataclass(frozen=True)
@@ -125,7 +133,7 @@ class Candidate:
         age = (decision_at - timestamp(quote.received_at)).total_seconds()
         if age < 0 or age > max_quote_age_seconds:
             raise EvidenceError("stale/future price evidence")
-        if Decimal(quote.price_inr) != positive_money(
+        if quote.price_inr is None or Decimal(quote.price_inr) != positive_money(
             raw.get("entry_price_inr"), "entry_price_inr"
         ):
             raise EvidenceError("candidate price does not match the dated quote")

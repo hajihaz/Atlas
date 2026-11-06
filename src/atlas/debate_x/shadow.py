@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 import hashlib
 import json
 from dataclasses import dataclass
@@ -87,8 +88,8 @@ class PairedPaperReplay:
         self.rows: list[dict[str, Any]] = []
         self.base_curve = [initial_capital]
         self.ai_curve = [initial_capital]
-        self.last_decision_time = None
-        self.last_exit_time = None
+        self.last_decision_time: dt.datetime | None = None
+        self.last_exit_time: dt.datetime | None = None
         self.hash_head = "0" * 64
         self.seen_candidates: set[str] = set()
 
