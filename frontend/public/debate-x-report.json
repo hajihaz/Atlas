@@ -1,0 +1,32 @@
+{
+  "approved_count": 0,
+  "baseline_equity_inr": "100000",
+  "baseline_max_drawdown_pct": "0.00",
+  "certified_forward": false,
+  "comparison_valid": false,
+  "connected_model": false,
+  "cost_per_side": "0.0015",
+  "disclaimer": "Sequential closed-trade hypothetical replay, not certified NSE forward fills; excludes overlapping positions.",
+  "equity_curve": [
+    {
+      "baseline_inr": "100000",
+      "filtered_inr": "100000",
+      "step": 0
+    }
+  ],
+  "evaluations": [],
+  "filtered_equity_inr": "100000",
+  "filtered_max_drawdown_pct": "0.00",
+  "initial_capital_inr": "100000",
+  "ledger_chain_head": "0000000000000000000000000000000000000000000000000000000000000000",
+  "live_orders_enabled": false,
+  "max_trade_inr": "10000",
+  "missed_profitable_count": 0,
+  "mode": "CLOSED_TRADE_PAPER_REPLAY",
+  "real_orders_placed": 0,
+  "reviewed_count": 0,
+  "rows": [],
+  "schema": 1,
+  "status": "INCOMPLETE_EVIDENCE",
+  "trade_count": 0
+}
