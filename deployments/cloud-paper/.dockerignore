@@ -1,0 +1,5 @@
+.git
+.ai
+*.sqlite*
+**/__pycache__/
+**/node_modules/

@@ -1,0 +1,18 @@
+name = "atlas-free-cloud-paper"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+# Free D1 persistent virtual-ledger store. Cloudflare APAC region.
+[[d1_databases]]
+binding = "DB"
+database_name = "atlas-free-cloud-paper"
+database_id = "3a93fdfb-4136-4ed5-b19d-57318f3e766e"
+[vars]
+# Official market-data source only. The real Analytics Token must be set with
+# `wrangler secret put UPSTOX_ANALYTICS_TOKEN` and is never stored in this file.
+# Strategy remains DISABLED in D1 unless the owner explicitly arms it.
+FEED_SOURCE_ID = "UPSTOX_ANALYTICS_READONLY_V3"
+UPSTOX_FEED_ENABLED = "true"
+
+[triggers]
+crons = ["* * * * *"]
