@@ -41,7 +41,6 @@ export default async function handler(req,res) {
         feedSourceConfigured:data.feedSourceConfigured===true,configured:data.configured===true&&data.backendConnected===true});
     }catch{return res.status(200).json(safe)}
   }
-  if(base===null)return res.status(503).json({error:'cloud_paper_not_configured'});
   const bearer=typeof req.headers.authorization==='string'&&/^Bearer [^\s]{32,256}$/.test(req.headers.authorization)?req.headers.authorization:null;
   const cookie=sessionCookie(req.headers.cookie);
   if(path!=='session'&&!bearer&&!cookie)return res.status(401).json({error:'unauthorized'});
@@ -52,6 +51,8 @@ export default async function handler(req,res) {
   if(!bearer&&cookie&&['POST','DELETE'].includes(req.method)&&
      (typeof req.headers.host!=='string'||req.headers.origin!=='https://'+req.headers.host))
     return res.status(403).json({error:'origin_required'});
+  // Private endpoints must reject anonymous callers even when the backend is not configured.
+  if(base===null)return res.status(503).json({error:'cloud_paper_not_configured'});
   let body;
   if(req.method==='POST'){
     if(req.headers['content-type']?.split(';')[0]!=='application/json')

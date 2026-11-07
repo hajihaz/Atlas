@@ -13,6 +13,8 @@ test('gateway unconfigured status remains visibly disabled',async()=>{
   const r=reply();await handler(req(['status']),r);
   assert.equal(r.statusCode,200);assert.equal(r.body.configured,false);
   assert.equal(r.body.realOrdersEnabled,false);
+  const anonymous=reply();await handler(req(['state']),anonymous);
+  assert.equal(anonymous.statusCode,401,'private endpoints deny anonymous access even without backend');
   const no=reply();await handler(req(['state'],'GET','Bearer '+'A'.repeat(64)),no);
   assert.equal(no.statusCode,503);
  }finally{if(prev===undefined)delete process.env.ATLAS_PAPER_BACKEND_URL;
