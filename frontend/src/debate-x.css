@@ -1,0 +1,136 @@
+/* Atlas Debate X — research-only, readable on desktop and mobile. */
+.debate-page{display:flex;flex-direction:column;gap:20px;min-width:0;max-width:100%}
+.debate-page>*{min-width:0;max-width:100%}
+.debate-page .sub-page-header p{overflow-wrap:anywhere;max-width:100%}
+.debate-topline{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.debate-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border,#d9e0e6);
+  border-radius:999px;padding:8px 12px;font-size:12px;font-weight:600;max-width:100%;
+  color:var(--text-secondary,#66727e);background:var(--panel,#fff)}
+.debate-import{margin-left:auto;display:inline-flex;gap:8px;align-items:center}
+.debate-error{display:flex;gap:9px;align-items:center;color:#b93842;padding:14px}
+.debate-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.debate-summary-card{min-width:0;padding:20px 18px;display:flex;flex-direction:column;gap:12px;min-height:128px}
+.debate-summary-card small{font-size:12px;color:var(--text-secondary,#718090)}
+.debate-summary-card strong{font-size:clamp(19px,2vw,25px);font-weight:700;letter-spacing:-.025em;overflow-wrap:anywhere}
+.debate-summary-card span{font-size:11px;line-height:1.45;color:var(--text-secondary,#718090)}
+.debate-summary-card .debate-summary-status{font-size:17px}
+.debate-dashboard-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(300px,1fr);gap:15px}
+.debate-equity-card,.debate-roles,.debate-journal{min-width:0;padding:22px}
+.debate-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
+.debate-section-head h2{font-size:19px;letter-spacing:-.025em;margin:5px 0 0}
+.debate-section-head p{color:var(--text-secondary,#718090);font-size:12px;margin-top:6px}
+.debate-mini-label{font-size:11px;font-weight:600;color:var(--text-secondary,#718090);text-align:right}
+.debate-chart{height:285px;width:100%;min-height:220px}
+.debate-empty-chart{min-height:285px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:12px;text-align:center;padding:22px;border:1px dashed var(--border,#d8e0e7);
+  border-radius:15px;color:var(--text-secondary,#667786);background:rgba(125,142,162,.03)}
+.debate-empty-chart strong{color:var(--text,#202934);font-size:15px}
+.debate-empty-chart p{font-size:12px;max-width:400px;line-height:1.7}
+.debate-chart-footer{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding-top:16px;font-size:11px;color:var(--text-secondary,#74818d)}
+.debate-chart-footer span{display:flex;align-items:center;gap:7px}
+.debate-role{display:flex;align-items:flex-start;gap:12px;border:1px solid var(--border,#dce3ea);
+  border-radius:13px;padding:15px;margin-bottom:11px}
+.debate-role svg{flex:none;margin-top:2px}
+.debate-role strong{font-size:14px}
+.debate-role p{margin-top:6px;font-size:12px;line-height:1.6;color:var(--text-secondary,#718090)}
+.debate-bull svg{color:#16a56b}.debate-bear svg{color:#d75c61}
+.debate-judge svg{color:#7392c0}
+.debate-hard-gate{background:rgba(57,135,223,.07);border-radius:13px;padding:14px;
+  display:flex;align-items:center;gap:11px;color:var(--text-secondary,#718090);font-size:12px;line-height:1.5}
+.debate-hard-gate svg{color:#448acb;flex:none}
+.debate-filters{display:flex;gap:4px;align-items:center;border-radius:10px;
+  background:var(--surface-muted,rgba(125,141,160,.08));padding:4px}
+.debate-filters button{padding:8px 11px;font-size:11px;border-radius:8px;border:0;
+  background:transparent;cursor:pointer;color:var(--text-secondary,#718090)}
+.debate-filters button.selected{color:var(--text,#283341);
+  background:var(--panel,#fff);box-shadow:0 1px 4px rgba(0,0,0,.09);font-weight:700}
+.debate-journal-layout{display:grid;grid-template-columns:minmax(190px,.8fr) minmax(0,1.7fr);
+  border-top:1px solid var(--border,#dce3ea);gap:16px;padding-top:18px}
+.debate-trade-list{display:flex;flex-direction:column;gap:8px;min-width:0}
+.debate-trade-row{appearance:none;cursor:pointer;background:transparent;text-align:left;
+  border:1px solid var(--border,#dce3ea);border-radius:12px;padding:13px;
+  display:flex;align-items:flex-start;justify-content:space-between;gap:6px;flex-wrap:wrap;
+  color:inherit;transition:border-color .16s,background .16s}
+.debate-trade-row.active{border-color:#5687c4;background:rgba(62,130,213,.06)}
+.debate-trade-row strong{display:block;font-size:13px}
+.debate-trade-row small{display:block;color:var(--text-secondary,#758393);font-size:10px;line-height:1.4}
+.debate-trade-row>small{width:100%}
+.debate-decision{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700}
+.debate-decision.approved{color:#159969}.debate-decision.skipped{color:#c35d65}
+.debate-decision-detail{min-width:0}
+.debate-detail-heading{display:flex;justify-content:space-between;gap:10px;align-items:start;margin-bottom:12px}
+.debate-detail-heading strong{display:block;font-size:15px}
+.debate-detail-heading small{display:block;font-size:10px;color:var(--text-secondary,#718090);margin-top:5px;overflow-wrap:anywhere}
+.debate-argument{border:1px solid var(--border,#dce3ea);border-radius:12px;margin-bottom:9px;padding:14px}
+.debate-argument-title{display:flex;justify-content:space-between;gap:10px}
+.debate-argument-title strong{font-size:12px}
+.debate-argument-title span{font-size:10px;font-weight:700;color:var(--text-secondary,#718090)}
+.debate-argument p{font-size:12px;line-height:1.7;margin:10px 0}
+.debate-argument small{display:block;line-height:1.6;font-size:10px;color:var(--text-secondary,#718090);overflow-wrap:anywhere}
+.debate-unavailable{display:flex;gap:9px;align-items:center;font-size:12px;padding:18px;
+  border-radius:12px;background:rgba(207,90,95,.06);color:#c35d65}
+.debate-outcome-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.debate-outcome-row>div{background:var(--surface-muted,rgba(127,141,155,.06));border-radius:10px;padding:12px;min-width:0}
+.debate-outcome-row small{display:block;font-size:10px;color:var(--text-secondary,#718090);line-height:1.5}
+.debate-outcome-row strong{display:block;margin-top:7px;font-size:13px;overflow-wrap:anywhere}
+.debate-provenance{display:flex;gap:9px;align-items:center;color:var(--text-secondary,#718090);
+  font-size:10px;margin-top:15px;overflow-wrap:anywhere}
+.debate-empty-journal{min-height:210px;display:flex;flex-direction:column;gap:9px;
+  justify-content:center;align-items:center;text-align:center;color:var(--text-secondary,#718090)}
+.debate-empty-journal strong{color:var(--text,#253343);font-size:14px}
+.debate-empty-journal p{font-size:12px;max-width:430px;line-height:1.7}
+.debate-bottom-note{display:flex;align-items:flex-start;gap:12px;background:rgba(78,133,209,.06);
+  border:1px solid rgba(94,143,204,.16);border-radius:14px;padding:17px;color:var(--text-secondary,#708090)}
+.debate-bottom-note svg{flex:none}.debate-bottom-note p{font-size:12px;line-height:1.65;flex:1;margin:0}
+.debate-bottom-note span{font-size:10px;display:flex;align-items:center;gap:5px}
+@media(max-width:1050px){
+ .debate-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .debate-dashboard-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+ .debate-summary-grid{gap:9px}
+ .debate-summary-card{padding:15px;min-height:125px}
+ .debate-equity-card,.debate-roles,.debate-journal{padding:16px}
+ .debate-topline{gap:8px}.debate-import{margin-left:0}
+ .debate-section-head{flex-wrap:wrap}
+ .debate-journal-layout{grid-template-columns:1fr}
+ .debate-outcome-row{grid-template-columns:1fr}
+ .debate-chart-footer{gap:8px}
+ .debate-bottom-note{flex-wrap:wrap}
+}
+
+/* Three-way, source-labeled paper-only research challenge */
+.debate-summary-grid.threeway{grid-template-columns:repeat(3,minmax(0,1fr))}
+.debate-benchmark-note{margin-top:13px;display:flex;gap:9px;align-items:flex-start;
+  line-height:1.65;font-size:11px;color:var(--text-secondary,#718090);
+  border-radius:10px;padding:12px;background:rgba(220,169,82,.08)}
+.debate-benchmark-note svg{flex:none}
+.debate-fees{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+.debate-fees span{font-size:10px;padding:8px 11px;line-height:1.4;
+  border:1px solid var(--border,#dce3ea);border-radius:10px;color:var(--text-secondary,#718090)}
+@media(max-width:850px){.debate-summary-grid.threeway{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:500px){.debate-summary-grid.threeway{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.debate-challenge-track{padding:13px 17px;border:1px solid var(--pm-border,#e0e6ea);
+  border-radius:14px;display:flex;flex-direction:column;gap:9px}
+.debate-track-header{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  font-size:10px;font-weight:750;letter-spacing:.08em;color:var(--text-secondary,#718090)}
+.debate-track-header strong{color:var(--pm-ink,#1c353b);font-size:12px;letter-spacing:0}
+.debate-track-bar{height:7px;background:rgba(127,141,154,.2);border-radius:10px;overflow:hidden}
+.debate-track-bar>div{height:100%;background:#23a47b;transition:width .3s;border-radius:10px}
+.debate-challenge-track small{font-size:10px;line-height:1.55;color:var(--text-secondary,#718090)}
+.debate-scoreboard{padding:20px 22px}
+.debate-compare-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.debate-compare-card{padding:16px;border:1px solid var(--pm-border,#e0e6ea);
+  border-radius:13px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.debate-compare-card>strong{font-size:13px;letter-spacing:-.02em}
+.debate-compare-card>div{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  border-bottom:1px solid var(--pm-border,#e0e6ea);padding-bottom:9px;font-size:11px}
+.debate-compare-card>div:last-child{border-bottom:0}
+.debate-compare-card span{color:var(--text-secondary,#718090)}
+.debate-compare-card b{font-weight:750;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.debate-compare-rules>strong{color:#b68536}
+.debate-compare-filtered>strong{color:#198f65}
+@media(max-width:800px){.debate-compare-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.debate-scoreboard{padding:16px}}
