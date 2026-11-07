@@ -1,16 +1,23 @@
 {
+  "ai_coverage_complete": false,
   "approved_count": 0,
   "baseline_equity_inr": "100000",
   "baseline_max_drawdown_pct": "0.00",
   "certified_forward": false,
+  "challenge_sessions": 15,
+  "charges_inr": {
+    "baseline": "0.00",
+    "filtered": "0.00",
+    "rules": "0.00"
+  },
   "comparison_valid": false,
   "connected_model": false,
-  "cost_per_side": "0.0015",
-  "disclaimer": "Sequential closed-trade hypothetical replay, not certified NSE forward fills; excludes overlapping positions.",
+  "disclaimer": "Fifteen explicitly closed Indian trading sessions with serial, long-only hypothetical fills. External quotes are supplied, not independently certified; no genuine NSE forward performance or broker fill claimed.",
   "equity_curve": [
     {
       "baseline_inr": "100000",
       "filtered_inr": "100000",
+      "rules_inr": "100000",
       "step": 0
     }
   ],
@@ -22,11 +29,41 @@
   "live_orders_enabled": false,
   "max_trade_inr": "10000",
   "missed_profitable_count": 0,
-  "mode": "CLOSED_TRADE_PAPER_REPLAY",
+  "mode": "THREE_WAY_PAPER_CHALLENGE",
+  "observed_dates": [],
+  "portfolio_stats": {
+    "baseline": {
+      "charges_inr": "0.00",
+      "max_drawdown_pct": "0.00",
+      "net_pnl_inr": "0.00",
+      "trades": 0,
+      "win_rate_pct": null,
+      "wins": 0
+    },
+    "filtered": {
+      "charges_inr": "0.00",
+      "max_drawdown_pct": "0.00",
+      "net_pnl_inr": "0.00",
+      "trades": 0,
+      "win_rate_pct": null,
+      "wins": 0
+    },
+    "rules": {
+      "charges_inr": "0.00",
+      "max_drawdown_pct": "0.00",
+      "net_pnl_inr": "0.00",
+      "trades": 0,
+      "win_rate_pct": null,
+      "wins": 0
+    }
+  },
   "real_orders_placed": 0,
-  "reviewed_count": 0,
   "rows": [],
-  "schema": 1,
-  "status": "INCOMPLETE_EVIDENCE",
+  "rules_equity_inr": "100000",
+  "rules_max_drawdown_pct": "0.00",
+  "schema": 2,
+  "session_dates": [],
+  "sessions_completed": 0,
+  "status": "NOT_STARTED",
   "trade_count": 0
 }

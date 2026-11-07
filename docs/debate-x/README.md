@@ -17,6 +17,19 @@ real-time NSE trading system.** The baseline production strategy execution path 
 - This branch only provides an isolated comparison/report dashboard and local replay executor.
   No automatic NSE stock-universe selection, broker orders, or live data feed are connected.
 
+## New: three-way persistent 15-session challenge
+
+Breaking Money-style inspiration has been implemented independently for three
+virtual books: original Atlas signal, deterministic SMA/RSI/VWAP rules,
+and the Bull/Bear/Judge filter. The new opt-in CLI supports independently
+post-decision re-quoted NSE observations, illustrative Indian charges,
+local SQLite resume, daily 3% loss checks and explicit 15-session counting.
+
+See [Three-Way Challenge](three-way-challenge.md) for input contract, CLI,
+fees, source/certification limits and examples. The old two-book replay
+remains available unchanged. No model or market-data provider is
+connected automatically.
+
 ## Components
 
 | Path | Responsibility |
