@@ -45,6 +45,10 @@ on:
       - '.github/workflows/atlas-ui.yml'
 permissions:
   contents: read
+concurrency:
+  # Cancel superseded PR runs to save hosted-CI minutes; never cancel main runs.
+  group: atlas-ui-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   verify-public-ui:
     runs-on: ubuntu-latest
@@ -74,6 +78,7 @@ jobs:
       - run: node --test frontend/tests/research-engine.test.mjs
       - run: node --test frontend/tests/paper-engine.test.mjs
       - run: node --test frontend/tests/cloud-paper.test.mjs
+      - run: node --test frontend/tests/cloud-paper-owner-gateway.test.mjs
       - run: node --test frontend/tests/cloud-paper-integrity.test.mjs
       - run: node --test frontend/tests/cloud-paper-chaos.test.mjs
       - run: node --test frontend/tests/paper-source-diagnostics.test.mjs
