@@ -45,6 +45,10 @@ on:
       - '.github/workflows/atlas-ui.yml'
 permissions:
   contents: read
+concurrency:
+  # Cancel superseded PR runs to save hosted-CI minutes; never cancel main runs.
+  group: atlas-ui-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   verify-public-ui:
     runs-on: ubuntu-latest
