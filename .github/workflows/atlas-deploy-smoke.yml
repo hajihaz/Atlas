@@ -64,8 +64,9 @@ jobs:
           code=$(get "$BASE_URL/api/cloud-paper?action=status")
           expect "GET /api/cloud-paper?action=status" "$code" 200
           if [ "$code" = "200" ]; then
-            mode=$(jq -r '.mode // empty' /tmp/body 2>/dev/null || true)
-            real=$(jq -r '.realOrdersEnabled // empty' /tmp/body 2>/dev/null || true)
+            # NB: jq's `//` treats false as empty, so test the key explicitly.
+            mode=$(jq -r 'if has("mode") then (.mode|tostring) else "missing" end' /tmp/body 2>/dev/null || echo invalid)
+            real=$(jq -r 'if has("realOrdersEnabled") then (.realOrdersEnabled|tostring) else "missing" end' /tmp/body 2>/dev/null || echo invalid)
             expect "status.mode" "$mode" "PAPER_ONLY"
             expect "status.realOrdersEnabled" "$real" "false"
           fi
