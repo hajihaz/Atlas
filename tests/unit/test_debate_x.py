@@ -77,7 +77,11 @@ class DeterministicModel:
         return json.dumps(
             {
                 "role": role,
-                "stance": {"good_cloud": "SUPPORT", "bad_cloud": "OPPOSE", "judge": self.judge}[role],
+                "stance": {
+                    "good_cloud": "SUPPORT",
+                    "bad_cloud": "OPPOSE",
+                    "judge": self.judge,
+                }[role],
                 "reason": "Test fixture cites prior evidence only.",
                 "evidence_ids": ["q1", "v1"],
                 "risks": ["Test-only downside risk"],

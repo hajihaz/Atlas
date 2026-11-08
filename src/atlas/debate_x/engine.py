@@ -119,7 +119,7 @@ def safe_skip(candidate_id: str, reason: str, *, status: str = "BLOCKED") -> dic
 
 
 class DebateEngine:
-    """Isolated Good Cloud/Bad Cloud parallel calls followed by the Judge. No order method exists."""
+    """Isolated Good Cloud/Bad Cloud parallel calls, then the Judge. No order method exists."""
 
     def __init__(
         self, model: DebateModel, *, risk: RiskGate | None = None, max_quote_age_seconds: int = 90

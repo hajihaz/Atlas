@@ -103,7 +103,11 @@ class Model:
         return json.dumps(
             {
                 "role": role,
-                "stance": {"good_cloud": "SUPPORT", "bad_cloud": "OPPOSE", "judge": self.stance}[role],
+                "stance": {
+                    "good_cloud": "SUPPORT",
+                    "bad_cloud": "OPPOSE",
+                    "judge": self.stance,
+                }[role],
                 "reason": "Test fixture only",
                 "evidence_ids": ["q1", "v1"],
                 "risks": [],
