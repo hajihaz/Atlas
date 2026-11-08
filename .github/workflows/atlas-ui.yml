@@ -99,6 +99,8 @@ jobs:
       - run: node --test frontend/tests/scalpstorm-allocation-ui.test.mjs
       - run: node --test frontend/tests/agent-council.test.mjs
       - run: node --test frontend/tests/council-engine.test.mjs
+      - run: node --test frontend/tests/debate-x.test.mjs
+      - run: node --test frontend/tests/multi-strategy-policy.test.mjs
       - name: Verify source-bound advanced research and fail-closed ScalpStorm
         run: |
           node --test tests/research/*.test.mjs
