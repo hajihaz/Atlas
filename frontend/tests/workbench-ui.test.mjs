@@ -9,26 +9,30 @@ const stock=read('../src/components/StockWatchPage.tsx');
 const main=read('../src/main.tsx');
 const css=read('../src/strategy.css');
 const vercel=JSON.parse(read('../vercel.json'));
-test('all active pages retain navigation while the five-strategy portfolio is not mounted',()=>{
- for(const route of ['strategies','research','scalpstorm','risk','audit','markets'])
+test('all formerly placeholder pages route to active source-backed functionality',()=>{
+ for(const route of ['strategies','research','scalpstorm','orders','risk','audit','markets'])
   assert.ok(app.includes("page==='"+route+"'"));
  assert.match(app,/<StrategyLabPage mode=\{page\}/);
- assert.match(app,/<SimplePage page='orders' go=\{go\}/);
- assert.doesNotMatch(app,/<PaperTrialsPage group=\{paper\.group\}/);
+ assert.match(app,/<PaperTrialsPage group=\{paper\.group\}/);
  assert.match(app,/<StockWatchPage theme=\{theme\}/);
  assert.match(app,/<RiskAuditPage mode=\{page\}/);
 });
-test('strategy workspace displays ScalpStorm X and its ten equal slots only',()=>{
- assert.match(strat,/<ScalpStormDetailed\/>/);
- assert.match(strat,/<ScalpStormAllocationPlan\/>/);
- assert.doesNotMatch(strat,/modeledReturnPct|AgentCouncilPanel|s\.name/);
+test('strategy page lists every strategy, shows simulated metrics and real provider candle provenance',()=>{
+ assert.match(strat,/s\.name/);
+ assert.match(strat,/modeledReturnPct/);
+ assert.match(strat,/maxDrawdownPct/);
+ assert.match(strat,/closedTrades/);
+ assert.match(strat,/HISTORICAL_HYPOTHETICAL_REPLAY/);
+ assert.match(strat,/Provider has too few completed candles/);
+ assert.match(strat,/realizedPnlINR/);
+ assert.doesNotMatch(strat,/\$100,000/);
 });
-test('legacy browser strategy execution is disabled without deleting its historic records',()=>{
- const hook=read('../src/lib/usePaperTrials.ts');
- assert.doesNotMatch(hook,/advancePaperGroup|localStorage\.removeItem|fetch\('/);
- assert.match(hook,/group:null as PaperGroup\|null/);
+test('paper sessions are virtual and explicit, with stop/resume, audited local records',()=>{
+ assert.match(paper,/Start 5 forward paper trials/);
+ assert.match(paper,/window\.confirm/);
+ assert.match(paper,/VIRTUAL_SOURCE_SNAPSHOT|Virtual realized P\/L|Virtual change/);
+ assert.match(paper,/Runs only while Atlas is open in this browser/);
  assert.match(app,/usePaperTrials\(\)/);
- assert.doesNotMatch(app,/start=\{paper\.start\}/);
 });
 test('free Indian equities have a vendor-attributed chart, not a scraped API',()=>{
  assert.match(stock,/embed-widget-advanced-chart\.js/);
@@ -46,9 +50,16 @@ test('mobile responsive safe styles are loaded after existing themes',()=>{
  assert.match(stock,/theme:'light'\|'dark'/);
 });
 
-test('archived research council cannot appear in the active ScalpStorm workspace',()=>{
+test('six research roles are rendered from selected source-backed historical results',()=>{
  const council=read('../src/components/AgentCouncilPanel.tsx');
- assert.match(council,/Six-role research council/);
- assert.doesNotMatch(strat,/AgentCouncilPanel/);
- assert.match(strat,/ScalpStormDetailed/);
+ const engine=read('../src/lib/councilEngine.js');
+ assert.match(strat,/AgentCouncilPanel lab=\{lab\} strategyId=\{item\?\.id\?\?selected\}/);
+ assert.match(council,/evaluateCouncil\(lab,strategyId\)/);
+ for(const name of ['Scout','News','Sentiment','Charts','Risk','Decision'])
+   assert.ok(council.includes(name));
+ assert.match(engine,/paperOrdersExecuted===false/);
+ assert.match(engine,/liveOrdersEnabled:false/);
+ assert.match(engine,/outcome=!measured\|\|overLimit\?'SKIP':'WAIT'/);
+ assert.match(css,/\.council-grid/);
+ assert.match(css,/@media\(max-width:640px\)/);
 });

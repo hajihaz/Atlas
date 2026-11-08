@@ -1,0 +1,82 @@
+name: atlas-deploy-smoke
+
+# Post-deployment smoke test for the public Atlas UI/API (read-only HTTP GETs only).
+# Born from the 2026-11-08 incident where /api/cloud-paper returned 404 on main while
+# Vercel reported READY. It asserts the fail-closed owner gateway contract:
+#   status          -> 200, safe JSON, PAPER_ONLY, realOrdersEnabled=false
+#   state (no auth) -> 401   (private routes fail closed)
+#   orders / cancel -> 404   (trading writes are not exposed)
+# No credentials are used or required.
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Base URL to check (default: production)'
+        required: false
+        default: 'https://atlas-control-center-pi.vercel.app'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atlas-deploy-smoke-${{ github.event.deployment_status.target_url || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    # Only for successful production deployments, or a manual run.
+    # Preview deployments are SSO-protected and are intentionally skipped.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment_status.environment == 'Production')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BASE_URL: ${{ github.event.inputs.base_url || 'https://atlas-control-center-pi.vercel.app' }}
+    steps:
+      - name: Smoke-test fail-closed gateway contract
+        shell: bash
+        run: |
+          set -u
+          fail=0
+
+          # Retry briefly: the production alias can lag a few seconds behind the status event.
+          get() { # url -> writes body to /tmp/body, prints HTTP code
+            local code="" i
+            for i in 1 2 3 4 5 6; do
+              code=$(curl -sS -o /tmp/body -w '%{http_code}' --max-time 20 "$1" || echo 000)
+              if [ "$code" != "000" ] && [ "$code" != "502" ] && [ "$code" != "503" ]; then break; fi
+              sleep 10
+            done
+            echo "$code"
+          }
+          expect() { # name actual expected
+            if [ "$2" = "$3" ]; then echo "PASS $1 -> $2"; else echo "FAIL $1 -> $2 (expected $3)"; fail=1; fi
+          }
+
+          echo "Checking $BASE_URL"
+
+          expect "GET /" "$(get "$BASE_URL/")" 200
+
+          code=$(get "$BASE_URL/api/cloud-paper?action=status")
+          expect "GET /api/cloud-paper?action=status" "$code" 200
+          if [ "$code" = "200" ]; then
+            # NB: jq's `//` treats false as empty, so test the key explicitly.
+            mode=$(jq -r 'if has("mode") then (.mode|tostring) else "missing" end' /tmp/body 2>/dev/null || echo invalid)
+            real=$(jq -r 'if has("realOrdersEnabled") then (.realOrdersEnabled|tostring) else "missing" end' /tmp/body 2>/dev/null || echo invalid)
+            expect "status.mode" "$mode" "PAPER_ONLY"
+            expect "status.realOrdersEnabled" "$real" "false"
+          fi
+
+          expect "GET /api/cloud-paper?action=state (no auth)" "$(get "$BASE_URL/api/cloud-paper?action=state")" 401
+          expect "GET /api/cloud-paper?action=orders" "$(get "$BASE_URL/api/cloud-paper?action=orders")" 404
+          expect "GET /api/cloud-paper?action=cancel" "$(get "$BASE_URL/api/cloud-paper?action=cancel")" 404
+
+          if [ "$fail" -ne 0 ]; then
+            echo "::error::Post-deploy smoke test failed for $BASE_URL"
+            exit 1
+          fi
+          echo "All smoke checks passed."

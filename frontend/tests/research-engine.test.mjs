@@ -51,20 +51,33 @@ test('simulation does not silently force a final liquidation or claim broker res
  assert.ok(run.equity.every(x=>Number.isFinite(x.equityINR)));
  assert.ok(run.wins<=run.closedTrades);
 });
-test('only ScalpStorm X is returned by the production strategy API',async()=>{
- const result=await getLab();
- assert.equal(result.schema,'atlas.owner-strategy-catalog.v1');
- assert.deepEqual(result.strategies.map(s=>s.id),['scalpstorm_x_0940']);
- assert.equal(result.strategies[0].name,'ScalpStorm X');
- assert.equal(result.strategies[0].virtualCapitalINR,100000);
- assert.equal(result.strategies[0].results,null);
- assert.equal(result.realOrdersEnabled,false);
- assert.equal(result.actualCapitalINR,0);
+test('provider-backed strategy endpoint returns all strategy names and source provenance',async()=>{
+ const fake=async ({symbol,range})=>({
+  schema:1,currency:'INR',symbol,range,realOrdersEnabled:false,
+  paperExecutionEnabled:false,source:'CoinDCX public INR spot candles',
+  generatedAt:'2026-10-19T12:00:00Z',earliestAvailable:'2026-10-01T00:00:00Z',
+  latestClosedAt:'2026-10-19T11:00:00Z',coverage:'provider_observations',
+  completeHistoryVerified:false,warning:'source only',candles:bars,
+ });
+ const result=await getLab({symbol:'BTCINR',range:'1M'},fake);
+ assert.equal(result.strategies.length,5);
+ assert.equal(result.simulatedCapitalINR,100000);
+ assert.equal(result.currency,'INR');
+ assert.equal(result.paperOrdersExecuted,false);
+ assert.equal(result.paperLedgerStored,false);
+ assert.equal(result.liveOrdersEnabled,false);
 });
-test('retired research inputs cannot activate non-ScalpStorm strategies',async()=>{
- for(const id of STRATEGIES.map(s=>s.id))
-  await assert.rejects(getLab({strategy:id}),/unsupported/);
- await assert.rejects(getLab({symbol:'BTCINR'}),/unsupported/);
+test('unavailable historical provider does not fabricate returns',async()=>{
+ const fake=async ({symbol,range})=>({
+  schema:1,currency:'INR',symbol,range,realOrdersEnabled:false,
+  paperExecutionEnabled:false,source:'CoinDCX public INR spot candles',
+  generatedAt:'2026-10-19T12:00:00Z',earliestAvailable:null,latestClosedAt:null,
+  coverage:'unavailable',completeHistoryVerified:false,warning:'no bars',candles:[],
+ });
+ const r=await getLab({},fake);
+ assert.equal(r.barCount,0);
+ assert.ok(r.strategies.every(x=>x.status==='insufficient_history'));
+ assert.ok(r.strategies.every(x=>x.modeledReturnPct===undefined));
 });
 test('reject untrusted input and any execution/mutation HTTP methods',async()=>{
  await assert.rejects(getLab({symbol:'NSE:RELIANCE'}),/unsupported/);

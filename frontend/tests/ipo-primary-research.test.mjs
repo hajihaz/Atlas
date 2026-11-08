@@ -38,7 +38,9 @@ test('primary research only attaches to exact symbol company board and cannot ch
 test('unverified peer valuation must not yield APPLY or speculative points',()=>{
  const original=feed.issues.find(i=>i.id==='PARASHLTH');
  const [issue]=mergePrimaryResearch([{...original,status:'OPEN',openDate:'2026-10-01',closeDate:'2026-11-30',mandateDeadline:null}],data);
- const r=recommendation(issue,false,new Date('2026-10-23T00:20:00Z'));
+ // Fixed pre-deadline scenario with an exchange snapshot less than three hours old.
+ const r=recommendation(issue,false,new Date('2026-10-23T00:30:00Z'));
+ assert.equal(recommendation(issue,true,new Date('2026-10-23T00:30:00Z')).label,'SOURCE STALE');
  assert.match(r.label,/HOLD — VALUATION REVIEW/);assert.equal(r.score,null);
  const [invalid]=mergePrimaryResearch([original],{...data,records:[{...data.records[0],financials:{...data.records[0].financials,source:'https://evil.example/file.pdf'}}]});
  assert.equal(invalid.financials,null);

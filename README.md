@@ -1,21 +1,48 @@
 # Atlas
 
-**The Quantitative Trading & Investment Division of [Jarvis](docs/architecture/jarvis-integration.md).**
+**The quantitative research, risk and paper-trading system designed to integrate with [HajiHaz (formerly Jarvis)](docs/architecture/jarvis-integration.md).**
 
 > Atlas is a personal hedge-fund operating system that survives changing markets by continuously **discovering, testing, validating, deploying, monitoring, and retiring** trading strategies on the basis of **evidence — not prediction.**
 
 ---
 
-## Status
+## Status (verified against the repository on 7 November 2026)
 
-| | |
+Atlas has progressed beyond the original Phase-2 data foundation, but **implementation is not strategy certification or authorization for live trading**. The architectural roadmap remains a target, not a claim that every gate has passed.
+
+| Area | Current repository reality |
 |---|---|
-| **Current phase** | **Phase 2 — Data Foundation** ✅ complete · Phase 1 ✅ complete |
-| **Capital at risk** | **None.** Atlas holds no capital, has no broker, and executes no trades. |
-| **What exists today** | The full Phase-1 architecture **plus** a working, tested **market-data foundation**: bitemporal point-in-time storage, survivorship-free universe, corporate-action adjustment, a fail-safe data-quality gate, content-addressed reproducibility snapshots, and a hash-chained trial ledger. **No strategies, signals, backtester, portfolio/risk engine, broker, or dashboards yet — by design.** |
-| **Next phase** | [Phase 3 — The Reproducible Backtesting Engine](docs/roadmap.md#phase-3--the-reproducible-backtesting-engine) |
+| Data foundation | Point-in-time/bitemporal data, universe, quality checks, snapshot provenance and a hash-chained trial ledger live in `src/atlas/`. |
+| Research and strategies | Python strategy/backtest/research modules, ScalpStorm research scripts, a Node research/paper engine and a LEAN C# adapter exist. **No production-certified strategy or verified profitable track record is claimed.** |
+| Risk and execution | Independent risk controls, kill-switch protections, portfolio/paper execution and an **Upstox sandbox** broker adapter exist. An adapter is not authorization or evidence of live broker trading. |
+| Frontend | `frontend/` is an implemented React/Vite control center: paper trials, Strategy Lab, ScalpStorm, IPO Intelligence, risk audits and charts. |
+| Scheduled checks | `.github/workflows/atlas-paper-scheduled.yml` attempts virtual paper checkpoints on a two-hour schedule with a second delayed attempt. Scheduling does not establish source coverage or successful market-session certification. |
+| Real-money trading | **Blocked.** The scheduled workflow pins `ATLAS_EXECUTION_MODE=PAPER_ONLY` and rejects `frontend/public/real-orders.json`. See [ADR-0059](docs/adr/0059-atlas-readiness-status-2026-09-04.md) and the [automated-trading charter](docs/automated-trading-charter.md). |
+| Verification | Automated Python, Node and conditional PostgreSQL integration tests exist. PostgreSQL execution/recovery coverage requires a disposable database; skips do not count as passes. |
+| Still incomplete | Evidence-backed market-session/strategy certification, validated licensed source coverage and deployment/operational acceptance are distinct outstanding gates. Top-level `strategies/`, `backtests/`, `reports/` and `backend/` remain placeholders even though functional modules exist elsewhere. |
 
-Atlas is built documentation-first and safety-first: the constraints are written *before* the code, so the code inherits them. The Phase-2 **domain core is pure standard library** (zero third-party deps) and fully tested — run it with `make core-test`. See the [roadmap](docs/roadmap.md) and [data architecture](docs/data/data-architecture.md).
+**Safety distinction:** a code module, successful unit test, simulated backtest or virtual paper checkpoint **does not** imply permission to execute a live trade or evidence of positive returns.
+
+### Run the checks
+
+Use Python 3.11+ and a supported Node.js version. From the repository root:
+
+```bash
+python -m pip install -e '.[dev]'
+python -m pytest -q --disable-warnings --strict-markers
+python -m ruff check src tests scripts
+python -m mypy src/atlas
+
+cd frontend
+npm ci
+npm run check
+npm run build
+node --test tests/*.test.mjs
+```
+
+The Python suite skips database integration tests unless `ATLAS_TEST_DB` and `ATLAS_EXECUTION_TEST_DB` point to an **isolated, disposable PostgreSQL test database**. Never point them at a production or shared database. GitHub CI defines a disposable PostgreSQL service in `.github/workflows/ci.yml`. `make core-test` also requires the development test dependencies (including pytest).
+
+The pure-standard-library **data domain core** is documented in [development foundation](docs/development/development-foundation.md); adapters, UI and integrations have separate dependencies. Use the [roadmap](docs/roadmap.md) for intended milestones rather than treating the original phase label as an implementation inventory.
 
 ---
 
@@ -44,7 +71,7 @@ The one-line test of success: *at any moment, the operator can be shown — with
 
 ## Documentation map
 
-Atlas's design lives entirely in `docs/`. Start at the top and work down.
+Architecture and design rationale live in `docs/`; executable code lives in `src/`, `frontend/`, `scripts/` and `lean-adapter/`. Start with the documents below.
 
 ### Foundation & governance
 | Document | What it answers |
@@ -120,28 +147,34 @@ Value flows left-to-right; **Risk gates every capital action and can veto**; **o
 
 ## Repository structure
 
-```
+```text
 Atlas/
-├── README.md · CLAUDE.md          ← start here; contributor guide
-├── pyproject.toml · Makefile · .pre-commit-config.yaml · .github/workflows/ci.yml
-├── src/atlas/                     ← the package (Phase 2)
-│   ├── common/                    ← pure spine: time · hashing · ids · types · errors
-│   ├── data/                      ← bitemporal · market · calendars · adjustments ·
-│   │                                universe · quality · snapshots · lineage · ingestion · models
-│   ├── trials/  config/  cli/     ← trial ledger · settings · CLI
-├── database/migrations/           ← Alembic (initial schema)
+├── README.md · AGENTS.md · CLAUDE.md  contributor and agent guidance
+├── pyproject.toml · Makefile           Python package, tests and tooling
+├── src/atlas/
+│   ├── common/ · data/ · trials/       provenance, bitemporal data, quality, trial ledger
+│   ├── strategy/ · research/           signal/research primitives
+│   ├── backtest/ · lean/               research replay and LEAN integration
+│   ├── market/ · paper/                market observations and virtual trading
+│   ├── execution/ · broker/            execution journals and sandbox adapter
+│   ├── risk/ · portfolio/              risk veto and portfolio accounting
+│   └── governance/ · reporting/ · config/ · cli/ · security/
+├── frontend/
+│   ├── src/                            React/Vite pages, charts and IPO intelligence
+│   ├── tests/                          Node regression/safety tests
+│   └── public/                         source-attributed read-only snapshots
+├── lean-adapter/                        LEAN C# integration
+├── scripts/                             paper engine, certification and IPO tooling
+├── database/migrations/                 Alembic migrations
 ├── tests/{unit,integration,reproducibility}/
-├── docs/
-│   ├── vision · mission · principles · success/failure-criteria · roadmap · charter
-│   ├── architecture/              ← overview · boundaries · domain-model · components · Jarvis · NFRs · threat-model
-│   ├── data/                      ← data-architecture · point-in-time · market-data-model · data-quality · reproducibility
-│   ├── research/                  ← trial-ledger
-│   ├── development/               ← development-foundation
-│   └── adr/                       ← decision records (0001–0014)
-└── strategies/  backtests/  reports/  frontend/  backend/   ← reserved; empty until their phase
+├── .github/workflows/                   Python/Postgres, UI, IPO and paper checks
+├── docs/                                architecture, evidence, decisions and roadmap
+├── .ai/                                  internal work logs / handoffs (review before sharing)
+└── strategies/ · backtests/ · reports/ · backend/
+                                         reserved top-level placeholder directories
 ```
 
-The **domain core** under `src/atlas/` is pure standard library and fully tested (`make core-test`). `strategies/`, `backtests/`, `reports/`, `frontend/`, `backend/` remain **empty placeholders** — nothing is built until its [roadmap](docs/roadmap.md) phase, and never before the safety machinery that must precede it.
+**Do not confuse empty top-level folders with an absence of implementations.** Real research, risk, backtest, execution and paper modules currently live in `src/atlas/`, `frontend/`, `scripts/` and `lean-adapter/`. Conversely, the existence of these modules does not mean that the complete trading-strategy set is certified or operationally accepted.
 
 ---
 

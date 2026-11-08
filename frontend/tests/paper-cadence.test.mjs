@@ -3,14 +3,16 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {assessPaperCadence} from '../src/lib/paperCadence.js';
 const at=x=>Date.parse(x);
-test('retired five-strategy workflow cannot schedule or run legacy paper checkpoint',()=>{
+test('two new UTC candle slots are +35 and +80 minutes, without extra runs',()=>{
  const workflow=readFileSync(new URL('../../.github/workflows/atlas-paper-scheduled.yml',import.meta.url),'utf8');
- assert.doesNotMatch(workflow,/^\s*schedule:\s*$/m);
- assert.doesNotMatch(workflow,/^\s*- cron:/m);
- assert.doesNotMatch(workflow,/run: bash scripts\/publish_scheduled_paper\.sh/);
- assert.match(workflow,/ScalpStorm X only/);
+ assert.match(workflow,/cron:\s*'35 0-22\/2 \* \* \*'/);
+ assert.match(workflow,/cron:\s*'20 1-23\/2 \* \* \*'/);
+ assert.equal((workflow.match(/- cron:/g)||[]).length,2);
  const state=assessPaperCadence('2026-10-19T22:37:32Z',at('2026-10-20T00:14:00Z'));
- assert.equal(state.nextDueAt,'2026-10-20T00:35:00.000Z'); // archived interval math only
+ assert.equal(state.nextDueAt,'2026-10-20T00:35:00.000Z');
+ assert.equal(state.overdue,true); // Prior +70-minute window passed without new ledger
+ assert.equal(assessPaperCadence(null,at('2026-10-20T00:40:00Z')).nextDueAt,
+  '2026-10-20T01:20:00.000Z');
 });
 test('ledger freshness hints account for grace, without declaring GitHub failure',()=>{
  const state=assessPaperCadence('2026-10-20T00:35:58Z',at('2026-10-20T01:45:00Z'));
