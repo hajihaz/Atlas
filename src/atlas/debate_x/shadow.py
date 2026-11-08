@@ -123,7 +123,7 @@ class PairedPaperReplay:
             ):
                 raise EvidenceError("review is not bound to the original evidence packet")
             agents = review.get("agents")
-            if not roles_match_order(agents):
+            if not isinstance(agents, list) or not roles_match_order(agents):
                 raise EvidenceError("missing or malformed Good Cloud/Bad Cloud/Judge attestations")
             if any(not isinstance(a, dict) or not a.get("evidence_ids") for a in agents):
                 raise EvidenceError("unreferenced agent argument")
