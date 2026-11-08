@@ -5,8 +5,13 @@ real-time NSE trading system.** The baseline production strategy execution path 
 
 ## Objective and non-negotiable boundaries
 
-- Independent **Bull**, **Bear**, **Judge** roles. Bull and Bear receive exactly the same point-in-time
-  evidence concurrently; Judge receives both validated arguments and the original packet.
+- Independent **Good Cloud** (bullish / supporting), **Bad Cloud** (bearish / challenging) and **Judge** roles.
+  Good Cloud and Bad Cloud receive exactly the same point-in-time evidence concurrently and never see each
+  other's output; the Judge receives both validated arguments and the original packet. Role IDs are
+  `good_cloud`, `bad_cloud`, `judge`; reviews stored with the earlier `bull`/`bear` IDs remain readable.
+- Debate X **supports** Atlas strategies; it does not replace or modify them. ScalpStorm X is the flagship and
+  the five approved intraday strategies (SMA 9/21, EMA 12/26, RSI 14, 20-Bar Breakout, SPS Swing Pullback)
+  stay first-class. Any of them can supply the candidate (`strategy_id`); see `strategies.py`.
 - LLM provider is **disabled by default**; never represent a six-role deterministic council as real AI.
 - All evidence needs explicit publication and receipt timestamps at/before `decision_at`.
   Quote receipts more than 90 seconds before a signal are rejected. No retrospective news leakage.
@@ -21,7 +26,7 @@ real-time NSE trading system.** The baseline production strategy execution path 
 
 Breaking Money-style inspiration has been implemented independently for three
 virtual books: original Atlas signal, deterministic SMA/RSI/VWAP rules,
-and the Bull/Bear/Judge filter. The new opt-in CLI supports independently
+and the Good Cloud/Bad Cloud/Judge filter. The new opt-in CLI supports independently
 post-decision re-quoted NSE observations, illustrative Indian charges,
 local SQLite resume, daily 3% loss checks and explicit 15-session counting.
 
@@ -35,7 +40,7 @@ connected automatically.
 | Path | Responsibility |
 | --- | --- |
 | `src/atlas/debate_x/evidence.py` | Immutable candidate/evidence schema and leakage/freshness gate |
-| `src/atlas/debate_x/engine.py` | Parallel independent Bull/Bear → Judge; citations, validation, hard risk veto |
+| `src/atlas/debate_x/engine.py` | Parallel independent Good Cloud/Bad Cloud → Judge; citations, validation, hard risk veto |
 | `src/atlas/debate_x/providers.py` | Opt-in official OpenAI/Anthropic HTTPS adapters; bounded requests/no redirects |
 | `src/atlas/debate_x/shadow.py` | Separate virtual ₹100,000 books; ₹10,000 per closed trade, hash-chained journal |
 | `src/atlas/debate_x/cli.py` | Offline packet ingestion and JSON report export; no broker endpoints |
@@ -97,7 +102,7 @@ PYTHONPATH=src python3.11 -m atlas.debate_x.cli \
 ```
 
 Or use `ATLAS_DEBATE_PROVIDER=anthropic`, `ANTHROPIC_API_KEY` and an
-Anthropic Messages API model. Each signal makes up to **3 model calls** (Bull/Bear + Judge);
+Anthropic Messages API model. Each signal makes up to **3 model calls** (Good Cloud/Bad Cloud + Judge);
 the model's structured JSON fields are validated. The API may have cost and latency.
 No LLM call is made absent both `--enable-llm` and `ATLAS_DEBATE_ENABLED=1`.
 

@@ -12,6 +12,7 @@ from typing import Any
 from atlas.risk.gate import RiskGate
 
 from .evidence import Candidate, EvidenceError, positive_money, timestamp
+from .roles import roles_match_order
 
 INITIAL_CAPITAL = Decimal("100000")
 MAX_TRADE = Decimal("10000")
@@ -20,7 +21,7 @@ ROUND = Decimal("0.01")
 
 @dataclass(frozen=True)
 class ClosedObservation:
-    """Exit outcome supplied ONLY after model decision, never to Bull/Bear/Judge."""
+    """Exit outcome supplied ONLY after model decision, never to Good Cloud/Bad Cloud/Judge."""
 
     candidate_id: str
     exit_at: str
@@ -122,10 +123,8 @@ class PairedPaperReplay:
             ):
                 raise EvidenceError("review is not bound to the original evidence packet")
             agents = review.get("agents")
-            if not isinstance(agents, list) or [
-                a.get("role") for a in agents if isinstance(a, dict)
-            ] != ["bull", "bear", "judge"]:
-                raise EvidenceError("missing or malformed Bull/Bear/Judge attestations")
+            if not roles_match_order(agents):
+                raise EvidenceError("missing or malformed Good Cloud/Bad Cloud/Judge attestations")
             if any(not isinstance(a, dict) or not a.get("evidence_ids") for a in agents):
                 raise EvidenceError("unreferenced agent argument")
             if (

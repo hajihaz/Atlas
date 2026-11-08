@@ -21,6 +21,7 @@ from atlas.risk.gate import RiskGate
 
 from .costs import IndiaCostModel, paisa
 from .evidence import Candidate, EvidenceError, positive_money, timestamp
+from .roles import roles_match_order
 
 IST = ZoneInfo("Asia/Kolkata")
 START = Decimal("100000")
@@ -144,9 +145,9 @@ def reviewed_approval(review: dict[str, Any], candidate: Candidate) -> bool:
     if not isinstance(agents, list) or len(agents) != 3:
         raise EvidenceError("review requires three independently recorded roles")
     valid = {entry.id for entry in candidate.evidence}
-    for agent, role in zip(agents, ("bull", "bear", "judge"), strict=True):
-        if not isinstance(agent, dict) or agent.get("role") != role:
-            raise EvidenceError("invalid agent role or order")
+    if not roles_match_order(agents):
+        raise EvidenceError("invalid agent role or order")
+    for agent in agents:
         refs = agent.get("evidence_ids")
         if (
             not isinstance(refs, list)

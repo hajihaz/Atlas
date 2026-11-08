@@ -36,8 +36,11 @@ test('Debate X UI rejects live flags, displays false-data empty states and local
   assert.match(page,/No validated AI equity history yet/);
   assert.match(page,/No settled debates for this filter/);
   assert.match(page,/Local file \(not independently certified or uploaded\)/);
-  assert.match(page,/Bull/);
-  assert.match(page,/Bear/);
+  assert.match(page,/Good Cloud/);
+  assert.match(page,/Bad Cloud/);
+  assert.doesNotMatch(page,/>0\d · (Bull|Bear)</);
+  assert.match(page,/bull:'GOOD CLOUD'/);
+  assert.match(page,/ScalpStorm X included/);
   assert.match(page,/Judge/);
   assert.doesNotMatch(page,/fetch\(['"]\/api\/.*?order/);
 });

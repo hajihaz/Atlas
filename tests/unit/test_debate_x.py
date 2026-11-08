@@ -77,7 +77,7 @@ class DeterministicModel:
         return json.dumps(
             {
                 "role": role,
-                "stance": {"bull": "SUPPORT", "bear": "OPPOSE", "judge": self.judge}[role],
+                "stance": {"good_cloud": "SUPPORT", "bad_cloud": "OPPOSE", "judge": self.judge}[role],
                 "reason": "Test fixture cites prior evidence only.",
                 "evidence_ids": ["q1", "v1"],
                 "risks": ["Test-only downside risk"],
@@ -93,7 +93,7 @@ def test_three_role_orchestration_and_no_orders():
     assert result["shadow_action"] == "PAPER_CANDIDATE"
     assert result["live_orders_enabled"] is False
     assert result["real_orders_placed"] == 0
-    assert [row["role"] for row in result["agents"]] == ["bull", "bear", "judge"]
+    assert [row["role"] for row in result["agents"]] == ["good_cloud", "bad_cloud", "judge"]
     assert len(model.calls) == 3
     assert len(model.calls[2][2]) > len(model.calls[0][2])
 

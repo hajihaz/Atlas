@@ -11,7 +11,7 @@ but independently implemented. The old two-book replay CLI still works; nothing 
 | --- | --- | --- |
 | Original Atlas | The **already proposed** Atlas BUY candidate, subject to Atlas RiskGate | ₹1,00,000 |
 | Rules baseline | Independent, deterministic SMA9/SMA21, RSI14, VWAP, volume ratio, 30m momentum filter | ₹1,00,000 |
-| Debate X | Bull + Bear + Judge citations, only valid REVIEWED APPROVE, RiskGate veto | ₹1,00,000 |
+| Debate X | Good Cloud + Bad Cloud + Judge citations, only valid REVIEWED APPROVE, RiskGate veto | ₹1,00,000 |
 
 Each hypothetical serial intraday entry has a ₹10,000 budget, one common **post-decision**
 quote, and the same exit observation and execution-cost model. **No actual orders** are
@@ -86,7 +86,7 @@ placed, and a single prompt does not have permission to execute a BUY or SELL.
 
 **The prices in this example are fictional data used to illustrate the contract.**
 Do not pass a real historical trade outcome as an input into an AI decision.
-`execution` is only read by the independent simulation AFTER the Bull/Bear/Judge
+`execution` is only read by the independent simulation AFTER the Good Cloud/Bad Cloud/Judge
 call completes. The implementation does not verify whether externally asserted
 timestamps, trading-volume observations, market entitlements or API response records
 are authentic. A source integration needs permission, provenance and archive support.
@@ -168,7 +168,7 @@ the dashboard lists the latest 100 matching decisions while retaining all
 Atlas > Debate X initially shows an honest, empty three-way dashboard with
 zero observed trades, no invented P&L, and 0/15 completed days. You can import
 a private local JSON report. Provisional rules and baseline curves are
-separated from **fully reviewed** Bull/Bear/Judge AI curves. Reports may carry
+separated from **fully reviewed** Good Cloud/Bad Cloud/Judge AI curves. Reports may carry
 sensitive evidence and should not be published to the public Vercel preview.
 
 ### Owner gates

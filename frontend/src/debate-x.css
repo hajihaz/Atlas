@@ -34,7 +34,7 @@
 .debate-role svg{flex:none;margin-top:2px}
 .debate-role strong{font-size:14px}
 .debate-role p{margin-top:6px;font-size:12px;line-height:1.6;color:var(--text-secondary,#718090)}
-.debate-bull svg{color:#16a56b}.debate-bear svg{color:#d75c61}
+.debate-good svg{color:#16a56b}.debate-bad svg{color:#d75c61}
 .debate-judge svg{color:#7392c0}
 .debate-hard-gate{background:rgba(57,135,223,.07);border-radius:13px;padding:14px;
   display:flex;align-items:center;gap:11px;color:var(--text-secondary,#718090);font-size:12px;line-height:1.5}

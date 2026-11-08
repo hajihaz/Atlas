@@ -11,6 +11,7 @@ from typing import Any, Protocol
 from atlas.risk.gate import RiskGate
 
 from .evidence import Candidate, EvidenceError
+from .roles import BAD_CLOUD, GOOD_CLOUD, JUDGE, REQUIRED_STANCE
 
 
 class DebateModel(Protocol):
@@ -20,21 +21,23 @@ class DebateModel(Protocol):
 
 
 SYSTEM = {
-    "bull": (
-        "You are an adversarial Bull analyst. Give the strongest evidence-based case FOR "
-        "the proposed paper trade; do not claim that a trade is profitable. "
-        "Return only JSON with role='bull', stance='SUPPORT', reason (string), "
+    GOOD_CLOUD: (
+        "You are Good Cloud, the supporting analyst for an Atlas strategy's paper candidate. "
+        "Give the strongest evidence-based case FOR the proposed paper trade; do not claim "
+        "that a trade is profitable. "
+        "Return only JSON with role='good_cloud', stance='SUPPORT', reason (string), "
         "evidence_ids (array of IDs from packet), and risks (array of strings)."
     ),
-    "bear": (
-        "You are an independent Bear analyst. Seek falsifying evidence and the strongest "
-        "case AGAINST the proposed paper trade. Return only JSON with role='bear', "
-        "stance='OPPOSE', reason, evidence_ids, and risks."
+    BAD_CLOUD: (
+        "You are Bad Cloud, the independent challenging analyst. Seek falsifying evidence "
+        "and the strongest case AGAINST the proposed paper trade. Return only JSON with "
+        "role='bad_cloud', stance='OPPOSE', reason, evidence_ids, and risks."
     ),
-    "judge": (
-        "You are a neutral paper-trading reviewer, not a broker. Compare Bull and Bear "
-        "arguments against the original dated evidence only. Missing or conflicting "
-        "evidence means REVIEW or REJECT. Return JSON with role='judge', "
+    JUDGE: (
+        "You are the Judge, a neutral paper-trading reviewer, not a broker. Compare the "
+        "Good Cloud and Bad Cloud arguments against the original dated evidence only. "
+        "You evaluate the strategy's candidate; you do not replace the strategy. Missing "
+        "or conflicting evidence means REVIEW or REJECT. Return JSON with role='judge', "
         "stance='APPROVE'|'REJECT'|'REVIEW', reason, evidence_ids, risks. "
         "No agent can override the deterministic Atlas risk gate."
     ),
@@ -65,12 +68,7 @@ class AgentArgument:
             raise EvidenceError("model returned invalid JSON") from exc
         if not isinstance(result, dict) or result.get("role") != role:
             raise EvidenceError("model role mismatch")
-        expected = {
-            "bull": {"SUPPORT"},
-            "bear": {"OPPOSE"},
-            "judge": {"APPROVE", "REJECT", "REVIEW"},
-        }[role]
-        if result.get("stance") not in expected:
+        if role not in REQUIRED_STANCE or result.get("stance") not in REQUIRED_STANCE[role]:
             raise EvidenceError("invalid model stance")
         if (
             not isinstance(result.get("reason"), str)
@@ -121,7 +119,7 @@ def safe_skip(candidate_id: str, reason: str, *, status: str = "BLOCKED") -> dic
 
 
 class DebateEngine:
-    """Isolated Bull/Bear parallel calls followed by the Judge. No order method exists."""
+    """Isolated Good Cloud/Bad Cloud parallel calls followed by the Judge. No order method exists."""
 
     def __init__(
         self, model: DebateModel, *, risk: RiskGate | None = None, max_quote_age_seconds: int = 90
@@ -147,18 +145,22 @@ class DebateEngine:
 
         try:
             with ThreadPoolExecutor(max_workers=2) as pool:
-                bull_future = pool.submit(ask, "bull", evidence_json)
-                bear_future = pool.submit(ask, "bear", evidence_json)
+                good_future = pool.submit(ask, GOOD_CLOUD, evidence_json)
+                bad_future = pool.submit(ask, BAD_CLOUD, evidence_json)
                 # Always collect both; exceptions will fail closed.
-                bull = bull_future.result()
-                bear = bear_future.result()
+                good = good_future.result()
+                bad = bad_future.result()
             judge_packet = json.dumps(
-                {"evidence": candidate.public_view(), "bull": bull.export(), "bear": bear.export()},
+                {
+                    "evidence": candidate.public_view(),
+                    GOOD_CLOUD: good.export(),
+                    BAD_CLOUD: bad.export(),
+                },
                 sort_keys=True,
                 separators=(",", ":"),
             )
-            judge = ask("judge", judge_packet)
-            arguments = [bull.export(), bear.export(), judge.export()]
+            judge = ask(JUDGE, judge_packet)
+            arguments = [good.export(), bad.export(), judge.export()]
             outcome = "APPROVE" if judge.stance == "APPROVE" else "SKIP"
             risk = self.risk.evaluate(
                 {candidate.symbol: Decimal("0.10")},

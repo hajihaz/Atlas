@@ -6,7 +6,8 @@ import {CartesianGrid,Legend,Line,LineChart,ResponsiveContainer,Tooltip,XAxis,YA
 import '../debate-x.css';
 
 type Stance='APPROVE'|'REJECT'|'REVIEW'|'SUPPORT'|'OPPOSE';
-type Agent={role:'bull'|'bear'|'judge';stance:Stance;reason:string;evidence_ids:string[];risks:string[]};
+const ROLE_LABEL:Record<string,string>={good_cloud:'GOOD CLOUD',bad_cloud:'BAD CLOUD',judge:'JUDGE',bull:'GOOD CLOUD',bear:'BAD CLOUD'};
+type Agent={role:'good_cloud'|'bad_cloud'|'judge'|'bull'|'bear';stance:Stance;reason:string;evidence_ids:string[];risks:string[]};
 type Review={schema:1;mode:'SHADOW_PAPER_ONLY';candidate_id:string;status:string;
   decision:'APPROVE'|'SKIP';judge_stance?:Stance;agents:Agent[];reasons:string[];
   live_orders_enabled:false;real_orders_placed:0;decision_time?:string;snapshot_id?:string};
@@ -114,7 +115,7 @@ export default function DebateXPage(){
     <div className="sub-page-header">
       <div className="breadcrumb">ATLAS <ChevronRight size={13}/> RESEARCH / DEBATE X</div>
       <h1>Debate <span className="period">X.</span></h1>
-      <p>Adversarial Bull · Bear · Judge. Point-in-time evidence, deterministic vetoes,
+      <p>Good Cloud · Bad Cloud · Judge review candidates from every approved Atlas strategy, ScalpStorm X included. Point-in-time evidence, deterministic vetoes,
         and isolated ₹1,00,000 virtual-book comparisons. The three-way challenge adds a rules baseline.</p>
     </div>
     <div className="debate-topline">
@@ -203,12 +204,12 @@ export default function DebateXPage(){
       <div className="panel debate-roles">
         <div className="debate-section-head"><div><span className="premium-kicker">ARCHITECTURE</span>
           <h2>Three independent roles</h2></div></div>
-        <div className="debate-role debate-bull"><TrendingUp size={19}/><div><strong>01 · Bull</strong>
-          <p>Argues for the candidate using dated, source-matched evidence.</p></div></div>
-        <div className="debate-role debate-bear"><TrendingDown size={19}/><div><strong>02 · Bear</strong>
-          <p>Finds falsifying evidence, event risk and adverse scenarios.</p></div></div>
+        <div className="debate-role debate-good"><TrendingUp size={19}/><div><strong>01 · Good Cloud</strong>
+          <p>Supports the strategy's candidate using dated, source-matched evidence.</p></div></div>
+        <div className="debate-role debate-bad"><TrendingDown size={19}/><div><strong>02 · Bad Cloud</strong>
+          <p>Challenges it: finds falsifying evidence, event risk and adverse scenarios.</p></div></div>
         <div className="debate-role debate-judge"><Scale size={19}/><div><strong>03 · Judge</strong>
-          <p>Reviews both arguments. APPROVE / REJECT / REVIEW — never a real order.</p></div></div>
+          <p>Independent evaluation layer. APPROVE / REJECT / REVIEW — advisory, never a real order, and it supports rather than replaces the strategy.</p></div></div>
         <div className="debate-hard-gate"><ShieldCheck size={19}/>
           <span>Deterministic Atlas risk controls always apply independently.</span></div>
       </div>
@@ -261,7 +262,7 @@ export default function DebateXPage(){
             <small>Snapshot {review?.snapshot_id??'unavailable'} · {current.decision_at}</small></div>
             <span className="debate-mini-label">{review?.status??'NO REVIEW'}</span></div>
           {(review?.agents??[]).map(agent=><article key={agent.role} className="debate-argument">
-            <div className="debate-argument-title"><strong>{agent.role.toUpperCase()}</strong>
+            <div className="debate-argument-title"><strong>{ROLE_LABEL[agent.role]??agent.role}</strong>
               <span>{agent.stance}</span></div>
             <p>{agent.reason}</p>
             <small>Source evidence IDs: {agent.evidence_ids.join(', ')||'None'}</small>

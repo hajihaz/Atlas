@@ -9,6 +9,7 @@ import urllib.request
 from typing import Any
 
 from .evidence import EvidenceError
+from .roles import ROLE_ORDER
 
 
 class _RejectRedirect(urllib.request.HTTPRedirectHandler):
@@ -53,7 +54,7 @@ class APIModel:
         return cls(provider, model, key)
 
     def complete(self, *, role: str, instructions: str, evidence_json: str) -> str:
-        if role not in {"bull", "bear", "judge"}:
+        if role not in set(ROLE_ORDER):
             raise ValueError("unrecognized role")
         if len(instructions) > 8000 or len(evidence_json) > 62000:
             raise ValueError("bounded message size exceeded")
