@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import RealMarketPage from './components/RealMarketPage';
 import StrategyLabPage from './components/StrategyLabPage';
+import DebateXPage from './components/DebateXPage';
 import StockWatchPage from './components/StockWatchPage';
 import PaperTrialsPage from './components/PaperTrialsPage';
 import RiskAuditPage from './components/RiskAuditPage';
@@ -14,7 +15,7 @@ import {usePaperTrials} from './lib/usePaperTrials';
 const LiveLabPage = lazy(() => import('./components/LiveLabPage'));
 const IPOIntelligencePage = lazy(() => import('./components/IPOIntelligencePage'));
 
-type Page='live'|'overview'|'ipo'|'markets'|'strategies'|'research'|'scalpstorm'|'risk'|'orders'|'audit';
+type Page='live'|'overview'|'ipo'|'markets'|'strategies'|'research'|'scalpstorm'|'debate'|'risk'|'orders'|'audit';
 type Theme='light'|'dark';
 const THEME_KEY='atlas.theme.preference';
 function initialTheme():Theme{
@@ -28,6 +29,7 @@ const nav=[
   {id:'ipo',title:'IPO Intelligence',Icon:TrendingUp},
   {id:'strategies',title:'Strategies',Icon:Layers3},
   {id:'research',title:'Research Lab',Icon:BookOpenText},
+  {id:'debate',title:'Debate X',Icon:BookOpenText},
   {id:'scalpstorm',title:'ScalpStorm X',Icon:BarChart3},
   {id:'risk',title:'Risk Center',Icon:ShieldCheck},
   {id:'orders',title:'Orders & Activity',Icon:History},
@@ -40,7 +42,7 @@ const facts=[
   {title:'Crypto public references',status:'INDICATIVE',text:'Direct INR provider observations, not guaranteed executable prices.'},
   {title:'Independent execution gate',status:'BLOCKED',text:'This public frontend cannot place orders or enable real trading.'},
 ];
-function SimplePage({page,go}:{page:Exclude<Page,'overview'|'markets'|'live'|'ipo'>;go:(next:Page)=>void}){
+function SimplePage({page,go}:{page:Exclude<Page,'overview'|'markets'|'live'|'ipo'|'debate'>;go:(next:Page)=>void}){
   const data={
     strategies:{heading:'Strategies',desc:'Strategies require verified market data, reproducible results and risk approval.',title:'No verified live strategy results',
       detail:'Historical LEAN sample returns and illustrative portfolio simulations are no longer displayed as real performance.'},
@@ -80,7 +82,7 @@ function SimplePage({page,go}:{page:Exclude<Page,'overview'|'markets'|'live'|'ip
   </section>;
 }
 export default function App(){
-  const [page,setPage]=useState<Page>(window.location.hash==='#ipo'?'ipo':window.location.hash==='#scalpstorm'?'scalpstorm':'live');
+  const [page,setPage]=useState<Page>(window.location.hash==='#ipo'?'ipo':window.location.hash==='#scalpstorm'?'scalpstorm':window.location.hash==='#debate-x'?'debate':'live');
   const [collapsed,setCollapsed]=useState(false);
   const [mobileOpen,setMobileOpen]=useState(false);
   const [notices,setNotices]=useState(false);
@@ -92,7 +94,7 @@ export default function App(){
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content',theme==='light'?'#f7f9fc':'#090f17');
     try{window.localStorage.setItem(THEME_KEY, theme);}catch{/* restricted browser storage */}
   },[theme]);
-  function go(next:Page){if(next==='ipo')window.history.replaceState(null,'','#ipo');else if(window.location.hash==='#ipo')window.history.replaceState(null,'',window.location.pathname+window.location.search);setPage(next);setMobileOpen(false);setNotices(false);window.scrollTo({top:0,behavior:'auto'});}
+  function go(next:Page){if(next==='ipo')window.history.replaceState(null,'','#ipo');else if(next==='debate')window.history.replaceState(null,'','#debate-x');else if(window.location.hash==='#ipo'||window.location.hash==='#debate-x')window.history.replaceState(null,'',window.location.pathname+window.location.search);setPage(next);setMobileOpen(false);setNotices(false);window.scrollTo({top:0,behavior:'auto'});}
   const label=nav.find(item=>item.id===page)?.title??'Overview';
   return <div className={'app-shell '+(collapsed?'sidebar-collapsed':'')}>
     {mobileOpen&&<button type="button" className="mobile-backdrop" onClick={()=>setMobileOpen(false)} aria-label="Close navigation"/>}
@@ -127,6 +129,7 @@ export default function App(){
         page==='overview'?<RealMarketPage variant="overview" paperGroup={paper.group} onNavigate={v=>go(v)}/>:
         page==='ipo'?<Suspense fallback={<div className='panel market-loading' role='status'>Loading IPO research…</div>}><IPOIntelligencePage/></Suspense>:
         page==='markets'?<StockWatchPage theme={theme} goResearch={()=>go('strategies')}/>:
+        page==='debate'?<DebateXPage/>:
         page==='strategies'||page==='research'||page==='scalpstorm'?<StrategyLabPage mode={page} goRisk={()=>go('risk')}/>:
         page==='orders'?<PaperTrialsPage group={paper.group} statusMessage={paper.providerMessage}
           start={paper.start} pause={paper.pause} resume={paper.resume} clear={paper.clear}
