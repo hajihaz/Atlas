@@ -6,8 +6,10 @@ const page=readFileSync(new URL('../src/components/StrategyLabPage.tsx',import.m
 const chart=readFileSync(new URL('../src/components/LightweightEquityReplay.tsx',import.meta.url),'utf8');
 
 test('TradingView replay is split from Atlas main dashboard until research details need it',()=>{
- assert.match(page,/<OwnerStrategyPage\/>/);
- assert.doesNotMatch(page,/LightweightEquityReplay|AdvancedResearchImport/);
+ assert.match(page,/lazy\(\(\)=>import\('\.\/LightweightEquityReplay'\)\)/);
+ assert.doesNotMatch(page,/import LightweightEquityReplay from/);
+ assert.match(page,/<Suspense fallback=/);
+ assert.match(page,/<LightweightEquityReplay points=/);
 });
 
 test('replay remains read-only, has timeline control and source disclosure',()=>{

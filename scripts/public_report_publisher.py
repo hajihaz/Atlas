@@ -116,7 +116,7 @@ def validate_artifacts():
     # These are the same validators used by the preview endpoints.
     js = """
 import {readFile} from 'node:fs/promises';
-import {validatePrivateCloudSnapshot} from './frontend/api/cloud-paper.js';
+import {validatePrivateCloudSnapshot} from './frontend/api/cloud-paper-snapshot.js';
 import {validatePublisherIpoSnapshot} from './frontend/src/lib/publisherIpoValidation.js';
 for(const [path,validate] of [
  ['.atlas-runtime/published/cloud-paper.json',validatePrivateCloudSnapshot],

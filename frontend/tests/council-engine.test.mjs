@@ -70,8 +70,7 @@ test('research screen appears only beside source-backed strategy data',()=>{
  const root=readFileSync(new URL('../src/components/StrategyLabPage.tsx',import.meta.url),'utf8');
  const panel=readFileSync(new URL('../src/components/AgentCouncilPanel.tsx',import.meta.url),'utf8');
  const style=readFileSync(new URL('../src/strategy.css',import.meta.url),'utf8');
- assert.doesNotMatch(root,/AgentCouncilPanel/);
- assert.match(root,/<OwnerStrategyPage\/>/);
+ assert.match(root,/lab&&<AgentCouncilPanel lab=\{lab\} strategyId=/);
  assert.match(panel,/Six-role research council/);
  assert.match(panel,/NOT CONNECTED|result\?\.status/);
  assert.match(panel,/No real or paper order/);

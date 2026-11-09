@@ -29,7 +29,7 @@ def test_public_ui_never_sources_prices_or_credentials():
     # Archived campaign remains as evidence, not as a public P&L display.
     assert "ScalpStormDetailed" not in ui
     assert "OwnerStrategyPage" in ui
-    assert "RealMarketPage" not in ui
+    assert "StrategyLabPage" in ui
     assert "NET STOCK TRADING P&L" in detail
     assert "scalpstorm-report.json" in detail
     assert "Broker orders remain disabled" in ui

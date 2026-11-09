@@ -51,15 +51,18 @@ test('simulation does not silently force a final liquidation or claim broker res
  assert.ok(run.equity.every(x=>Number.isFinite(x.equityINR)));
  assert.ok(run.wins<=run.closedTrades);
 });
-test('active catalog exposes only owner protocol and never calls archived replay providers',async()=>{
+test('catalog lists ScalpStorm X as flagship plus the five approved strategies without calling replay providers',async()=>{
  let called=false;const result=await getLab({},async()=>{called=true;throw Error();});
- assert.equal(called,false);assert.equal(result.strategies.length,1);
- const rule=result.strategies[0];assert.equal(rule.id,'scalpstorm_x_0940');
+ assert.equal(called,false);
+ assert.deepEqual(result.strategies.map(s=>s.id),['scalpstorm_x_0940','sma_9_21','ema_12_26','rsi_14','breakout_20','sps_pullback']);
+ const rule=result.strategies[0];assert.equal(rule.flagship,true);
  assert.equal(rule.entryIST,'09:40');assert.equal(rule.exitIST,'15:15');
- assert.equal(rule.results,null);assert.equal(result.realOrdersEnabled,false);
+ assert.ok(result.strategies.every(s=>s.results===null));
+ assert.equal(result.realOrdersEnabled,false);assert.equal(result.paperOnly,true);
 });
-test('retired market queries and all mutation methods are refused',async()=>{
- await assert.rejects(getLab({symbol:'BTCINR'}),/unsupported/);
+test('unsupported queries and all mutation methods are refused',async()=>{
+ await assert.rejects(getLab({symbol:'HACK'}),/unsupported/);
+ await assert.rejects(getLab({strategy:'sma_9_21'}),/unsupported/);
  const response={status(n){this.code=n;return this},setHeader(k,v){this[k]=v},json(x){return x}};
  const r=await handler({method:'POST',query:{},body:{side:'BUY'}},response);
  assert.equal(response.code,405);assert.equal(response.Allow,'GET');assert.equal(r.error,'method_not_allowed');

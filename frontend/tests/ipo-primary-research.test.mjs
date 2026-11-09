@@ -41,6 +41,7 @@ test('unverified peer valuation must not yield APPLY or speculative points',()=>
  const [issue]=mergePrimaryResearch([{...original,status:'OPEN',openDate:'2026-10-01',closeDate:'2026-11-30',mandateDeadline:null,
    sourceObservedAt:'2026-10-23T04:50:00Z',sourceStale:false}],data);
  const r=recommendation(issue,false,now);
+ assert.equal(recommendation(issue,true,now).label,'SOURCE STALE');
  assert.match(r.label,/HOLD — VALUATION REVIEW/);assert.equal(r.score,null);
  const [invalid]=mergePrimaryResearch([original],{...data,records:[{...data.records[0],financials:{...data.records[0].financials,source:'https://evil.example/file.pdf'}}]});
  assert.equal(invalid.financials,null);

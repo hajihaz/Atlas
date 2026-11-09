@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import handler,{getPrivateCloudSnapshot,validatePrivateCloudSnapshot}
- from '../api/cloud-paper.js';
-import {APPROVED_PREVIEW_REF} from '../api/cloud-paper.js';
+ from '../api/cloud-paper-snapshot.js';
+import {APPROVED_PREVIEW_REF} from '../api/cloud-paper-snapshot.js';
 
 const fixture=()=>JSON.parse(readFileSync(new URL('../public/cloud-paper.json',import.meta.url),'utf8'));
 const now=()=>Date.parse(fixture().lastRunAt)+20000;

@@ -5,32 +5,53 @@ import {
   History, Layers3, LayoutDashboard, LockKeyhole, Menu, Moon,
   MoreHorizontal, ShieldCheck, Sun, X, BarChart3, BookOpenText, TrendingUp,
 } from 'lucide-react';
+import RealMarketPage from './components/RealMarketPage';
+import StrategyLabPage from './components/StrategyLabPage';
+import DebateXPage from './components/DebateXPage';
 import StockWatchPage from './components/StockWatchPage';
+import PaperTrialsPage from './components/PaperTrialsPage';
+import RiskAuditPage from './components/RiskAuditPage';
+import {usePaperTrials} from './lib/usePaperTrials';
+const LiveLabPage = lazy(() => import('./components/LiveLabPage'));
 const OwnerStrategyPage = lazy(() => import('./components/OwnerStrategyPage'));
 const OwnerEvidencePage = lazy(() => import('./components/OwnerEvidencePage'));
 const IPOIntelligencePage = lazy(() => import('./components/IPOIntelligencePage'));
 
-type Page='live'|'overview'|'ipo'|'markets'|'nse'|'strategies'|'research'|'scalpstorm'|'risk'|'orders'|'audit';
+type Page='live'|'overview'|'ipo'|'markets'|'nse'|'strategies'|'research'|'scalpstorm'|'debate'|'trials'|'strategyrisk'|'risk'|'orders'|'audit';
 type Theme='light'|'dark';
 const THEME_KEY='atlas.theme.preference';
+const HASH_BY_PAGE:Record<Page,string>={
+  live:'#live',overview:'#overview',ipo:'#ipo',markets:'#markets',nse:'#nse-paper',strategies:'#strategies',
+  research:'#research',scalpstorm:'#scalpstorm',debate:'#debate-x',trials:'#trials',strategyrisk:'#strategy-risk',
+  risk:'#risk',orders:'#orders',audit:'#audit',
+};
 function pageFromHash(hash:string):Page{
-  return hash==='#ipo'?'ipo':hash==='#scalpstorm'?'scalpstorm':hash==='#markets'?'markets':
-    hash==='#nse-paper'?'nse':hash==='#strategies'?'strategies':hash==='#orders'?'orders':hash==='#risk'?'risk':hash==='#audit'?'audit':'overview';
+  const found=(Object.keys(HASH_BY_PAGE) as Page[]).find(key=>HASH_BY_PAGE[key]===hash);
+  return found??'overview';
 }
 function initialTheme():Theme{
   try{return window.localStorage.getItem(THEME_KEY)==='dark'?'dark':'light';}
   catch{return 'light';}
 }
+// ScalpStorm X is the flagship (ADR-0070); the five approved strategies, Debate X and
+// the browser paper trials remain first-class. Removing any entry needs a new ADR.
 const nav=[
+  {id:'live',title:'Live Paper Lab',Icon:Activity},
   {id:'overview',title:'Overview',Icon:LayoutDashboard},
+  {id:'scalpstorm',title:'ScalpStorm X',Icon:BarChart3},
   {id:'markets',title:'Market Watch',Icon:ChartNoAxesCombined},
-  {id:'strategies',title:'ScalpStorm X',Icon:Layers3},
   {id:'ipo',title:'IPO Intelligence',Icon:TrendingUp},
+  {id:'strategies',title:'Strategies',Icon:Layers3},
+  {id:'research',title:'Research Lab',Icon:BookOpenText},
+  {id:'debate',title:'Debate X',Icon:BookOpenText},
+  {id:'trials',title:'Paper Trials',Icon:History},
   {id:'orders',title:'Paper Journal',Icon:History},
+  {id:'strategyrisk',title:'Strategy Risk',Icon:ShieldCheck},
   {id:'risk',title:'Risk & Sources',Icon:ShieldCheck},
   {id:'audit',title:'Audit & Evidence',Icon:FileClock},
 ] as const;
 export default function App(){
+  const paper=usePaperTrials();
   const [page,setPage]=useState<Page>(()=>pageFromHash(window.location.hash));
   const [collapsed,setCollapsed]=useState(false);
   const [mobileOpen,setMobileOpen]=useState(false);
@@ -80,7 +101,7 @@ export default function App(){
     return ()=>document.removeEventListener('keydown',keydown);
   },[mobileViewport,mobileOpen]);
   function go(next:Page){
-    const hash=next==='nse'?'#nse-paper':'#'+next;
+    const hash=HASH_BY_PAGE[next];
     window.history.replaceState(null,'',window.location.pathname+window.location.search+hash);
     setPage(next);setMobileOpen(false);setNotices(false);
     window.scrollTo({top:0,behavior:'auto'});
@@ -120,10 +141,21 @@ export default function App(){
         <button type="button" className="header-user" onClick={()=>go('audit')} aria-label="A — Audit and evidence"><span aria-hidden="true">A</span></button>
       </div>
     </header><main id="atlas-main" tabIndex={-1} className="main-content premium-page-view" key={page}>
-      {page==='ipo'?<Suspense fallback={<div className='panel market-loading' role='status'>Loading IPO research…</div>}><IPOIntelligencePage/></Suspense>:
+      {page==='live'?<Suspense fallback={<div role="status" className="panel market-loading">Checking live INR sources…</div>}><LiveLabPage goStrategies={()=>go('strategies')} goMarkets={()=>go('markets')} goScalpStorm={()=>go('scalpstorm')}/></Suspense>:
+        page==='overview'?<RealMarketPage variant="overview" paperGroup={paper.group} onNavigate={v=>go(v)}/>:
+        page==='ipo'?<Suspense fallback={<div className='panel market-loading' role='status'>Loading IPO research…</div>}><IPOIntelligencePage/></Suspense>:
         page==='markets'?<StockWatchPage theme={theme} goResearch={()=>go('strategies')}/>:
+        page==='debate'?<DebateXPage/>:
+        page==='strategies'||page==='research'?<StrategyLabPage mode={page} goRisk={()=>go('strategyrisk')}/>:
+        page==='trials'?<PaperTrialsPage group={paper.group} statusMessage={paper.providerMessage}
+          start={paper.start} pause={paper.pause} resume={paper.resume} clear={paper.clear}
+          goStrategies={()=>go('strategies')}/>:
+        page==='strategyrisk'?<RiskAuditPage mode="risk" group={paper.group}
+          openPaper={()=>go('trials')} openResearch={()=>go('strategies')}/>:
         page==='risk'||page==='audit'?<Suspense fallback={<div role="status" className="panel market-loading">Reading account evidence…</div>}><OwnerEvidencePage/></Suspense>:
-        <Suspense fallback={<div role="status" className="panel market-loading">Reading ScalpStorm X…</div>}><OwnerStrategyPage/></Suspense>}
+        // scalpstorm (flagship), orders (Paper Journal) and nse: the owner 09:40 paper desk.
+        page==='scalpstorm'||page==='orders'||page==='nse'?<Suspense fallback={<div role="status" className="panel market-loading">Reading ScalpStorm X…</div>}><OwnerStrategyPage/></Suspense>:
+        <RealMarketPage variant="overview" paperGroup={paper.group} onNavigate={v=>go(v)}/>}
 
       <footer className="app-footer"><span>© 2026 ATLAS QUANTITATIVE SYSTEMS</span><div><span className="footer-safety-dot"/> All financial amounts in ₹ <span className="footer-separator">·</span> Owner-local paper account <span className="footer-separator">·</span> Broker orders disabled</div></footer>
     </main></div>

@@ -2,30 +2,87 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
 const read=p=>readFileSync(new URL(p,import.meta.url),'utf8');
-const app=read('../src/App.tsx'),owner=read('../src/components/OwnerStrategyPage.tsx');
-test('active strategy routes share the owner account and old comparison workers are absent',()=>{
- assert.match(app,/<OwnerStrategyPage\/>/);assert.match(app,/<OwnerEvidencePage\/>/);
+const app=read('../src/App.tsx');
+const strat=read('../src/components/StrategyLabPage.tsx');
+const paper=read('../src/components/PaperTrialsPage.tsx');
+const stock=read('../src/components/StockWatchPage.tsx');
+const main=read('../src/main.tsx');
+const css=read('../src/strategy.css');
+const vercel=JSON.parse(read('../vercel.json'));
+test('all formerly placeholder pages route to active source-backed functionality',()=>{
+ for(const route of ['strategies','research','scalpstorm','orders','risk','audit','markets'])
+  assert.ok(app.includes("page==='"+route+"'"));
+ assert.match(app,/<StrategyLabPage mode=\{page\}/);
+ assert.match(app,/<PaperTrialsPage group=\{paper\.group\}/);
  assert.match(app,/<StockWatchPage theme=\{theme\}/);
- assert.doesNotMatch(app,/usePaperTrials|PaperTrialsPage|RealMarketPage|RiskAuditPage/);
- assert.match(read('../src/components/StrategyLabPage.tsx'),/<OwnerStrategyPage\/>/);
- assert.match(read('../src/components/NsePaperPage.tsx'),/OwnerStrategyPage/);
+ assert.match(app,/<RiskAuditPage mode="risk"/);
 });
-test('single strategy shows source-observed account and causal selection',()=>{
- for(const label of ['9:40','3:15','₹1,00,000','₹10,000','Net paper P/L','Volume timestamp'])assert.ok(owner.includes(label));
- assert.match(owner,/report\?\.equityINR/);assert.match(owner,/report\?\.netPnlINR/);
- assert.match(owner,/subsequent fresh trade/);assert.match(owner,/remaining cash/);
- assert.match(owner,/bid\/ask liquidity/);assert.match(owner,/unfilled exits stay visible/);
- assert.doesNotMatch(owner,/Math\.random|runAllStrategies|SYNTHETIC_FIXTURE/);
+test('strategy page lists every strategy, shows simulated metrics and real provider candle provenance',()=>{
+ assert.match(strat,/s\.name/);
+ assert.match(strat,/modeledReturnPct/);
+ assert.match(strat,/maxDrawdownPct/);
+ assert.match(strat,/closedTrades/);
+ assert.match(strat,/HISTORICAL_HYPOTHETICAL_REPLAY/);
+ assert.match(strat,/Provider has too few completed candles/);
+ assert.match(strat,/realizedPnlINR/);
+ assert.doesNotMatch(strat,/\$100,000/);
+});
+test('paper sessions are virtual and explicit, with stop/resume, audited local records',()=>{
+ assert.match(paper,/Start 5 forward paper trials/);
+ assert.match(paper,/window\.confirm/);
+ assert.match(paper,/VIRTUAL_SOURCE_SNAPSHOT|Virtual realized P\/L|Virtual change/);
+ assert.match(paper,/Runs only while Atlas is open in this browser/);
+ assert.match(app,/usePaperTrials\(\)/);
+});
+test('free Indian equities have a vendor-attributed chart, not a scraped API',()=>{
+ assert.match(stock,/embed-widget-advanced-chart\.js/);
+ assert.match(stock,/BSE:RELIANCE/);
+ assert.match(stock,/TradingView/);
+ assert.match(stock,/Some fake regex that will not be used|last trade time|CoinDCX public ticker/);
+ assert.match(vercel.headers[0].headers.find(x=>x.key==='Content-Security-Policy').value,
+   /https:\/\/s3\.tradingview\.com/);
+ assert.ok(!app.includes('place_order('));
+});
+test('mobile responsive safe styles are loaded after existing themes',()=>{
+ assert.match(main,/import '\.\/strategy\.css';/);
+ assert.match(css,/@media\(max-width:640px\)/);
+ assert.match(css,/prefers-reduced-motion/);
+ assert.match(stock,/theme:'light'\|'dark'/);
+});
+
+test('six research roles are rendered from selected source-backed historical results',()=>{
+ const council=read('../src/components/AgentCouncilPanel.tsx');
+ const engine=read('../src/lib/councilEngine.js');
+ assert.match(strat,/AgentCouncilPanel lab=\{lab\} strategyId=\{item\?\.id\?\?selected\}/);
+ assert.match(council,/evaluateCouncil\(lab,strategyId\)/);
+ for(const name of ['Scout','News','Sentiment','Charts','Risk','Decision'])
+   assert.ok(council.includes(name));
+ assert.match(engine,/paperOrdersExecuted===false/);
+ assert.match(engine,/liveOrdersEnabled:false/);
+ assert.match(engine,/outcome=!measured\|\|overLimit\?'SKIP':'WAIT'/);
+ assert.match(css,/\.council-grid/);
+ assert.match(css,/@media\(max-width:640px\)/);
+});
+
+const ownerPage=read('../src/components/OwnerStrategyPage.tsx');
+test('multi-strategy shell keeps owner desk, five-strategy lab, paper trials and Debate X (ADR-0070)',()=>{
+ assert.match(app,/<OwnerStrategyPage\/>/);assert.match(app,/<OwnerEvidencePage\/>/);
+ assert.match(app,/<StrategyLabPage mode=\{page\}/);
+ assert.match(app,/<PaperTrialsPage group=\{paper\.group\}/);
+ assert.match(app,/<RiskAuditPage mode="risk"/);assert.match(app,/<DebateXPage\/>/);
+ assert.match(app,/usePaperTrials\(\)/);
+ assert.match(read('../src/components/StrategyLabPage.tsx'),/s\.name/);
+});
+test('ScalpStorm X owner desk shows source-observed account and causal selection',()=>{
+ for(const label of ['9:40','3:15','₹1,00,000','₹10,000','Net paper P/L','Volume timestamp'])assert.ok(ownerPage.includes(label));
+ assert.match(ownerPage,/report\?\.equityINR/);assert.match(ownerPage,/report\?\.netPnlINR/);
+ assert.match(ownerPage,/subsequent fresh trade/);assert.match(ownerPage,/remaining cash/);
+ assert.match(ownerPage,/bid\/ask liquidity/);assert.match(ownerPage,/unfilled exits stay visible/);
+ assert.doesNotMatch(ownerPage,/Math\.random|runAllStrategies|SYNTHETIC_FIXTURE/);
 });
 test('unrun history has no manufactured return and account reads never mutate',()=>{
- assert.match(owner,/completedSessions:null,netPnlINR:null/);
- assert.match(owner,/ledgerVerified===true/);assert.match(owner,/mode==='FORWARD'/);
- assert.doesNotMatch(owner,/method:\s*['\"](?:POST|PUT|DELETE)/);
- assert.match(owner,/last verified account is preserved/);
-});
-test('market panel keeps read-only vendor attribution and responsive styling',()=>{
- const stock=read('../src/components/StockWatchPage.tsx');
- assert.match(stock,/embed-widget-advanced-chart\.js/);assert.match(stock,/TradingView/);
- assert.match(read('../src/owner-strategy.css'),/@media/);
- assert.match(app,/aria-pressed=\{theme === 'dark'\}/);
+ assert.match(ownerPage,/completedSessions:null,netPnlINR:null/);
+ assert.match(ownerPage,/ledgerVerified===true/);assert.match(ownerPage,/mode==='FORWARD'/);
+ assert.doesNotMatch(ownerPage,/method:\s*['\"](?:POST|PUT|DELETE)/);
+ assert.match(ownerPage,/last verified account is preserved/);
 });

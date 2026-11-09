@@ -1,88 +1,87 @@
-// Live paper snapshots from a PRIVATE repository without exposing its token to browsers.
-// This endpoint is inert until a read-only Contents token is installed server-side.
-// It is a fixed-path GET-only mirror of already-public virtual research ledger data,
-// not an order / trading endpoint. Never include source, auth, or upstream errors in responses.
-import {buildCloudPaperSummary} from '../src/lib/cloudPaperDaybook.js';
-import {configuredArtifactRef,RUNTIME_DATA_REF} from '../src/lib/privateArtifact.js';
-const SOURCE='https://api.github.com/repos/hajihaz/Atlas/contents/frontend/public/cloud-paper.json?ref=';
-export const APPROVED_PREVIEW_REF='haor/atlas-runtime-completion-20261024';
-const MAX_BYTES=140_000;
-export function validatePrivateCloudSnapshot(x,now=Date.now()){
- if(!x||typeof x!=='object'||Array.isArray(x)||x.schema!==1||
-    x.mode!=='SCHEDULED_VIRTUAL_PAPER'||x.symbol!=='BTCINR'||x.currency!=='INR'||
-    x.realOrdersEnabled!==false||x.actualCapitalINR!==0||
-    !Number.isSafeInteger(x.runCount)||x.runCount<0||x.runCount>10_000_000||
-    !Array.isArray(x.sessions)||![0,5].includes(x.sessions.length)||
-    typeof x.lastRunAt!=='string'||!Number.isFinite(Date.parse(x.lastRunAt))||
-    Date.parse(x.lastRunAt)>now+30_000)
-  throw Error('invalid_paper_snapshot');
- if(x.sessions.some(s=>!s||!Number.isFinite(s.virtualEquityINR)||
-    !Number.isFinite(s.cashINR)||s.cashINR<0||
-    !Array.isArray(s.events)||s.events.length>120||
-    s.events.some(e=>!e||!['BUY','SELL'].includes(e.side)||
-      !Number.isFinite(e.modeledPriceINR)||e.modeledPriceINR<=0||
-      !Number.isFinite(e.quantity)||e.quantity<=0)))
-  throw Error('invalid_paper_snapshot');
- if(x.recentCheckpoints!==undefined){
-  const points=x.recentCheckpoints;
-  if(!Array.isArray(points)||points.length>24||
-     points.some(p=>!Number.isSafeInteger(p?.runCount)||
-       p?.realOrdersEnabled!==false||p?.actualCapitalINR!==0||
-       !Number.isSafeInteger(p?.newModeledFills)||p.newModeledFills<0))
-   throw Error('invalid_paper_snapshot');
-  if(points.length&&
-    (points.at(-1).runCount!==x.runCount||points.at(-1).at!==x.lastRunAt))
-   throw Error('invalid_paper_snapshot');
- }
- // Match the browser's full source/ledger provenance and accounting guard.
- // Syntactically valid JSON with inconsistent modeled evidence is not trusted.
- try{buildCloudPaperSummary(x)}catch{throw Error('invalid_paper_snapshot')}
- return x;
+// Same-origin authenticated owner gateway. Browser receives only an HttpOnly session cookie.
+// Upstream must be a separately hosted, persistent cloud paper worker.
+// Restore owner-only reporting without exposing virtual order submission or cancellation.
+// Keep all trading mutations behind the separately reviewed paper execution boundary.
+const allowed = Object.freeze({status: ['GET'], session: ['GET','POST','DELETE'], state: ['GET'], 'home-market': ['GET'], daybook: ['GET'], 'data-availability': ['GET'], 'market-replay': ['GET'], 'top-volume-history': ['GET'], 'nifty-opening': ['GET'], 'nse-eod-top': ['GET'], 'seven-strategies': ['GET'], 'seven-accounts': ['GET'], 'strategy-replay': ['GET'], 'strategy-journal': ['GET'], 'etf-raw-research': ['GET'], 'daily-cohort': ['GET'], 'period-rank': ['GET'], 'feed-check': ['GET']});
+function sessionCookie(raw){
+ if(typeof raw!=='string'||raw.length>4096)return null;
+ return raw.match(/(?:^|;\s*)(atlas_owner_session=[a-zA-Z0-9._-]{40,180})(?:;|$)/)?.[1]??null;
 }
-export async function getPrivateCloudSnapshot({
- token,fetcher=fetch,now=Date.now(),timeoutMs=6000,ref='main',
-}={}){
- if(typeof token!=='string'||token.trim().length<20)
-  throw Error('private_paper_source_not_configured');
- if(!['main',APPROVED_PREVIEW_REF,RUNTIME_DATA_REF].includes(ref))throw Error('invalid_paper_source_ref');
- const controller=new AbortController();
- const timer=setTimeout(()=>controller.abort(),timeoutMs);
- try{
-  const response=await fetcher(SOURCE+encodeURIComponent(ref),{method:'GET',redirect:'error',
-   signal:controller.signal,
-   headers:{
-    Accept:'application/vnd.github.raw+json',
-    Authorization:'Bearer '+token,
-    'X-GitHub-Api-Version':'2022-11-28',
-    'User-Agent':'Atlas-Public-Virtual-Ledger-ReadOnly',
-   }});
-  if(!response.ok||Number(response.headers?.get?.('content-length')||0)>MAX_BYTES)
-   throw Error('private_paper_source_unavailable');
-  const body=await response.text();
-  if(body.length>MAX_BYTES)throw Error('private_paper_source_unavailable');
-  return validatePrivateCloudSnapshot(JSON.parse(body),now);
- }finally{clearTimeout(timer);}
+function baseURL() {
+  try {
+    const raw=process.env.ATLAS_PAPER_BACKEND_URL || '';
+    const u=new URL(raw);
+    if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash||u.pathname!=='/'||!u.hostname)
+      return null;
+    return u.origin;
+  }catch{return null;}
 }
-export default async function handler(req,res){
- res.setHeader('X-Content-Type-Options','nosniff');
- res.setHeader('Cache-Control','no-store');
- if(req.method!=='GET'){
-  res.setHeader('Allow','GET');
-  return res.status(405).json({error:'method_not_allowed'});
- }
- try{
-  // Deployment env is intentionally server-only. Do NOT use VITE_ prefix or
-  // client-side tokens. Require repository-scoped Contents:read credentials.
-  const snapshot=await getPrivateCloudSnapshot({
-   token:process.env.ATLAS_PAPER_READ_TOKEN,
-   ref:configuredArtifactRef(),
-  });
-  // Retain old evidence, but never cache an overdue checkpoint as a fresh response.
-  if(Date.now()-Date.parse(snapshot.lastRunAt)<=5*3600000)
-   res.setHeader('Cache-Control','public, s-maxage=90, stale-while-revalidate=120');
-  res.setHeader('X-Atlas-Paper-Origin','private-github-read-only');
-  return res.status(200).json(snapshot);
- }catch{
-  return res.status(503).json({error:'private_paper_source_unavailable'});
- }
+export default async function handler(req,res) {
+  res.setHeader('Cache-Control','private, no-store, max-age=0');
+  res.setHeader('X-Content-Type-Options','nosniff');
+  // Static Vite projects on Vercel use /api/cloud-paper.js as the Function;
+  // subpath wildcard functions are not registered in this deployment layout.
+  const path=req.query?.action;
+  if(!Object.hasOwn(allowed,path))return res.status(404).json({error:'not_found'});
+  if(!allowed[path].includes(req.method)){
+    res.setHeader('Allow',allowed[path].join(', '));
+    return res.status(405).json({error:'method_not_allowed'});
+  }
+  const base=baseURL();
+  if(path==='status'){
+    const safe={configured:false,backendConnected:false,feedSourceConfigured:false,
+      mode:'PAPER_ONLY',realOrdersEnabled:false};
+    if(base===null)return res.status(200).json(safe);
+    try{
+      const health=await fetch(base+'/healthz',{cache:'no-store',redirect:'error',signal:AbortSignal.timeout(5000)});
+      if(!health.ok||!health.headers.get('content-type')?.startsWith('application/json'))return res.status(200).json(safe);
+      const data=await health.json();
+      if(data.mode!=='PAPER_ONLY'||data.realOrdersEnabled!==false)return res.status(200).json(safe);
+      return res.status(200).json({...safe,backendConnected:data.backendConnected===true,
+        feedSourceConfigured:data.feedSourceConfigured===true,configured:data.configured===true&&data.backendConnected===true});
+    }catch{return res.status(200).json(safe)}
+  }
+  const bearer=typeof req.headers.authorization==='string'&&/^Bearer [^\s]{32,256}$/.test(req.headers.authorization)?req.headers.authorization:null;
+  const cookie=sessionCookie(req.headers.cookie);
+  if(path!=='session'&&!bearer&&!cookie)return res.status(401).json({error:'unauthorized'});
+  if(path==='session'&&req.method==='POST'&&!bearer)return res.status(401).json({error:'unauthorized'});
+  if(path==='session'&&req.method==='GET'&&!cookie)return res.status(401).json({error:'unauthorized'});
+  if(path==='session'&&req.method==='DELETE'&&!bearer&&!cookie)return res.status(401).json({error:'unauthorized'});
+  // Cookie-authenticated session revocation must originate on this exact host.
+  if(!bearer&&cookie&&['POST','DELETE'].includes(req.method)&&
+     (typeof req.headers.host!=='string'||req.headers.origin!=='https://'+req.headers.host))
+    return res.status(403).json({error:'origin_required'});
+  // Private endpoints must reject anonymous callers even when the backend is not configured.
+  if(base===null)return res.status(503).json({error:'cloud_paper_not_configured'});
+  let body;
+  if(req.method==='POST'){
+    if(req.headers['content-type']?.split(';')[0]!=='application/json')
+      return res.status(415).json({error:'JSON required'});
+    body=JSON.stringify(req.body);
+    if(body.length>20_000)return res.status(413).json({error:'request_too_large'});
+  }
+  try{
+    const query=new URLSearchParams();
+    for(const key of ['day','symbol','strategy','source_day','as_of_day']){
+      const value=req.query?.[key];
+      if(typeof value==='string'&&value.length<=80)query.set(key,value);
+    }
+    const upstream=await fetch(base+'/api/cloud-paper/'+path+(query.size?'?'+query.toString():''),{
+      method:req.method,
+      headers:{...(bearer?{Authorization:bearer}:{}),...(cookie?{Cookie:cookie}:{}),...(body?{'Content-Type':'application/json'}:{})},
+      body,redirect:'error',cache:'no-store',signal:AbortSignal.timeout(8000)
+    });
+    const contentType=upstream.headers.get('content-type')||'';
+    if(!contentType.startsWith('application/json'))throw Error('invalid upstream');
+    if(path==='session'){
+      const setCookie=upstream.headers.get('set-cookie');
+      if(setCookie?.startsWith('atlas_owner_session=')&&setCookie.includes('HttpOnly')&&setCookie.includes('Secure')&&setCookie.includes('SameSite=Strict'))
+        res.setHeader('Set-Cookie',setCookie);
+    }
+    const response=await upstream.json();
+    // Never trust the upstream to return executable strings/HTML to users.
+    return res.status(upstream.status).json(response);
+  }catch{
+    return res.status(503).json({error:'cloud_paper_unreachable'});
+  }
 }

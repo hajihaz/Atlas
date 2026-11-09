@@ -16,8 +16,7 @@ test('ScalpStorm dashboard exposes ten equal planned slots, virtual-only',()=>{
  assert.match(panel,/not invested capital/);
  assert.match(panel,/18 September/);
  assert.match(panel,/16 October 2026/);
- assert.match(lab,/<OwnerStrategyPage\/>/);
- assert.doesNotMatch(lab,/ScalpStormDetailed|ScalpStormAllocationPlan/);
+ assert.match(lab,/mode==='scalpstorm'\)return <ScalpStormDetailed\/>/);
  assert.match(detailed,/<ScalpStormAllocationPlan\/>/);
  assert.match(detailed,/Historical stock data missing/);
  assert.match(detailed,/Unavailable; not ₹0/);

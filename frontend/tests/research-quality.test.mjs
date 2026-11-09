@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import {getLab} from '../api/strategy-lab.js';
 test('the active catalog reports no invented source quality or historical performance',async()=>{
  const lab=await getLab();assert.equal(lab.schema,'atlas.owner-strategy-catalog.v1');
- assert.equal(lab.actualCapitalINR,0);assert.equal(lab.strategies.length,1);
- assert.equal(lab.strategies[0].results,null);assert.equal(lab.paperOnly,true);
+ assert.equal(lab.actualCapitalINR,0);assert.equal(lab.strategies.length,6);
+ assert.equal(lab.strategies[0].id,'scalpstorm_x_0940');
+ assert.ok(lab.strategies.every(s=>s.results===null));assert.equal(lab.paperOnly,true);
  assert.equal(lab.realOrdersEnabled,false);
  for(const key of ['dataQuality','modeledReturnPct','barCount','endingEquityINR'])assert.equal(lab[key],undefined);
 });

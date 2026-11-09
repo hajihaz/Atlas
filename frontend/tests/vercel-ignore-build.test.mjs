@@ -33,7 +33,7 @@ test('production/main data-only skip requires verified baseline and live read-on
 test('IPO, runtime, CI, framework, research edits always require build',()=>{
  for(const changed of [
   'frontend/public/ipo-feed.json','frontend/public/ipo-accuracy.json',
-  'frontend/src/components/CloudPaperCard.tsx','frontend/api/cloud-paper.js',
+  'frontend/src/components/CloudPaperCard.tsx','frontend/api/cloud-paper.js','frontend/api/cloud-paper-snapshot.js',
   'frontend/src/App.tsx','frontend/vercel.json','.github/workflows/atlas-paper-scheduled.yml',
   'scripts/run_scheduled_paper.mjs','frontend/tests/ipo-intelligence.test.mjs',
   'research/nse-certification/certify.mjs','AGENTS.md',

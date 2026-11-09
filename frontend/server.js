@@ -3,7 +3,7 @@
 // broker, order, or production server.
 import http from 'node:http';
 import {readFile,lstat} from 'node:fs/promises';
-import {validatePrivateCloudSnapshot} from './api/cloud-paper.js';
+import {validatePrivateCloudSnapshot} from './api/cloud-paper-snapshot.js';
 import {validatePublisherIpoSnapshot} from './src/lib/publisherIpoValidation.js';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
@@ -18,6 +18,7 @@ import { fileURLToPath } from 'node:url';
 const ROUTES = Object.freeze({
   '/api/closed-candles': () => import('./api/closed-candles.js'),
   '/api/cloud-paper': () => import('./api/cloud-paper.js'),
+  '/api/cloud-paper-snapshot': () => import('./api/cloud-paper-snapshot.js'),
   '/api/live-feed': () => import('./api/live-feed.js'),
   '/api/market-history': () => import('./api/market-history.js'),
   '/api/market-inr': () => import('./api/market-inr.js'),
@@ -92,7 +93,7 @@ export function createLocalApiServer({serveBuild=false,readOnly=false,
     if(serveBuild&&!rawPath.startsWith('/api/')){await serveOwnerBuild(request,response);return;}
     if(rawPath==='/api/local-paper'){await localPaper(request,response);return;}
     if(rawPath==='/api/ipo-feed'){await ownerSnapshot(request,response,'ipo');return;}
-    if(rawPath==='/api/cloud-paper'){await ownerSnapshot(request,response,'paper');return;}
+    if(rawPath==='/api/cloud-paper-snapshot'){await ownerSnapshot(request,response,'paper');return;}
     if (!Object.hasOwn(ROUTES, rawPath)) {
       response.writeHead(404, { 'Content-Type': 'application/json', 'X-Content-Type-Options': 'nosniff' });
       response.end(JSON.stringify({ error: 'not_found' }));

@@ -68,6 +68,5 @@ test('local file inspector neither uploads nor grants execution rights',()=>{
  assert.match(component,/await file\.text\(\)/);
  assert.match(component,/never uploaded|never uploaded/i);
  assert.doesNotMatch(component,/\bfetch\s*\(|\bFormData\b|localStorage|realOrdersEnabled\s*=\s*true/);
- assert.doesNotMatch(lab,/AdvancedResearchImport/);
- assert.match(lab,/<OwnerStrategyPage\/>/);
+ assert.match(lab,/mode==='research'&&<AdvancedResearchImport\/>/);
 });

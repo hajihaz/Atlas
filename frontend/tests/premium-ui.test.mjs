@@ -17,11 +17,13 @@ test('active app has no simulated equity, frozen financial figures or dollar cur
   assert.match(market,/currency:'INR'/);
 });
 test('all existing sections remain reachable without demonstrative trades',()=>{
-  for(const id of ['overview','markets','strategies','ipo','risk','orders','audit'])
-    assert.match(app,new RegExp("id:'"+id+"'"));
+  for(const id of ['live','overview','markets','ipo','strategies','research','scalpstorm','debate','trials','strategyrisk','risk','orders','audit'])
+    assert.match(app,new RegExp("\\{id:'"+id+"'"));
   assert.match(app,/OwnerStrategyPage/);
   assert.match(app,/OwnerEvidencePage/);
-  assert.doesNotMatch(app,/function SimplePage|usePaperTrials|RealMarketPage/);
+  assert.match(app,/RealMarketPage/);
+  assert.match(app,/usePaperTrials/);
+  assert.match(app,/Broker orders remain disabled/);
 });
 test('source and stale controls prevent fabricated references',()=>{
   assert.match(market,/Date\.parse\(data\.retrievedAt\)>90000/);

@@ -62,7 +62,7 @@ export default function CloudPaperCard(){
        // GitHub ledger without triggering Vercel deploys. Never send auth from
        // a browser. A 503 falls back to the older Vercel-embedded read-only copy.
        let r:Response|undefined;
-       try{r=await fetch('/api/cloud-paper',{
+       try{r=await fetch('/api/cloud-paper-snapshot',{
          cache:'no-store',credentials:'omit',signal:controller.signal,
        });}catch{/* Private source unavailable; try a deployed snapshot. */}
        const origin:'repository'|'deployment'=r?.ok&&
