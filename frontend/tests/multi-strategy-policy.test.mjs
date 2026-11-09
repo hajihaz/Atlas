@@ -25,7 +25,7 @@ test('the UI still exposes strategies, research, paper trials, ScalpStorm X and 
   const app=read('../src/App.tsx');
   for(const id of ['strategies','research','scalpstorm','debate','orders'])
     assert.match(app,new RegExp("\\{id:'"+id+"'"),'nav item '+id);
-  assert.match(app,/import PaperTrialsPage/);
+  assert.match(app,/PaperTrialsPage = lazy\(\(\) => import\('\.\/components\/PaperTrialsPage'\)\)/);
   assert.match(app,/<PaperTrialsPage/);
   assert.ok(existsSync(new URL('../src/components/PaperTrialsPage.tsx',import.meta.url)));
 });

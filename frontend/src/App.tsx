@@ -5,13 +5,14 @@ import {
   History, Layers3, LayoutDashboard, LockKeyhole, Menu, Moon,
   MoreHorizontal, ShieldCheck, Sun, X, BarChart3, BookOpenText, TrendingUp,
 } from 'lucide-react';
-import RealMarketPage from './components/RealMarketPage';
-import StrategyLabPage from './components/StrategyLabPage';
-import DebateXPage from './components/DebateXPage';
-import StockWatchPage from './components/StockWatchPage';
-import PaperTrialsPage from './components/PaperTrialsPage';
-import RiskAuditPage from './components/RiskAuditPage';
 import {usePaperTrials} from './lib/usePaperTrials';
+// Pages load on demand so the initial bundle only carries the shell (ADR-0070 keeps all of them).
+const RealMarketPage = lazy(() => import('./components/RealMarketPage'));
+const StrategyLabPage = lazy(() => import('./components/StrategyLabPage'));
+const DebateXPage = lazy(() => import('./components/DebateXPage'));
+const StockWatchPage = lazy(() => import('./components/StockWatchPage'));
+const PaperTrialsPage = lazy(() => import('./components/PaperTrialsPage'));
+const RiskAuditPage = lazy(() => import('./components/RiskAuditPage'));
 const LiveLabPage = lazy(() => import('./components/LiveLabPage'));
 const OwnerStrategyPage = lazy(() => import('./components/OwnerStrategyPage'));
 const OwnerEvidencePage = lazy(() => import('./components/OwnerEvidencePage'));
@@ -141,6 +142,7 @@ export default function App(){
         <button type="button" className="header-user" onClick={()=>go('audit')} aria-label="A — Audit and evidence"><span aria-hidden="true">A</span></button>
       </div>
     </header><main id="atlas-main" tabIndex={-1} className="main-content premium-page-view" key={page}>
+      <Suspense fallback={<div role="status" className="panel market-loading">Loading…</div>}>
       {page==='live'?<Suspense fallback={<div role="status" className="panel market-loading">Checking live INR sources…</div>}><LiveLabPage goStrategies={()=>go('strategies')} goMarkets={()=>go('markets')} goScalpStorm={()=>go('scalpstorm')}/></Suspense>:
         page==='overview'?<RealMarketPage variant="overview" paperGroup={paper.group} onNavigate={v=>go(v)}/>:
         page==='ipo'?<Suspense fallback={<div className='panel market-loading' role='status'>Loading IPO research…</div>}><IPOIntelligencePage/></Suspense>:
@@ -156,6 +158,7 @@ export default function App(){
         // scalpstorm (flagship), orders (Paper Journal) and nse: the owner 09:40 paper desk.
         page==='scalpstorm'||page==='orders'||page==='nse'?<Suspense fallback={<div role="status" className="panel market-loading">Reading ScalpStorm X…</div>}><OwnerStrategyPage/></Suspense>:
         <RealMarketPage variant="overview" paperGroup={paper.group} onNavigate={v=>go(v)}/>}
+      </Suspense>
 
       <footer className="app-footer"><span>© 2026 ATLAS QUANTITATIVE SYSTEMS</span><div><span className="footer-safety-dot"/> All financial amounts in ₹ <span className="footer-separator">·</span> Owner-local paper account <span className="footer-separator">·</span> Broker orders disabled</div></footer>
     </main></div>

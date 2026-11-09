@@ -86,6 +86,11 @@ def test_replay_is_causal_unqualified_and_cannot_reset_existing_research(tmp_pat
             }
         )
     )
+    # The production check rejects group/world-readable snapshot files. Make the fixture
+    # owner-private explicitly so the test does not depend on the runner's umask (CI uses 022).
+    for fixture_file in tmp_path.rglob("*"):
+        if fixture_file.is_file():
+            fixture_file.chmod(0o600)
     args = [
         "replay",
         "--upstox-credential-file",
