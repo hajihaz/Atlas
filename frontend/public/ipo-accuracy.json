@@ -4,12 +4,62 @@
   "sourceAPI": "https://gmptoday.in/api/accuracy.json",
   "license": "CC BY 4.0",
   "attribution": "Historical IPO GMP audit compiled by gmptoday.in",
-  "generatedAt": "2026-10-23T03:25:42+05:30",
-  "totalPublished": 282,
-  "sourceDirectionAccuracyPct": 82.3,
+  "generatedAt": "2026-10-25T10:00:30+05:30",
+  "totalPublished": 287,
+  "sourceDirectionAccuracyPct": 81.9,
   "sourceAverageAbsoluteErrorPctPoints": 9.8,
   "scopeWarning": "Self-published third-party audit; not independently validated. Small SME sample limits conclusions.",
   "rows": [
+    {
+      "company": "Tonbo Imaging India",
+      "board": "MAINBOARD",
+      "listedOn": "23 Oct 2026",
+      "predictedPct": 72.86,
+      "actualPct": 65.71,
+      "gmpAtClose": 510.02,
+      "priceIssue": 700.0,
+      "priceListing": 1160.0
+    },
+    {
+      "company": "Sahajanand Medical Technologies",
+      "board": "MAINBOARD",
+      "listedOn": "23 Oct 2026",
+      "predictedPct": 6.98,
+      "actualPct": 7.85,
+      "gmpAtClose": 24.01,
+      "priceIssue": 344.0,
+      "priceListing": 371.0
+    },
+    {
+      "company": "Zetwerk",
+      "board": "MAINBOARD",
+      "listedOn": "23 Oct 2026",
+      "predictedPct": 2.32,
+      "actualPct": 5.3,
+      "gmpAtClose": 3.5,
+      "priceIssue": 151.0,
+      "priceListing": 159.0
+    },
+    {
+      "company": "Shellz India",
+      "board": "SME",
+      "listedOn": "23 Oct 2026",
+      "predictedPct": 25.7,
+      "actualPct": 0.0,
+      "gmpAtClose": 46.0,
+      "priceIssue": 179.0,
+      "priceListing": 179.0
+    },
+    {
+      "company": "Bonfiglioli Transmissions",
+      "board": "MAINBOARD",
+      "listedOn": "23 Oct 2026",
+      "predictedPct": 21.67,
+      "actualPct": 0.0,
+      "gmpAtClose": 126.99,
+      "priceIssue": 586.0,
+      "priceListing": 586.0
+    },
     {
       "company": "Fusion CX",
       "board": "MAINBOARD",
@@ -22,7 +72,7 @@
     },
     {
       "company": "Ravita Engineering Services",
-      "board": "UNKNOWN",
+      "board": "SME",
       "listedOn": "22 Oct 2026",
       "predictedPct": 1.79,
       "actualPct": 0.0,
@@ -264,7 +314,7 @@
       "company": "Gaja Alternative Asset Management",
       "board": "MAINBOARD",
       "listedOn": "26 Aug 2026",
-      "predictedPct": 11.88,
+      "predictedPct": 11.25,
       "actualPct": 15.62,
       "gmpAtClose": 18.0,
       "priceIssue": 160.0,
@@ -559,56 +609,6 @@
       "gmpAtClose": -20.0,
       "priceIssue": 104.0,
       "priceListing": 68.0
-    },
-    {
-      "company": "Amagi Media Labs",
-      "board": "MAINBOARD",
-      "listedOn": "21 Jan 2026",
-      "predictedPct": -0.28,
-      "actualPct": -11.91,
-      "gmpAtClose": -1.0,
-      "priceIssue": 361.0,
-      "priceListing": 318.0
-    },
-    {
-      "company": "Nephrocare Health",
-      "board": "MAINBOARD",
-      "listedOn": "17 Dec 2025",
-      "predictedPct": 8.7,
-      "actualPct": 6.52,
-      "gmpAtClose": 40.0,
-      "priceIssue": 460.0,
-      "priceListing": 490.0
-    },
-    {
-      "company": "Park Medi World",
-      "board": "MAINBOARD",
-      "listedOn": "17 Dec 2025",
-      "predictedPct": 3.09,
-      "actualPct": -1.98,
-      "gmpAtClose": 5.0,
-      "priceIssue": 162.0,
-      "priceListing": 158.8
-    },
-    {
-      "company": "Corona Remedies",
-      "board": "MAINBOARD",
-      "listedOn": "15 Dec 2025",
-      "predictedPct": 32.02,
-      "actualPct": 38.42,
-      "gmpAtClose": 340.0,
-      "priceIssue": 1062.0,
-      "priceListing": 1470.0
-    },
-    {
-      "company": "Wakefit Innovations",
-      "board": "MAINBOARD",
-      "listedOn": "15 Dec 2025",
-      "predictedPct": 2.05,
-      "actualPct": 0.0,
-      "gmpAtClose": 4.0,
-      "priceIssue": 195.0,
-      "priceListing": 195.0
     }
   ]
 }

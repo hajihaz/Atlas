@@ -1,4 +1,99 @@
 {
-  "version": 1,
-  "tasks": []
+  "version": 3,
+  "updated_at": "2026-10-26T18:24:56.989737+00:00",
+  "objective_id": "atlas-upstox-only-paper-pilot-20261026",
+  "repo": "/Users/hajihaz/projects/atlas-consolidated-20261026",
+  "branch": "haor/atlas-consolidated-20261026",
+  "pull_request": 52,
+  "tasks": [
+    {
+      "id": "upstox_source_and_fixed_universe",
+      "status": "completed_verified"
+    },
+    {
+      "id": "causal_five_strategy_engine",
+      "status": "completed_verified"
+    },
+    {
+      "id": "crash_safe_accounting_and_risk",
+      "status": "completed_verified"
+    },
+    {
+      "id": "frozen_history_and_owner_reports",
+      "status": "completed_verified"
+    },
+    {
+      "id": "combined_regressions",
+      "status": "completed_verified"
+    },
+    {
+      "id": "isolated_mac_services_and_browser",
+      "status": "completed_verified"
+    },
+    {
+      "id": "exact_code_preview",
+      "status": "completed_verified"
+    },
+    {
+      "id": "owner_workspace_review",
+      "status": "accepted_by_owner",
+      "evidence": ".ai/OWNER_ACCEPTANCE_20261026.json"
+    },
+    {
+      "id": "complete_CI_test_discovery",
+      "status": "completed_verified",
+      "result": "All523 JS tests via actual workflow command;existing runner and assertions preserved"
+    },
+    {
+      "id": "separate_temporal_validation",
+      "status": "completed_verified",
+      "result": "ALL_FIVE_NOT_QUALIFIED; losses and risk halts preserved"
+    },
+    {
+      "id": "historical_certification_evidence_review",
+      "status": "completed_verified",
+      "certification_granted": false
+    }
+  ],
+  "publication_guard": ".ai/raw/nonmarket-acceptance-20261026/final-acceptance.json must match branch HEAD",
+  "pending_tasks": [
+    {
+      "id": "first_genuine_open_session",
+      "status": "waiting_market_time",
+      "requires_owner": false,
+      "reason": "Genuine open-session NSE paper observation with completed candles and recorded causal decisions; no invented fills"
+    }
+  ],
+  "release_backlog": [
+    {
+      "id": "hosted_ci",
+      "status": "external_account_gate",
+      "reason": "Required GitHub-hosted jobs still cannot start; authenticated billing access is unavailable to current CLI/browser"
+    },
+    {
+      "id": "production_acceptance",
+      "status": "authorized_conditional_on_required_ci",
+      "additional_owner_review_required": false,
+      "reason": "Owner accepts workspace and normal release; required actual checks are not waived"
+    }
+  ],
+  "future_backlog": [
+    {
+      "id": "fyers_comparison",
+      "required_for_pilot": false,
+      "status": "optional_future"
+    },
+    {
+      "id": "openalgo_bridge",
+      "required_for_pilot": false,
+      "status": "optional_future"
+    },
+    {
+      "id": "original_scalpstorm_qualification",
+      "required_for_pilot": false,
+      "status": "broader_objective_deferred",
+      "reason": "Historical market-wide PIT universe, top-volume, corporate-action/timing/rights evidence and real cost/holdout/forward qualification remain separate"
+    }
+  ],
+  "executable_tasks": []
 }

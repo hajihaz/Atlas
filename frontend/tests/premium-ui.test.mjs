@@ -17,12 +17,13 @@ test('active app has no simulated equity, frozen financial figures or dollar cur
   assert.match(market,/currency:'INR'/);
 });
 test('all existing sections remain reachable without demonstrative trades',()=>{
-  for(const id of ['overview','markets','strategies','research','scalpstorm','risk','orders','audit'])
-    assert.match(app,new RegExp("id:'"+id+"'"));
-  assert.match(app,/function SimplePage/);
-  assert.match(app,/No verified order records connected/);
-  assert.match(app,/Stock trading results not verified/);
-  assert.match(app,/Live-capital authorization/);
+  for(const id of ['live','overview','markets','ipo','strategies','research','scalpstorm','debate','trials','strategyrisk','risk','orders','audit'])
+    assert.match(app,new RegExp("\\{id:'"+id+"'"));
+  assert.match(app,/OwnerStrategyPage/);
+  assert.match(app,/OwnerEvidencePage/);
+  assert.match(app,/RealMarketPage/);
+  assert.match(app,/usePaperTrials/);
+  assert.match(app,/Broker orders remain disabled/);
 });
 test('source and stale controls prevent fabricated references',()=>{
   assert.match(market,/Date\.parse\(data\.retrievedAt\)>90000/);
@@ -46,5 +47,5 @@ test('only read-only indicative values are permitted in financial cards',()=>{
   assert.match(market,/Five source-driven virtual accounts/);
   assert.match(market,/real historical INR backtests/);
   assert.match(market,/All money values in Indian rupees/);
-  assert.match(app,/No verified broker portfolio/);
+  assert.match(app,/Broker orders remain disabled/);
 });

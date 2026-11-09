@@ -1,0 +1,7 @@
+{
+  "schema": "atlas.nse-bundle.v1",
+  "kind": "HISTORICAL_MARKET",
+  "producer": "Atlas NSE source research",
+  "files": [],
+  "sessions": []
+}

@@ -30,6 +30,22 @@ test('failed provider returns honest disconnected state',async()=>{
  assert.ok(result.quotes.every(x=>x.price===null));
  assert.equal(result.realOrdersEnabled,false);
 });
+test('cached quotes lose RECENT status exactly when source timestamps expire',async()=>{
+ const base=now+400000;
+ const rows=['BTCINR','ETHINR','SOLINR','XRPINR','DOGEINR'].map(market=>({
+  ...sample[0],market,timestamp:Math.floor(base/1000)-88,
+ }));
+ let requests=0;
+ const fetcher=async()=>{requests++;return {ok:true,json:async()=>rows};};
+ const first=await getLiveFeed(fetcher,base);
+ assert.equal(first.feedStatus,'RECENT');
+ assert.ok(first.quotes.every(q=>q.price!==null));
+ const expired=await getLiveFeed(fetcher,base+3000);
+ assert.equal(requests,1,'must reuse cache without an extra provider request');
+ assert.equal(expired.feedStatus,'DISCONNECTED');
+ assert.ok(expired.quotes.every(q=>q.price===null&&q.status==='stale_or_future'));
+ assert.equal(expired.realOrdersEnabled,false);
+});
 test('GET only; no order or mutation endpoint',async()=>{
  const res={setHeader(k,v){this[k]=v;},status(n){this.code=n;return this;},json(v){return v;}};
  const output=await handler({method:'POST',body:{side:'BUY',quantity:1}},res);

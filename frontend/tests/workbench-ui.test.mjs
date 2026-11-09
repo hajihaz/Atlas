@@ -15,7 +15,7 @@ test('all formerly placeholder pages route to active source-backed functionality
  assert.match(app,/<StrategyLabPage mode=\{page\}/);
  assert.match(app,/<PaperTrialsPage group=\{paper\.group\}/);
  assert.match(app,/<StockWatchPage theme=\{theme\}/);
- assert.match(app,/<RiskAuditPage mode=\{page\}/);
+ assert.match(app,/<RiskAuditPage mode="risk"/);
 });
 test('strategy page lists every strategy, shows simulated metrics and real provider candle provenance',()=>{
  assert.match(strat,/s\.name/);
@@ -62,4 +62,27 @@ test('six research roles are rendered from selected source-backed historical res
  assert.match(engine,/outcome=!measured\|\|overLimit\?'SKIP':'WAIT'/);
  assert.match(css,/\.council-grid/);
  assert.match(css,/@media\(max-width:640px\)/);
+});
+
+const ownerPage=read('../src/components/OwnerStrategyPage.tsx');
+test('multi-strategy shell keeps owner desk, five-strategy lab, paper trials and Debate X (ADR-0070)',()=>{
+ assert.match(app,/<OwnerStrategyPage\/>/);assert.match(app,/<OwnerEvidencePage\/>/);
+ assert.match(app,/<StrategyLabPage mode=\{page\}/);
+ assert.match(app,/<PaperTrialsPage group=\{paper\.group\}/);
+ assert.match(app,/<RiskAuditPage mode="risk"/);assert.match(app,/<DebateXPage\/>/);
+ assert.match(app,/usePaperTrials\(\)/);
+ assert.match(read('../src/components/StrategyLabPage.tsx'),/s\.name/);
+});
+test('ScalpStorm X owner desk shows source-observed account and causal selection',()=>{
+ for(const label of ['9:40','3:15','₹1,00,000','₹10,000','Net paper P/L','Volume timestamp'])assert.ok(ownerPage.includes(label));
+ assert.match(ownerPage,/report\?\.equityINR/);assert.match(ownerPage,/report\?\.netPnlINR/);
+ assert.match(ownerPage,/subsequent fresh trade/);assert.match(ownerPage,/remaining cash/);
+ assert.match(ownerPage,/bid\/ask liquidity/);assert.match(ownerPage,/unfilled exits stay visible/);
+ assert.doesNotMatch(ownerPage,/Math\.random|runAllStrategies|SYNTHETIC_FIXTURE/);
+});
+test('unrun history has no manufactured return and account reads never mutate',()=>{
+ assert.match(ownerPage,/completedSessions:null,netPnlINR:null/);
+ assert.match(ownerPage,/ledgerVerified===true/);assert.match(ownerPage,/mode==='FORWARD'/);
+ assert.doesNotMatch(ownerPage,/method:\s*['\"](?:POST|PUT|DELETE)/);
+ assert.match(ownerPage,/last verified account is preserved/);
 });

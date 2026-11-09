@@ -1,10 +1,6 @@
 name: atlas-paper-scheduled
 on:
-  schedule:
-    # Two attempts per completed even-UTC two-hour bar: +35 and +80m.
-    # Same 24/day budget; hedge both early and delayed source publication.
-    - cron: '35 0-22/2 * * *'
-    - cron: '20 1-23/2 * * *'
+  # Retired comparison strategies: archived research may only be invoked manually.
   workflow_dispatch:
 permissions:
   contents: write

@@ -3,11 +3,10 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {assessPaperCadence} from '../src/lib/paperCadence.js';
 const at=x=>Date.parse(x);
-test('two new UTC candle slots are +35 and +80 minutes, without extra runs',()=>{
+test('retired comparisons have no automatic schedule; archived cadence remains inspectable',()=>{
  const workflow=readFileSync(new URL('../../.github/workflows/atlas-paper-scheduled.yml',import.meta.url),'utf8');
- assert.match(workflow,/cron:\s*'35 0-22\/2 \* \* \*'/);
- assert.match(workflow,/cron:\s*'20 1-23\/2 \* \* \*'/);
- assert.equal((workflow.match(/- cron:/g)||[]).length,2);
+ assert.doesNotMatch(workflow,/cron:/);
+ assert.match(workflow,/workflow_dispatch:/);
  const state=assessPaperCadence('2026-10-19T22:37:32Z',at('2026-10-20T00:14:00Z'));
  assert.equal(state.nextDueAt,'2026-10-20T00:35:00.000Z');
  assert.equal(state.overdue,true); // Prior +70-minute window passed without new ledger
@@ -34,4 +33,31 @@ test('UTC midnight and year boundary remain correct and future clock fails close
  assert.equal(across.nextDueAt,'2027-01-01T00:35:00.000Z');
  const bad=assessPaperCadence('2026-10-20T04:00:00Z',at('2026-10-20T02:10:00Z'));
  assert.equal(bad.state,'INVALID_FUTURE_SNAPSHOT');
+});
+
+test('overdue publication windows count ONLY saved-checkpoint gaps, not failed jobs',()=>{
+ const at=x=>Date.parse(x);
+ const one=assessPaperCadence('2026-10-20T00:35:58Z',at('2026-10-20T02:10:00Z'));
+ assert.equal(one.unpublishedNominalSlots48h,1); // 01:20 completed grace at 02:05
+ const beforeGrace=assessPaperCadence('2026-10-20T00:35:58Z',at('2026-10-20T02:04:59Z'));
+ assert.equal(beforeGrace.unpublishedNominalSlots48h,0);
+ const afterNew=assessPaperCadence('2026-10-20T01:21:00Z',at('2026-10-20T02:10:00Z'));
+ assert.equal(afterNew.unpublishedNominalSlots48h,0);
+ const weekOld=assessPaperCadence('2026-10-12T22:30:00Z',at('2026-10-20T02:10:00Z'));
+ assert.equal(weekOld.unpublishedNominalSlots48h,48); // only recent 48h, not retroactive week
+ assert.equal(assessPaperCadence(null,at('2026-10-20T02:10:00Z')).unpublishedNominalSlots48h,null);
+ assert.equal(assessPaperCadence('2026-10-20T04:00:00Z',at('2026-10-20T02:10:00Z')).unpublishedNominalSlots48h,null);
+});
+test('browser only links to actual GitHub workflow; no mutable paper recovery action',()=>{
+ const file=readFileSync(new URL('../src/components/CloudPaperCard.tsx',import.meta.url),'utf8');
+ assert.match(file,/Unpublished scheduled slots \(48h\)/);
+ assert.match(file,/https:\/\/github.com\/hajihaz\/Atlas\/actions\/workflows\/atlas-paper-scheduled.yml/);
+ assert.match(file,/not<\/strong> a count of confirmed/);
+});
+
+test('a later paper refresh failure remains visible beside retained prior evidence',()=>{
+ const file=readFileSync(new URL('../src/components/CloudPaperCard.tsx',import.meta.url),'utf8');
+ assert.match(file,/problem&&<div className="cloud-paper-notice" role="alert">/);
+ assert.match(file,/last successfully\s+validated checkpoint/);
+ assert.match(file,/No new virtual trades can be inferred/);
 });

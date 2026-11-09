@@ -1,0 +1,112 @@
+{
+  "objective_id": "atlas-owner-primary-0940-20261027",
+  "objective": "Remove active demo/testing figures and five comparison strategies; implement the owner ScalpStorm X top-volume 09:40-to-15:15 NSE paper strategy, truthful historical coverage and seamless IPO research updates",
+  "scope_hash": "13de8016958f6ae3b2d7dc607b9eb757f2c807b3e98c2b77358744898f7cc530",
+  "constraints": [
+    "zero new spend",
+    "paper only; no broker order calls",
+    "preserve old audit journals and unrelated dirty AGENTS.md",
+    "no synthetic performance or fake return/confidence numbers",
+    "SGX/GIFT strategy deferred",
+    "normal production release only after actual required hosted CI"
+  ],
+  "approval": {
+    "status": "APPROVED",
+    "source": "Owner explicit instruction and correction to09:40; continuation does not reopen preflight",
+    "owner_workspace_accepted": true,
+    "normal_release_authorized_after_required_hosted_ci": true
+  },
+  "strategy": {
+    "id": "scalpstorm_x_0940",
+    "entryIST": "09:40",
+    "exitIST": "15:15",
+    "virtualCapitalINR": 100000,
+    "stockSlots": 10,
+    "targetPerStockINR": 10000,
+    "wholeShares": true,
+    "leverage": 1,
+    "universe": "Eligible regular-lot NSE cash equities from fresh provider instrument master; all-NSE ranking, not fixed Nifty50 constituents",
+    "ranking": "Descending cumulative same-session share volume using only pre-entry observations; deterministic ties by symbol",
+    "niftySignalTimeIST": "09:30",
+    "niftyDirectionRule": ">+0.2% bullish BUY; [-0.2%,+0.2%] moderate BUY; <-0.2% bearish paper SELL, per retrieved original owner rule",
+    "niftyReference": "Source-reported previous close; freeze before stock entry",
+    "sellAccounting": "Fully cash-collateralized virtual short; sale proceeds unavailable for reinvestment; no actual borrowing",
+    "unconfirmedOldAssistantDefaults": [
+      "2% stock stop-loss",
+      "+/-0.15% Nifty threshold"
+    ],
+    "forwardExecution": "Only fresh subsequent observed trades with bid/ask and liquidity; missing data prevents fills",
+    "history": "Real source prices; no future full-day ranking or fabricated historical point-in-time universe"
+  },
+  "milestones": [
+    {
+      "name": "scope and verified source limits",
+      "weight": 10,
+      "status": "verified",
+      "earned": 10
+    },
+    {
+      "name": "primary source engine and durable accounting",
+      "weight": 25,
+      "status": "verified",
+      "earned": 25
+    },
+    {
+      "name": "honest price history and strategy coverage",
+      "weight": 15,
+      "status": "verified_with_explicit_source_limits",
+      "earned": 15
+    },
+    {
+      "name": "professional active UI without test strategies",
+      "weight": 15,
+      "status": "verified",
+      "earned": 15
+    },
+    {
+      "name": "seamless source-backed IPO research",
+      "weight": 15,
+      "status": "verified",
+      "earned": 15
+    },
+    {
+      "name": "regression and private preview acceptance",
+      "weight": 10,
+      "status": "verified",
+      "earned": 10
+    },
+    {
+      "name": "genuine market-session acceptance",
+      "weight": 5,
+      "status": "time_gate",
+      "earned": 0
+    },
+    {
+      "name": "hosted CI and production acceptance",
+      "weight": 5,
+      "status": "free_quota_gate",
+      "earned": 0
+    }
+  ],
+  "progress": {
+    "score": 90,
+    "maximum": 100,
+    "basis": "Owner-primary milestone weights; genuine session5 and hostedCI/production5 remain unearned"
+  },
+  "progress_basis": ".ai/OWNER_PRIMARY_OBJECTIVE_20261027.json",
+  "status": "VERIFYING_FINAL_PUBLISHER_LIFECYCLE",
+  "owner_input_required_now": false,
+  "owner_relay_required": false,
+  "full_objective_acceptance": false,
+  "prior_scope_archive": ".ai/raw/owner-primary-strategy-20261027/superseded-OBJECTIVE_ENVELOPE.json",
+  "latest_evidence": ".ai/raw/owner-primary-strategy-20261027/final-acceptance.json",
+  "next_action": "Verify publisher lifecycle repair, publish final source checkpoint, then only actual entitlement recovery and a complete independently auditable genuine session remain.",
+  "remaining_release_gates": [
+    "Genuine complete auditable market session; today five unresolved exits and missing fill-time source-book receipts",
+    "GitHub Free Actions2000/2000 consumed; verify actual entitlement recovery before reserved run"
+  ],
+  "future_backlog": [
+    "Second strategy using SGX/GIFT Nifty, pending owner discussion"
+  ],
+  "updated_at": "2026-10-27T10:57:07.506008+00:00"
+}

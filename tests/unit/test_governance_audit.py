@@ -10,6 +10,12 @@ class GovernanceAuditTests(unittest.TestCase):
         findings = scan_tree(Path("src/atlas"))
         self.assertEqual(findings, ())
 
+    def test_transport_filename_cannot_bypass_authority_scanner(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fake = Path(directory) / "read_only_transport.py"
+            fake.write_text("build_opener()\n")
+            self.assertEqual(scan_tree(Path(directory))[0].code, "NETWORK_AUTHORITY")
+
     def test_audit_detects_suspicious_network_and_secret(self):
         with tempfile.TemporaryDirectory() as d:
             p = Path(d) / "x.py"

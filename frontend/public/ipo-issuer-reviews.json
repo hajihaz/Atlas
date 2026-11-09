@@ -1,0 +1,1233 @@
+{
+  "schemaVersion": 1,
+  "methodology": "Exact issuer, board and offer-date join. Physical PDF pages and SHA-256 pin reviewed sources. Lakh values divide by100 and million values by10 for INR crore. Issuer-reported dated peers remain separate from any independently dated peer audit. Historical earnings multiples do not establish fair value; all decisions remain HOLD_FOR_MANUAL_REVIEW. No full prospectus text is redistributed.",
+  "records": [
+    {
+      "id": "BLSPOLY",
+      "company": "BLS Polymers Limited",
+      "board": "MAINBOARD",
+      "openDate": "2026-10-27",
+      "closeDate": "2026-10-29",
+      "reviewedAt": "2026-10-25T09:24:23Z",
+      "stage": "CURRENT_RHP",
+      "basis": "Restated issuer financials",
+      "fiscalPeriod": "Annual results to 31 March 2026",
+      "sources": [
+        {
+          "id": "A",
+          "kind": "REGULATOR",
+          "document": "ABRIDGED_RHP",
+          "url": "https://www.sebi.gov.in/sebi_data/commondocs/oct-2026/BLS%20Polymers%20Limited_p.pdf",
+          "sha256": "cdaa8d714729ad1ea076dfcab4018c32e7d5d840706a3d37f67602b810600ec7",
+          "pages": [
+            2,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "id": "B",
+          "kind": "REGULATOR",
+          "document": "RHP",
+          "url": "https://www.sebi.gov.in/sebi_data/attachdocs/oct-2026/1792388466880.pdf",
+          "sha256": "246759b969956a93194aecdc2d9ee4dc834b54fdc21f23930cc7f686d7c40ba5",
+          "pages": [
+            89,
+            90,
+            145
+          ]
+        }
+      ],
+      "metrics": [
+        {
+          "key": "revenue",
+          "label": "Revenue from operations",
+          "value": 349.4283,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 7
+        },
+        {
+          "key": "pat",
+          "label": "Profit after tax",
+          "value": 27.0094,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 8
+        },
+        {
+          "key": "cfo",
+          "label": "Operating cash flow",
+          "value": 38.0613,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "B",
+          "page": 90
+        },
+        {
+          "key": "dilutedEPS",
+          "label": "Diluted EPS before offer",
+          "value": 5.99,
+          "unit": "INR_PER_SHARE",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 7
+        },
+        {
+          "key": "debtEquity",
+          "label": "Debt / equity, including leases",
+          "value": 0.56,
+          "unit": "RATIO",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 9
+        }
+      ],
+      "risks": [
+        "Wire and cable polymers generated 80.93% of FY26 revenue; the top ten customers contributed 66.81%.",
+        "Raw-resin costs and expansion execution can pressure margins and cash requirements.",
+        "The June 2026 quarter had negative operating cash flow; annual cash generation does not remove working-capital risk."
+      ],
+      "gaps": [
+        "Independently refresh peer prices, accounting definitions and comparability; the disclosed peer P/E is dated issuer context.",
+        "Confirm final offer terms and post-offer dilution. Historical P/E arithmetic does not establish fair value.",
+        "Complete governance, litigation, proceeds-use and downside review before any investment decision."
+      ],
+      "peerContext": {
+        "priceAsOf": "2026-10-12",
+        "sourceId": "B",
+        "page": 145,
+        "note": "FY26 peer figures disclosed in the RHP; differences in scale and product mix limit comparability.",
+        "peers": [
+          {
+            "company": "Kingfa Science & Technology (India)",
+            "reportedPE": 46.25
+          },
+          {
+            "company": "Plastiblends India",
+            "reportedPE": 14.53
+          }
+        ]
+      },
+      "decision": "HOLD_FOR_MANUAL_REVIEW"
+    },
+    {
+      "id": "SFCTECH",
+      "company": "SFC Environmental Technologies Limited",
+      "board": "MAINBOARD",
+      "openDate": "2026-10-27",
+      "closeDate": "2026-10-29",
+      "reviewedAt": "2026-10-25T09:24:23Z",
+      "stage": "CURRENT_RHP",
+      "basis": "Restated consolidated financials",
+      "fiscalPeriod": "Annual results to 31 March 2026",
+      "sources": [
+        {
+          "id": "A",
+          "kind": "REGULATOR",
+          "document": "ABRIDGED_RHP",
+          "url": "https://www.sebi.gov.in/sebi_data/commondocs/oct-2026/SFC%20Environmental%20Technologies%20Ltd.%20%20-%20Abridged%20Prospectus_p.pdf",
+          "sha256": "5282d4fbb47127095a77c02262a32a1a6ba72183b7022d7a2130fd271b0a5a86",
+          "pages": [
+            3,
+            8,
+            9,
+            10,
+            11
+          ]
+        }
+      ],
+      "metrics": [
+        {
+          "key": "revenue",
+          "label": "Revenue from operations",
+          "value": 803.629,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 8
+        },
+        {
+          "key": "pat",
+          "label": "Profit after tax",
+          "value": 160.213,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 8
+        },
+        {
+          "key": "cfo",
+          "label": "Operating cash flow",
+          "value": -25.802,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 8
+        },
+        {
+          "key": "dilutedEPS",
+          "label": "Diluted EPS before offer",
+          "value": 16.52,
+          "unit": "INR_PER_SHARE",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 8
+        },
+        {
+          "key": "netDebtEquity",
+          "label": "Net debt / equity (not gross debt)",
+          "value": 0.05,
+          "unit": "RATIO",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 9
+        },
+        {
+          "key": "cashCycle",
+          "label": "Cash conversion cycle",
+          "value": 242,
+          "unit": "DAYS",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 9
+        }
+      ],
+      "risks": [
+        "FY26 operating cash flow was negative despite reported profits; the cash conversion cycle was 242 days.",
+        "Government-funded water and waste projects expose collections and order conversion to policy and payment delays.",
+        "Technology and execution dependencies can affect project economics."
+      ],
+      "gaps": [
+        "A complete current RHP peer table has not been verified from the retrieved abridged filing.",
+        "Independently refresh peer prices, accounting definitions and comparability; the disclosed peer P/E is dated issuer context.",
+        "Confirm final offer terms and post-offer dilution. Historical P/E arithmetic does not establish fair value.",
+        "Complete governance, litigation, proceeds-use and downside review before any investment decision."
+      ],
+      "peerContext": null,
+      "decision": "HOLD_FOR_MANUAL_REVIEW"
+    },
+    {
+      "id": "XFLOT-core4engineers-ipo",
+      "company": "Core4 Engineers",
+      "board": "SME",
+      "openDate": "2026-10-23",
+      "closeDate": "2026-10-27",
+      "reviewedAt": "2026-10-25T09:24:23Z",
+      "stage": "CURRENT_RHP",
+      "basis": "Restated consolidated financials",
+      "fiscalPeriod": "Annual results to 31 March 2026",
+      "sources": [
+        {
+          "id": "A",
+          "kind": "ISSUER",
+          "document": "RHP",
+          "url": "https://core4engineers.com/pdf/ipo/RedHerringProspectus.pdf",
+          "sha256": "6df6bbfa816106082ee018e326ae7d6380862820145e7bb616bfa84329ab673c",
+          "pages": [
+            1,
+            39,
+            42,
+            135,
+            138
+          ]
+        }
+      ],
+      "metrics": [
+        {
+          "key": "revenue",
+          "label": "Revenue from operations",
+          "value": 91.3383,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 138
+        },
+        {
+          "key": "pat",
+          "label": "Profit after tax",
+          "value": 12.3661,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 138
+        },
+        {
+          "key": "dilutedEPS",
+          "label": "Diluted EPS before offer",
+          "value": 8.36,
+          "unit": "INR_PER_SHARE",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 135
+        },
+        {
+          "key": "debtEquity",
+          "label": "Debt / equity",
+          "value": 1.02,
+          "unit": "RATIO",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 138
+        },
+        {
+          "key": "workingCycle",
+          "label": "Working capital cycle",
+          "value": 240,
+          "unit": "DAYS",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 138
+        }
+      ],
+      "risks": [
+        "Revenue is heavily concentrated in Karnataka, exposing the business to regional infrastructure spending and disruption.",
+        "The top ten customers contributed 77.59% of FY26 revenue.",
+        "A 240-day working-capital cycle and long collection periods can tie up cash as projects expand."
+      ],
+      "gaps": [
+        "Independently refresh peer prices, accounting definitions and comparability; the disclosed peer P/E is dated issuer context.",
+        "Confirm final offer terms and post-offer dilution. Historical P/E arithmetic does not establish fair value.",
+        "Complete governance, litigation, proceeds-use and downside review before any investment decision."
+      ],
+      "peerContext": {
+        "priceAsOf": "2026-10-16",
+        "sourceId": "A",
+        "page": 135,
+        "note": "Single management-selected peer, with FY26 consolidated figures; size, execution and business mix differ.",
+        "peers": [
+          {
+            "company": "K2 Infragen",
+            "reportedPE": 3.97
+          }
+        ]
+      },
+      "decision": "HOLD_FOR_MANUAL_REVIEW"
+    },
+    {
+      "id": "XFLOT-wisconindustries-ipo",
+      "company": "Wiscon Industries",
+      "board": "SME",
+      "openDate": "2026-10-27",
+      "closeDate": "2026-10-29",
+      "reviewedAt": "2026-10-25T09:24:23Z",
+      "stage": "CURRENT_RHP",
+      "basis": "FY26 consolidated; earlier years standalone",
+      "fiscalPeriod": "Annual results to 31 March 2026",
+      "sources": [
+        {
+          "id": "A",
+          "kind": "LEAD_MANAGER",
+          "document": "RHP",
+          "url": "https://shcapl.com/wp-content/uploads/2026/10/RHP_WisconIndustriesLimited.pdf",
+          "sha256": "ae9f8ce350f74764fa166cb5a48a69064d9923701b4d7cd455e655268a1beb3c",
+          "pages": [
+            1,
+            2,
+            56,
+            57,
+            150,
+            151,
+            152,
+            153
+          ]
+        }
+      ],
+      "metrics": [
+        {
+          "key": "revenue",
+          "label": "Revenue from operations",
+          "value": 196.8746,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 152
+        },
+        {
+          "key": "pat",
+          "label": "Profit after tax",
+          "value": 20.4052,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 152
+        },
+        {
+          "key": "cfo",
+          "label": "Operating cash flow",
+          "value": -20.0099,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 56
+        },
+        {
+          "key": "dilutedEPS",
+          "label": "Diluted EPS before offer",
+          "value": 13.56,
+          "unit": "INR_PER_SHARE",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 150
+        },
+        {
+          "key": "debtEquity",
+          "label": "Debt / equity",
+          "value": 0.83,
+          "unit": "RATIO",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 153
+        },
+        {
+          "key": "patMargin",
+          "label": "PAT / operating revenue",
+          "value": 10.36,
+          "unit": "PCT",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 153
+        }
+      ],
+      "risks": [
+        "FY26 operating cash flow was negative while inventories, receivables and advances expanded.",
+        "The June 2026 quarter also consumed operating cash; reported earnings do not establish cash conversion.",
+        "Leased premises and a concentration of registered-office and warehouse operations in Delhi create continuity risk."
+      ],
+      "gaps": [
+        "FY26 is consolidated while FY25 is standalone. Their growth is not a like-for-like organic growth measure.",
+        "Independently refresh peer prices, accounting definitions and comparability; the disclosed peer P/E is dated issuer context.",
+        "Confirm final offer terms and post-offer dilution. Historical P/E arithmetic does not establish fair value.",
+        "Complete governance, litigation, proceeds-use and downside review before any investment decision."
+      ],
+      "peerContext": {
+        "priceAsOf": "2026-10-19",
+        "sourceId": "A",
+        "page": 152,
+        "note": "One issuer-selected peer; the table uses basic FY26 EPS and a historical market close.",
+        "peers": [
+          {
+            "company": "Cellecor Gadgets",
+            "reportedPE": 15.89
+          }
+        ]
+      },
+      "decision": "HOLD_FOR_MANUAL_REVIEW"
+    },
+    {
+      "id": "XFLOT-carverroboweld-ipo",
+      "company": "Carver Roboweld",
+      "board": "SME",
+      "openDate": "2026-10-28",
+      "closeDate": "2026-10-30",
+      "reviewedAt": "2026-10-25T09:24:23Z",
+      "stage": "CURRENT_RHP",
+      "basis": "Standalone financials; separate consolidated results exist",
+      "fiscalPeriod": "Annual results to 31 March 2026",
+      "sources": [
+        {
+          "id": "A",
+          "kind": "LEAD_MANAGER",
+          "document": "RHP",
+          "url": "https://shcapl.com/wp-content/uploads/2026/10/RHP_Carver.pdf",
+          "sha256": "0a9e530440330877a507c29298abfd18cf964ad9a214c15d32ba81bbcc0d4d2d",
+          "pages": [
+            1,
+            29,
+            30,
+            32,
+            41,
+            42,
+            128,
+            130,
+            131,
+            134,
+            284
+          ]
+        }
+      ],
+      "metrics": [
+        {
+          "key": "revenue",
+          "label": "Standalone revenue from operations",
+          "value": 27.022,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 134
+        },
+        {
+          "key": "pat",
+          "label": "Standalone profit after tax",
+          "value": 3.4787,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 134
+        },
+        {
+          "key": "cfo",
+          "label": "Standalone operating cash flow",
+          "value": -2.6516,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 284
+        },
+        {
+          "key": "dilutedEPS",
+          "label": "Standalone diluted EPS before offer",
+          "value": 3.78,
+          "unit": "INR_PER_SHARE",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 128
+        },
+        {
+          "key": "debtEquity",
+          "label": "Standalone debt / equity",
+          "value": 0.97,
+          "unit": "RATIO",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 134
+        },
+        {
+          "key": "patMargin",
+          "label": "Standalone PAT / revenue",
+          "value": 12.87,
+          "unit": "PCT",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 134
+        }
+      ],
+      "risks": [
+        "The top ten customers contributed 80.78% of FY26 standalone revenue; supplier concentration is also high.",
+        "FY26 standalone operating cash flow was negative despite accounting profits.",
+        "A manufacturing location in Rajkot creates operational concentration."
+      ],
+      "gaps": [
+        "This review uses standalone EPS ₹3.78. The RHP also reports consolidated EPS ₹5.80; valuation must use a consistent group basis.",
+        "Independently refresh peer prices, accounting definitions and comparability; the disclosed peer P/E is dated issuer context.",
+        "Confirm final offer terms and post-offer dilution. Historical P/E arithmetic does not establish fair value.",
+        "Complete governance, litigation, proceeds-use and downside review before any investment decision."
+      ],
+      "peerContext": {
+        "priceAsOf": "2026-10-16",
+        "sourceId": "A",
+        "page": 130,
+        "note": "The disclosed peer table compares consolidated issuer figures with standalone peers; this review keeps issuer standalone facts separate.",
+        "peers": [
+          {
+            "company": "Royal Arc Electrodes",
+            "reportedPE": 18.18
+          },
+          {
+            "company": "Classic Electrodes (India)",
+            "reportedPE": 7.03
+          }
+        ]
+      },
+      "decision": "HOLD_FOR_MANUAL_REVIEW"
+    },
+    {
+      "id": "XFLOT-bombaycoatedandspecialsteels-ipo",
+      "company": "Bombay Coated and Special Steels",
+      "board": "MAINBOARD",
+      "openDate": "2026-10-29",
+      "closeDate": "2026-11-02",
+      "reviewedAt": "2026-10-25T09:24:23Z",
+      "stage": "CURRENT_RHP",
+      "basis": "Restated issuer financials",
+      "fiscalPeriod": "Annual results to 31 March 2026",
+      "sources": [
+        {
+          "id": "A",
+          "kind": "LEAD_MANAGER",
+          "document": "ABRIDGED_RHP",
+          "url": "https://shcapl.com/wp-content/uploads/2026/10/AbridgedProspectus_BCSSL.pdf",
+          "sha256": "947bd7646f52bc10db1ca56dd389c92fca8bb089cebe450bbc66278998adf797",
+          "pages": [
+            1,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "id": "B",
+          "kind": "LEAD_MANAGER",
+          "document": "BASIS_FOR_ISSUE_PRICE",
+          "url": "https://shcapl.com/wp-content/uploads/2026/10/BASIS-FOR-ISSUE-PRICE.pdf",
+          "sha256": "69365f524feb03500ff85025c0f7a048a8063e2e4ad2f15fc5091ca50c13fc1d",
+          "pages": [
+            3,
+            4
+          ]
+        }
+      ],
+      "metrics": [
+        {
+          "key": "revenue",
+          "label": "Revenue from operations",
+          "value": 1266.818,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 5
+        },
+        {
+          "key": "pat",
+          "label": "Profit after tax",
+          "value": 30.539,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 5
+        },
+        {
+          "key": "cfo",
+          "label": "Operating cash flow",
+          "value": 10.217,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 5
+        },
+        {
+          "key": "dilutedEPS",
+          "label": "Diluted EPS before offer",
+          "value": 7.64,
+          "unit": "INR_PER_SHARE",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 5
+        },
+        {
+          "key": "debtEquity",
+          "label": "Debt / equity",
+          "value": 2.78,
+          "unit": "RATIO",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 6
+        },
+        {
+          "key": "patMargin",
+          "label": "PAT / operating revenue",
+          "value": 2.41,
+          "unit": "PCT",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 6
+        }
+      ],
+      "risks": [
+        "JSW group supply represented 86.65% of FY26 steel-coil requirements; disruption or raw-material price shifts can affect margins.",
+        "The top ten customers contributed 71.33% of FY26 revenue; home and commercial appliances are the main end-use sector.",
+        "FY26 debt / equity was 2.78 times, with a 2.41% PAT margin and cash generation below profit."
+      ],
+      "gaps": [
+        "The filing provides a BMW Industries peer comparison. Independently reconcile the price, EPS and complete P/E cell before using it.",
+        "Independently refresh peer prices, accounting definitions and comparability; the disclosed peer P/E is dated issuer context.",
+        "Confirm final offer terms and post-offer dilution. Historical P/E arithmetic does not establish fair value.",
+        "Complete governance, litigation, proceeds-use and downside review before any investment decision."
+      ],
+      "peerContext": null,
+      "decision": "HOLD_FOR_MANUAL_REVIEW"
+    },
+    {
+      "id": "MKSONS",
+      "company": "M.K. Sons Fine Jewels",
+      "board": "MAINBOARD",
+      "openDate": "2026-10-28",
+      "closeDate": "2026-10-30",
+      "reviewedAt": "2026-10-25T09:24:23Z",
+      "stage": "CURRENT_RHP",
+      "basis": "Restated issuer financials",
+      "fiscalPeriod": "Annual results to 31 March 2026",
+      "sources": [
+        {
+          "id": "A",
+          "kind": "LEAD_MANAGER",
+          "document": "RHP",
+          "url": "https://www.afsl.co.in/pdfnew/Red%20Herring%20Prospectus.pdf",
+          "sha256": "1a92de553432e40918ae6ac009890556f50ed6c5b9cb1e488b8d4af44763d7cb",
+          "pages": [
+            1,
+            2,
+            27,
+            29,
+            34,
+            111,
+            113,
+            114
+          ]
+        }
+      ],
+      "metrics": [
+        {
+          "key": "revenue",
+          "label": "Revenue from operations",
+          "value": 538.736,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 114
+        },
+        {
+          "key": "pat",
+          "label": "Profit after tax",
+          "value": 51.799,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 114
+        },
+        {
+          "key": "cfo",
+          "label": "Operating cash flow",
+          "value": 15.403,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 34
+        },
+        {
+          "key": "dilutedEPS",
+          "label": "Diluted EPS before offer",
+          "value": 12.13,
+          "unit": "INR_PER_SHARE",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 111
+        },
+        {
+          "key": "debtEquity",
+          "label": "Debt / equity",
+          "value": 0.41,
+          "unit": "RATIO",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 114
+        },
+        {
+          "key": "operatingCycle",
+          "label": "Net operating cycle",
+          "value": 180,
+          "unit": "DAYS",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 114
+        }
+      ],
+      "risks": [
+        "Sales depend on five physical showrooms in Maharashtra and Gujarat, with a large contribution from Ahmedabad.",
+        "FY26 inventory holding was 193 days; the June quarter reported 333 days and negative operating cash flow.",
+        "Related-party dealings and plans to expand showrooms require governance and execution review."
+      ],
+      "gaps": [
+        "Independently refresh peer prices, accounting definitions and comparability; the disclosed peer P/E is dated issuer context.",
+        "Confirm final offer terms and post-offer dilution. Historical P/E arithmetic does not establish fair value.",
+        "Complete governance, litigation, proceeds-use and downside review before any investment decision."
+      ],
+      "peerContext": {
+        "priceAsOf": "2026-10-09",
+        "sourceId": "A",
+        "page": 113,
+        "note": "FY26 consolidated peer figures disclosed in the RHP; retail format, scale and inventory exposure differ.",
+        "peers": [
+          {
+            "company": "Motisons Jewellers",
+            "reportedPE": 27.78
+          },
+          {
+            "company": "Tribhovandas Bhimji Zaveri",
+            "reportedPE": 19.62
+          },
+          {
+            "company": "Senco Gold",
+            "reportedPE": 9.55
+          },
+          {
+            "company": "PNGS Reva Diamond Jewellery",
+            "reportedPE": 24.21
+          }
+        ]
+      },
+      "decision": "HOLD_FOR_MANUAL_REVIEW"
+    },
+    {
+      "id": "EDELALTS",
+      "company": "EAAA India Alternatives Limited",
+      "board": "MAINBOARD",
+      "openDate": "2026-10-26",
+      "closeDate": "2026-10-28",
+      "reviewedAt": "2026-10-25T13:43:34.864649Z",
+      "stage": "CURRENT_RHP",
+      "basis": "Consolidated RHP dated 19 Oct 2026; FY26 and Q1 FY27. Offer INR 1,585-1,665; minimum lot 9.",
+      "fiscalPeriod": "Annual results to 31 March 2026 and quarter to 30 June 2026; quarterly figures are not annualized",
+      "sources": [
+        {
+          "id": "A",
+          "kind": "LEAD_MANAGER",
+          "document": "RHP",
+          "url": "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Ltd%20-%20Red%20Herring%20Prospectus-1792429309.pdf",
+          "sha256": "9f6c1b86c07db2f86c3a612555f982c4d45a256cc0be2eb883ae1849feda40b1",
+          "pages": [
+            1,
+            2,
+            24,
+            27,
+            28,
+            29,
+            35,
+            36,
+            83,
+            85,
+            86
+          ]
+        },
+        {
+          "id": "B",
+          "kind": "LEAD_MANAGER",
+          "document": "BASIS_FOR_OFFER_PRICE",
+          "url": "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Ltd%20-%20Basis%20for%20Offer%20Price-1792575650.pdf",
+          "sha256": "028b5d822d0572bdb43f35a54df13fe8f0005295c3d109beaff59fd7e599cd44",
+          "pages": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "id": "C",
+          "kind": "LEAD_MANAGER",
+          "document": "ABRIDGED_RHP",
+          "url": "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Ltd%20-%20Abridged%20Prospectus-1792429422.pdf",
+          "sha256": "c04bf7259d7da392ba8c45b12aefc299ac4c81b8b380fa461bb8e3deddc14cae",
+          "pages": [
+            7,
+            8
+          ]
+        },
+        {
+          "id": "D",
+          "kind": "LEAD_MANAGER",
+          "document": "PRICE_BAND_ADVERTISEMENT",
+          "url": "https://www.axiscapital.co.in/contents/EAAA%20India%20Alternatives%20Ltd%20-%20Pre-offer%20and%20Price%20Band%20Advertisement-1792559256.pdf",
+          "sha256": "05953e0edfa4615d41fcdd252cab54204b86954a6cb361272e496fc690f025b3",
+          "pages": [
+            1
+          ]
+        }
+      ],
+      "metrics": [
+        {
+          "key": "revenue",
+          "label": "Revenue from operations",
+          "value": 869.54,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 85
+        },
+        {
+          "key": "totalIncome",
+          "label": "Total income",
+          "value": 963.759,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 85
+        },
+        {
+          "key": "pat",
+          "label": "Profit after tax",
+          "value": 265.197,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 85
+        },
+        {
+          "key": "cfo",
+          "label": "Operating cash flow",
+          "value": 235.244,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 86
+        },
+        {
+          "key": "dilutedEPS",
+          "label": "FY26 diluted EPS",
+          "value": 40.36,
+          "unit": "INR_PER_SHARE",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 85
+        },
+        {
+          "key": "debtEquity",
+          "label": "Total borrowing / net worth",
+          "value": 0.41,
+          "unit": "RATIO",
+          "periodEnd": "2026-03-31",
+          "sourceId": "C",
+          "page": 8
+        },
+        {
+          "key": "patMargin",
+          "label": "PAT / total income",
+          "value": 27.52,
+          "unit": "PCT",
+          "periodEnd": "2026-03-31",
+          "sourceId": "C",
+          "page": 8
+        },
+        {
+          "key": "variableReturn",
+          "label": "Unrealized variable additional return",
+          "value": 290.472,
+          "unit": "INR_CR",
+          "periodEnd": "2026-03-31",
+          "sourceId": "A",
+          "page": 86
+        },
+        {
+          "key": "quarterRevenue",
+          "label": "Q1 FY27 revenue from operations",
+          "value": 275.529,
+          "unit": "INR_CR",
+          "periodEnd": "2026-06-30",
+          "sourceId": "A",
+          "page": 85
+        },
+        {
+          "key": "quarterPAT",
+          "label": "Q1 FY27 profit after tax",
+          "value": 80.706,
+          "unit": "INR_CR",
+          "periodEnd": "2026-06-30",
+          "sourceId": "A",
+          "page": 85
+        },
+        {
+          "key": "quarterCFO",
+          "label": "Q1 FY27 operating cash flow",
+          "value": 130.384,
+          "unit": "INR_CR",
+          "periodEnd": "2026-06-30",
+          "sourceId": "A",
+          "page": 86
+        }
+      ],
+      "risks": [
+        "Variable additional return includes unrealized gains; cash receipts can diverge from accrued profit.",
+        "Operating cash flow was negative in FY25 and FY24; positive FY26 cash generation does not establish stable conversion.",
+        "Illiquid fund investments rely on estimated values; the RHP identifies no directly comparable Indian listed peers.",
+        "Client capital calls and concentration create funding and portfolio risks.",
+        "The RHP discloses promoter-group regulatory proceedings; assess their current status and possible impact.",
+        "This is an offer for sale of existing shares, rather than fresh capital for the company."
+      ],
+      "gaps": [
+        "Nine independently dated peer prices and primary FY26 EPS inputs are now checked in the separate audit below. Different business models, accounting sensitivity and future cash realization still prevent a verified fair-value target.",
+        "Price-basis page 3 prints Gaja P/E as 16.47 although its price 145.10 divided by diluted EPS 7.17 implies about 20.24. This source discrepancy is flagged; that peer is excluded below.",
+        "GMP and demand retain their separate publisher timestamps. Neither establishes fair value, profitability or an allotment probability."
+      ],
+      "peerContext": {
+        "priceAsOf": "2026-10-08",
+        "sourceId": "B",
+        "page": 3,
+        "note": "Issuer-reported, dated ratios for businesses with different models. Not independently current fair value. Gaja is excluded because its printed P/E does not reconcile with the same-row price and EPS.",
+        "peers": [
+          {
+            "company": "360 One WAM Limited",
+            "reportedPE": 35.67
+          },
+          {
+            "company": "Aditya Birla Sun Life AMC Limited",
+            "reportedPE": 29.84
+          },
+          {
+            "company": "Anand Rathi Wealth Limited",
+            "reportedPE": 90.69
+          },
+          {
+            "company": "HDFC Asset Management Company Limited",
+            "reportedPE": 33.76
+          },
+          {
+            "company": "Nippon Life India Asset Management Limited",
+            "reportedPE": 43.99
+          },
+          {
+            "company": "Nuvama Wealth Management Limited",
+            "reportedPE": 30.99
+          },
+          {
+            "company": "UTI Asset Management Company Limited",
+            "reportedPE": 27.93
+          },
+          {
+            "company": "ICICI Prudential Asset Management Company Limited",
+            "reportedPE": 45.95
+          }
+        ]
+      },
+      "decision": "HOLD_FOR_MANUAL_REVIEW",
+      "independentPeerAudit": {
+        "auditedAt": "2026-10-25T13:43:34.864649Z",
+        "quoteSource": "Bigdata.com / FMP connected research snapshot",
+        "fairValueVerified": false,
+        "sources": [
+          {
+            "id": "P1",
+            "kind": "EXCHANGE",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://nsearchives.nseindia.com/corporate/IIFLWAM_21042026162348_OutcomeMergedSigned.pdf",
+            "sha256": "52bfa70548c1d9fd1dde6fadd32607e679578f85aeac6676b5668952a8af9c6c",
+            "pages": [
+              9
+            ]
+          },
+          {
+            "id": "P2",
+            "kind": "EXCHANGE",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://nsearchives.nseindia.com/annual_reports/AR_29605_ABSLAMC_2025_2026_A_8053616_07072026111525.pdf",
+            "sha256": "0d2b8c284ef5caf8783aef5fbc8b4275de29871c02cf78df05ed07884597c298",
+            "pages": [
+              221
+            ]
+          },
+          {
+            "id": "P3",
+            "kind": "ISSUER",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://www.anandrathiwealth.in/wealthpdf/oct26/ConsolidatedFinancailResultsQ2FY2026-27.pdf",
+            "sha256": "10a9936cbf4170e6f001348840b1bd2a46a401fe941a998a4cdcc854596cc926",
+            "pages": [
+              4,
+              7
+            ]
+          },
+          {
+            "id": "P4",
+            "kind": "EXCHANGE",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://nsearchives.nseindia.com/corporate/DEEPTI_16042026130521_NSEBSE_05.pdf",
+            "sha256": "ba466ca239962ee857f609ecf4e96cc3592e0752dad67a10195f27363dd210da",
+            "pages": [
+              12,
+              15
+            ]
+          },
+          {
+            "id": "P5",
+            "kind": "EXCHANGE",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://nsearchives.nseindia.com/corporate/RNLAM_22072026173751_Outcome_Final.pdf",
+            "sha256": "37fefc85c398757cb2391cc1c35b12184b1b7902993417bc5e08efaa3acbd42c",
+            "pages": [
+              7
+            ]
+          },
+          {
+            "id": "P6",
+            "kind": "ISSUER",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://www.nuvama.com/wp-content/uploads/2026/05/SE_BMOutcome_11052026-2.pdf",
+            "sha256": "8cb37e3aff7ebd603ad5de2e3bcbe79ca8a88952209fe414a0d88fa399c4d5a4",
+            "pages": [
+              15,
+              20
+            ]
+          },
+          {
+            "id": "P7",
+            "kind": "EXCHANGE",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://nsearchives.nseindia.com/corporate/CSUTIAMC_24062026231845_Notice_of_AGM.pdf",
+            "sha256": "fa950a83f62838b19633c89b53d36b5981f0b4305ffe595650cbb1bafaba1579",
+            "pages": [
+              199
+            ]
+          },
+          {
+            "id": "P8",
+            "kind": "EXCHANGE",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/cd1c6a68-fa6a-4c15-b21e-9b72735bc9c7.pdf",
+            "sha256": "8f187dcafb061dc851ef5227932f495e9a8d8616fe6d5ee80a39b1c202f128e7",
+            "pages": [
+              183
+            ]
+          },
+          {
+            "id": "P9",
+            "kind": "ISSUER",
+            "document": "PEER_FY26_EARNINGS_BASIS",
+            "url": "https://gajacapital.com/assets/pdf/outcome-of-board-meeting.pdf",
+            "sha256": "c83ae84050bddb54e77beded27cb089813ea7b1f61f688fd99f2290d226f3cdb",
+            "pages": [
+              7,
+              8
+            ]
+          }
+        ],
+        "peers": [
+          {
+            "company": "360 One Wam Ltd.",
+            "ticker": "360ONE.NS",
+            "price": 997.1,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T09:58:21Z",
+            "annualEPS": {
+              "value": 29.19,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P1",
+              "page": 9,
+              "basis": "CONSOLIDATED_DILUTED_FY26"
+            },
+            "basisNote": "Consolidated diluted FY26 EPS; compare after employee-option dilution."
+          },
+          {
+            "company": "Aditya Birla Sun Life AMC Ltd.",
+            "ticker": "ABSLAMC.NS",
+            "price": 889.05,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T10:00:02Z",
+            "annualEPS": {
+              "value": 33.68,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P2",
+              "page": 221,
+              "basis": "CONSOLIDATED_DILUTED_FY26"
+            },
+            "basisNote": "Consolidated diluted EPS; standalone diluted EPS 34.04 is a different basis."
+          },
+          {
+            "company": "Anand Rathi Wealth Ltd.",
+            "ticker": "ANANDRATHI.NS",
+            "price": 2235,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T09:58:22Z",
+            "annualEPS": {
+              "value": 23.58,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P3",
+              "page": 4,
+              "basis": "CONSOLIDATED_DILUTED_FY26"
+            },
+            "basisNote": "Restated for 1:1 bonus allotted 3 June 2026; includes continuing and discontinued operations."
+          },
+          {
+            "company": "HDFC Asset Management Co. Ltd.",
+            "ticker": "HDFCAMC.NS",
+            "price": 2250,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T09:58:21Z",
+            "annualEPS": {
+              "value": 66.5,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P4",
+              "page": 12,
+              "basis": "CONSOLIDATED_DILUTED_FY26"
+            },
+            "basisNote": "Consolidated diluted EPS already includes November 2025 bonus adjustment."
+          },
+          {
+            "company": "Nippon Life India Asset Management Ltd.",
+            "ticker": "NAM-INDIA.NS",
+            "price": 922.6,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T09:58:21Z",
+            "annualEPS": {
+              "value": 23.63,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P5",
+              "page": 7,
+              "basis": "CONSOLIDATED_DILUTED_FY26"
+            },
+            "basisNote": "Consolidated FY26 annual diluted EPS in the June-quarter filing; quarter is not annualized."
+          },
+          {
+            "company": "Nuvama Wealth Management Ltd.",
+            "ticker": "NUVAMA.NS",
+            "price": 1661.9,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T10:00:03Z",
+            "annualEPS": {
+              "value": 56.06,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P6",
+              "page": 15,
+              "basis": "CONSOLIDATED_DILUTED_FY26"
+            },
+            "basisNote": "Consolidated diluted EPS on INR 2 face value after December 2025 5-for-1 share split."
+          },
+          {
+            "company": "UTI Asset Management Co. Ltd.",
+            "ticker": "UTIAMC.NS",
+            "price": 817.05,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T09:59:56Z",
+            "annualEPS": {
+              "value": 31.41,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P7",
+              "page": 199,
+              "basis": "CONSOLIDATED_DILUTED_FY26"
+            },
+            "basisNote": "Consolidated diluted EPS attributable to owners; standalone earnings are not substituted."
+          },
+          {
+            "company": "ICICI Prudential Asset Management Co. Ltd.",
+            "ticker": "ICICIAMC.NS",
+            "price": 2651.8,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T09:59:58Z",
+            "annualEPS": {
+              "value": 66.7,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P8",
+              "page": 183,
+              "basis": "COMPANY_DILUTED_FY26"
+            },
+            "basisNote": "Company FY26 basic/diluted EPS is rounded to one decimal; compare that precision, not an invented 66.73."
+          },
+          {
+            "company": "Gaja Alternative Asset Management Ltd.",
+            "ticker": "GAJA.BO",
+            "price": 115.6,
+            "currency": "INR",
+            "priceAsOf": "2026-10-23T09:59:00Z",
+            "annualEPS": {
+              "value": 7.17,
+              "periodEnd": "2026-03-31",
+              "sourceId": "P9",
+              "page": 8,
+              "basis": "CONSOLIDATED_DILUTED_FY26"
+            },
+            "basisNote": "Consolidated FY26 annual diluted EPS; distinct from annualized quarterly columns."
+          }
+        ],
+        "notes": [
+          "Qualified assessment: HOLD. The INR 1,585-1,665 band implies 39.27-41.25 times EAAA FY26 diluted EPS. Different business models, illiquid fund marks and unrealized variable returns prevent a reliable fair-value target from a simple peer average.",
+          "Anand Rathi's filed 90.69 times P/E already incorporates its 1:1 bonus, as its filing footnote states; displayed EPS 47.17 is the older basis. This independent comparison uses the latest filing's restated 23.58. Do not adjust it twice.",
+          "Gaja's original filed peer ratio remains excluded from issuer context because 145.10 / 7.17 does not equal the printed 16.47. The independently recomputed ratio below uses a separate, dated BSE quote; it does not resolve the filing discrepancy.",
+          "These are FY26 historical earnings multiples, not trailing-twelve-month or forward P/E. Quarterly provider EPS was not annualized; Anand Rathi's provider Q2 EPS 5.36 also differs from the filing's diluted 5.30.",
+          "Quotes are provider observations from 23 October, with individual source clocks. They are not certified exchange closes or a permanent Atlas live-feed entitlement. ICICI and Gaja INR units were separately confirmed through the provider.",
+          "Data sources: Bigdata.com quotes, with FMP identified in currency confirmations; primary issuer/exchange earnings PDFs below. No Apply recommendation, listing-gain forecast or allotment probability is established."
+        ]
+      }
+    }
+  ]
+}

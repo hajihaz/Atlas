@@ -434,3 +434,44 @@ html[data-theme="light"] .live-bidask span{color:#3c6269}
 
 /* Keep 12-hour IST clock digits stable without wrapping the AM/PM indicator. */
 .live-ticker>div:first-child strong{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.nse-owner-panel{padding:1.4rem;margin-bottom:1.25rem}
+.nse-owner-heading{display:flex;gap:1rem;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.nse-owner-heading h2{margin:.35rem 0 1rem;font-size:1.2rem}
+.nse-market-state{font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.55rem .7rem}
+.nse-owner-panel .stock-quote-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin:.5rem 0}
+.nse-owner-panel .stock-quote{padding:1rem 0}
+.nse-observation-note{display:flex;align-items:flex-start;gap:.5rem;font-size:.78rem;line-height:1.6;opacity:.85}
+.nse-observation-note svg{flex-shrink:0;margin-top:.2rem}
+@media(max-width:600px){.nse-owner-panel .stock-quote-grid{grid-template-columns:1fr}}
+
+.nse-paper-status{display:flex;align-items:center;gap:.7rem;padding:1rem 1.2rem;margin:1rem 0;flex-wrap:wrap}
+.nse-paper-status span{margin-left:auto;font-size:.78rem;opacity:.8}
+.nse-paper-explanation{display:flex;align-items:flex-start;gap:.8rem;padding:1.2rem;margin-bottom:1rem}
+.nse-paper-explanation>svg{flex-shrink:0;margin-top:.15rem}
+.nse-paper-explanation p{font-size:.82rem;line-height:1.65;margin:.4rem 0 0;opacity:.83}
+.nse-strategy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.7rem;margin:1rem 0}
+.nse-strategy-card{color:inherit;text-align:left;padding:1rem;display:flex;flex-direction:column;gap:.5rem;cursor:pointer}
+.nse-strategy-card.active{outline:2px solid #247aa0;outline-offset:1px}
+.nse-strategy-card>span{font-size:.8rem;font-weight:600}.nse-strategy-card>strong{font-size:1.2rem}
+.nse-strategy-card small{font-size:.68rem;line-height:1.5;opacity:.8}
+.nse-account{padding:1.4rem;margin:1rem 0}.nse-account-heading{display:flex;gap:1rem;justify-content:space-between;flex-wrap:wrap}
+.nse-account h2{font-size:1.2rem;margin:0 0 .45rem}.nse-account-heading p{font-size:.85rem;line-height:1.6;max-width:650px}
+.nse-account-heading>span{font-size:.72rem;opacity:.8}.nse-account h3{font-size:.93rem;margin:1.4rem 0 .7rem}
+.nse-account-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin:1.2rem 0}
+.nse-account-grid dt{font-size:.72rem;opacity:.75;margin-bottom:.3rem}.nse-account-grid dd{margin:0;font-size:1.08rem;font-weight:650}
+.nse-empty{font-size:.82rem;line-height:1.7;opacity:.8;padding:.7rem 0}
+.nse-table-scroll{max-width:100%;overflow-x:auto}.nse-trades-table{width:100%;border-collapse:collapse;font-size:.75rem}
+.nse-trades-table caption{text-align:left;font-size:.72rem;opacity:.75;margin-bottom:.7rem}
+.nse-trades-table th,.nse-trades-table td{text-align:left;padding:.75rem .65rem;white-space:nowrap;border-bottom:1px solid #8297a32b}
+.nse-trades-table th{font-size:.68rem;opacity:.78}.nse-trades-table td svg{vertical-align:middle}
+.nse-day-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.5rem}
+.nse-day-list button{background:transparent;color:inherit;border:1px solid #8297a34d;border-radius:8px;padding:.75rem;text-align:left;cursor:pointer;display:grid;gap:.4rem}
+.nse-day-list button.active{outline:2px solid #247aa0}.nse-day-list span,.nse-day-list small{font-size:.7rem}
+.nse-fill-heading,.nse-pagination{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.nse-pagination{font-size:.8rem;margin-top:1rem}.nse-pagination button{background:transparent;color:inherit;padding:.5rem .8rem;border:1px solid #8297a34d;border-radius:6px}
+.nse-pagination button:disabled{opacity:.4}.nse-pilot-universe{font-size:.73rem;line-height:1.8;margin:1rem 0;opacity:.8}
+@media(max-width:650px){.nse-account-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nse-account{padding:1rem}.nse-paper-status span{margin-left:0;width:100%}.nse-strategy-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:380px){.nse-strategy-grid{grid-template-columns:1fr}}
+
+.nse-paper-page .market-switch{display:flex;flex-wrap:wrap;gap:.4rem;max-width:100%}

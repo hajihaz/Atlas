@@ -72,10 +72,10 @@ export default function ScalpStormLedgerPanels({ day, days, verifiedSessions, on
         <div><small>HYPOTHETICAL MARGIN NOTIONAL</small><strong>{rupees(alloc.exposurePerSlot,0)} / slot</strong></div>
         <div><small>TOTAL HYPOTHETICAL EXPOSURE</small><strong>{rupees(alloc.totalExposure,0)}</strong></div>
       </div>
-      <div className="scx-timeline" aria-label="Intraday procedure">
+      <div className="scx-timeline" role="region" aria-label="Intraday procedure; scroll horizontally" tabIndex={0}>
         {directions.map(t=><div key={t.name}><strong>{t.name}</strong><span>{t.desc}</span></div>)}
       </div>
-      <div className="scx-table-scroll">
+      <div className="scx-table-scroll" role="region" aria-label="Ten-position ledger; scroll horizontally" tabIndex={0}>
         <table className="scx-ledger-table">
           <thead><tr><th>Slot</th><th>Stock / reason</th><th>Cash allocation</th><th>What-if exposure</th><th>Shares</th><th>Entry / Exit</th><th>Gross P&L</th><th>Fees</th><th>Net P&L</th></tr></thead>
           <tbody>{Array.from({length:alloc.slots},(_,i)=>{

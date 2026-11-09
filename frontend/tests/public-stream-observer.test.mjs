@@ -1,0 +1,32 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,readFile,stat,symlink,rm,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {streamHealth,saveStreamHealth} from '../../scripts/run_public_stream.mjs';
+const now=Date.parse('2026-10-25T04:20:00Z');
+test('persistent observer distinguishes its clock from actual source times and USD account scope',()=>{
+ const quote={price:80000,sourceAt:new Date(now).toISOString(),tradeId:17};
+ const input={quotes:{'BTC/USD':quote},status:'STREAMING',lastReceivedAt:new Date(now+100).toISOString(),now};
+ const first=streamHealth(input);
+ assert.equal(first.realOrdersEnabled,false);assert.equal(first.paperExecutionEnabled,false);
+ assert.equal(first.quotes[0].currency,'USD');assert.equal(first.quotes[0].price,80000);
+ const later=streamHealth({...input,now:now+91000});
+ assert.equal(later.status,'SOURCE_STALE');assert.equal(later.quotes[0].price,null);
+ assert.equal(later.quotes[0].sourceAt,first.quotes[0].sourceAt);
+ assert.equal(later.lastReceivedAt,first.lastReceivedAt);assert.notEqual(later.checkedAt,first.checkedAt);
+ assert.deepEqual(quote,{price:80000,sourceAt:new Date(now).toISOString(),tradeId:17});
+});
+test('persistent observer writes only a private bounded snapshot and refuses symlink destinations',async t=>{
+ const dir=await mkdtemp(join(tmpdir(),'atlas-public-observer-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+ const state=streamHealth({now});await saveStreamHealth(state,dir);
+ const dest=join(dir,'public-stream.json');
+ assert.deepEqual(JSON.parse(await readFile(dest,'utf8')),state);
+ assert.equal((await stat(dest)).mode&0o777,0o600);
+ const external=join(dir,'external.json');await writeFile(external,'preserve');
+ await rm(dest);await symlink(external,dest);
+ await assert.rejects(saveStreamHealth(state,dir),/Unsafe/);
+ assert.equal(await readFile(external,'utf8'),'preserve');
+ const link=join(dir,'linked');await symlink(dir,link);
+ await assert.rejects(saveStreamHealth(state,link),/Unsafe/);
+});

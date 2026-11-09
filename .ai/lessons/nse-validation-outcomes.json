@@ -1,0 +1,5 @@
+{
+  "lesson": "A completed model review may reject every candidate. Preserve negative results and do not tune against the observed validation window.",
+  "verification": "Independent91,548-event/1,432-fill audit; all five candidates not qualified",
+  "episode": "../episodes/atlas-nonmarket-acceptance-20261026.json"
+}

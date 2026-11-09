@@ -1,0 +1,76 @@
+{
+  "version": 6,
+  "objective_id": "atlas-owner-primary-0940-20261027",
+  "status": "FINAL_MECHANICAL_PUBLICATION",
+  "repo": "/Users/hajihaz/projects/atlas-consolidated-20261026",
+  "branch": "haor/atlas-consolidated-20261026",
+  "pull_request": 52,
+  "progress": 90,
+  "state_authority": ".ai/OWNER_PRIMARY_OBJECTIVE_20261027.json",
+  "publication_head": "Resolve git HEAD and .ai/raw/owner-primary-strategy-20261027/final-code-commit.json",
+  "owner_input_required_now": false,
+  "owner_relay_required": false,
+  "next_action": "Reconcile the final publisher checkpoint, install its verified exact commit, verify the matching preview and updated publication receipt. Then only required hosted CI entitlement recovery and complete independently auditable genuine session remain.",
+  "strategy": "Single ScalpStorm X:09:30Nifty direction;09:40complete-universe top10volume;15:15target exits;one INR100000 virtual account,up toINR10000 whole-share slots;no leverage;paper shorts fully collateralized. Second strategy deferred.",
+  "constraints": [
+    "zero spend;no broker orders",
+    "preserve all old journals and unrelated AGENTS.md",
+    "never reset account or edit frozen src/atlas/paper/scalpstorm_owner.py",
+    "no raw source data or credentials in Git/cloud",
+    "never restart retired five-strategy workers",
+    "production release only after actual required exact-head hosted CI"
+  ],
+  "evidence": {
+    "historical": ".ai/raw/owner-primary-strategy-20261027/historical-independent-audit.json",
+    "forward": ".ai/raw/owner-primary-strategy-20261027/forward-independent-audit.json",
+    "preview": ".ai/raw/owner-primary-strategy-20261027/preview/acceptance.json",
+    "final": ".ai/raw/owner-primary-strategy-20261027/final-acceptance.json",
+    "python": ".ai/raw/owner-primary-strategy-20261027/publisher-final-regression-130.log"
+  },
+  "verified": {
+    "pythonPassed": 794,
+    "pythonSubtestsPassed": 85,
+    "environmentSkips": 10,
+    "postgresSeparatelyPassed": 6,
+    "remainingOptionalEnvironmentSkips": 4,
+    "javascriptPassed": 521,
+    "javascriptFiles": 80,
+    "strictMypyModules": 160,
+    "sourceHistoryCandles": 13900330,
+    "sourceHistoryStocks": 2362,
+    "researchRecordedSessions": 16,
+    "researchCompletedSessions": 13,
+    "researchModeledFills": 258,
+    "researchQualified": false
+  },
+  "genuine_session": {
+    "date": "2026-10-27",
+    "entries": 10,
+    "exits": 5,
+    "unresolvedPositions": 5,
+    "complete": false,
+    "firstSessionFillTimeBooksArchived": false,
+    "accountingAndCapturedRankingReconciled": true,
+    "nextSessionsArchiveInputsBeforeMutation": true
+  },
+  "runtime": {
+    "owner_ui": "http://127.0.0.1:4310/#nse-paper",
+    "workers": "Native source,paper,history,IPO,UI and IPO-only publisher; no ChatGPT turn needed for timed observations",
+    "publisher": "Verified-commit protected, IPO-only; bounded wait for old launchd label before reinstall",
+    "collector": "Read-only provider GETs; paper worker file-only; actual capital0"
+  },
+  "remaining_gates": [
+    "GitHub required hosted jobs stop before executing steps under account spending/quota restriction; verify actual entitlement recovery before a reserved exact-head run",
+    "Five paper positions remain unresolved; first-session books were missing, so genuine full-session acceptance is not achieved",
+    "Longer-period certified strategy history lacks dated universe and complete intraday evidence; daily price charts are separate"
+  ],
+  "automation": "Existing finite Atlas Final Gate Continuation; preserve COUNT8 schedule, no duplicate tasks",
+  "do_not_repeat": [
+    "Completed historical capture/replay/audit",
+    "Unchanged retired five-strategy studies",
+    "Google sign-in for billing",
+    "Disposable PostgreSQL cluster tests; cluster stopped",
+    "Account reset or inferred late fills"
+  ],
+  "test_environment": "Use PYTHONPATH=src and existing Node24 PATH because the shared virtualenv editable package points at another checkout."
+}

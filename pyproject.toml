@@ -31,6 +31,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Free local-only research dependencies; no broker entitlement included.
+integrations = [
+  "duckdb>=1.1,<3",
+  "pytz>=2025.1",
+  "backtrader==1.9.78.123",
+]
 # Batch/dataframe ingestion & validation (kept optional so the core stays lean).
 ingest = [
   "pandas>=2.2,<3.0",
