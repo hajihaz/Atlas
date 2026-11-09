@@ -1,0 +1,26 @@
+{
+  "schema": "atlas.nse-source-receipts.v1",
+  "receipts": [
+    {
+      "id": "nse-holiday-circular-2026",
+      "url": "https://nsearchives.nseindia.com/content/circulars/CMTR71775.pdf",
+      "requested_at": "2026-10-23T00:32:23.987393+00:00",
+      "authentication": "NONE",
+      "method": "GET",
+      "status": 200,
+      "final_url": "https://nsearchives.nseindia.com/content/circulars/CMTR71775.pdf",
+      "bytes": 176256,
+      "sha256": "aa97e0afc0ce394097f2fc62631c68e3c2e4c7c23541ed35f21d9fc06b0dcacb",
+      "headers": {
+        "etag": "W/\"176256-1765522839228\"",
+        "last-modified": "Fri, 12 Dec 2025 07:00:39 GMT",
+        "content-type": "application/pdf",
+        "date": "Fri, 23 Oct 2026 00:32:24 GMT"
+      },
+      "retrieved_at": "2026-10-23T00:32:24.481954+00:00"
+    }
+  ],
+  "requested": 1,
+  "completed": 1,
+  "captureScriptSha256": "6afc90706d6221f23a5b52a10096f9ec2aff25c64ad5e93dc8f6d078fe581d7e"
+}
