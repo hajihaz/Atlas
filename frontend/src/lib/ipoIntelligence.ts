@@ -14,7 +14,7 @@ export type IpoIssue = {
   newsStatus?:string;
   source:string;detailSource:string;bidDeadline:string|null;mandateDeadline:string|null;
   registrar?:string|null;rhpUrl?:string|null;priceJustificationUrl?:string|null;
-  sourceObservedAt?:string|null;sourceStale?:boolean;
+  sourceObservedAt?:string|null;sourceStale?:boolean;sourceKind?:'PUBLISHER_AGGREGATE';subscriptionAsOf?:string|null;
 };
 export type IpoFinancials={
   revenueGrowthPct:number|null;profitMarginPct:number|null;debtEquity:number|null;source:string;asOf:string;
@@ -57,7 +57,7 @@ export function mergePrimaryResearch(issues:IpoIssue[], input:unknown):IpoIssue[
   });
 }
 export type IpoAccuracy = {schemaVersion:1;source:string;license:string;generatedAt:string;totalPublished:number;sourceDirectionAccuracyPct:number|null;sourceAverageAbsoluteErrorPctPoints:number|null;scopeWarning:string;rows:{company:string;board:string;listedOn:string;predictedPct:number;actualPct:number;priceIssue:number|null;priceListing:number|null}[]};
-export type IpoFeed={schemaVersion:1;generatedAt:string|null;sourceName:string;sourceURL:string;coverage:{mainboard:string;sme:string};issues:IpoIssue[];warnings:string[]};
+export type IpoFeed={schemaVersion:1;generatedAt:string|null;sourceName:string;sourceURL:string;coverage:{mainboard:string;sme:string};issues:IpoIssue[];warnings:string[];sourceKind?:'PUBLISHER_AGGREGATE';disclaimer?:string;attributions?:{name:string;url:string}[]};
 export const EMPTY_FEED:IpoFeed={schemaVersion:1,generatedAt:null,sourceName:'NSE',sourceURL:'https://www.nseindia.com/market-data/all-upcoming-issues-ipo',coverage:{mainboard:'Not verified',sme:'Not verified'},issues:[],warnings:[]};
 export function validFeed(value:unknown): value is IpoFeed {
   if(!value||typeof value!=='object')return false;
@@ -93,6 +93,12 @@ export function issueSourceStale(issue:IpoIssue,now=new Date()):boolean {
   return !Number.isFinite(time)|| now.getTime()-time > 180*60000 || time>now.getTime()+60000;
 }
 /** Exchange observations and unofficial GMP must expire independently. */
+export function subscriptionDataFresh(issue:IpoIssue,feedStale:boolean,now=new Date()):boolean{
+ if(!issueDataFresh(issue,feedStale,now))return false;
+ if(issue.sourceKind!=='PUBLISHER_AGGREGATE')return true;
+ const at=Date.parse(issue.subscriptionAsOf||'');
+ return Number.isFinite(at)&&now.getTime()-at<=180*60000&&at<=now.getTime()+60000;
+}
 export function issueDataFresh(issue:IpoIssue,feedStale:boolean,now=new Date()):boolean{
   return !feedStale&&!issueSourceStale(issue,now);
 }
@@ -142,7 +148,7 @@ export function recommendation(i:IpoIssue,stale:boolean,now=new Date()):{label:s
   if(f.investmentDecision==='HOLD_FOR_VALUATION_REVIEW' || f.valuationVerified===false || f.peerComparisonVerified===false){
     return {label:'HOLD — VALUATION REVIEW',reason:'SEBI-filed issuer figures and risk factors are available, but fair valuation and comparable listed peers are not independently verified. Financial growth is not an Apply signal.',score:null,tone:'warning'};
   }
-  if(!f.source||!f.asOf||f.revenueGrowthPct===null||f.profitMarginPct===null||f.debtEquity===null||i.subscription.total===null){
+  if(!f.source||!f.asOf||f.revenueGrowthPct===null||f.profitMarginPct===null||f.debtEquity===null||!subscriptionDataFresh(i,stale,now)||i.subscription.total===null){
     return {label:'INSUFFICIENT EVIDENCE',reason:'Reliable fundamentals or exchange subscription observations are incomplete.',score:null,tone:'warning'};
   }
   // Intentionally conservative: no automated APPLY on incomplete qualitative prospectus evidence.

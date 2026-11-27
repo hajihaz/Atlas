@@ -82,7 +82,7 @@ function SimplePage({page,go}:{page:Exclude<Page,'overview'|'markets'|'live'|'ip
   </section>;
 }
 export default function App(){
-  const [page,setPage]=useState<Page>(window.location.hash==='#ipo'?'ipo':window.location.hash==='#scalpstorm'?'scalpstorm':window.location.hash==='#debate-x'?'debate':'live');
+  const [page,setPage]=useState<Page>(window.location.hash==='#paper'?'orders':window.location.hash==='#ipo'?'ipo':window.location.hash==='#scalpstorm'?'scalpstorm':window.location.hash==='#debate-x'?'debate':'live');
   const [collapsed,setCollapsed]=useState(false);
   const [mobileOpen,setMobileOpen]=useState(false);
   const [notices,setNotices]=useState(false);
@@ -94,7 +94,7 @@ export default function App(){
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content',theme==='light'?'#f7f9fc':'#090f17');
     try{window.localStorage.setItem(THEME_KEY, theme);}catch{/* restricted browser storage */}
   },[theme]);
-  function go(next:Page){if(next==='ipo')window.history.replaceState(null,'','#ipo');else if(next==='debate')window.history.replaceState(null,'','#debate-x');else if(window.location.hash==='#ipo'||window.location.hash==='#debate-x')window.history.replaceState(null,'',window.location.pathname+window.location.search);setPage(next);setMobileOpen(false);setNotices(false);window.scrollTo({top:0,behavior:'auto'});}
+  function go(next:Page){if(next==='orders')window.history.replaceState(null,'','#paper');else if(next==='ipo')window.history.replaceState(null,'','#ipo');else if(next==='debate')window.history.replaceState(null,'','#debate-x');else if(window.location.hash==='#paper'||window.location.hash==='#ipo'||window.location.hash==='#debate-x')window.history.replaceState(null,'',window.location.pathname+window.location.search);setPage(next);setMobileOpen(false);setNotices(false);window.scrollTo({top:0,behavior:'auto'});}
   const label=nav.find(item=>item.id===page)?.title??'Overview';
   return <div className={'app-shell '+(collapsed?'sidebar-collapsed':'')}>
     {mobileOpen&&<button type="button" className="mobile-backdrop" onClick={()=>setMobileOpen(false)} aria-label="Close navigation"/>}

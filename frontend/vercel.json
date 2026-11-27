@@ -2,6 +2,11 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/cloud-paper.json", "destination": "/api/research-snapshot?feed=paper" },
+    { "source": "/cloud-paper-daybook.json", "destination": "/api/research-snapshot?feed=daybook" },
+    { "source": "/ipo-feed.json", "destination": "/api/research-snapshot?feed=ipo" }
+  ],
   "headers": [
     { "source": "/(.*)", "headers": [
       { "key": "X-Content-Type-Options", "value": "nosniff" },
