@@ -72,3 +72,12 @@ test('allotment links use only official exchange and source-identified registrar
   assert.match(unknown[0].url,/^https:\/\/www\.bseindia\.com\//);
   assert.ok([...kfin,...mufg,...unknown].every(link=>!link.url.includes('PAN=')&&!link.url.includes('applicationNo=')));
 });
+
+test('refreshing the publisher calendar cannot refresh an old demand observation',async()=>{
+ const {subscriptionDataFresh}=await import('../src/lib/ipoIntelligence.ts');
+ const now=new Date('2026-11-27T04:00:00Z');
+ const current={sourceKind:'PUBLISHER_AGGREGATE',sourceObservedAt:now.toISOString(),sourceStale:false};
+ assert.equal(subscriptionDataFresh({...current,subscriptionAsOf:'2026-11-26T04:00:00Z'},false,now),false);
+ assert.equal(subscriptionDataFresh({...current,subscriptionAsOf:'2026-11-27T03:50:00Z'},false,now),true);
+ assert.equal(subscriptionDataFresh({...current,subscriptionAsOf:now.toISOString(),sourceStale:true},false,now),false);
+});

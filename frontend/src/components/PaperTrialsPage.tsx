@@ -1,3 +1,4 @@
+import NsePaperAccounts from './NsePaperAccounts';
 import {useState} from 'react';
 import CloudPaperCard from './CloudPaperCard';
 import {Activity,ArrowRight,BookOpenText,Clock3,Play,Pause,RotateCcw,ShieldCheck,Wallet} from 'lucide-react';
@@ -20,11 +21,12 @@ export default function PaperTrialsPage({group,statusMessage,start,pause,resume,
  const resumeReady=group?.sessions.some(s=>s.status!=='running')??false;
  return <section className="paper-forward">
   <div className="sub-page-header"><div className="breadcrumb">ATLAS / FORWARD PAPER SIMULATION</div>
-   <h1>Local paper-trading workspace<span className="period">.</span></h1>
+   <h1>Paper-trading workspace<span className="period">.</span></h1>
    <p>Track virtual strategy positions from new provider observations, with no real-money trading.</p>
   </div>
+  <NsePaperAccounts/>
   <div className="research-topnote"><ShieldCheck size={19}/>
-   <span><strong>Zero real money. No broker connection.</strong> Five independent ₹1,00,000 virtual accounts.
+   <span><strong>Zero real money. No broker connection.</strong> The local crypto trials use five independent ₹1,00,000 virtual accounts.
      Source-candle signals are evaluated only after the bar closes. Orders use the subsequently received public quote as a hypothetical fill.
      This local paper experiment is not externally reconciled.</span></div>
   <CloudPaperCard/>

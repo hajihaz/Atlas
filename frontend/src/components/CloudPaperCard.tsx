@@ -57,7 +57,7 @@ export default function CloudPaperCard(){
    let active=true;const controller=new AbortController();
    const refresh=async()=>{
      try{
-       const r=await fetch('/cloud-paper.json',{cache:'no-store',credentials:'omit',signal:controller.signal});
+       const r=await fetch('/api/research-snapshot?feed=paper',{cache:'no-store',credentials:'omit',signal:controller.signal});
        if(!r.ok)throw Error('Published cloud report unavailable');
        const d=await r.json() as Report;
        if(d.schema!==1||d.mode!=='SCHEDULED_VIRTUAL_PAPER'||d.currency!=='INR'
@@ -105,10 +105,9 @@ export default function CloudPaperCard(){
    :comparison;
  return <section className="panel cloud-paper-card" aria-label="Scheduled server-side virtual paper trading">
   <div className="research-detail-title">
-   <div><div className="heading-kicker"><Cloud size={15}/> SCHEDULED GITHUB PAPER RUNNER</div>
-    <h2>Cloud paper monitor</h2>
-    <p>Designed for best-effort GitHub checkpoints while Atlas and your Mac are closed.
-      Runs can be delayed or skipped; not tick-by-tick trading.</p></div>
+   <div><div className="heading-kicker"><Cloud size={15}/> PUBLIC CRYPTO PAPER RECORD</div>
+    <h2>Crypto paper checkpoints</h2>
+    <p>Historical virtual balances from the public two-hour crypto runner.</p></div>
     <span className="research-tag"><ShieldCheck size={14}/> Virtual only</span>
   </div>
   {loading?<div className="research-status">Checking published paper state…</div>:
