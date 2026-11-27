@@ -1,6 +1,6 @@
 {
   "framework": "vite",
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run build && rm -f dist/ipo-feed.json dist/cloud-paper.json dist/cloud-paper-daybook.json",
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/cloud-paper.json", "destination": "/api/research-snapshot?feed=paper" },
