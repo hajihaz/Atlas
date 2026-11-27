@@ -1,3 +1,4 @@
+import {nseDayClosure} from '../../../frontend/lib/nse-regular-day.js';
 /* Atlas independent free-tier cloud paper worker. NEVER routes real orders. */
 import {collectMisSnapshot,collectWatchedQuotes,verifyAnalyticsFeed,verifyMisSourceReachability,homeMarketQuotes} from './upstox-feed.js';
 import {archiveHistoryPilot,readHistoryPilot} from './upstox-history-pilot.js';
@@ -7,7 +8,7 @@ import {catalog as sevenStrategyCatalog} from './seven-strategy-replay.js';
 import {readIntradayStrategyReplay,readMarketReplay} from './strategy-replay-reader.js';
 import {archiveTopVolumeStep,readTopVolumeHistory,topVolumeRoster} from './top-volume-history.js';
 import {archiveLiveMisIdentity} from './mis-identity-archive.js';
-import {captureLiveMinute,captureOpeningSeed,readLiveMinuteStatus} from './live-minute-capture.js';
+import {captureScheduledMinute,captureOpeningSeed,readLiveMinuteStatus} from './live-minute-capture.js';
 import {archiveSupplemental,probeSupplemental} from './supplemental-sources.js';
 import {collectGiftOpening,collectXtremeContext,probeExtraSource} from './forward-context.js';
 import {EXTRA_INTRADAY} from './forward-extra.js';
@@ -37,7 +38,7 @@ const rows=(db,sql,...args)=>db.prepare(sql).bind(...args).all().then(r=>r.resul
 const log=(db,now,type,message)=>db.prepare('INSERT INTO events(observed_ms,type,message) VALUES(?,?,?)').bind(now,type,message.slice(0,290));
 const dateStr=ms=>new Date(ms).toISOString();
 function ist(ms){const parts=Object.fromEntries(IST_FORMATTER.formatToParts(ms).filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));return {day:`${parts.year}-${parts.month}-${parts.day}`,minute:Number(parts.hour)*60+Number(parts.minute),weekday:!['Sat','Sun'].includes(parts.weekday)};}
-function session(ms){const x=ist(ms);return x.weekday&&x.minute>=555&&x.minute<930;}
+function session(ms){const x=ist(ms);return !nseDayClosure(x.day,!x.weekday)&&x.minute>=555&&x.minute<930;}
 function parseDate(text){if(typeof text!=='string'||!/^\d{4}-\d\d-\d\dT/.test(text)||!/(Z|[+-]\d\d:\d\d)$/.test(text))throw Error('timezone required');const x=Date.parse(text);if(!Number.isFinite(x))throw Error('invalid timestamp');return x;}
 function authorized(req,token){if(typeof token!=='string'||token.length<32)return false;const a=new TextEncoder().encode(req.headers.get('Authorization')||''),b=new TextEncoder().encode('Bearer '+token);if(a.length!==b.length)return false;let n=0;for(let i=0;i<a.length;i++)n|=a[i]^b[i];return n===0;}
 async function readBody(req){if(req.headers.get('content-type')?.split(';')[0]!=='application/json')throw Error('JSON content-type required');const text=await req.text();if(text.length>2000000)throw Error('body too large');const payload=JSON.parse(text);if(!payload||typeof payload!=='object'||Array.isArray(payload))throw Error('invalid JSON object');return payload;}
@@ -449,9 +450,12 @@ export default {
  console.error('paper worker error:',e?.name);return reply({error:'PAPER_SERVICE_UNAVAILABLE'},503);}
  },
   async scheduled(event,env,ctx){ctx.waitUntil((async()=>{
+   // The reference collector can archive the previous session on a closed day.
+   const scheduledDay=ist(event.scheduledTime);
+   if(event.cron!=='0-6 2,3 * * 1-5' && nseDayClosure(scheduledDay.day,!scheduledDay.weekday))return;
    if(event.cron==='1-56/5,45 4-9 * * 1-5'||event.cron==='1-56/5 4-9 * * 1-5'){
     if(ist(event.scheduledTime).minute===581||ist(event.scheduledTime).minute===915){
-     try{await captureLiveMinute(env)}catch(e){const d=safeDiagnostic(e);console.error('read-only first live minute unavailable:',d.type,d.message)}
+     try{await captureScheduledMinute(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only first live minute unavailable:',d.type,d.message)}
     }else if(ist(event.scheduledTime).minute%5===1&&ist(event.scheduledTime).minute>=596&&ist(event.scheduledTime).minute<=906)try{await runForwardX(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only forward X signal unavailable:',d.type,d.message)}
     return;
    }
@@ -495,11 +499,21 @@ export default {
    if(session(actualNow)&&minute>=556&&minute<=569){try{await runPeriodForward(env,ist(actualNow).day,actualNow);}catch(e){const d=safeDiagnostic(e);console.error('period decision unavailable:',d.type,d.message)}}
    // Give intraday 15:15 liquidation first claim on Free-plan CPU.
    if(session(actualNow)&&minute>=885&&minute<=929){
-    try{await tickAllForward(env,actualNow)}catch(e){const d=safeDiagnostic(e);console.error('seven paper risk exit unavailable:',d.type,d.message)}
+    try{
+     const outcome=await tickAllForward(env,actualNow);
+     if(minute===915){
+      const counts=outcome.results.map(r=>[r.strategyId,r.status,r.fills||0,r.exits||0]);
+      console.log('scheduled paper exit reconciliation',JSON.stringify({scheduledTime:event.scheduledTime,results:counts}));
+      await log(env.DB,Date.now(),'SCHEDULED_EXIT_CHECK', JSON.stringify({
+       scheduledTime:event.scheduledTime, fills:outcome.results.reduce((n,r)=>n+(r.fills||0),0),
+       errors:outcome.results.filter(r=>r.status==='ERROR').length
+      })).run();
+     }
+    }catch(e){const d=safeDiagnostic(e);console.error('seven paper risk exit unavailable:',d.type,d.message)}
    }
    // Capture before legacy work, using the actual request time rather than an older Cron timestamp.
    if(session(actualNow)&&minute>=582&&minute<=915){
-    try{await captureLiveMinute(env)}catch(e){const d=safeDiagnostic(e);console.error('read-only live minute receipt unavailable:',d.type,d.message);
+    try{await captureScheduledMinute(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only live minute receipt unavailable:',d.type,d.message);
      try{await log(env.DB,Date.now(),'LIVE_MINUTE_CAPTURE_FAILED',d.message).run()}catch{ /* Console keeps the original diagnostic if D1 is unavailable. */ }
     }
    }

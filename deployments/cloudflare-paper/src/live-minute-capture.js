@@ -18,9 +18,20 @@ export function normalizeCompletedBars(payload,top,now){
  const bars=[];
  for(const stock of top){
   const b=byKey.get(stock.instrument_key);
-  if(!b||b.ts!==expected||![b.open,b.high,b.low,b.close,b.volume].every(Number.isFinite)||
-   b.open<=0||b.high<Math.max(b.open,b.close)||b.low>Math.min(b.open,b.close)||
-   b.volume<0||!Number.isSafeInteger(b.volume))fail('stale or invalid completed bar');
+  const reject = field => {
+   const stamp = Number.isSafeInteger(b?.ts) ? b.ts : 'missing';
+   const detail = 'stale or invalid completed bar '+stock.symbol+' '+field+' expected '+expected+' got '+stamp;
+   const error = new Error('LIVE_MINUTE_BLOCKED: '+detail);
+   error.atlasDiagnostic = 'live minute '+detail;
+   error.retryableBar = true;
+   throw error;
+  };
+  if (!b || b.ts !== expected) reject('timestamp');
+  if (![b.open,b.high,b.low,b.close].every(value => Number.isFinite(value) && value > 0))
+   reject('price');
+  if (b.high < Math.max(b.open,b.close,b.low) || b.low > Math.min(b.open,b.close,b.high))
+   reject('range');
+  if (!Number.isSafeInteger(b.volume) || b.volume < 0) reject('volume');
   bars.push([stock.symbol,stock.instrument_key,b.open,b.high,b.low,b.close,b.volume]);
  }
  if(byKey.size!==bars.length)fail('source roster mismatch');
@@ -49,11 +60,13 @@ async function readTopRoster(env,day,now){
  return top;
 }
 
-export async function captureLiveMinute(env,now=Date.now(),fetcher=fetch,clock=()=>Date.now()){
- const minute=minuteOf(now),day=dayOf(now);
+export async function captureLiveMinute(env,now=Date.now(),fetcher=fetch,clock=()=>Date.now(),scheduledTime=now){
+ const minute=minuteOf(scheduledTime),day=dayOf(scheduledTime);
  if(minute<581||minute>915)return {status:'OUTSIDE_WINDOW'};
+ const slot=scheduledTime-scheduledTime%60000;
+ if(now<slot||now>=slot+60000)fail('scheduled minute expired');
  if(!env.HISTORY_DB||!env.DB||typeof env.UPSTOX_ANALYTICS_TOKEN!=='string'||env.UPSTOX_ANALYTICS_TOKEN.length<100)fail('private archive or read only source unavailable');
- const barMs=now-now%60000-60000,db=env.HISTORY_DB;
+ const barMs=slot-60000,db=env.HISTORY_DB;
  const top=await readTopRoster(env,day,now),keys=top.map(x=>x.instrument_key);
  const u=new URL(SOURCE_URL);u.searchParams.set('instrument_key',keys.join(','));u.searchParams.set('interval','I1');
  const requestUrl=u.toString();
@@ -68,13 +81,32 @@ export async function captureLiveMinute(env,now=Date.now(),fetcher=fetch,clock=(
  if(!res.ok||res.redirected||Number(res.headers.get('content-length'))>30000)fail('official source HTTP or size');
  const raw=await res.text();if(raw.length>30000)fail('official source body too large');
  let payload;try{payload=JSON.parse(raw)}catch{fail('invalid official source JSON')}
- const known=clock();if(dayOf(known)!==day||known<barMs+60000||known-now>10000||now-known>10000)fail('source receipt outside minute');
+ const known=clock();if(dayOf(known)!==day||known<slot||known>=slot+60000||known-now>10000||now-known>10000)fail('source receipt outside minute');
  const normalized=normalizeCompletedBars(payload,top,now),barsJson=JSON.stringify(normalized.bars),sha256=await digest(new TextEncoder().encode(barsJson));
  await db.prepare('INSERT OR IGNORE INTO live_minute_receipts(source_date,bar_ms,known_at_ms,source_url,body_sha256,bars_json) VALUES(?,?,?,?,?,?)')
   .bind(day,barMs,known,requestUrl,sha256,barsJson).run();
  const saved=await db.prepare('SELECT bar_ms,known_at_ms,source_url,body_sha256,bars_json FROM live_minute_receipts WHERE source_date=? AND bar_ms=?').bind(day,barMs).first();
- if(!saved||saved.bar_ms!==barMs||saved.known_at_ms!==known||saved.source_url!==requestUrl||saved.body_sha256!==sha256||saved.bars_json!==barsJson)fail('concurrent or changed receipt');
+ if(!saved||saved.bar_ms!==barMs||saved.known_at_ms<slot||saved.known_at_ms>=slot+60000||saved.source_url!==requestUrl||saved.body_sha256!==sha256||saved.bars_json!==barsJson)fail('concurrent or changed receipt');
  return {status:'CAPTURED',sourceDate:day,barMs,stocks:10,sha256};
+}
+
+// Pin retries to the originally scheduled bar. Arrival after the next minute cannot count.
+export async function captureScheduledMinute(env, scheduledTime, {
+ capture = captureLiveMinute, clock = Date.now, fetcher = fetch,
+ sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+} = {}) {
+ const slot = scheduledTime - scheduledTime % 60000;
+ try {
+  return await capture(env, clock(), fetcher, clock, slot);
+ } catch (error) {
+  if (!error.retryableBar || minuteOf(slot) !== 915) throw error;
+  const remaining = slot + 60000 - clock();
+  const wait = Math.min(12000, remaining - 9000);
+  if (wait <= 0) throw error;
+  console.warn('Retrying final live minute', error.atlasDiagnostic);
+  await sleep(wait);
+  return capture(env, clock(), fetcher, clock, slot);
+ }
 }
 
 export async function readLiveMinuteStatus(env,day){

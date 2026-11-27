@@ -1,3 +1,4 @@
+import {nseDayClosure} from '../lib/nse-regular-day.js';
 // INR-only read-only market observations. Prices are provider references, not executable fills.
 const PAIRS = Object.freeze([
   { symbol: 'BTC/INR', path: 'BTC-INR', label: 'Bitcoin' },
@@ -5,11 +6,6 @@ const PAIRS = Object.freeze([
 ]);
 const NSE_SYMBOLS = Object.freeze(['RELIANCE', 'TCS', 'INFY']);
 const COINBASE = 'https://api.coinbase.com/v2/prices/';
-const NSE_2026_HOLIDAYS = new Set([
-  '2026-01-15','2026-01-26','2026-03-03','2026-03-26','2026-03-31',
-  '2026-04-03','2026-04-14','2026-05-01','2026-05-28','2026-06-26',
-  '2026-09-14','2026-10-02','2026-10-20','2026-11-10','2026-11-24','2026-12-25',
-]);
 let saved = null;
 let savedUntil = 0;
 
@@ -25,9 +21,8 @@ export function nseSessionAt(timestampMs) {
   const minute = Number(parts.hour) * 60 + Number(parts.minute);
   const weekend = parts.weekday === 'Sat' || parts.weekday === 'Sun';
   let phase = 'closed';
-  if (weekend) phase = 'weekend';
-  else if (parts.year !== '2026') phase = 'calendar_unverified';
-  else if (NSE_2026_HOLIDAYS.has(day)) phase = 'scheduled_holiday';
+  const closure = nseDayClosure(day, weekend);
+  if (closure) phase = closure;
   else if (minute < 540) phase = 'before_preopen';
   else if (minute < 555) phase = 'preopen';
   else if (minute < 930) phase = 'scheduled_regular_hours';

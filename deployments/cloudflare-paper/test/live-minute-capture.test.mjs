@@ -86,3 +86,43 @@ test('final 15:14 bar has a dedicated 15:15 invocation independent of risk settl
   assert.equal(gets,1);assert.equal(saved.bar_ms,Date.parse(day+'T09:44:00Z'));assert.equal(saved.known_at_ms,received);
  }finally{globalThis.fetch=originalFetch;Date.now=originalNow;}
 });
+
+test('holiday skips all scheduled market jobs before accessing providers or ledgers', async () => {
+ const {default:worker}=await import('../src/index.js');
+ const env=new Proxy({}, {get(){throw new Error('holiday accessed a binding')}});
+ for(const cron of ['* * * * *','1-56/5,45 4-9 * * 1-5','0-9,12-21 4,11,12,13 * * 1-5']){
+  const tasks=[];
+  let accessed=false;
+  const observed=new Proxy(env,{get(){accessed=true;throw new Error('holiday touched a binding');}});
+  await worker.scheduled({cron,scheduledTime:Date.parse('2026-11-24T09:45:00Z')},observed,{waitUntil:p=>tasks.push(p)});
+  await Promise.all(tasks);
+  assert.equal(accessed,false);
+ }
+});
+
+test('retry pins final bar, preserves observed time, and stops at the minute boundary',async()=>{
+ const {captureScheduledMinute}=await import('../src/live-minute-capture.js');
+ const slot=Date.parse('2026-11-26T09:45:00Z');
+ const error=Object.assign(new Error('provider timestamp'),{retryableBar:true,atlasDiagnostic:'test timestamp mismatch'});
+ let time=slot+36000;
+ const seen=[];
+ const result=await captureScheduledMinute({},slot,{
+  clock:()=>time,sleep:async ms=>{time+=ms},capture:async(_env,now,_fetch,_clock,target)=>{
+   seen.push([now,target]);
+   if(seen.length===1)throw error;
+   return {status:'CAPTURED'};
+  }
+ });
+ assert.equal(result.status,'CAPTURED');
+ assert.deepEqual(seen,[[slot+36000,slot],[slot+48000,slot]]);
+ let calls=0;
+ await assert.rejects(captureScheduledMinute({},slot,{clock:()=>slot+55000,capture:async()=>{calls++;throw error},sleep:()=>assert.fail('late retry')}),/provider timestamp/);
+ assert.equal(calls,1);
+ await assert.rejects(captureLiveMinute({},slot+60000,fetch,()=>slot+60000,slot),/scheduled minute expired/);
+});
+
+test('invalid bar identifies the symbol, expected timestamp, and invalid field',()=>{
+ const data=payload();
+ data.data.S3.prev_ohlc.ts-=60000;
+ assert.throws(()=>normalizeCompletedBars(data,top,now),error=>error.retryableBar&&error.atlasDiagnostic.includes('S3 timestamp expected '+barMs+' got '+(barMs-60000)));
+});
