@@ -99,11 +99,11 @@ export async function captureScheduledMinute(env, scheduledTime, {
  try {
   return await capture(env, clock(), fetcher, clock, slot);
  } catch (error) {
-  if (!error.retryableBar || minuteOf(slot) !== 915) throw error;
+  if (!error.retryableBar || ![581,915].includes(minuteOf(slot))) throw error;
   const remaining = slot + 60000 - clock();
   const wait = Math.min(12000, remaining - 9000);
   if (wait <= 0) throw error;
-  console.warn('Retrying final live minute', error.atlasDiagnostic);
+  console.warn('Retrying boundary live minute', error.atlasDiagnostic);
   await sleep(wait);
   return capture(env, clock(), fetcher, clock, slot);
  }

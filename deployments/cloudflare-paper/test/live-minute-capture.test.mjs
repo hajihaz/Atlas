@@ -100,9 +100,9 @@ test('holiday skips all scheduled market jobs before accessing providers or ledg
  }
 });
 
-test('retry pins final bar, preserves observed time, and stops at the minute boundary',async()=>{
+for(const boundary of ['04:11','09:45'])test('retry pins '+boundary+' UTC bar and stops at the minute boundary',async()=>{
  const {captureScheduledMinute}=await import('../src/live-minute-capture.js');
- const slot=Date.parse('2026-11-26T09:45:00Z');
+ const slot=Date.parse('2026-11-26T'+boundary+':00Z');
  const error=Object.assign(new Error('provider timestamp'),{retryableBar:true,atlasDiagnostic:'test timestamp mismatch'});
  let time=slot+36000;
  const seen=[];
@@ -125,4 +125,22 @@ test('invalid bar identifies the symbol, expected timestamp, and invalid field',
  const data=payload();
  data.data.S3.prev_ohlc.ts-=60000;
  assert.throws(()=>normalizeCompletedBars(data,top,now),error=>error.retryableBar&&error.atlasDiagnostic.includes('S3 timestamp expected '+barMs+' got '+(barMs-60000)));
+});
+
+test('every-minute cron attempts the first capture when the dedicated cron is absent',async()=>{
+ const {default:worker}=await import('../src/index.js');
+ const scheduled=Date.parse(day+'T04:11:00Z');
+ const originalNow=Date.now;
+ const queries=[];
+ const db={prepare(sql){queries.push(sql);throw new Error('fixture ends at archive access')}};
+ try{
+  Date.now=()=>scheduled+15000;
+  const tasks=[];
+  worker.scheduled({cron:'* * * * *',scheduledTime:scheduled},
+   {HISTORY_DB:db,DB:db,UPSTOX_ANALYTICS_TOKEN:'x'.repeat(101)},
+   {waitUntil:p=>tasks.push(p)});
+  await Promise.all(tasks);
+  assert.ok(queries.some(q=>q.includes('FROM live_top_roster')));
+  assert.ok(queries.some(q=>q.includes('INSERT INTO events')));
+ }finally{Date.now=originalNow}
 });

@@ -379,6 +379,17 @@ function safeDiagnostic(error){
  const safe=/^[A-Za-z0-9][A-Za-z0-9 ,.<>=-]{0,119}$/.test(detail)?detail:'[unclassified]';
  return {type,message:safe};
 }
+async function captureMinuteWithDiagnostic(env,scheduledTime){
+ try{
+  await captureScheduledMinute(env,scheduledTime);
+ }catch(error){
+  const diagnostic=safeDiagnostic(error);
+  console.error('read-only live minute receipt unavailable:',diagnostic.type,diagnostic.message);
+  try{
+   await log(env.DB,Date.now(),'LIVE_MINUTE_CAPTURE_FAILED',diagnostic.message).run();
+  }catch{ /* The invocation log still contains the diagnostic. */ }
+ }
+}
 export const testing={ist,session,parseDate,tick,schedule,ingest,overview,daybook,dataAvailability,strategyPhases,fill,sourceTick,safeDiagnostic};
 export default {
  async fetch(req,env){const path=new URL(req.url).pathname,now=Date.now();if(path==='/healthz')return reply({mode:'PAPER_ONLY',service:'atlas-free-cloud-paper',
@@ -455,7 +466,7 @@ export default {
    if(event.cron!=='0-6 2,3 * * 1-5' && nseDayClosure(scheduledDay.day,!scheduledDay.weekday))return;
    if(event.cron==='1-56/5,45 4-9 * * 1-5'||event.cron==='1-56/5 4-9 * * 1-5'){
     if(ist(event.scheduledTime).minute===581||ist(event.scheduledTime).minute===915){
-     try{await captureScheduledMinute(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only first live minute unavailable:',d.type,d.message)}
+     await captureMinuteWithDiagnostic(env,event.scheduledTime);
     }else if(ist(event.scheduledTime).minute%5===1&&ist(event.scheduledTime).minute>=596&&ist(event.scheduledTime).minute<=906)try{await runForwardX(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only forward X signal unavailable:',d.type,d.message)}
     return;
    }
@@ -512,10 +523,8 @@ export default {
     }catch(e){const d=safeDiagnostic(e);console.error('seven paper risk exit unavailable:',d.type,d.message)}
    }
    // Capture before legacy work, using the actual request time rather than an older Cron timestamp.
-   if(session(actualNow)&&minute>=582&&minute<=915){
-    try{await captureScheduledMinute(env,event.scheduledTime)}catch(e){const d=safeDiagnostic(e);console.error('read-only live minute receipt unavailable:',d.type,d.message);
-     try{await log(env.DB,Date.now(),'LIVE_MINUTE_CAPTURE_FAILED',d.message).run()}catch{ /* Console keeps the original diagnostic if D1 is unavailable. */ }
-    }
+   if(session(actualNow)&&minute>=581&&minute<=915){
+    await captureMinuteWithDiagnostic(env,event.scheduledTime);
    }
    if(session(actualNow)&&(minute===584||minute>=604&&minute%15===4)&&minute<885){try{await archiveSupplemental(env,'news',ist(actualNow).day);}catch(e){const d=safeDiagnostic(e);console.error('news candidate receipt unavailable:',d.type,d.message)}}
    try{await sourceTick(env);}catch(e){const d=safeDiagnostic(e);console.error('read-only Upstox feed unavailable:',d.type,d.message)}
