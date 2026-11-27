@@ -58,3 +58,19 @@ test('missing one completed minute records SKIPPED with no invented signal',asyn
  const result=await runForwardX(f.env,scheduled,()=>scheduled+5000);
  assert.equal(result.status,'SKIPPED');assert.equal((await readForwardX(f.env,day)).decisions.length,0);
 });
+
+test('minute heartbeat evaluates an absent current window and preserves an existing journal',async()=>{
+ const {testing}=await import('../src/index.js');
+ const f=await fixture(), original=Date.now;
+ try{
+  Date.now=()=>scheduled+5000;
+  await testing.evaluateMissingForwardWindow(f.env,scheduled,Date.now());
+  const count=()=>f.sql.prepare('SELECT COUNT(*) AS n FROM live_x_decisions').get().n;
+  assert.equal(count(),10);
+  await testing.evaluateMissingForwardWindow(f.env,scheduled,Date.now());
+  assert.equal(count(),10);
+  const unavailable={get HISTORY_DB(){throw Error('unexpected obsolete slot read')}};
+  await testing.evaluateMissingForwardWindow(unavailable,scheduled,scheduled+60000);
+  await testing.evaluateMissingForwardWindow(unavailable,scheduled+60000,scheduled+61000);
+ }finally{Date.now=original;}
+});

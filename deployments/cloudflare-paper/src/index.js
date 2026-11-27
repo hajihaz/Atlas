@@ -390,7 +390,17 @@ async function captureMinuteWithDiagnostic(env,scheduledTime){
   }catch{ /* The invocation log still contains the diagnostic. */ }
  }
 }
-export const testing={ist,session,parseDate,tick,schedule,ingest,overview,daybook,dataAvailability,strategyPhases,fill,sourceTick,safeDiagnostic};
+async function evaluateMissingForwardWindow(env, scheduledTime, now){
+ const slot=ist(scheduledTime);
+ if(slot.minute<596 || slot.minute>906 || slot.minute%5!==1 ||
+    Math.floor(now/60000)!==Math.floor(scheduledTime/60000))return;
+ const windowEnd=scheduledTime-scheduledTime%60000-120000;
+ const existing=await env.HISTORY_DB.prepare(
+  'SELECT status FROM live_x_runs WHERE source_date=? AND window_end_ms=?'
+ ).bind(slot.day,windowEnd).first();
+ if(!existing)await runForwardX(env,scheduledTime);
+}
+export const testing={evaluateMissingForwardWindow,ist,session,parseDate,tick,schedule,ingest,overview,daybook,dataAvailability,strategyPhases,fill,sourceTick,safeDiagnostic};
 export default {
  async fetch(req,env){const path=new URL(req.url).pathname,now=Date.now();if(path==='/healthz')return reply({mode:'PAPER_ONLY',service:'atlas-free-cloud-paper',
  realOrdersEnabled:false,backendConnected:Boolean(env.DB),
@@ -525,6 +535,14 @@ export default {
    // Capture before legacy work, using the actual request time rather than an older Cron timestamp.
    if(session(actualNow)&&minute>=581&&minute<=915){
     await captureMinuteWithDiagnostic(env,event.scheduledTime);
+   }
+   if(event.cron==='* * * * *' && session(actualNow)){
+    try{await evaluateMissingForwardWindow(env,event.scheduledTime,Date.now())}
+    catch(e){
+     const d=safeDiagnostic(e);
+     console.error('scheduled decision fallback unavailable:',d.type,d.message);
+     try{await log(env.DB,Date.now(),'FORWARD_WINDOW_CHECK_FAILED',d.message).run()}catch{}
+    }
    }
    if(session(actualNow)&&(minute===584||minute>=604&&minute%15===4)&&minute<885){try{await archiveSupplemental(env,'news',ist(actualNow).day);}catch(e){const d=safeDiagnostic(e);console.error('news candidate receipt unavailable:',d.type,d.message)}}
    try{await sourceTick(env);}catch(e){const d=safeDiagnostic(e);console.error('read-only Upstox feed unavailable:',d.type,d.message)}
